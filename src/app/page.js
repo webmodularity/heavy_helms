@@ -1,6 +1,7 @@
 'use client'
 
 import Link from "next/link"
+import { useRouter } from 'next/navigation'
 import Image from "next/image"
 import { useState, useEffect } from 'react'
 import CharacterCard from '../components/CharacterCard'
@@ -54,6 +55,7 @@ const characters = [
 ];
 
 export default function Home() {
+  const router = useRouter();
   const [selectedPlayerId, setSelectedPlayerId] = useState(null);
 
   useEffect(() => {
@@ -73,6 +75,23 @@ export default function Home() {
 
   const handleSelect = (isSelected, character) => {
     setSelectedPlayerId(isSelected ? character.playerId : null);
+  };
+
+  const handlePlayClick = (e) => {
+    e.preventDefault();
+    if (selectedPlayerId === null) {
+      return;
+    }
+    
+    // Generate random opponent ID between 1 and 7
+    let randomOpponentId = Math.floor(Math.random() * 7) + 1;
+    // Reroll if we get the same ID as player 1
+    while (randomOpponentId.toString() === selectedPlayerId) {
+      randomOpponentId = Math.floor(Math.random() * 7) + 1;
+    }
+    
+    // Navigate programmatically
+    router.push(`/game?player1Id=${selectedPlayerId}&player2Id=${randomOpponentId}`);
   };
 
   return (
@@ -121,21 +140,17 @@ export default function Home() {
 
           {/* Play Game Button */}
           <div className="flex justify-center">
-            <Link 
-              href={selectedPlayerId !== null ? `/game?player1Id=${selectedPlayerId}&player2Id=7` : '#'}
+            <button 
               className={`play-game-button px-6 py-3 rounded-full text-center text-lg transition-all ${
                 selectedPlayerId !== null 
                   ? 'bg-foreground text-background hover:bg-[#383838] cursor-pointer' 
                   : 'bg-gray-400 text-gray-200 cursor-not-allowed'
               }`}
-              onClick={(e) => {
-                if (selectedPlayerId === null) {
-                  e.preventDefault();
-                }
-              }}
+              onClick={handlePlayClick}
+              disabled={selectedPlayerId === null}
             >
               {selectedPlayerId !== null ? 'Play Game' : 'Select a Character'}
-            </Link>
+            </button>
           </div>
         </div>
       </div>
