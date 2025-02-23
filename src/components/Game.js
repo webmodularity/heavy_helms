@@ -26,13 +26,15 @@ export default function Game() {
         scale: {
           mode: Phaser.Scale.FIT,
           autoCenter: Phaser.Scale.CENTER_BOTH,
+          width: 960,
+          height: 540,
           min: {
-            width: 960,
-            height: 540
+            width: 320,
+            height: 180
           },
           max: {
-            width: 960,
-            height: 540
+            width: 1920,
+            height: 1080
           }
         },
         render: {
