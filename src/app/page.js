@@ -76,7 +76,7 @@ export default function Home() {
   };
 
   return (
-    <div className="fixed inset-0 flex flex-col">
+    <div className="min-h-screen w-full overflow-y-auto">
       {/* Background with reduced opacity */}
       <div className="fixed inset-0 z-0">
         <Image
@@ -89,9 +89,9 @@ export default function Home() {
       </div>
 
       {/* Content */}
-      <div className="relative z-10 flex flex-col min-h-screen">
+      <div className="relative z-10">
         {/* Header */}
-        <header className="w-full flex justify-center">
+        <header className="w-full flex justify-center p-4">
           <div className="w-full max-w-[960px]">
             <Image
               src="/hh_header5_no_bkg_small.png"
@@ -104,41 +104,40 @@ export default function Home() {
           </div>
         </header>
 
-        <main className="flex flex-col items-center justify-center p-24">
-          <div className="space-y-8 w-full">
-            <div className="flex justify-center">
-              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 max-w-fit">
-                {characters.map((character, index) => (
-                  <div key={index} className="character-card min-w-[320px]">
-                    <CharacterCard 
-                      {...character}
-                      isSelected={selectedPlayerId === character.playerId}
-                      onSelect={(isSelected) => handleSelect(isSelected, character)}
-                    />
-                  </div>
-                ))}
+        {/* Main Content */}
+        <div className="container mx-auto px-4 pb-8">
+          {/* Character Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 mb-8">
+            {characters.map((character, index) => (
+              <div key={index} className="character-card flex justify-center">
+                <CharacterCard 
+                  {...character}
+                  isSelected={selectedPlayerId === character.playerId}
+                  onSelect={(isSelected) => handleSelect(isSelected, character)}
+                />
               </div>
-            </div>
-
-            <div className="flex justify-center">
-              <Link 
-                href={selectedPlayerId !== null ? `/game?player1Id=${selectedPlayerId}&player2Id=7` : '#'}
-                className={`play-game-button px-6 py-3 rounded-full text-center text-lg transition-all ${
-                  selectedPlayerId !== null 
-                    ? 'bg-foreground text-background hover:bg-[#383838] cursor-pointer' 
-                    : 'bg-gray-400 text-gray-200 cursor-not-allowed'
-                }`}
-                onClick={(e) => {
-                  if (selectedPlayerId === null) {
-                    e.preventDefault();
-                  }
-                }}
-              >
-                {selectedPlayerId !== null ? 'Play Game' : 'Select a Character'}
-              </Link>
-            </div>
+            ))}
           </div>
-        </main>
+
+          {/* Play Game Button */}
+          <div className="flex justify-center">
+            <Link 
+              href={selectedPlayerId !== null ? `/game?player1Id=${selectedPlayerId}&player2Id=7` : '#'}
+              className={`play-game-button px-6 py-3 rounded-full text-center text-lg transition-all ${
+                selectedPlayerId !== null 
+                  ? 'bg-foreground text-background hover:bg-[#383838] cursor-pointer' 
+                  : 'bg-gray-400 text-gray-200 cursor-not-allowed'
+              }`}
+              onClick={(e) => {
+                if (selectedPlayerId === null) {
+                  e.preventDefault();
+                }
+              }}
+            >
+              {selectedPlayerId !== null ? 'Play Game' : 'Select a Character'}
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   )
