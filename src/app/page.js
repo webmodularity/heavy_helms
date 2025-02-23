@@ -97,13 +97,12 @@ export default function Home() {
   return (
     <div className="min-h-screen w-full overflow-y-auto">
       {/* Background with reduced opacity */}
-      <div className="fixed inset-0 z-0">
-        <div className="absolute inset-0 bg-black opacity-75"></div>
+      <div className="fixed inset-0 z-0 bg-slate-900">
         <Image
           src="/parchment_bkg6.jpg"
           alt="Background"
           fill
-          className="object-cover opacity-25 mix-blend-overlay object-top"
+          className="object-cover opacity-30 object-top"
           priority
         />
       </div>
