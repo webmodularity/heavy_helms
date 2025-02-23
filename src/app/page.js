@@ -97,7 +97,7 @@ export default function Home() {
   return (
     <div className="min-h-screen w-full overflow-y-auto">
       {/* Background with reduced opacity */}
-      <div className="fixed inset-0 z-0 bg-slate-900">
+      <div className="fixed inset-0 z-0">
         <Image
           src="/parchment_bkg6.jpg"
           alt="Background"
