@@ -34,7 +34,7 @@ export default function GamePage() {
         <header className="w-full flex justify-center p-4">
           <div className="w-full max-w-[960px]">
             <Image
-              src="/hh_header5_no_bkg_small.png"
+              src="/heavy_helms_header_drop_shadow.png"
               alt="Heavy Helms Header"
               width={960}
               height={320}
@@ -54,12 +54,17 @@ export default function GamePage() {
         </main>
 
         {/* Game Controls */}
-        <footer className="p-4 flex justify-center gap-4">
+        <footer className="p-4 pt-16 flex justify-center gap-4">
           <Link 
             href="/"
-            className="px-4 py-2 rounded-full bg-foreground text-background hover:bg-[#383838] dark:hover:bg-[#ccc]"
+            className="relative px-12 py-4 text-center text-xl font-bokor transition-all
+              bg-[url('/ui/Button_RL_Background.png')] hover:bg-[url('/ui/Button_RL_Hover.png')] 
+              bg-[length:100%_100%] bg-no-repeat bg-center min-w-[300px]
+              cursor-pointer hover:scale-[1.02] group"
           >
-            Back to Menu
+            <span className="relative text-stone-100 group-hover:text-white drop-shadow-[0_2px_1px_rgba(0,0,0,0.5)]">
+              Back to Menu
+            </span>
           </Link>
         </footer>
       </div>

@@ -113,7 +113,7 @@ export default function Home() {
         <header className="w-full flex justify-center p-4">
           <div className="w-full max-w-[960px]">
             <Image
-              src="/hh_header5_no_bkg_small.png"
+              src="/heavy_helms_header_drop_shadow.png"
               alt="Heavy Helms Header"
               width={960}
               height={320}
@@ -139,17 +139,21 @@ export default function Home() {
           </div>
 
           {/* Play Game Button */}
-          <div className="flex justify-center">
+          <div className="flex justify-center w-full max-w-[960px] mx-auto">
             <button 
-              className={`play-game-button px-6 py-3 rounded-full text-center text-lg transition-all ${
-                selectedPlayerId !== null 
-                  ? 'bg-foreground text-background hover:bg-[#383838] cursor-pointer' 
-                  : 'bg-gray-400 text-gray-200 cursor-not-allowed'
-              }`}
+              className={`play-game-button relative px-12 py-4 text-center text-xl font-bokor transition-all
+                bg-[url('/ui/Button_RL_Background.png')] hover:bg-[url('/ui/Button_RL_Hover.png')] 
+                bg-[length:100%_100%] bg-no-repeat bg-center w-full
+                ${selectedPlayerId !== null 
+                  ? 'cursor-pointer hover:scale-[1.02]' 
+                  : 'opacity-50 cursor-not-allowed'
+                }`}
               onClick={handlePlayClick}
               disabled={selectedPlayerId === null}
             >
-              {selectedPlayerId !== null ? 'Play Game' : 'Select a Character'}
+              <span className="relative text-stone-100 group-hover:text-white drop-shadow-[0_2px_1px_rgba(0,0,0,0.5)]">
+                {selectedPlayerId !== null ? 'Play Game' : 'Select a Character'}
+              </span>
             </button>
           </div>
         </div>
