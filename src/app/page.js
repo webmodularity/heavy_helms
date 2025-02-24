@@ -9,48 +9,48 @@ import CharacterCard from '../components/CharacterCard'
 const characters = [
   // Default Warrior
   {
-    playerId: "1",
-    name: "Ivan the Resolute",
-    imageUrl: "https://ipfs.io/ipfs/bafkreiccuy7nxgoo453f22rf4hiflue24geyaaq7lf3ylvjl34cj2sv6ja",
+    playerId: "10001",
+    name: "Cole the Majestic",
+    imageUrl: "https://ipfs.io/ipfs/bafkreici37rg5rtnr4vsnjeprl5e7khjy2dse7y3ahwivxbsnde6o2x3sy",
     stance: "defensive",
-    weapon: "Mace + Shield",
+    weapon: "Sword + Shield",
     armor: "Plate",
     strength: 14,
-    dexterity: 10,
     constitution: 16,
-    intelligence: 8,
-    wisdom: 12,
-    charisma: 10
+    size: 10,
+    agility: 10,
+    stamina: 10,
+    luck: 10
   },
   // Agile Rogue
   {
-    playerId: "2",
-    name: "Leo of the Light",
-    imageUrl: "https://ipfs.io/ipfs/bafkreic6chur5etni3aeuno5zwghxusxaapd54agk5nkswoh4tlr67rsci",
-    stance: "balanced",
-    weapon: "Daggers",
+    playerId: "10002",
+    name: "Oliver Skullcrusher",
+    imageUrl: "https://ipfs.io/ipfs/QmZqrNGPB2ck2ECdhKZEFaJyVM1YtNDLrhmWN5CxvZTqr5",
+    stance: "offensive",
+    weapon: "Battleaxe",
     armor: "Leather",
     strength: 10,
-    dexterity: 16,
     constitution: 12,
-    intelligence: 12,
-    wisdom: 10,
-    charisma: 14
+    size: 10,
+    agility: 16,
+    stamina: 12,
+    luck: 10
   },
   // Battle Cleric
   {
-    playerId: "3",
-    name: "Gwen Dragonheart",
-    imageUrl: "https://ipfs.io/ipfs/QmVDwPFpLd1yvJpQSyazFHfe9Q4U1i872caUX2uQvt4zWd",
-    stance: "offensive",
-    weapon: "Mace + Shield",
-    armor: "Chain",
+    playerId: "10006",
+    name: "Lyra of the Ancients",
+    imageUrl: "https://ipfs.io/ipfs/QmaALMyYXwHuwu2EvDrLjkqFK9YigUb6RD9FX7MqVGoDkW",
+    stance: "balanced",
+    weapon: "Quarterstaff",
+    armor: "Cloth",
     strength: 12,
-    dexterity: 10,
     constitution: 14,
-    intelligence: 10,
-    wisdom: 16,
-    charisma: 12
+    size: 10,
+    agility: 10,
+    stamina: 14,
+    luck: 10
   }
 ];
 
