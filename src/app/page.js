@@ -7,50 +7,47 @@ import { useState, useEffect } from 'react'
 import CharacterCard from '../components/CharacterCard'
 
 const characters = [
-  // Default Warrior
   {
-    playerId: "10001",
-    name: "Cole the Majestic",
+    playerId: "10014",
+    name: "Ross of the Glade",
     imageUrl: "https://ipfs.io/ipfs/bafkreici37rg5rtnr4vsnjeprl5e7khjy2dse7y3ahwivxbsnde6o2x3sy",
     stance: "defensive",
     weapon: "Sword + Shield",
     armor: "Plate",
-    strength: 14,
+    strength: 13,
     constitution: 16,
-    size: 10,
-    agility: 10,
-    stamina: 10,
-    luck: 10
+    size: 16,
+    agility: 13,
+    stamina: 7,
+    luck: 7
   },
-  // Agile Rogue
   {
-    playerId: "10002",
-    name: "Oliver Skullcrusher",
-    imageUrl: "https://ipfs.io/ipfs/QmZqrNGPB2ck2ECdhKZEFaJyVM1YtNDLrhmWN5CxvZTqr5",
-    stance: "offensive",
-    weapon: "Battleaxe",
-    armor: "Leather",
-    strength: 10,
-    constitution: 12,
-    size: 10,
-    agility: 16,
-    stamina: 12,
-    luck: 10
-  },
-  // Battle Cleric
-  {
-    playerId: "10006",
-    name: "Lyra of the Ancients",
+    playerId: "10009",
+    name: "Kate of the Ember",
     imageUrl: "https://ipfs.io/ipfs/QmaALMyYXwHuwu2EvDrLjkqFK9YigUb6RD9FX7MqVGoDkW",
     stance: "balanced",
     weapon: "Quarterstaff",
     armor: "Cloth",
-    strength: 12,
-    constitution: 14,
-    size: 10,
+    strength: 16,
+    constitution: 12,
+    size: 9,
     agility: 10,
-    stamina: 14,
-    luck: 10
+    stamina: 16,
+    luck: 9
+  },
+  {
+    playerId: "10031",
+    name: "Diego Frostcaller",
+    imageUrl: "https://ipfs.io/ipfs/QmZqrNGPB2ck2ECdhKZEFaJyVM1YtNDLrhmWN5CxvZTqr5",
+    stance: "offensive",
+    weapon: "Battleaxe",
+    armor: "Leather",
+    strength: 16,
+    constitution: 11,
+    size: 13,
+    agility: 9,
+    stamina: 10,
+    luck: 13
   }
 ];
 
