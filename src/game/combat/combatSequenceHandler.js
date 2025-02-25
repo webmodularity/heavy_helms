@@ -10,7 +10,7 @@ export class CombatSequenceHandler {
 
     handleSequence(action, isLastAction) {
         // Handle exhaustion first
-        if (action.p1Result === 'EXHAUSTED') {
+        if (action.p1Result === 'EXHAUSTED' || (isLastAction && this.scene.winCondition === 'EXHAUSTION' && !this.scene.winner)) {
             this.scene.damageNumbers.show(
                 this.scene.player.x, 
                 this.scene.player.y - 200, 
@@ -19,6 +19,32 @@ export class CombatSequenceHandler {
                 1.2
             );
             this.animator.playAnimation(this.scene.player, 'idle', false);
+            
+            // Force immediate stamina update
+            if (this.scene.player1Data && this.scene.player1Data.stats) {
+                this.scene.player1Data.stats.currentEndurance = 0;
+                this.scene.player1Data.stats.currentStamina = 0;
+            }
+            
+            // Kill all tweens and force stamina to 0
+            if (this.scene.healthManager) {
+                Object.values(this.scene.healthManager.tweens).forEach(tween => {
+                    if (tween && tween.stop) tween.stop();
+                });
+                
+                if (this.scene.healthManager.p1Bars) {
+                    this.scene.healthManager.p1Bars.stamina = 0;
+                }
+                
+                // Force immediate bar update
+                this.scene.healthManager.p1Bars.staminaFill.displayWidth = 0;
+                
+                // Force stats update
+                if (this.scene.player1Stats && this.scene.player1Stats.update) {
+                    this.scene.player1Stats.update({ stats: this.scene.player1Data.stats });
+                }
+            }
+            
             // Add delay before completing sequence
             this.scene.time.delayedCall(1000, () => {
                 this.completeSequence(isLastAction);
@@ -26,7 +52,7 @@ export class CombatSequenceHandler {
             return;
         }
 
-        if (action.p2Result === 'EXHAUSTED') {
+        if (action.p2Result === 'EXHAUSTED' || (isLastAction && this.scene.winCondition === 'EXHAUSTION' && this.scene.winner)) {
             this.scene.damageNumbers.show(
                 this.scene.player2.x, 
                 this.scene.player2.y - 200, 
@@ -35,6 +61,32 @@ export class CombatSequenceHandler {
                 1.2
             );
             this.animator.playAnimation(this.scene.player2, 'idle', true);
+            
+            // Force immediate stamina update
+            if (this.scene.player2Data && this.scene.player2Data.stats) {
+                this.scene.player2Data.stats.currentEndurance = 0;
+                this.scene.player2Data.stats.currentStamina = 0;
+            }
+            
+            // Kill all tweens and force stamina to 0
+            if (this.scene.healthManager) {
+                Object.values(this.scene.healthManager.tweens).forEach(tween => {
+                    if (tween && tween.stop) tween.stop();
+                });
+                
+                if (this.scene.healthManager.p2Bars) {
+                    this.scene.healthManager.p2Bars.stamina = 0;
+                }
+                
+                // Force immediate bar update
+                this.scene.healthManager.p2Bars.staminaFill.displayWidth = 0;
+                
+                // Force stats update
+                if (this.scene.player2Stats && this.scene.player2Stats.update) {
+                    this.scene.player2Stats.update({ stats: this.scene.player2Data.stats });
+                }
+            }
+            
             // Add delay before completing sequence
             this.scene.time.delayedCall(1000, () => {
                 this.completeSequence(isLastAction);
@@ -179,6 +231,58 @@ export class CombatSequenceHandler {
                 1.2
             );
             this.animator.playAnimation(defender, 'idle', isPlayer2);
+            
+            // Force immediate stamina update
+            if (isPlayer2) {
+                if (this.scene.player2Data && this.scene.player2Data.stats) {
+                    this.scene.player2Data.stats.currentEndurance = 0;
+                    this.scene.player2Data.stats.currentStamina = 0;
+                }
+                
+                // Kill all tweens and force stamina to 0
+                if (this.scene.healthManager) {
+                    Object.values(this.scene.healthManager.tweens).forEach(tween => {
+                        if (tween && tween.stop) tween.stop();
+                    });
+                    
+                    if (this.scene.healthManager.p2Bars) {
+                        this.scene.healthManager.p2Bars.stamina = 0;
+                    }
+                    
+                    // Force immediate bar update
+                    this.scene.healthManager.p2Bars.staminaFill.displayWidth = 0;
+                    
+                    // Force stats update
+                    if (this.scene.player2Stats && this.scene.player2Stats.update) {
+                        this.scene.player2Stats.update({ stats: this.scene.player2Data.stats });
+                    }
+                }
+            } else {
+                if (this.scene.player1Data && this.scene.player1Data.stats) {
+                    this.scene.player1Data.stats.currentEndurance = 0;
+                    this.scene.player1Data.stats.currentStamina = 0;
+                }
+                
+                // Kill all tweens and force stamina to 0
+                if (this.scene.healthManager) {
+                    Object.values(this.scene.healthManager.tweens).forEach(tween => {
+                        if (tween && tween.stop) tween.stop();
+                    });
+                    
+                    if (this.scene.healthManager.p1Bars) {
+                        this.scene.healthManager.p1Bars.stamina = 0;
+                    }
+                    
+                    // Force immediate bar update
+                    this.scene.healthManager.p1Bars.staminaFill.displayWidth = 0;
+                    
+                    // Force stats update
+                    if (this.scene.player1Stats && this.scene.player1Stats.update) {
+                        this.scene.player1Stats.update({ stats: this.scene.player1Data.stats });
+                    }
+                }
+            }
+            
             this.completeSequence(isLastAction);
             return;
         }

@@ -374,6 +374,12 @@ export default class FightScene extends Phaser.Scene {
         const action = this.combatData.actions[actionIndex];
         const isLastAction = actionIndex === this.combatData.actions.length - 1;
         
+        // Set win condition and winner for the last action
+        if (isLastAction) {
+            this.winCondition = this.combatData.condition;
+            this.winner = this.combatData.winner === this.player1Id;
+        }
+        
         this.sequenceHandler.handleSequence(action, isLastAction);
 
         this.events.once('sequenceComplete', (isLast) => {
