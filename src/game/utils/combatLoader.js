@@ -171,7 +171,8 @@ export async function loadCombatBytes(player1Id, player2Id) {
         const result = {
             winner: decodedCombat[0] ? player1Id : player2Id,
             condition: getEnumKeyByValue(WinCondition, Number(decodedCombat[2])), // condition is at index 2 now
-            actions: mappedActions
+            actions: mappedActions,
+            gameEngineVersion: Number(decodedCombat[1]) // Add game engine version from index 1
         };
         
         // Verify the result has the expected structure
@@ -280,7 +281,8 @@ export async function loadDuelDataFromTx(txId, network) {
             player1Stats,
             player2Stats,
             winningPlayerId,
-            blockNumber: receipt.blockNumber.toString() // Add block number from receipt
+            blockNumber: receipt.blockNumber.toString(), // Add block number from receipt
+            gameEngineVersion: Number(decodedCombat[1]) // Add game engine version from index 1
         };
 
         // Verify the result has the expected structure

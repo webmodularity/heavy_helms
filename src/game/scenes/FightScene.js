@@ -266,7 +266,7 @@ export default class FightScene extends Phaser.Scene {
 
         // Add network and block number text in the bottom left (single line)
         this.networkText = this.add.text(5, this.cameras.main.height - 5, 
-            `Network: ${network} | Block#: ${blockNumber}`, {
+            `Network: ${network} | Block#: ${blockNumber} | GameEngine: v${Math.floor(this.combatData.gameEngineVersion / 100)}.${this.combatData.gameEngineVersion % 100}`, {
             fontFamily: 'Arial',
             fontSize: '10px',
             color: '#cccccc',
