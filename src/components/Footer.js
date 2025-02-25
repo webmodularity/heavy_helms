@@ -35,7 +35,7 @@ export default function Footer() {
               </li>
               <li className="flex items-center group">
                 <div className="w-1.5 h-1.5 rounded-full bg-stone-600/50 mr-2 group-hover:bg-yellow-400 transition-colors"></div>
-                <Link href="https://x.com/Shape_L2/status/1876612405263835333" className="text-stone-200 text-sm hover:text-yellow-400 transition-colors flex items-center">
+                <Link href="https://shape.network/shapecraft" className="text-stone-200 text-sm hover:text-yellow-400 transition-colors flex items-center">
                   Shapecraft Hackathon Top Prize Winner
                   <svg className="w-4 h-4 ml-1 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-yellow-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
