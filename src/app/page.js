@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Image from "next/image"
 import { useState, useEffect } from 'react'
 import CharacterCard from '../components/CharacterCard'
+import InfoBanner from '../components/InfoBanner'
 
 const characters = [
   {
@@ -107,7 +108,7 @@ export default function Home() {
       {/* Content */}
       <div className="relative z-10">
         {/* Header */}
-        <header className="w-full flex justify-center p-4">
+        <header className="w-full flex justify-center p-4 pb-0">
           <div className="w-full max-w-[960px]">
             <Image
               src="/heavy_helms_header_drop_shadow.png"
@@ -121,22 +122,27 @@ export default function Home() {
         </header>
 
         {/* Main Content */}
-        <div className="container mx-auto px-4 pb-8">
-          {/* Character Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8 mb-8">
-            {characters.map((character, index) => (
-              <div key={index} className="character-card flex justify-center">
-                <CharacterCard 
-                  {...character}
-                  isSelected={selectedPlayerId === character.playerId}
-                  onSelect={(isSelected) => handleSelect(isSelected, character)}
-                />
-              </div>
-            ))}
-          </div>
+        <div className="container mx-auto px-4">
+          {/* Welcome Message */}
+          <InfoBanner className="mb-8">
+          Choose your warrior from these three champions to enter battle. Each has unique stats and equipment that determine their fighting style. All combat actions execute directly on the blockchain. Select a character to begin.
+          </InfoBanner>
 
-          {/* Play Game Button */}
-          <div className="flex justify-center w-full max-w-[960px] mx-auto">
+          {/* Character Grid */}
+          <div className="w-full max-w-[960px] mx-auto">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 mb-8">
+              {characters.map((character, index) => (
+                <div key={index} className="character-card flex justify-center">
+                  <CharacterCard 
+                    {...character}
+                    isSelected={selectedPlayerId === character.playerId}
+                    onSelect={(isSelected) => handleSelect(isSelected, character)}
+                  />
+                </div>
+              ))}
+            </div>
+
+            {/* Play Game Button */}
             <button 
               className={`play-game-button relative px-12 py-4 text-center text-xl font-bokor transition-all
                 bg-[url('/ui/Button_RL_Background.png')] hover:bg-[url('/ui/Button_RL_Hover.png')] 
