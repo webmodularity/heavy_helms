@@ -26,6 +26,24 @@ export default function Footer() {
             <ul className="space-y-3">
               <li className="flex items-center group">
                 <div className="w-1.5 h-1.5 rounded-full bg-stone-600/50 mr-2 group-hover:bg-yellow-400 transition-colors"></div>
+                <Link href="/game?txId=0x9e2681ee8c6aced46facdc47a1b28b946abaee2529047faca4ee4256c406e0d4" className="text-stone-200 text-sm hover:text-yellow-400 transition-colors flex items-center">
+                  Duel Game Mode - Kate vs Diego
+                  <svg className="w-4 h-4 ml-1 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-yellow-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </Link>
+              </li>
+              <li className="flex items-center group">
+                <div className="w-1.5 h-1.5 rounded-full bg-stone-600/50 mr-2 group-hover:bg-yellow-400 transition-colors"></div>
+                <Link href="https://shapescan.xyz/tx/0x9e2681ee8c6aced46facdc47a1b28b946abaee2529047faca4ee4256c406e0d4" className="text-stone-200 text-sm hover:text-yellow-400 transition-colors flex items-center">
+                  Duel Game Transaction - 0.0000005739 ETH
+                  <svg className="w-4 h-4 ml-1 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-yellow-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M5 12H19M19 12L12 5M19 12L12 19" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </Link>
+              </li>
+              <li className="flex items-center group">
+                <div className="w-1.5 h-1.5 rounded-full bg-stone-600/50 mr-2 group-hover:bg-yellow-400 transition-colors"></div>
                 <Link href="https://shape.network" className="text-stone-200 text-sm hover:text-yellow-400 transition-colors flex items-center">
                   Powered by Shape Network
                   <svg className="w-4 h-4 ml-1 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-yellow-400" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
