@@ -127,7 +127,7 @@ export function useSubgraphPlayers() {
       
       try {
         // Map subgraph data and fetch metadata for each player
-        const playersWithMetadata = await Promise.all(
+        const playersWithMetadata: Character[] = await Promise.all(
           data.owners[0].activePlayers.map(async (player) => {
             // Default image in case metadata fetch fails
             let imageUrl = 'https://ipfs.io/ipfs/QmaALMyYXwHuwu2EvDrLjkqFK9YigUb6RD9FX7MqVGoDkW';
