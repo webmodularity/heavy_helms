@@ -54,7 +54,7 @@ export default function PracticePage() {
             <ErrorBoundary FallbackComponent={GameErrorFallback}>
               <Suspense
                 fallback={
-                  <LoadingSpinner size="large" text="Loading game..." />
+                  <LoadingSpinner size="lg" text="Loading game..." />
                 }
               >
                 <GameWrapper player1Id={player1Id} player2Id={player2Id} />
