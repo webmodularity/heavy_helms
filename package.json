@@ -31,6 +31,7 @@
         "format:fix": "pnpm biome check --write ./src"
     },
     "dependencies": {
+        "@apollo/client": "^3.13.4",
         "@privy-io/react-auth": "^2.5.0",
         "@radix-ui/react-slot": "^1.1.2",
         "@tanstack/react-query": "^5.66.11",
@@ -39,6 +40,7 @@
         "class-variance-authority": "^0.7.1",
         "clsx": "^2.1.1",
         "framer-motion": "^12.4.7",
+        "graphql": "^16.10.0",
         "lucide-react": "^0.476.0",
         "next": "14.2.3",
         "next-themes": "^0.4.4",

@@ -6,6 +6,8 @@ import type { ReactNode } from "react";
 import { base, baseSepolia } from "viem/chains";
 import { PlayerProvider } from "./store/player-context";
 import { WalletProvider } from "./store/wallet-context";
+import { ApolloProvider } from '@apollo/client';
+import { apolloClient } from './lib/apollo-client';
 
 interface ProvidersProps {
   children: ReactNode;
@@ -16,29 +18,31 @@ const queryClient = new QueryClient();
 function Providers({ children }: ProvidersProps) {
   return (
     <QueryClientProvider client={queryClient}>
-      <PrivyProvider
-        appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID || ""}
-        config={{
-          loginMethods: ["email", "wallet", "farcaster", "twitter"],
-          appearance: {
-            theme: "dark",
-            accentColor: "#f9c846",
-            // logo: "/logo.png",
-          },
-          embeddedWallets: {
-            createOnLogin: "all-users",
-          },
-          defaultChain: baseSepolia,
-          supportedChains: [base, baseSepolia],
-        }}
-      >
-        <WalletProvider>
-          <PlayerProvider initialCharacters={[]}>
-            {/* Initialize EventBus globally for Phaser games */}
-            {children}
-          </PlayerProvider>
-        </WalletProvider>
-      </PrivyProvider>
+      <ApolloProvider client={apolloClient}>
+        <PrivyProvider
+          appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID || ""}
+          config={{
+            loginMethods: ["email", "wallet", "farcaster", "twitter"],
+            appearance: {
+              theme: "dark",
+              accentColor: "#f9c846",
+              // logo: "/logo.png",
+            },
+            embeddedWallets: {
+              createOnLogin: "all-users",
+            },
+            defaultChain: baseSepolia,
+            supportedChains: [base, baseSepolia],
+          }}
+        >
+          <WalletProvider>
+            <PlayerProvider initialCharacters={[]}>
+              {/* Initialize EventBus globally for Phaser games */}
+              {children}
+            </PlayerProvider>
+          </WalletProvider>
+        </PrivyProvider>
+      </ApolloProvider>
     </QueryClientProvider>
   );
 }

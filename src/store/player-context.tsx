@@ -1,3 +1,5 @@
+"use client";
+
 import { viemClient } from "@/config";
 import { PlayerABI } from "@/game/abi/PlayerABI.abi";
 import { useOwnedPlayers } from "@/hooks/use-player-data";
@@ -17,6 +19,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { encodeFunctionData, parseEther } from "viem";
+import { useSubgraphPlayers } from '@/hooks/use-subgraph-players';
 
 interface PlayerContextType {
   isCreatingCharacter: boolean;
@@ -46,14 +49,8 @@ export function PlayerProvider({
   const [isCreatingCharacter, setIsCreatingCharacter] = useState(false);
   const [txHash, setTxHash] = useState<string | null>(null);
 
-  // Use our improved hook to get characters
-  const { 
-    players = initialCharacters, 
-    refetch,
-    isLoading
-  } = useOwnedPlayers({
-    enabled: authenticated && !isWrongNetwork,
-  });
+  // Use the subgraph hook instead of contract calls
+  const { players, isLoading, error, refetch } = useSubgraphPlayers();
 
   // Function to refresh characters
   const refreshCharacters = useCallback(async () => {
@@ -229,17 +226,17 @@ export function PlayerProvider({
     players,
   ]);
 
+  const value = {
+    characters: players,
+    isLoading,
+    createCharacter,
+    isCreatingCharacter,
+    txHash,
+    refreshCharacters,
+  };
+
   return (
-    <PlayerContext.Provider
-      value={{
-        isCreatingCharacter,
-        txHash,
-        createCharacter,
-        characters: players,
-        refreshCharacters,
-        isLoading,
-      }}
-    >
+    <PlayerContext.Provider value={value}>
       {children}
     </PlayerContext.Provider>
   );
@@ -247,8 +244,8 @@ export function PlayerProvider({
 
 export function usePlayer() {
   const context = useContext(PlayerContext);
-  if (!context) {
-    throw new Error("usePlayer must be used within a PlayerProvider");
+  if (context === undefined) {
+    throw new Error('usePlayer must be used within a PlayerProvider');
   }
   return context;
 }
