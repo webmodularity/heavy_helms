@@ -1,7 +1,7 @@
 import { gql, useQuery } from '@apollo/client';
 import { useWallets } from '@privy-io/react-auth'; // Adjust based on your wallet provider
 import { useEffect, useState } from 'react';
-import { Character, Stance, Weapon, Armor } from '@/types/player.types';
+import type { Character, Stance, Weapon, Armor, SubgraphPlayer } from '@/types/player.types';
 
 const GET_OWNED_PLAYERS = gql`
   query GetOwnedPlayers($owner: String!) {
@@ -109,7 +109,7 @@ export function useSubgraphPlayers() {
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Query the subgraph
-  const { data, loading, error, refetch } = useQuery(GET_OWNED_PLAYERS, {
+  const { data, loading, error, refetch } = useQuery<{ owners: { activePlayers: SubgraphPlayer[] }[] }>(GET_OWNED_PLAYERS, {
     variables: { owner: address },
     skip: !address,
     fetchPolicy: 'cache-and-network',
@@ -139,7 +139,8 @@ export function useSubgraphPlayers() {
                 imageUrl = ipfsToHttps(metadata.image);
               }
             }
-            
+            console.log({...player})
+            console.log("player", player.currentSkin);
             return {
               playerId: player.id,
               name: `${player.firstName} ${player.surname}`,

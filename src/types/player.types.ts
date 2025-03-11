@@ -132,3 +132,25 @@ export interface PlayerRecord {
   losses: number;
   kills: number;
 }
+
+export type SubgraphPlayer = {
+  id: string;
+  firstName: string;
+  surname: string;
+  currentSkin: {
+    metadataURI: string;
+    stance: number;
+    weapon: number;
+    armor: number;
+  };
+  strength: number;
+  constitution: number;
+  size: number;
+  agility: number;
+  stamina: number;
+  luck: number;
+  wins: number;
+  losses: number;
+  kills: number;
+};
+
