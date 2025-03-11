@@ -1,0 +1,921 @@
+---
+description: Working with phaser code, generating new scenes, adding new game mechanics, etc.
+globs: *.tsx, *.ts, *.js
+alwaysApply: false
+---
+# Phaser 3.87.0 Best Practices Guide
+
+This guide outlines industry best practices for developing games with Phaser 3.87.0, focusing on code organization, performance optimization, and modern TypeScript patterns.
+
+## Project Structure
+
+```
+project/
+├── assets/
+│   ├── images/
+│   ├── audio/
+│   ├── atlas/
+│   └── fonts/
+├── src/
+│   ├── game/
+│   │   ├── scenes/
+│   │   │   ├── boot-scene.ts
+│   │   │   ├── preload-scene.ts
+│   │   │   ├── main-menu-scene.ts
+│   │   │   └── game-scene.ts
+│   │   ├── objects/
+│   │   │   ├── player.ts
+│   │   │   ├── enemy.ts
+│   │   │   └── ui/
+│   │   ├── utils/
+│   │   │   ├── object-pool.ts
+│   │   │   └── event-bus.ts
+│   │   ├── config.ts
+│   │   └── index.ts
+│   └── index.ts
+├── package.json
+├── tsconfig.json
+└── webpack.config.js
+```
+
+## Core Principles
+
+### 1. TypeScript Integration
+
+Always use TypeScript for type safety and better development experience:
+
+```typescript
+// src/game/config.ts
+import Phaser from 'phaser'
+import { BootScene } from './scenes/boot-scene'
+import { PreloadScene } from './scenes/preload-scene'
+import { MainMenuScene } from './scenes/main-menu-scene'
+import { GameScene } from './scenes/game-scene'
+
+export interface GameConfig extends Phaser.Types.Core.GameConfig {
+  // Add custom configuration properties here
+}
+
+export const config: GameConfig = {
+  type: Phaser.AUTO,
+  width: 1280,
+  height: 720,
+  physics: {
+    default: 'arcade',
+    arcade: {
+      gravity: { y: 300 },
+      debug: process.env.NODE_ENV === 'development'
+    }
+  },
+  scale: {
+    mode: Phaser.Scale.FIT,
+    autoCenter: Phaser.Scale.CENTER_BOTH
+  },
+  scene: [BootScene, PreloadScene, MainMenuScene, GameScene],
+  pixelArt: true,
+  roundPixels: true
+}
+```
+
+### 2. Scene Management
+
+Organize your game into well-structured scenes:
+
+```typescript
+// src/game/scenes/boot-scene.ts
+import Phaser from 'phaser'
+
+export class BootScene extends Phaser.Scene {
+  constructor() {
+    super({ key: 'BootScene' })
+  }
+
+  preload(): void {
+    // Load minimal assets needed for the loading screen
+    this.load.image('logo', 'assets/images/logo.png')
+    this.load.image('loading-bar', 'assets/images/loading-bar.png')
+  }
+
+  create(): void {
+    // Initialize any systems that need to be set up before the game starts
+    this.scene.start('PreloadScene')
+  }
+}
+```
+
+```typescript
+// src/game/scenes/preload-scene.ts
+import Phaser from 'phaser'
+
+export class PreloadScene extends Phaser.Scene {
+  private loadingBar!: Phaser.GameObjects.Graphics
+  private progressBar!: Phaser.GameObjects.Graphics
+
+  constructor() {
+    super({ key: 'PreloadScene' })
+  }
+
+  preload(): void {
+    this.createLoadingBar()
+    
+    // Register load progress event
+    this.load.on('progress', (value: number) => {
+      this.progressBar.clear()
+      this.progressBar.fillStyle(0xffffff, 1)
+      this.progressBar.fillRect(
+        this.cameras.main.width / 4, 
+        this.cameras.main.height / 2 - 16, 
+        (this.cameras.main.width / 2) * value, 
+        32
+      )
+    })
+    
+    // Register load complete event
+    this.load.on('complete', () => {
+      this.progressBar.destroy()
+      this.loadingBar.destroy()
+      this.scene.start('MainMenuScene')
+    })
+    
+    // Load all game assets
+    this.loadAssets()
+  }
+
+  private createLoadingBar(): void {
+    this.loadingBar = this.add.graphics()
+    this.loadingBar.fillStyle(0x222222, 0.8)
+    this.loadingBar.fillRect(
+      this.cameras.main.width / 4 - 2, 
+      this.cameras.main.height / 2 - 18, 
+      this.cameras.main.width / 2 + 4, 
+      36
+    )
+    
+    this.progressBar = this.add.graphics()
+  }
+
+  private loadAssets(): void {
+    // Images
+    this.load.image('background', 'assets/images/background.png')
+    this.load.image('button', 'assets/images/button.png')
+    
+    // Spritesheets
+    this.load.spritesheet('player', 'assets/images/player.png', { 
+      frameWidth: 32, 
+      frameHeight: 48 
+    })
+    
+    // Atlas
+    this.load.atlas('game-atlas', 'assets/atlas/game-atlas.png', 'assets/atlas/game-atlas.json')
+    
+    // Audio
+    this.load.audio('music', ['assets/audio/music.ogg', 'assets/audio/music.mp3'])
+    this.load.audio('jump', ['assets/audio/jump.ogg', 'assets/audio/jump.mp3'])
+    
+    // Bitmap Font
+    this.load.bitmapFont('pixel', 'assets/fonts/pixel.png', 'assets/fonts/pixel.xml')
+  }
+}
+```
+
+### 3. Game Objects and Components
+
+Create reusable game objects with proper TypeScript interfaces:
+
+```typescript
+// src/game/objects/player.ts
+import Phaser from 'phaser'
+
+export interface PlayerConfig {
+  scene: Phaser.Scene
+  x: number
+  y: number
+  texture: string
+  frame?: string | number
+}
+
+export class Player extends Phaser.Physics.Arcade.Sprite {
+  private cursors: Phaser.Types.Input.Keyboard.CursorKeys
+  private jumpSound: Phaser.Sound.BaseSound
+  private isJumping: boolean = false
+  private health: number = 100
+
+  constructor({ scene, x, y, texture, frame }: PlayerConfig) {
+    super(scene, x, y, texture, frame)
+    
+    // Add this game object to the scene
+    scene.add.existing(this)
+    scene.physics.add.existing(this)
+    
+    // Set physics properties
+    this.setCollideWorldBounds(true)
+    this.setBounce(0.1)
+    
+    // Get keyboard input
+    this.cursors = scene.input.keyboard.createCursorKeys()
+    
+    // Get sound
+    this.jumpSound = scene.sound.add('jump')
+    
+    // Create animations
+    this.createAnimations()
+  }
+
+  private createAnimations(): void {
+    this.anims.create({
+      key: 'idle',
+      frames: this.anims.generateFrameNumbers('player', { start: 0, end: 3 }),
+      frameRate: 8,
+      repeat: -1
+    })
+    
+    this.anims.create({
+      key: 'run',
+      frames: this.anims.generateFrameNumbers('player', { start: 4, end: 11 }),
+      frameRate: 12,
+      repeat: -1
+    })
+    
+    this.anims.create({
+      key: 'jump',
+      frames: this.anims.generateFrameNumbers('player', { start: 12, end: 15 }),
+      frameRate: 10,
+      repeat: 0
+    })
+  }
+
+  update(): void {
+    // Handle horizontal movement
+    if (this.cursors.left.isDown) {
+      this.setVelocityX(-160)
+      this.flipX = true
+      if (this.body.onFloor() && !this.isJumping) {
+        this.play('run', true)
+      }
+    } else if (this.cursors.right.isDown) {
+      this.setVelocityX(160)
+      this.flipX = false
+      if (this.body.onFloor() && !this.isJumping) {
+        this.play('run', true)
+      }
+    } else {
+      this.setVelocityX(0)
+      if (this.body.onFloor() && !this.isJumping) {
+        this.play('idle', true)
+      }
+    }
+    
+    // Handle jumping
+    if (this.cursors.up.isDown && this.body.onFloor()) {
+      this.isJumping = true
+      this.setVelocityY(-330)
+      this.play('jump', true)
+      this.jumpSound.play()
+    }
+    
+    // Reset jumping state when landing
+    if (this.body.onFloor()) {
+      this.isJumping = false
+    }
+  }
+
+  takeDamage(amount: number): void {
+    this.health -= amount
+    if (this.health <= 0) {
+      this.die()
+    }
+  }
+
+  private die(): void {
+    this.disableBody(true, true)
+    // Emit event for game over or respawn
+    this.scene.events.emit('playerDeath')
+  }
+}
+```
+
+### 4. Performance Optimization
+
+Implement object pooling for frequently created/destroyed objects:
+
+```typescript
+// src/game/utils/object-pool.ts
+import Phaser from 'phaser'
+
+export class ObjectPool<T extends Phaser.GameObjects.GameObject> {
+  private pool: T[] = []
+  private createObject: () => T
+  private resetObject?: (object: T) => void
+
+  constructor(createObject: () => T, resetObject?: (object: T) => void) {
+    this.createObject = createObject
+    this.resetObject = resetObject
+  }
+
+  get(): T {
+    // Get an object from the pool or create a new one if the pool is empty
+    const object = this.pool.pop() || this.createObject()
+    
+    // Make sure the object is active
+    object.setActive(true)
+    object.setVisible(true)
+    
+    return object
+  }
+
+  release(object: T): void {
+    // Reset the object if a reset function was provided
+    if (this.resetObject) {
+      this.resetObject(object)
+    }
+    
+    // Deactivate the object
+    object.setActive(false)
+    object.setVisible(false)
+    
+    // Add the object back to the pool
+    this.pool.push(object)
+  }
+
+  clear(): void {
+    // Destroy all objects in the pool
+    this.pool.forEach(object => object.destroy())
+    this.pool = []
+  }
+}
+```
+
+Usage example with bullets:
+
+```typescript
+// src/game/objects/bullet-manager.ts
+import Phaser from 'phaser'
+import { ObjectPool } from '../utils/object-pool'
+
+export class BulletManager {
+  private scene: Phaser.Scene
+  private bulletPool: ObjectPool<Phaser.Physics.Arcade.Image>
+  
+  constructor(scene: Phaser.Scene) {
+    this.scene = scene
+    
+    // Create a pool of bullet objects
+    this.bulletPool = new ObjectPool<Phaser.Physics.Arcade.Image>(
+      // Create function
+      () => {
+        const bullet = this.scene.physics.add.image(0, 0, 'game-atlas', 'bullet')
+        bullet.setActive(false)
+        bullet.setVisible(false)
+        bullet.body.setSize(8, 8)
+        return bullet
+      },
+      // Reset function
+      (bullet) => {
+        bullet.setVelocity(0, 0)
+        bullet.body.reset(0, 0)
+      }
+    )
+  }
+
+  fireBullet(x: number, y: number, velocityX: number, velocityY: number): Phaser.Physics.Arcade.Image {
+    const bullet = this.bulletPool.get()
+    
+    bullet.body.reset(x, y)
+    bullet.setVelocity(velocityX, velocityY)
+    
+    // Return bullet to pool after 1 second if it hasn't hit anything
+    this.scene.time.delayedCall(1000, () => {
+      if (bullet.active) {
+        this.bulletPool.release(bullet)
+      }
+    })
+    
+    return bullet
+  }
+
+  recycleBullet(bullet: Phaser.Physics.Arcade.Image): void {
+    this.bulletPool.release(bullet)
+  }
+}
+```
+
+### 5. Event System
+
+Create a centralized event bus for communication between game components:
+
+```typescript
+// src/game/utils/event-bus.ts
+import Phaser from 'phaser'
+
+export class EventBus extends Phaser.Events.EventEmitter {
+  private static instance: EventBus
+
+  private constructor() {
+    super()
+  }
+
+  static getInstance(): EventBus {
+    if (!EventBus.instance) {
+      EventBus.instance = new EventBus()
+    }
+    return EventBus.instance
+  }
+}
+
+// Export a singleton instance
+export const eventBus = EventBus.getInstance()
+```
+
+Usage example:
+
+```typescript
+// In any file
+import { eventBus } from '../utils/event-bus'
+
+// Subscribe to an event
+eventBus.on('gameOver', (score: number) => {
+  console.log(`Game over! Final score: ${score}`)
+})
+
+// Emit an event
+eventBus.emit('gameOver', 1000)
+```
+
+### 6. Asset Management
+
+Use asset packs for organized loading:
+
+```typescript
+// src/game/assets/asset-pack.ts
+export const AssetPack = {
+  preload: {
+    files: [
+      {
+        type: 'image',
+        key: 'logo',
+        url: 'assets/images/logo.png'
+      },
+      {
+        type: 'image',
+        key: 'loading-bar',
+        url: 'assets/images/loading-bar.png'
+      }
+    ]
+  },
+  game: {
+    files: [
+      {
+        type: 'image',
+        key: 'background',
+        url: 'assets/images/background.png'
+      },
+      {
+        type: 'spritesheet',
+        key: 'player',
+        url: 'assets/images/player.png',
+        frameConfig: {
+          frameWidth: 32,
+          frameHeight: 48
+        }
+      },
+      {
+        type: 'atlas',
+        key: 'game-atlas',
+        textureURL: 'assets/atlas/game-atlas.png',
+        atlasURL: 'assets/atlas/game-atlas.json'
+      },
+      {
+        type: 'audio',
+        key: 'music',
+        url: [
+          'assets/audio/music.ogg',
+          'assets/audio/music.mp3'
+        ]
+      }
+    ]
+  }
+}
+```
+
+Loading assets from the pack:
+
+```typescript
+// In preload method
+this.load.pack('preload', AssetPack.preload)
+this.load.pack('game', AssetPack.game)
+```
+
+### 7. Input Management
+
+Create a dedicated input manager:
+
+```typescript
+// src/game/utils/input-manager.ts
+import Phaser from 'phaser'
+
+export class InputManager {
+  private scene: Phaser.Scene
+  private cursors: Phaser.Types.Input.Keyboard.CursorKeys
+  private keyMap: Map<string, Phaser.Input.Keyboard.Key> = new Map()
+  
+  constructor(scene: Phaser.Scene) {
+    this.scene = scene
+    this.cursors = scene.input.keyboard.createCursorKeys()
+    
+    // Add additional keys
+    this.addKey('space', Phaser.Input.Keyboard.KeyCodes.SPACE)
+    this.addKey('shift', Phaser.Input.Keyboard.KeyCodes.SHIFT)
+    this.addKey('esc', Phaser.Input.Keyboard.KeyCodes.ESC)
+  }
+  
+  addKey(name: string, keyCode: number): void {
+    this.keyMap.set(name, this.scene.input.keyboard.addKey(keyCode))
+  }
+  
+  isKeyDown(name: string): boolean {
+    const key = this.keyMap.get(name)
+    return key ? key.isDown : false
+  }
+  
+  isKeyJustDown(name: string): boolean {
+    const key = this.keyMap.get(name)
+    return key ? Phaser.Input.Keyboard.JustDown(key) : false
+  }
+  
+  get up(): boolean {
+    return this.cursors.up.isDown
+  }
+  
+  get down(): boolean {
+    return this.cursors.down.isDown
+  }
+  
+  get left(): boolean {
+    return this.cursors.left.isDown
+  }
+  
+  get right(): boolean {
+    return this.cursors.right.isDown
+  }
+  
+  get justUp(): boolean {
+    return Phaser.Input.Keyboard.JustDown(this.cursors.up)
+  }
+  
+  get justDown(): boolean {
+    return Phaser.Input.Keyboard.JustDown(this.cursors.down)
+  }
+  
+  get justLeft(): boolean {
+    return Phaser.Input.Keyboard.JustDown(this.cursors.left)
+  }
+  
+  get justRight(): boolean {
+    return Phaser.Input.Keyboard.JustDown(this.cursors.right)
+  }
+}
+```
+
+### 8. Game State Management
+
+Implement a state machine for managing game states:
+
+```typescript
+// src/game/utils/state-machine.ts
+export interface State {
+  name: string
+  onEnter?: () => void
+  onUpdate?: (time: number, delta: number) => void
+  onExit?: () => void
+}
+
+export class StateMachine {
+  private states: Map<string, State> = new Map()
+  private currentState?: State
+  
+  constructor() {}
+  
+  addState(state: State): this {
+    this.states.set(state.name, state)
+    return this
+  }
+  
+  setState(name: string): this {
+    if (!this.states.has(name)) {
+      console.warn(`State '${name}' does not exist!`)
+      return this
+    }
+    
+    // Exit current state
+    if (this.currentState && this.currentState.onExit) {
+      this.currentState.onExit()
+    }
+    
+    // Set new state
+    this.currentState = this.states.get(name)
+    
+    // Enter new state
+    if (this.currentState && this.currentState.onEnter) {
+      this.currentState.onEnter()
+    }
+    
+    return this
+  }
+  
+  update(time: number, delta: number): void {
+    if (this.currentState && this.currentState.onUpdate) {
+      this.currentState.onUpdate(time, delta)
+    }
+  }
+  
+  getCurrentState(): string | undefined {
+    return this.currentState?.name
+  }
+}
+```
+
+### 9. UI Components
+
+Create reusable UI components:
+
+```typescript
+// src/game/objects/ui/button.ts
+import Phaser from 'phaser'
+
+export interface ButtonConfig {
+  scene: Phaser.Scene
+  x: number
+  y: number
+  texture: string
+  frame?: string | number
+  text: string
+  textStyle?: Phaser.Types.GameObjects.Text.TextStyle
+  onClick?: () => void
+}
+
+export class Button extends Phaser.GameObjects.Container {
+  private background: Phaser.GameObjects.Image
+  private text: Phaser.GameObjects.Text
+  private clickCallback?: () => void
+  
+  constructor({ scene, x, y, texture, frame, text, textStyle, onClick }: ButtonConfig) {
+    super(scene, x, y)
+    
+    // Create background
+    this.background = scene.add.image(0, 0, texture, frame)
+    this.add(this.background)
+    
+    // Create text
+    const defaultStyle: Phaser.Types.GameObjects.Text.TextStyle = {
+      color: '#ffffff',
+      fontSize: '24px',
+      fontFamily: 'Arial',
+      align: 'center'
+    }
+    
+    this.text = scene.add.text(0, 0, text, { ...defaultStyle, ...textStyle })
+    this.text.setOrigin(0.5)
+    this.add(this.text)
+    
+    // Set click callback
+    this.clickCallback = onClick
+    
+    // Make interactive
+    this.background.setInteractive({ useHandCursor: true })
+    
+    // Add event listeners
+    this.background.on('pointerdown', this.handlePointerDown, this)
+    this.background.on('pointerup', this.handlePointerUp, this)
+    this.background.on('pointerout', this.handlePointerOut, this)
+    
+    // Add to scene
+    scene.add.existing(this)
+  }
+  
+  private handlePointerDown(): void {
+    this.background.setTint(0xaaaaaa)
+    this.text.setY(2) // Small offset to simulate button press
+  }
+  
+  private handlePointerUp(): void {
+    this.background.clearTint()
+    this.text.setY(0)
+    
+    if (this.clickCallback) {
+      this.clickCallback()
+    }
+  }
+  
+  private handlePointerOut(): void {
+    this.background.clearTint()
+    this.text.setY(0)
+  }
+  
+  setCallback(callback: () => void): this {
+    this.clickCallback = callback
+    return this
+  }
+}
+```
+
+### 10. Game Entry Point
+
+Set up the main entry point:
+
+```typescript
+// src/game/index.ts
+import Phaser from 'phaser'
+import { config } from './config'
+
+export function startGame(): Phaser.Game {
+  return new Phaser.Game(config)
+}
+```
+
+```typescript
+// src/index.ts
+import { startGame } from './game'
+
+window.addEventListener('load', () => {
+  startGame()
+})
+```
+
+## Advanced Techniques
+
+### 1. Texture Packer Integration
+
+Use Texture Packer for efficient sprite atlases:
+
+```typescript
+// In preload method
+this.load.atlas('game-atlas', 'assets/atlas/game-atlas.png', 'assets/atlas/game-atlas.json')
+
+// In create method
+this.anims.create({
+  key: 'enemy-walk',
+  frames: this.anims.generateFrameNames('game-atlas', {
+    prefix: 'enemy/walk/',
+    start: 1,
+    end: 8,
+    zeroPad: 2
+  }),
+  frameRate: 10,
+  repeat: -1
+})
+```
+
+### 2. Nine Slice Support (Phaser 3.70+)
+
+Use Nine Slice for UI elements that need to scale:
+
+```typescript
+// In preload method
+this.load.atlas('ui', 'assets/atlas/ui.png', 'assets/atlas/ui.json')
+
+// In create method
+const panel = this.add.nineslice(
+  400, 300,           // x, y position
+  200, 150,           // width, height
+  'ui',               // texture key
+  'panel',            // frame
+  20, 20, 20, 20      // left, top, right, bottom slice points
+)
+```
+
+### 3. Direct Control Physics Bodies (Phaser 3.70+)
+
+Use direct control for physics bodies that follow paths or tweens:
+
+```typescript
+const platform = this.physics.add.image(400, 300, 'platform')
+platform.body.setDirectControl(true)
+
+// Now you can move it directly
+this.tweens.add({
+  targets: platform,
+  x: 600,
+  duration: 2000,
+  yoyo: true,
+  repeat: -1
+})
+
+// The physics body will automatically calculate velocity based on position changes
+```
+
+### 4. Collision Groups (Phaser 3.70+)
+
+Use collision groups for efficient collision filtering:
+
+```typescript
+// Create collision groups
+const playerGroup = this.physics.add.group()
+const enemyGroup = this.physics.add.group()
+const platformGroup = this.physics.add.group()
+
+// Add objects to groups
+playerGroup.add(player)
+enemyGroup.add(enemy1)
+enemyGroup.add(enemy2)
+platformGroup.add(platform1)
+platformGroup.add(platform2)
+
+// Set up collisions between groups
+this.physics.add.collider(playerGroup, platformGroup)
+this.physics.add.collider(enemyGroup, platformGroup)
+this.physics.add.overlap(playerGroup, enemyGroup, this.handlePlayerEnemyCollision, undefined, this)
+```
+
+### 5. WebGL Shaders
+
+Create custom shaders for special effects:
+
+```typescript
+// src/game/shaders/glow.ts
+export const GlowShader = {
+  key: 'glow',
+  fragmentShader: `
+    precision mediump float;
+    uniform sampler2D uMainSampler;
+    uniform float uTime;
+    uniform vec2 uResolution;
+    varying vec2 outTexCoord;
+
+    void main() {
+      vec4 color = texture2D(uMainSampler, outTexCoord);
+      float intensity = 1.0 + 0.3 * sin(uTime * 2.0);
+      gl_FragColor = vec4(color.rgb * intensity, color.a);
+    }
+  `
+}
+
+// In scene
+this.load.shader('glow', GlowShader.fragmentShader)
+
+// Create a shader game object
+const glowSprite = this.add.shader(
+  'glow',
+  400, 300,
+  400, 300,
+  ['player']  // Texture keys to use
+)
+
+// Update shader uniforms
+glowSprite.setUniform('uTime.value', this.time.now / 1000)
+```
+
+## Performance Best Practices
+
+1. **Use Texture Atlases**: Combine multiple images into a single texture atlas to reduce draw calls.
+
+2. **Object Pooling**: Reuse game objects instead of creating and destroying them frequently.
+
+3. **Limit Physics Bodies**: Only add physics bodies to objects that need them.
+
+4. **Use Sprite Sheets**: For animations, use sprite sheets instead of individual images.
+
+5. **Optimize Update Logic**: Only update game objects that are visible or active.
+
+6. **Use Scene Manager**: Properly manage scenes to unload unused assets and free memory.
+
+7. **Batch Rendering**: Group similar game objects together to reduce draw calls.
+
+8. **Use GPU for Round Pixels**: Enable `roundPixels: true` in the game config to use GPU for pixel rounding.
+
+9. **Optimize Asset Loading**: Use asset packs and preload scenes to manage asset loading efficiently.
+
+10. **Memory Management**: Properly destroy game objects and scenes when they are no longer needed.
+
+## Debugging and Development
+
+1. **Enable Physics Debug**: Set `arcade.debug: true` in development mode to visualize physics bodies.
+
+2. **Use Scene Manager Debug**: Enable `scenes.render.displayList` to see the display list hierarchy.
+
+3. **Performance Monitoring**: Use the built-in stats display to monitor FPS and other performance metrics.
+
+```typescript
+// In create method
+this.game.config.physics.arcade.debug = true
+this.physics.world.drawDebug = true
+
+// Add FPS counter
+this.add.text(10, 10, '', { color: '#00ff00' })
+  .setDepth(999)
+  .setScrollFactor(0)
+  .update = function() {
+    this.setText(`FPS: ${Math.floor(game.loop.actualFps)}`)
+  }
+```
+
+## Conclusion
+
+Following these best practices will help you create well-structured, performant, and maintainable Phaser 3.87.0 games. Remember to:
+
+- Use TypeScript for type safety
+- Organize your code into modular components
+- Optimize performance with texture atlases and object pooling
+- Use the latest Phaser features like Nine Slice and Direct Control Physics
+- Implement proper asset management and scene transitions
+
+Happy game development! 
