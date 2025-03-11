@@ -1,36 +1,10 @@
-import { gql, useQuery } from '@apollo/client';
 import { useWallets } from '@privy-io/react-auth'; // Adjust based on your wallet provider
 import { useEffect, useState } from 'react';
 import type { Character, Stance, Weapon, Armor, SubgraphPlayer } from '@/types/player.types';
-
-const GET_OWNED_PLAYERS = gql`
-  query GetOwnedPlayers($owner: String!) {
-    owners(where: {address: $owner}) {
-      address
-      totalPlayers
-      activePlayers(where: {isRetired: false}) {
-        id
-        firstName
-        surname
-        strength
-        constitution
-        size
-        agility
-        stamina
-        luck
-        wins
-        losses
-        kills
-        currentSkin {
-          metadataURI
-          weapon
-          armor
-          stance
-        }
-      }
-    }
-  }
-`;
+import { useQuery } from '@tanstack/react-query';
+import { request } from 'graphql-request';
+import { SUBGRAPH_URL } from '@/config';
+import { GET_OWNED_PLAYERS_QUERY } from '@/lib/gql-queries';
 
 // Helper function to convert IPFS URLs to HTTPS gateway URLs
 function ipfsToHttps(url: string): string {
@@ -109,11 +83,13 @@ export function useSubgraphPlayers() {
   const [isProcessing, setIsProcessing] = useState(false);
 
   // Query the subgraph
-  const { data, loading, error, refetch } = useQuery<{ owners: { activePlayers: SubgraphPlayer[] }[] }>(GET_OWNED_PLAYERS, {
-    variables: { owner: address },
-    skip: !address,
-    fetchPolicy: 'cache-and-network',
-  });
+  const { data, isLoading, error, refetch } = useQuery<{ owners: { activePlayers: SubgraphPlayer[] }[] }>({queryKey: ["owned-players"],  queryFn: async () =>
+    request(
+      SUBGRAPH_URL,
+      GET_OWNED_PLAYERS_QUERY,
+      // variables are type-checked too!
+      { owner: address },
+    )});
 
   // Process the data and fetch metadata for each player
   useEffect(() => {
@@ -127,7 +103,7 @@ export function useSubgraphPlayers() {
       
       try {
         // Map subgraph data and fetch metadata for each player
-        const playersWithMetadata = await Promise.all(
+        const playersWithMetadata: Character[] = await Promise.all(
           data.owners[0].activePlayers.map(async (player) => {
             // Default image in case metadata fetch fails
             let imageUrl = 'https://ipfs.io/ipfs/QmaALMyYXwHuwu2EvDrLjkqFK9YigUb6RD9FX7MqVGoDkW';
@@ -175,14 +151,14 @@ export function useSubgraphPlayers() {
       }
     }
     
-    if (data && !loading) {
+    if (data && !isLoading) {
       processPlayerData();
     }
-  }, [data, loading]);
+  }, [data, isLoading]);
 
   return {
     players,
-    isLoading: loading || isProcessing,
+    isLoading: isLoading || isProcessing,
     error,
     refetch
   };

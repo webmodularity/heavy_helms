@@ -6,8 +6,6 @@ import type { ReactNode } from "react";
 import { base, baseSepolia } from "viem/chains";
 import { PlayerProvider } from "./store/player-context";
 import { WalletProvider } from "./store/wallet-context";
-import { ApolloProvider } from '@apollo/client';
-import { apolloClient } from './lib/apollo-client';
 
 interface ProvidersProps {
   children: ReactNode;
@@ -18,7 +16,6 @@ const queryClient = new QueryClient();
 function Providers({ children }: ProvidersProps) {
   return (
     <QueryClientProvider client={queryClient}>
-      <ApolloProvider client={apolloClient}>
         <PrivyProvider
           appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID || ""}
           config={{
@@ -42,7 +39,6 @@ function Providers({ children }: ProvidersProps) {
             </PlayerProvider>
           </WalletProvider>
         </PrivyProvider>
-      </ApolloProvider>
     </QueryClientProvider>
   );
 }
