@@ -1,6 +1,6 @@
 import { gql } from 'graphql-request';
 
-export const GET_OWNED_PLAYERS = gql`
+export const GET_OWNED_PLAYERS_QUERY = gql`
   query GetOwnedPlayers($owner: String!) {
     owners(where: {address: $owner}) {
       address

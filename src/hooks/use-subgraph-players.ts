@@ -4,7 +4,7 @@ import type { Character, Stance, Weapon, Armor, SubgraphPlayer } from '@/types/p
 import { useQuery } from '@tanstack/react-query';
 import { request } from 'graphql-request';
 import { SUBGRAPH_URL } from '@/config';
-import { GET_OWNED_PLAYERS } from '@/lib/gql-queries';
+import { GET_OWNED_PLAYERS_QUERY } from '@/lib/gql-queries';
 
 // Helper function to convert IPFS URLs to HTTPS gateway URLs
 function ipfsToHttps(url: string): string {
@@ -86,7 +86,7 @@ export function useSubgraphPlayers() {
   const { data, isLoading, error, refetch } = useQuery<{ owners: { activePlayers: SubgraphPlayer[] }[] }>({queryKey: ["owned-players"],  queryFn: async () =>
     request(
       SUBGRAPH_URL,
-      GET_OWNED_PLAYERS,
+      GET_OWNED_PLAYERS_QUERY,
       // variables are type-checked too!
       { owner: address },
     )});
