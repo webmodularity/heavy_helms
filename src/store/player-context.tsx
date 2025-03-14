@@ -2,7 +2,6 @@
 
 import { viemClient } from "@/config";
 import { PlayerABI } from "@/game/abi/PlayerABI.abi";
-import { useOwnedPlayers } from "@/hooks/use-player-data";
 import { useWallet } from "@/hooks/use-wallet";
 import type { Character } from "@/types/player.types";
 import { usePrivy } from "@privy-io/react-auth";
