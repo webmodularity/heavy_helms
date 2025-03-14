@@ -5,6 +5,8 @@ import { usePrivy } from "@privy-io/react-auth";
 import { motion } from "framer-motion";
 import CharacterCard from "../CharacterCard";
 import { CTAButton as CTAButtonComponent } from "../ui/cta-button";
+import { getStanceDisplayName, getWeaponDisplayName, getArmorDisplayName } from "@/utils/equipment";
+
 interface CharacterGalleryProps {
   characters: Character[];
 }
@@ -47,24 +49,24 @@ export function CharacterGallery({ characters }: CharacterGalleryProps) {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {characters.map((character, index) => (
             <motion.div
-              key={character.name}
+              key={character.name.fullName}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: index * 0.2 }}
               className="transform transition-transform hover:scale-[1.02]"
             >
               <CharacterCard
-                name={character.name}
-                imageUrl={character.imageUrl}
-                stance={character.stance}
-                weapon={character.weapon}
-                armor={character.armor}
-                strength={character.strength}
-                constitution={character.constitution}
-                size={character.size}
-                agility={character.agility}
-                stamina={character.stamina}
-                luck={character.luck}
+                name={character.name.fullName}
+                imageUrl={character.currentSkin.imageURL}
+                stance={getStanceDisplayName(character.currentSkin.stance)}
+                weapon={getWeaponDisplayName(character.currentSkin.weapon)}
+                armor={getArmorDisplayName(character.currentSkin.armor)}
+                strength={character.attributes.strength}
+                constitution={character.attributes.constitution}
+                size={character.attributes.size}
+                agility={character.attributes.agility}
+                stamina={character.attributes.stamina}
+                luck={character.attributes.luck}
                 onSelect={() => {}}
               />
             </motion.div>

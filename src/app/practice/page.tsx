@@ -1,11 +1,9 @@
 "use client";
 
 import { GameWrapper } from "@/components/game/game-wrapper";
-import { Button } from "@/components/ui/button";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import { Armor, Character, Stance, Weapon } from "@/types/player.types";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useRef, useState } from "react";
+import { Suspense, useEffect } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 
 // Fallback component for when the game fails to load

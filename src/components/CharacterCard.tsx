@@ -11,7 +11,7 @@ interface CharacterCardProps {
   playerId?: string;
   name?: string;
   imageUrl?: string;
-  stance?: "offensive" | "defensive" | "balanced";
+  stance?: string;
   weapon?: string;
   armor?: string;
   strength?: number;
@@ -42,9 +42,9 @@ const CharacterCard: React.FC<CharacterCardProps> = ({
 }) => {
   // Define stance styles
   const stanceStyles = {
-    offensive: "text-red-400",
-    defensive: "text-green-400",
-    balanced: "text-blue-400",
+    "offensive": "text-red-400",
+    "defensive": "text-green-400",
+    "balanced": "text-blue-400",
   };
 
   // Define weapon icons (using unicode symbols)
@@ -192,7 +192,7 @@ const CharacterCard: React.FC<CharacterCardProps> = ({
         {/* Stance Footer */}
         <div className="bg-gradient-to-b from-slate-900 to-slate-950 text-white py-2 px-3 border-t border-slate-700/50 shadow-[inset_0_2px_4px_rgba(0,0,0,0.3)]">
           <p
-            className={`text-center text-xs font-bold tracking-[0.2em] uppercase ${stanceStyles[stance]} drop-shadow-[0_0_3px_rgba(255,255,255,0.2)]`}
+            className={`text-center text-xs font-bold tracking-[0.2em] uppercase ${stanceStyles[stance as keyof typeof stanceStyles]} drop-shadow-[0_0_3px_rgba(255,255,255,0.2)]`}
           >
             {stance} Stance
           </p>

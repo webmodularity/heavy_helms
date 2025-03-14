@@ -27,7 +27,7 @@ export function WarriorSelection({
   console.log("players", players);
 
   const handleViewDetails = (character: Character) => {
-    router.push(`/character/${character.playerId}`);
+    router.push(`/character/${character.id}`);
   };
 
   // Generate stable skeleton keys
@@ -60,10 +60,10 @@ export function WarriorSelection({
           <>
             {players.map((character, index) => (
               <CharacterCard
-                key={character.playerId}
+                key={character.id}
                 character={character}
                 index={index}
-                isSelected={selectedCharacter?.playerId === character.playerId}
+                isSelected={selectedCharacter?.id === character.id}
                 onSelect={() => onSelectCharacter(character)}
                 onDeselect={onDeselectCharacter}
                 onViewDetails={() => handleViewDetails(character)}

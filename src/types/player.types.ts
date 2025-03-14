@@ -1,71 +1,107 @@
-/**
- * Character stance type
- */
-export type Stance = "offensive" | "defensive" | "balanced";
+import { WeaponType, ArmorType, StanceType } from './equipment.types';
 
-/**
- * Character weapon type
- */
-export type Weapon =
-  | "Sword + Shield"
-  | "Battleaxe"
-  | "Mace + Shield"
-  | "Spear"
-  | "Warhammer"
-  | "Quarterstaff";
-
-/**
- * Character armor type
- */
-export type Armor = "Plate" | "Chain" | "Leather" | "Cloth";
-
-/**
- * Character name data
- */
-export interface CharacterName {
+export interface RawPlayerData {
+  id: string;
   firstName: string;
   surname: string;
-  fullName: string;
-}
-
-/**
- * Character information
- */
-export interface Character {
-  playerId: string;
-  name: string;
-  nameData?: CharacterName;
-  imageUrl: string;
-  stance: Stance;
-  weapon: Weapon;
-  armor: Armor;
+  currentSkin: {
+    collection: {
+      id: string;
+      contractAddress: string;
+      isVerified: boolean;
+      skinType: number;
+      requiredNFTAddress: string | null;
+    };
+    tokenId: number;
+    metadataURI: string;
+    weapon: number;
+    armor: number;
+    stance: number;
+  };
   strength: number;
   constitution: number;
   size: number;
   agility: number;
   stamina: number;
   luck: number;
-  wins?: number;
-  losses?: number;
-  kills?: number;
+  wins: number;
+  losses: number;
+  kills: number;
 }
 
-/**
- * Calculated stats for a character
- */
+export interface PlayerAttributes {
+  strength: number;
+  constitution: number;
+  size: number;
+  agility: number;
+  stamina: number;
+  luck: number;
+}
+
+export interface PlayerName {
+  firstName: string;
+  surname: string;
+  fullName?: string; // Derived field, could be computed
+}
+
+export interface PlayerSkin {
+  collection: SkinCollection;
+  tokenId: number;
+  metadataURL: string;
+  imageURL: string;
+  weapon: WeaponType;
+  armor: ArmorType;
+  stance: StanceType;
+}
+
+export interface SkinCollection {
+  id: string;
+  contractAddress: string;
+  isVerified: boolean;
+  skinType: SkinType;
+  requiredNFTAddress?: string;
+}
+
+export enum SkinType {
+  Player = 0,
+  DefaultPlayer = 1,
+  Monster = 2
+}
+
+export interface PlayerRecord {
+  wins: number;
+  losses: number;
+  kills: number;
+}
+
 export interface CalculatedStats {
   maxHealth: number;
+  maxEndurance: number;
   damageModifier: number;
   hitChance: number;
   blockChance: number;
   dodgeChance: number;
-  maxEndurance: number;
   critChance: number;
   initiative: number;
   counterChance: number;
   critMultiplier: number;
   parryChance: number;
+  baseSurvivalRate: number;
 }
+
+export interface Player {
+  id: string;
+  name: PlayerName;
+  attributes: PlayerAttributes;
+  currentSkin: PlayerSkin;
+  record: PlayerRecord;
+  calculatedStats?: CalculatedStats;
+}
+
+
+export type Character = Player;
+
+
 
 /**
  * Player action in combat
@@ -126,31 +162,3 @@ export interface TurnResult {
   defenderHealth: number;
   turnNumber: number;
 }
-
-export interface PlayerRecord {
-  wins: number;
-  losses: number;
-  kills: number;
-}
-
-export type SubgraphPlayer = {
-  id: string;
-  firstName: string;
-  surname: string;
-  currentSkin: {
-    metadataURI: string;
-    stance: number;
-    weapon: number;
-    armor: number;
-  };
-  strength: number;
-  constitution: number;
-  size: number;
-  agility: number;
-  stamina: number;
-  luck: number;
-  wins: number;
-  losses: number;
-  kills: number;
-};
-

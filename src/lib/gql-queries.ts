@@ -9,6 +9,20 @@ export const GET_OWNED_PLAYERS_QUERY = gql`
         id
         firstName
         surname
+        currentSkin {
+          collection {
+            id
+            contractAddress
+            isVerified
+            skinType
+            requiredNFTAddress
+          }
+          tokenId
+          metadataURI
+          weapon
+          armor
+          stance
+        }
         strength
         constitution
         size
@@ -18,12 +32,6 @@ export const GET_OWNED_PLAYERS_QUERY = gql`
         wins
         losses
         kills
-        currentSkin {
-          metadataURI
-          weapon
-          armor
-          stance
-        }
       }
     }
   }

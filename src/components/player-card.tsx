@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import type { CalculatedStats, Character } from "@/types/player.types";
+import { getArmorDisplayName, getStanceDisplayName, getWeaponDisplayName } from "@/utils/equipment";
 import Image from "next/image";
 import { useState } from "react";
 
@@ -38,8 +39,8 @@ export function PlayerCard({
     >
       <div className="relative h-48 overflow-hidden rounded-t-lg">
         <Image
-          src={character.imageUrl}
-          alt={character.name}
+          src={character.currentSkin.imageURL}
+          alt={character.name.fullName || "Character Image"}
           fill
           className="object-cover"
           sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
@@ -47,8 +48,8 @@ export function PlayerCard({
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
         <div className="absolute bottom-0 left-0 p-4">
-          <h3 className="text-xl font-bold text-white">{character.name}</h3>
-          <p className="text-sm text-white/80">ID: {character.playerId}</p>
+          <h3 className="text-xl font-bold text-white">{character.name.fullName}</h3>
+          <p className="text-sm text-white/80">ID: {character.id}</p>
         </div>
       </div>
 
@@ -56,25 +57,25 @@ export function PlayerCard({
         <div className="grid grid-cols-2 gap-2">
           <div className="flex flex-col">
             <span className="text-xs text-muted-foreground">Weapon</span>
-            <span className="font-medium">{character.weapon}</span>
+            <span className="font-medium">{getWeaponDisplayName(character.currentSkin.weapon)}</span>
           </div>
           <div className="flex flex-col">
             <span className="text-xs text-muted-foreground">Armor</span>
-            <span className="font-medium">{character.armor}</span>
+            <span className="font-medium">{getArmorDisplayName(character.currentSkin.armor)}</span>
           </div>
           <div className="flex flex-col">
             <span className="text-xs text-muted-foreground">Stance</span>
-            <span className="font-medium capitalize">{character.stance}</span>
+            <span className="font-medium capitalize">{getStanceDisplayName(character.currentSkin.stance)}</span>
           </div>
         </div>
 
         <div className="grid grid-cols-3 gap-2">
-          <StatDisplay label="STR" value={character.strength} />
-          <StatDisplay label="CON" value={character.constitution} />
-          <StatDisplay label="SIZE" value={character.size} />
-          <StatDisplay label="AGI" value={character.agility} />
-          <StatDisplay label="STA" value={character.stamina} />
-          <StatDisplay label="LUCK" value={character.luck} />
+          <StatDisplay label="STR" value={character.attributes.strength} />
+          <StatDisplay label="CON" value={character.attributes.constitution} />
+          <StatDisplay label="SIZE" value={character.attributes.size} />
+          <StatDisplay label="AGI" value={character.attributes.agility} />
+          <StatDisplay label="STA" value={character.attributes.stamina} />
+          <StatDisplay label="LUCK" value={character.attributes.luck} />
         </div>
 
         {stats && (

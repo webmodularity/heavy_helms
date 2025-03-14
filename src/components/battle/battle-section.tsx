@@ -101,7 +101,7 @@ function BattleCard({
   const handleAction = () => {
     if (selectedCharacter && battleType.available) {
       router.push(
-        `${battleType.route}?player1Id=${selectedCharacter.playerId}&player2Id=2`,
+        `${battleType.route}?player1Id=${selectedCharacter.id}&player2Id=2`,
       );
     }
   };
