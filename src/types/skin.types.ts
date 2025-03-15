@@ -11,6 +11,11 @@ export interface Skin {
   stance: StanceType;
 }
 
+export interface SkinInfo {
+  skinIndex: number;
+  skinTokenId: number;
+}
+
 export interface SkinCollection {
   id: string;
   contractAddress: string;

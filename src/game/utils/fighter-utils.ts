@@ -1,10 +1,6 @@
-export enum FighterType {
-  Player = "Player",
-  DefaultPlayer = "DefaultPlayer",
-  Monster = "Monster",
-}
+import { FighterType, type ContractInfo } from "@/types/fighter-types";
 
-export function getFighterType(playerId: string) {
+export function getFighterTypeFromPlayerId(playerId: string) {
   const playerIdNum = Number(playerId);
 
   if (playerIdNum >= 10001) {
@@ -21,7 +17,8 @@ export function getFighterType(playerId: string) {
   throw new Error(`Invalid player ID range: ${playerId}`);
 }
 
-export function getContractInfo(fighterType: FighterType) {
+// Update the function signature to use the interface
+export function getContractInfo(fighterType: FighterType): ContractInfo {
   switch (fighterType) {
     case FighterType.Player:
       return {

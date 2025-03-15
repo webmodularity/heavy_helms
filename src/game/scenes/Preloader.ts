@@ -2,16 +2,16 @@ import { viemClient } from "@/config";
 import { Scene } from "phaser";
 import { EventBus } from "../EventBus";
 import { fetchAndConvertPlayers } from "../../lib/player-api";
-import type { Player } from "@/types/player.types";
+import type { Player, PlayerLoadout } from "@/types/player.types";
 import { DuelGameABI, GameEngineABI, PracticeGameABI } from "../abi";
-import { type Address, parseEventLogs } from "viem";
-import { getFighterType, getContractInfo } from "../utils/fighter-types";
-import { getAbiForType } from "../utils/abi-utils";
+import type { Address } from "viem";
 import { getEnumKeyByValue } from "../utils/enum-utils";
+import { CombatResultType, WinCondition } from "@/types/game.types";
 import type {
-  CombatResultType,
-  WinCondition,
   DecodedCombatResult,
+  CombatAction,
+  RawCombatAction,
+  SceneData,
 } from "@/types/game.types";
 
 export class Preloader extends Scene {
@@ -26,10 +26,9 @@ export class Preloader extends Scene {
   private player1: Player;
   private player2: Player;
   // Game data
-  private combatBytesFromTx?: string;
+  private decodedCombatBytes: DecodedCombatResult;
 
   // Loading state
-  private preloadComplete = false;
   private loadingBar?: Phaser.GameObjects.Graphics;
 
   constructor() {
@@ -207,19 +206,36 @@ export class Preloader extends Scene {
       // Get block number
       await this.fetchBlockNumber();
 
+      const player1Loadout: PlayerLoadout = {
+        playerId: Number(this.player1.id),
+        skin: {
+          skinIndex: Number(this.player1.currentSkin.collection.id),
+          skinTokenId: Number(this.player1.currentSkin.tokenId),
+        },
+      };
+      const player2Loadout: PlayerLoadout = {
+        playerId: Number(this.player2.id),
+        skin: {
+          skinIndex: Number(this.player2.currentSkin.collection.id),
+          skinTokenId: Number(this.player2.currentSkin.tokenId),
+        },
+      };
+
+      // Get combat bytes
+      this.decodedCombatBytes = await this.loadCombatBytesPracticeMode(
+        player1Loadout,
+        player2Loadout,
+      );
+
       // Remove the complete listener to avoid duplicate calls
       this.load.off("complete", this.onLoadComplete, this);
-
+      // Start loading the queued player assets
+      this.load.start();
       // Add a new one-time listener for the player assets
       this.load.once("complete", () => {
-        console.log("All assets loaded successfully");
-        this.preloadComplete = true;
         // Start the next scene
         this.startFightScene();
       });
-
-      // Start loading the queued player assets
-      this.load.start();
     } catch (error) {
       console.error("FATAL ERROR: Failed to load player data:", error);
       throw new Error("FATAL: Cannot load players");
@@ -236,13 +252,13 @@ export class Preloader extends Scene {
 
   private startFightScene() {
     try {
-      const sceneData = {
+      const sceneData: SceneData = {
         player1: this.player1,
         player2: this.player2,
         network: this.network,
         blockNumber: this.blockNumber,
         txId: this.txId || "Practice",
-        combatBytes: this.combatBytesFromTx,
+        decodedCombatBytes: this.decodedCombatBytes,
       };
 
       this.scene.start("FightScene", sceneData);
@@ -375,129 +391,94 @@ export class Preloader extends Scene {
   }
 
   async loadCombatBytesPracticeMode(
-    player1Id: string,
-    player2Id: string,
+    player1Loadout: PlayerLoadout,
+    player2Loadout: PlayerLoadout,
   ): Promise<DecodedCombatResult> {
     try {
       const gameContractAddress = process.env
         .NEXT_PUBLIC_PRACTICE_GAME_CONTRACT_ADDRESS as Address;
 
-      // Get fighter types and contract info
-      const fighter1Type = getFighterType(player1Id.toString());
-      const fighter2Type = getFighterType(player2Id.toString());
-      const contract1Info = getContractInfo(fighter1Type);
-      const contract2Info = getContractInfo(fighter2Type);
-
-      // Get contract addresses for both fighters
-      const [contract1Address, contract2Address] = await Promise.all([
-        viemClient.readContract({
-          address: gameContractAddress,
-          abi: PracticeGameABI,
-          functionName: contract1Info.contractFunction,
-        }),
-        viemClient.readContract({
-          address: gameContractAddress,
-          abi: PracticeGameABI,
-          functionName: contract2Info.contractFunction,
-        }),
-      ]);
-
-      // Get fighter data for both fighters
-      const [player1Data, player2Data] = await Promise.all([
-        viemClient.readContract({
-          address: contract1Address as Address,
-          abi: getAbiForType(contract1Info.abi as AbiType),
-          functionName: contract1Info.method,
-          args: [BigInt(player1Id)],
-        }),
-        viemClient.readContract({
-          address: contract2Address as Address,
-          abi: getAbiForType(contract2Info.abi as AbiType),
-          functionName: contract2Info.method,
-          args: [BigInt(player2Id)],
-        }),
-      ]);
-
-      const player1Loadout: PlayerLoadout = {
-        playerId: BigInt(player1Id),
-        skin: {
-          skinIndex: BigInt(player1Data.skin.skinIndex),
-          skinTokenId: BigInt(player1Data.skin.skinTokenId),
-        },
-      };
-
-      const player2Loadout: PlayerLoadout = {
-        playerId: BigInt(player2Id),
-        skin: {
-          skinIndex: BigInt(player2Data.skin.skinIndex),
-          skinTokenId: BigInt(player2Data.skin.skinTokenId),
-        },
-      };
-
-      // Get combat bytes
-      const combatBytes = await viemClient.readContract({
-        address: gameContractAddress,
-        abi: PracticeGameABI,
-        functionName: "play",
-        args: [player1Loadout, player2Loadout],
+      const multicallResults = await viemClient.multicall({
+        contracts: [
+          {
+            address: gameContractAddress,
+            abi: PracticeGameABI,
+            functionName: "play",
+            args: [player1Loadout, player2Loadout],
+          },
+          {
+            address: gameContractAddress,
+            abi: PracticeGameABI,
+            functionName: "gameEngine",
+          },
+        ],
       });
 
-      // Get game engine address
-      const gameEngineAddress = await viemClient.readContract({
-        address: gameContractAddress,
-        abi: PracticeGameABI,
-        functionName: "gameEngine",
-      });
-
-      // Decode using GameEngine
-      const decodedCombat = await viemClient.readContract({
-        address: gameEngineAddress,
-        abi: GameEngineABI,
-        functionName: "decodeCombatLog",
-        args: [combatBytes],
-      });
-
-      // Extract actions array - skip gameEngineVersion which is at index 1
-      const actions = decodedCombat[3] as CombatAction[];
-
-      // Map the actions with proper enum conversion
-      const mappedActions = actions.map((action) => {
-        return {
-          p1Result: getEnumKeyByValue(
-            CombatResultType as unknown as Record<string, number>,
-            Number(action.p1Result),
-          ),
-          p1Damage: Number(action.p1Damage),
-          p1StaminaLost: Number(action.p1StaminaLost),
-          p2Result: getEnumKeyByValue(
-            CombatResultType as unknown as Record<string, number>,
-            Number(action.p2Result),
-          ),
-          p2Damage: Number(action.p2Damage),
-          p2StaminaLost: Number(action.p2StaminaLost),
-        };
-      });
-
-      const result: DecodedCombatResult = {
-        winner: decodedCombat[0] ? Number(player1Id) : Number(player2Id),
-        condition: getEnumKeyByValue(
-          WinCondition as unknown as Record<string, number>,
-          Number(decodedCombat[2]),
-        ) as keyof typeof WinCondition,
-        actions: mappedActions as MappedCombatAction[],
-        gameEngineVersion: Number(decodedCombat[1]),
-      };
-
-      // Verify the result has the expected structure
-      if (!result.actions || result.actions.length === 0) {
-        throw new Error("No actions in processed result");
+      // Extract the results and handle potential errors
+      if (multicallResults[0].status === "failure") {
+        throw multicallResults[0].error;
+      }
+      if (multicallResults[1].status === "failure") {
+        throw multicallResults[1].error;
       }
 
-      return result;
+      const combatBytes = multicallResults[0].result;
+      const gameEngineAddress = multicallResults[1].result;
+      return await this.decodeCombatBytes(
+        combatBytes,
+        gameEngineAddress,
+        player1Loadout.playerId,
+        player2Loadout.playerId,
+      );
     } catch (error) {
       console.error("Error loading combat bytes:", error);
       throw error;
     }
+  }
+
+  async decodeCombatBytes(
+    combatBytes: `0x${string}`,
+    gameEngineAddress: Address,
+    player1Id: number,
+    player2Id: number,
+  ): Promise<DecodedCombatResult> {
+    // TODO: The decoding should be done locally in the future
+    const decodedCombat = await viemClient.readContract({
+      address: gameEngineAddress,
+      abi: GameEngineABI,
+      functionName: "decodeCombatLog",
+      args: [combatBytes],
+    });
+
+    // Extract actions array from decodedCombat
+    const rawActions = decodedCombat[3] as RawCombatAction[];
+
+    // Map the actions with proper enum conversion
+    const actions = rawActions.map((action) => ({
+      p1Result: getEnumKeyByValue(CombatResultType, Number(action.p1Result)),
+      p1Damage: Number(action.p1Damage),
+      p1StaminaLost: Number(action.p1StaminaLost),
+      p2Result: getEnumKeyByValue(CombatResultType, Number(action.p2Result)),
+      p2Damage: Number(action.p2Damage),
+      p2StaminaLost: Number(action.p2StaminaLost),
+    })) as CombatAction[];
+
+    const result: DecodedCombatResult = {
+      winner: decodedCombat[0] ? player1Id : player2Id,
+      condition: getEnumKeyByValue(
+        WinCondition,
+        Number(decodedCombat[2]),
+      ) as keyof typeof WinCondition,
+      actions: actions,
+      gameEngineVersion: Number(decodedCombat[1]),
+    };
+
+    // Verify the result has the expected structure
+    if (!result.actions || result.actions.length === 0) {
+      throw new Error("No actions in processed result");
+    }
+
+    return result;
   }
 
   // async loadCombatBytesDuelMode(

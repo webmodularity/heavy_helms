@@ -1,5 +1,4 @@
-import type { Skin } from "./skin.types";
-
+import type { Skin, SkinInfo } from "./skin.types";
 
 export interface Player {
   id: string;
@@ -13,6 +12,11 @@ export interface Player {
 }
 
 export type Character = Player;
+
+export interface PlayerLoadout {
+  playerId: number;
+  skin: SkinInfo;
+}
 
 export interface RawPlayerData {
   id: string;
@@ -80,8 +84,6 @@ export interface CalculatedStats {
   parryChance: number;
   baseSurvivalRate: number;
 }
-
-
 
 /**
  * Player action in combat

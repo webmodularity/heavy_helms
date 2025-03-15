@@ -1,17 +1,9 @@
 import { viemClient } from "@/config";
-import { type Address, parseEventLogs } from "viem";
-import {
-  DuelGameABI,
-  GameEngineABI,
-  PlayerABI,
-  PracticeGameABI,
-} from "../abi";
-import { type AbiType, getAbiForType } from "./abi-utils";
+import type { Address } from "viem";
+import { GameEngineABI, PracticeGameABI } from "../abi";
 import { getEnumKeyByValue } from "./enum-utils";
-import { getContractInfo, getFighterType } from "./fighter-types";
 import { CombatResultType, WinCondition } from "@/types/game.types";
-
-
+import type { DecodedCombatResult, CombatAction } from "@/types/game.types";
 // Helper function to decode combat bytes into actions
 async function decodeCombatBytes(
   bytes: `0x${string}`,
@@ -64,5 +56,3 @@ async function decodeCombatBytes(
     actions: mappedActions as MappedCombatAction[],
   };
 }
-
-

@@ -10,35 +10,18 @@ import { DebugHealthManager } from "../systems/combat/debug-health-manager";
 import { HealthManager } from "../systems/combat/health-manager";
 import { VictoryHandler } from "../systems/combat/victory-handler";
 import { PlayerStatsDisplay } from "../ui/PlayerStatsDisplay";
-
-interface CombatData {
-  actions: CombatAction[];
-  winner: string;
-  condition: string;
-  gameEngineVersion: number;
-}
-
-interface CombatAction {
-  // Define properties based on actual combat actions
-  actor: string;
-  target: string;
-  type: string;
-  damage?: number;
-  critical?: boolean;
-  dodged?: boolean;
-  blocked?: boolean;
-  countered?: boolean;
-  // Add other properties as needed
-}
+import type {
+  DecodedCombatResult,
+  CombatAction,
+  RawCombatAction,
+  SceneData,
+} from "@/types/game.types";
 
 interface TextStyles {
   mainText: Phaser.GameObjects.Text;
   shadowText: Phaser.GameObjects.Text;
   metalGradient: Phaser.GameObjects.Text;
 }
-
-
-
 
 export class FightScene extends Scene {
   // Scene data

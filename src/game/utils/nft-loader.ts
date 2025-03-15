@@ -12,7 +12,8 @@ import {
   SkinRegistryABI,
 } from "../abi";
 import { type AbiType, getAbiForType } from "./abi-utils";
-import { FighterType, getContractInfo, getFighterType } from "./fighter-types";
+import { getContractInfo, getFighterTypeFromPlayerId } from "./fighter-utils";
+import { FighterType } from "@/types/fighter-types";
 
 interface PlayerAttributes {
   strength: number;
@@ -123,7 +124,7 @@ export async function loadCharacterData(
     const networkName = getAlchemyNetwork(settings.network!);
 
     // Get fighter type and contract info
-    const fighterType = getFighterType(playerId.toString());
+    const fighterType = getFighterTypeFromPlayerId(playerId.toString());
     const contractInfo = getContractInfo(fighterType);
 
     console.log("Contract info:", contractInfo);
@@ -145,7 +146,7 @@ export async function loadCharacterData(
         address: contractAddress,
         abi: getAbiForType(contractInfo.abi as AbiType),
         functionName: contractInfo.method,
-        args: [BigInt(playerId)],
+        args: [playerId],
       })) as PlayerStats;
 
       console.log("Player stats:", playerStats);

@@ -1,6 +1,6 @@
 import type { Player } from "./player.types";
 
-interface SceneData {
+export interface SceneData {
   player1: Player;
   player2: Player;
   network: string;
@@ -48,11 +48,11 @@ export interface CombatAction {
   p2StaminaLost: number;
 }
 
-// interface CombatAction {
-//   p1Result: number;
-//   p1Damage: number;
-//   p1StaminaLost: number;
-//   p2Result: number;
-//   p2Damage: number;
-//   p2StaminaLost: number;
-// }
+export interface RawCombatAction {
+  p1Result: number;
+  p1Damage: number;
+  p1StaminaLost: number;
+  p2Result: number;
+  p2Damage: number;
+  p2StaminaLost: number;
+}
