@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import type { CalculatedStats, Character } from "@/types/player.types";
-import { getArmorDisplayName, getStanceDisplayName, getWeaponDisplayName } from "@/utils/equipment";
+import { getArmorDisplayName, getStanceDisplayName, getWeaponDisplayName } from "@/lib/equipment-utils";
 import Image from "next/image";
 import { useState } from "react";
 

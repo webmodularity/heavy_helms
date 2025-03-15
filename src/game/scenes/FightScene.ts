@@ -1,11 +1,8 @@
 import { Scene } from "phaser";
 import { EventBus } from "../EventBus";
 import { createPlayerAnimations } from "../systems/animation-system";
-import { loadCombatBytes } from "../utils/combat-loader";
 
 import { DamageNumbers } from "../objects/DamageNumbers";
-// These imports need to use the correct TypeScript file paths
-// Using placeholder paths until we find the correct ones
 import { CombatAnimator } from "../systems/combat/combat-animator";
 import { CombatAudioManager } from "../systems/combat/combat-audio-manager";
 import { CombatSequenceHandler } from "../systems/combat/combat-sequence-handler";
@@ -13,33 +10,6 @@ import { DebugHealthManager } from "../systems/combat/debug-health-manager";
 import { HealthManager } from "../systems/combat/health-manager";
 import { VictoryHandler } from "../systems/combat/victory-handler";
 import { PlayerStatsDisplay } from "../ui/PlayerStatsDisplay";
-
-interface PlayerStats {
-  strength: number;
-  constitution: number;
-  size: number;
-  agility: number;
-  stamina: number;
-  luck: number;
-  skinIndex: number;
-  skinTokenId: number;
-  firstNameIndex: number;
-  surnameIndex: number;
-  wins: number;
-  losses: number;
-  kills: number;
-  weapon?: string;
-  armor?: string;
-  stance?: string;
-}
-
-interface PlayerData {
-  id: string;
-  name: string;
-  stats: PlayerStats;
-  spritesheetUrl: string;
-  jsonData: Record<string, unknown>;
-}
 
 interface CombatData {
   actions: CombatAction[];
@@ -67,25 +37,8 @@ interface TextStyles {
   metalGradient: Phaser.GameObjects.Text;
 }
 
-interface CombatBytes {
-  actions: CombatAction[];
-  winner: string;
-  condition: string;
-  gameEngineVersion: number;
-}
 
-interface SceneData {
-  player1Id: string;
-  player2Id: string;
-  player1Data: PlayerData;
-  player2Data: PlayerData;
-  player1Name: string;
-  player2Name: string;
-  network: string;
-  blockNumber: string;
-  txId: string;
-  combatBytes: CombatBytes; // Now properly typed
-}
+
 
 export class FightScene extends Scene {
   // Scene data
@@ -196,16 +149,6 @@ export class FightScene extends Scene {
     this.network = data.network;
     this.blockNumber = data.blockNumber;
     this.txId = data.txId;
-  }
-
-  preload() {
-    // Load any additional assets - most should already be loaded in Preloader
-
-    // Error handling for asset loading
-    this.load.on("loaderror", (fileObj: any) => {
-      // Handle load error silently
-      console.error("Error loading asset:", fileObj);
-    });
   }
 
   async create(data: SceneData) {
@@ -327,7 +270,7 @@ export class FightScene extends Scene {
         }
       } else {
         // Load combat data from practice game for practice mode
-        combatData = await loadCombatBytes(this.player1Id, this.player2Id);
+        //combatData = await loadCombatBytes(this.player1Id, this.player2Id);
       }
       this.combatData = combatData;
 

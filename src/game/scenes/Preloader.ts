@@ -1,52 +1,18 @@
 import { viemClient } from "@/config";
 import { Scene } from "phaser";
-import { http } from "viem";
 import { EventBus } from "../EventBus";
-import {
-  DefaultPlayerSkinNFTABI,
-  PlayerABI,
-  PracticeGameABI,
-  SkinRegistryABI,
-} from "../abi";
-import { loadDuelDataFromTx } from "../utils/combat-loader";
-import { loadCharacterData } from "../utils/nft-loader";
-
-// Define types for combat data
-interface CombatBytes {
-  player1Id: bigint | number;
-  player2Id: bigint | number;
-  winningPlayerId: bigint | number;
-  blockNumber: string;
-  // Other combat data properties
-  [key: string]: any;
-}
-
-interface PlayerStats {
-  strength: number;
-  constitution: number;
-  size: number;
-  agility: number;
-  stamina: number;
-  luck: number;
-  skinIndex: number;
-  skinTokenId: number;
-  firstNameIndex: number;
-  surnameIndex: number;
-  wins: number;
-  losses: number;
-  kills: number;
-  weapon?: string;
-  armor?: string;
-  stance?: string;
-}
-
-interface PlayerData {
-  id: string;
-  name: string;
-  stats: PlayerStats;
-  spritesheetUrl: string;
-  jsonData: Record<string, any>;
-}
+import { fetchAndConvertPlayers } from "../../lib/player-api";
+import type { Player } from "@/types/player.types";
+import { DuelGameABI, GameEngineABI, PracticeGameABI } from "../abi";
+import { type Address, parseEventLogs } from "viem";
+import { getFighterType, getContractInfo } from "../utils/fighter-types";
+import { getAbiForType } from "../utils/abi-utils";
+import { getEnumKeyByValue } from "../utils/enum-utils";
+import type {
+  CombatResultType,
+  WinCondition,
+  DecodedCombatResult,
+} from "@/types/game.types";
 
 export class Preloader extends Scene {
   // URL parameters
@@ -57,14 +23,14 @@ export class Preloader extends Scene {
   private player2Id?: string;
 
   // Player data
-  private player1Data?: PlayerData;
-  private player2Data?: PlayerData;
-  private combatBytesFromTx?: CombatBytes;
+  private player1: Player;
+  private player2: Player;
+  // Game data
+  private combatBytesFromTx?: string;
 
   // Loading state
   private preloadComplete = false;
-  private loadingBar?: Phaser.GameObjects.Rectangle;
-  private debugText?: Phaser.GameObjects.Text;
+  private loadingBar?: Phaser.GameObjects.Graphics;
 
   constructor() {
     super("Preloader");
@@ -82,7 +48,7 @@ export class Preloader extends Scene {
       process.env.NEXT_PUBLIC_ALCHEMY_NETWORK ||
       "mainnet";
 
-    this.blockNumber = params.get("blockNumber") || "123456"; // Default block number
+    this.blockNumber = params.get("blockNumber") || "123456";
 
     // Only set player IDs if no txId (practice mode) and if provided in URL
     if (!this.txId) {
@@ -101,15 +67,15 @@ export class Preloader extends Scene {
       }
 
       // Listen for player IDs from EventBus (from React)
-      EventBus.once(
-        "set-player-ids",
-        (data: { player1Id: string; player2Id: string }) => {
-          if (data.player1Id && data.player2Id) {
-            this.player1Id = data.player1Id;
-            this.player2Id = data.player2Id;
-          }
-        },
-      );
+      // EventBus.once(
+      //   "set-player-ids",
+      //   (data: { player1Id: string; player2Id: string }) => {
+      //     if (data.player1Id && data.player2Id) {
+      //       this.player1Id = data.player1Id;
+      //       this.player2Id = data.player2Id;
+      //     }
+      //   },
+      // );
     }
 
     // Set up the loading UI
@@ -118,27 +84,70 @@ export class Preloader extends Scene {
 
   createLoadingUI() {
     try {
-      // Background image loaded in Boot scene
-      this.add.image(512, 384, "background");
+      // Get the camera dimensions
+      const width = this.cameras.main.width;
+      const height = this.cameras.main.height;
 
-      // Loading bar outline
-      this.add.rectangle(512, 384, 468, 32).setStrokeStyle(1, 0xffffff);
+      // Add the background image and properly scale it to fit the screen
+      const background = this.add.image(
+        width / 2,
+        height / 2,
+        "loading-background",
+      );
 
-      // Loading bar fill
-      this.loadingBar = this.add.rectangle(512 - 230, 384, 4, 28, 0xffffff);
+      // Set the origin to center
+      background.setOrigin(0.5, 0.5);
+
+      // Scale the image to cover the entire screen while maintaining aspect ratio
+      const scaleX = width / background.width;
+      const scaleY = height / background.height;
+      const scale = Math.max(scaleX, scaleY);
+      background.setScale(scale);
+
+      // Create a semi-transparent dark rectangle for the loading bar background
+      const barY = height * 0.75;
+      const barWidth = width * 0.6;
+      const barHeight = 30;
+
+      // Add a white border around the loading bar
+      this.add
+        .rectangle(width / 2, barY, barWidth + 4, barHeight + 4, 0xffffff)
+        .setOrigin(0.5);
+
+      // Add the dark background for the loading bar
+      this.add
+        .rectangle(width / 2, barY, barWidth, barHeight, 0x000000, 0.7)
+        .setOrigin(0.5);
+
+      // Create a progress bar
+      const progressBar = this.add.graphics();
+      this.loadingBar = progressBar;
 
       // Update loading bar based on progress
       this.load.on("progress", (progress: number) => {
         if (this.loadingBar) {
-          this.loadingBar.width = 4 + 460 * progress;
+          this.loadingBar.clear();
+
+          // Draw the blue progress bar
+          this.loadingBar.fillStyle(0x0099ff);
+
+          // Calculate the filled portion of the bar
+          const fillWidth = (barWidth - 4) * progress;
+          const x = width / 2 - barWidth / 2 + 2;
+          const y = barY - barHeight / 2 + 2;
+
+          this.loadingBar.fillRect(x, y, fillWidth, barHeight - 4);
         }
       });
 
       // Add a status text
       const statusText = this.add
-        .text(512, 420, "Loading game assets...", {
+        .text(width / 2, barY + barHeight + 20, "Loading game assets...", {
           fontSize: "18px",
+          fontFamily: "Arial",
           color: "#ffffff",
+          stroke: "#000000",
+          strokeThickness: 3,
         })
         .setOrigin(0.5);
 
@@ -147,12 +156,7 @@ export class Preloader extends Scene {
         statusText.setText(message);
       });
     } catch (error) {
-      const errorText = this.add
-        .text(512, 450, "Error loading game data. Please try again.", {
-          fontSize: "18px",
-          color: "#ff0000",
-        })
-        .setOrigin(0.5);
+      console.error("Error creating loading UI:", error);
     }
   }
 
@@ -174,47 +178,34 @@ export class Preloader extends Scene {
 
   private async onLoadComplete() {
     try {
-      // Load blockchain data
+      // Disable duel mode for now
       if (this.txId) {
-        this.events.emit(
-          "status-update",
-          "Loading combat data from blockchain...",
-        );
-        await this.loadDuelData();
-      } else if (!this.player1Id || !this.player2Id) {
-        this.events.emit("status-update", "Selecting random players...");
-        await this.selectRandomPlayers();
+        console.error("Duel mode is currently disabled");
+        throw new Error("Duel mode is currently disabled");
       }
 
-      // Load player data
+      // Enforce that we have both player IDs
+      if (!this.player1Id || !this.player2Id) {
+        console.error("FATAL ERROR: Missing player IDs");
+        throw new Error("FATAL: Both player IDs are required");
+      }
+
+      // Practice Mode - load players
       this.events.emit("status-update", "Loading player data...");
-      await this.loadPlayerData();
+      await this.loadPlayersByPlayerIds(this.player1Id, this.player2Id);
 
-      // Load loadouts
-      this.events.emit("status-update", "Loading equipment data...");
-      await this.loadPlayerLoadouts();
-
-      // Queue player spritesheets for loading
-      if (this.player1Data?.spritesheetUrl && this.player1Data?.jsonData) {
-        this.load.atlas(
-          `player${this.player1Id}`,
-          this.player1Data.spritesheetUrl,
-          this.player1Data.jsonData,
-        );
+      // Enforce that both players were loaded successfully
+      if (!this.player1 || !this.player2) {
+        console.error("FATAL ERROR: Failed to load player data");
+        throw new Error("FATAL: Player data could not be loaded");
       }
 
-      if (this.player2Data?.spritesheetUrl && this.player2Data?.jsonData) {
-        this.load.atlas(
-          `player${this.player2Id}`,
-          this.player2Data.spritesheetUrl,
-          this.player2Data.jsonData,
-        );
-      }
+      // Load player spritesheets
+      this.loadPlayerSpritesheet(this.player1);
+      this.loadPlayerSpritesheet(this.player2);
 
-      // Get block number if needed
-      if (!this.txId) {
-        await this.fetchBlockNumber();
-      }
+      // Get block number
+      await this.fetchBlockNumber();
 
       // Remove the complete listener to avoid duplicate calls
       this.load.off("complete", this.onLoadComplete, this);
@@ -230,56 +221,31 @@ export class Preloader extends Scene {
       // Start loading the queued player assets
       this.load.start();
     } catch (error) {
-      console.error("Error in load complete:", error);
-      const errorText = this.add
-        .text(512, 450, "Error loading game data. Please try again.", {
-          fontSize: "18px",
-          color: "#ff0000",
-        })
-        .setOrigin(0.5);
+      console.error("FATAL ERROR: Failed to load player data:", error);
+      throw new Error("FATAL: Cannot load players");
     }
+  }
+
+  private loadPlayerSpritesheet(player: Player) {
+    this.load.atlas(
+      `player${player.id}-spritesheet`,
+      player.currentSkin.spritesheet.image,
+      { textures: [player.currentSkin.spritesheet] },
+    );
   }
 
   private startFightScene() {
     try {
-      if (
-        this.player1Id &&
-        this.player2Id &&
-        this.player1Data &&
-        this.player2Data
-      ) {
-        const sceneData = {
-          player1Id: this.player1Id,
-          player2Id: this.player2Id,
-          player1Data: this.player1Data,
-          player2Data: this.player2Data,
-          player1Name: this.player1Data.name,
-          player2Name: this.player2Data.name,
-          network: this.network,
-          blockNumber: this.blockNumber,
-          txId: this.txId || "Practice",
-          combatBytes: this.combatBytesFromTx,
-        };
+      const sceneData = {
+        player1: this.player1,
+        player2: this.player2,
+        network: this.network,
+        blockNumber: this.blockNumber,
+        txId: this.txId || "Practice",
+        combatBytes: this.combatBytesFromTx,
+      };
 
-        this.scene.start("FightScene", sceneData);
-      } else {
-        // Fallback to default players if something went wrong
-        const fallbackData = this.createFallbackPlayerData();
-
-        this.scene.start("FightScene", {
-          player1Id: "1",
-          player2Id: "2",
-          player1Data: fallbackData,
-          player2Data: fallbackData,
-          player1Name: fallbackData.name,
-          player2Name: fallbackData.name,
-          network: this.network,
-          blockNumber: this.blockNumber,
-          txId: "Practice",
-          combatBytes: null,
-        });
-      }
-
+      this.scene.start("FightScene", sceneData);
       // Let React know that the scene is ready
       EventBus.emit("current-scene-ready", this);
     } catch (error) {
@@ -323,327 +289,65 @@ export class Preloader extends Scene {
     }
   }
 
-  async loadDuelData() {
+  // async loadDuelData() {
+  //   try {
+  //     if (!this.txId) {
+  //       return null;
+  //     }
+
+  //     const duelData = await loadDuelDataFromTx(this.txId, this.network);
+
+  //     if (!duelData) {
+  //       return null;
+  //     }
+
+  //     this.player1Id = String(duelData.player1Id);
+  //     this.player2Id = String(duelData.player2Id);
+
+  //     this.combatBytesFromTx = {
+  //       ...duelData,
+  //       player1Id:
+  //         typeof duelData.player1Id === "bigint"
+  //           ? duelData.player1Id
+  //           : BigInt(duelData.player1Id),
+  //       player2Id:
+  //         typeof duelData.player2Id === "bigint"
+  //           ? duelData.player2Id
+  //           : BigInt(duelData.player2Id),
+  //       winningPlayerId:
+  //         typeof duelData.winningPlayerId === "bigint"
+  //           ? duelData.winningPlayerId
+  //           : BigInt(duelData.winningPlayerId || 0),
+  //     };
+
+  //     this.blockNumber = duelData.blockNumber;
+
+  //     return duelData;
+  //   } catch (error) {
+  //     console.error("Error loading duel data:", error);
+  //     throw error;
+  //   }
+  // }
+
+  async loadPlayersByPlayerIds(player1Id: string, player2Id: string) {
     try {
-      if (!this.txId) {
-        return null;
+      console.log("Loading players with IDs:", player1Id, player2Id);
+      const playerIds = [player1Id, player2Id];
+      const players = await fetchAndConvertPlayers(playerIds);
+      console.log("Fetched players:", players);
+
+      // Check if we got valid player data
+      if (!players || players.length < 2 || !players[0] || !players[1]) {
+        console.error("Invalid player data returned:", players);
+        throw new Error("Invalid player data returned from API");
       }
 
-      const duelData = await loadDuelDataFromTx(this.txId, this.network);
-
-      if (!duelData) {
-        return null;
-      }
-
-      this.player1Id = String(duelData.player1Id);
-      this.player2Id = String(duelData.player2Id);
-
-      this.combatBytesFromTx = {
-        ...duelData,
-        player1Id:
-          typeof duelData.player1Id === "bigint"
-            ? duelData.player1Id
-            : BigInt(duelData.player1Id),
-        player2Id:
-          typeof duelData.player2Id === "bigint"
-            ? duelData.player2Id
-            : BigInt(duelData.player2Id),
-        winningPlayerId:
-          typeof duelData.winningPlayerId === "bigint"
-            ? duelData.winningPlayerId
-            : BigInt(duelData.winningPlayerId || 0),
-      };
-
-      this.blockNumber = duelData.blockNumber;
-
-      return duelData;
+      [this.player1, this.player2] = players;
+      console.log("Assigned players:", this.player1, this.player2);
+      return players;
     } catch (error) {
-      console.error("Error loading duel data:", error);
-      throw error;
-    }
-  }
-
-  async selectRandomPlayers() {
-    try {
-      const networkName =
-        process.env.NEXT_PUBLIC_ALCHEMY_NETWORK?.toLowerCase() || "mainnet";
-      const apiKey = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
-
-      if (!apiKey) {
-        this.player1Id = "1";
-        this.player2Id = "2";
-        return;
-      }
-
-      const transport = http(
-        `https://${networkName}.g.alchemy.com/v2/${apiKey}`,
-      );
-
-      // const client = createPublicClient({
-      //   transport,
-      // });
-
-      const gameContractAddress = process.env
-        .NEXT_PUBLIC_PRACTICE_GAME_CONTRACT_ADDRESS as `0x${string}`;
-
-      if (!gameContractAddress) {
-        this.player1Id = "1";
-        this.player2Id = "2";
-        return;
-      }
-
-      const playerContractAddress = await viemClient.readContract({
-        address: gameContractAddress,
-        abi: PracticeGameABI,
-        functionName: "playerContract",
-      });
-
-      const skinRegistryAddress = await viemClient.readContract({
-        address: playerContractAddress as `0x${string}`,
-        abi: PlayerABI,
-        functionName: "skinRegistry",
-      });
-
-      const defaultSkinInfo = await viemClient.readContract({
-        address: skinRegistryAddress as `0x${string}`,
-        abi: SkinRegistryABI,
-        functionName: "getSkin",
-        args: [0], // Index 0 is DefaultPlayerSkinNFT
-      });
-
-      const currentTokenId = await viemClient.readContract({
-        address: defaultSkinInfo.contractAddress as `0x${string}`,
-        abi: DefaultPlayerSkinNFTABI,
-        functionName: "CURRENT_TOKEN_ID",
-      });
-
-      const maxId = Number(currentTokenId) - 1;
-      const id1 = Math.floor(Math.random() * maxId) + 1;
-      let id2 = 0;
-      do {
-        id2 = Math.floor(Math.random() * maxId) + 1;
-      } while (id2 === id1);
-
-      this.player1Id = id1.toString();
-      this.player2Id = id2.toString();
-    } catch (error) {
-      console.error("Error selecting random players:", error);
-      this.player1Id = "1";
-      this.player2Id = "2";
-    }
-  }
-
-  async loadPlayerData() {
-    try {
-      if (!this.player1Id) {
-        return null;
-      }
-
-      // Convert string IDs to numbers for the loadCharacterData function
-      const p1Id = Number(this.player1Id);
-      const p2Id = this.player2Id ? Number(this.player2Id) : null;
-
-      // Load player data using the real character loader
-      const playerData = await Promise.all([
-        loadCharacterData(p1Id),
-        p2Id !== null ? loadCharacterData(p2Id) : null,
-      ]);
-
-      // Convert the loaded data to our PlayerData format
-      const [p1Data, p2Data] = playerData;
-
-      if (p1Data) {
-        this.player1Data = {
-          id: this.player1Id,
-          name: p1Data.name || `Player ${this.player1Id}`,
-          stats: {
-            ...p1Data.stats,
-            weapon: undefined,
-            armor: undefined,
-            stance: undefined,
-          },
-          spritesheetUrl: p1Data.spritesheetUrl,
-          jsonData: p1Data.jsonData,
-        };
-      } else {
-        this.player1Data = this.createFallbackPlayerData();
-        this.player1Data.id = this.player1Id;
-        this.player1Data.name = `Player ${this.player1Id}`;
-      }
-
-      if (p2Data) {
-        this.player2Data = {
-          id: this.player2Id!,
-          name: p2Data.name || `Player ${this.player2Id}`,
-          stats: {
-            ...p2Data.stats,
-            weapon: undefined,
-            armor: undefined,
-            stance: undefined,
-          },
-          spritesheetUrl: p2Data.spritesheetUrl,
-          jsonData: p2Data.jsonData,
-        };
-      } else if (this.player2Id) {
-        // this.player2Data = this.createFallbackPlayerData();
-      }
-
-      return [this.player1Data, this.player2Data];
-    } catch (error) {
-      // Create fallback data
-      this.player1Data = this.createFallbackPlayerData();
-      if (this.player1Id) {
-        this.player1Data.id = this.player1Id;
-        this.player1Data.name = `Player ${this.player1Id}`;
-      }
-
-      if (this.player2Id) {
-        this.player2Data = this.createFallbackPlayerData();
-        this.player2Data.id = this.player2Id;
-        this.player2Data.name = `Player ${this.player2Id}`;
-      }
-
-      return [this.player1Data, this.player2Data];
-    }
-  }
-
-  async loadPlayerLoadouts() {
-    try {
-      if (
-        !this.player1Id ||
-        !this.player2Id ||
-        !this.player1Data ||
-        !this.player2Data
-      ) {
-        return;
-      }
-
-      const networkName =
-        process.env.NEXT_PUBLIC_ALCHEMY_NETWORK?.toLowerCase() || "mainnet";
-      const apiKey = process.env.NEXT_PUBLIC_ALCHEMY_API_KEY;
-
-      if (!apiKey) {
-        this.setDefaultLoadouts();
-        return;
-      }
-
-      const transport = http(
-        `https://${networkName}.g.alchemy.com/v2/${apiKey}`,
-      );
-
-      // Get skin registry from player contract
-      const playerContractAddress = process.env
-        .NEXT_PUBLIC_PLAYER_CONTRACT_ADDRESS as `0x${string}`;
-
-      if (!playerContractAddress) {
-        this.setDefaultLoadouts();
-        return;
-      }
-
-      // Get skin info for both players
-      let skinInfo1, skinInfo2;
-      try {
-        skinInfo1 = await viemClient.readContract({
-          address: playerContractAddress as `0x${string}`,
-          abi: SkinRegistryABI,
-          functionName: "getSkin",
-          args: [this.player1Data.stats.skinIndex],
-        });
-      } catch (error) {
-        skinInfo1 = null;
-      }
-
-      try {
-        skinInfo2 = await viemClient.readContract({
-          address: playerContractAddress as `0x${string}`,
-          abi: SkinRegistryABI,
-          functionName: "getSkin",
-          args: [this.player2Data.stats.skinIndex],
-        });
-      } catch (error) {
-        skinInfo2 = null;
-      }
-
-      // Get attributes from the skin contracts
-      let loadout1, loadout2;
-      try {
-        if (skinInfo1 && skinInfo1.contractAddress) {
-          loadout1 = await viemClient.readContract({
-            address: skinInfo1.contractAddress as `0x${string}`,
-            abi: DefaultPlayerSkinNFTABI,
-            functionName: "getSkinAttributes",
-            args: [BigInt(this.player1Data.stats.skinTokenId)],
-          });
-        } else {
-          loadout1 = null;
-        }
-      } catch (error) {
-        loadout1 = null;
-      }
-
-      try {
-        if (skinInfo2 && skinInfo2.contractAddress) {
-          loadout2 = await viemClient.readContract({
-            address: skinInfo2.contractAddress as `0x${string}`,
-            abi: DefaultPlayerSkinNFTABI,
-            functionName: "getSkinAttributes",
-            args: [BigInt(this.player2Data.stats.skinTokenId)],
-          });
-        } else {
-          loadout2 = null;
-        }
-      } catch (error) {
-        loadout2 = null;
-      }
-
-      // Map the loadout enum values to strings
-      const weaponTypes = [
-        "SwordAndShield", // 0
-        "MaceAndShield", // 1
-        "RapierAndShield", // 2
-        "Greatsword", // 3
-        "Battleaxe", // 4
-        "Quarterstaff", // 5
-        "Spear", // 6
-      ];
-      const armorTypes = [
-        "Cloth", // 0
-        "Leather", // 1
-        "Chain", // 2
-        "Plate", // 3
-      ];
-      const stanceTypes = [
-        "Defensive", // 0
-        "Balanced", // 1
-        "Offensive", // 2
-      ];
-
-      // Add loadout info to player data
-      if (this.player1Data && loadout1) {
-        const weapon = Number(loadout1.weapon ?? loadout1[0] ?? 0);
-        const armor = Number(loadout1.armor ?? loadout1[1] ?? 0);
-        const stance = Number(loadout1.stance ?? loadout1[2] ?? 0);
-
-        this.player1Data.stats.weapon = this.abbreviateWeaponName(
-          weaponTypes[weapon] ?? "None",
-        );
-        this.player1Data.stats.armor = armorTypes[armor] ?? "None";
-        this.player1Data.stats.stance = stanceTypes[stance] ?? "None";
-      }
-
-      if (this.player2Data && loadout2) {
-        const weapon = Number(loadout2.weapon ?? loadout2[0] ?? 0);
-        const armor = Number(loadout2.armor ?? loadout2[1] ?? 0);
-        const stance = Number(loadout2.stance ?? loadout2[2] ?? 0);
-
-        this.player2Data.stats.weapon = this.abbreviateWeaponName(
-          weaponTypes[weapon] ?? "None",
-        );
-        this.player2Data.stats.armor = armorTypes[armor] ?? "None";
-        this.player2Data.stats.stance = stanceTypes[stance] ?? "None";
-      }
-    } catch (error) {
-      // Continue without loadout data
+      console.error("FATAL ERROR: Failed to load player data:", error);
+      throw new Error("FATAL: Cannot load players");
     }
   }
 
@@ -670,30 +374,244 @@ export class Preloader extends Scene {
     return abbreviations[weapon] || weapon;
   }
 
-  createFallbackPlayerData(): PlayerData {
-    return {
-      id: "1",
-      name: "Default Player",
-      stats: {
-        strength: 10,
-        constitution: 10,
-        size: 10,
-        agility: 10,
-        stamina: 10,
-        luck: 10,
-        skinIndex: 0,
-        skinTokenId: 1,
-        firstNameIndex: 0,
-        surnameIndex: 0,
-        wins: 0,
-        losses: 0,
-        kills: 0,
-        weapon: "Sword",
-        armor: "Plate",
-        stance: "Balanced",
-      },
-      spritesheetUrl: "/path/to/default/spritesheet.png",
-      jsonData: { frames: {} }, // Minimal valid atlas JSON
-    };
+  async loadCombatBytesPracticeMode(
+    player1Id: string,
+    player2Id: string,
+  ): Promise<DecodedCombatResult> {
+    try {
+      const gameContractAddress = process.env
+        .NEXT_PUBLIC_PRACTICE_GAME_CONTRACT_ADDRESS as Address;
+
+      // Get fighter types and contract info
+      const fighter1Type = getFighterType(player1Id.toString());
+      const fighter2Type = getFighterType(player2Id.toString());
+      const contract1Info = getContractInfo(fighter1Type);
+      const contract2Info = getContractInfo(fighter2Type);
+
+      // Get contract addresses for both fighters
+      const [contract1Address, contract2Address] = await Promise.all([
+        viemClient.readContract({
+          address: gameContractAddress,
+          abi: PracticeGameABI,
+          functionName: contract1Info.contractFunction,
+        }),
+        viemClient.readContract({
+          address: gameContractAddress,
+          abi: PracticeGameABI,
+          functionName: contract2Info.contractFunction,
+        }),
+      ]);
+
+      // Get fighter data for both fighters
+      const [player1Data, player2Data] = await Promise.all([
+        viemClient.readContract({
+          address: contract1Address as Address,
+          abi: getAbiForType(contract1Info.abi as AbiType),
+          functionName: contract1Info.method,
+          args: [BigInt(player1Id)],
+        }),
+        viemClient.readContract({
+          address: contract2Address as Address,
+          abi: getAbiForType(contract2Info.abi as AbiType),
+          functionName: contract2Info.method,
+          args: [BigInt(player2Id)],
+        }),
+      ]);
+
+      const player1Loadout: PlayerLoadout = {
+        playerId: BigInt(player1Id),
+        skin: {
+          skinIndex: BigInt(player1Data.skin.skinIndex),
+          skinTokenId: BigInt(player1Data.skin.skinTokenId),
+        },
+      };
+
+      const player2Loadout: PlayerLoadout = {
+        playerId: BigInt(player2Id),
+        skin: {
+          skinIndex: BigInt(player2Data.skin.skinIndex),
+          skinTokenId: BigInt(player2Data.skin.skinTokenId),
+        },
+      };
+
+      // Get combat bytes
+      const combatBytes = await viemClient.readContract({
+        address: gameContractAddress,
+        abi: PracticeGameABI,
+        functionName: "play",
+        args: [player1Loadout, player2Loadout],
+      });
+
+      // Get game engine address
+      const gameEngineAddress = await viemClient.readContract({
+        address: gameContractAddress,
+        abi: PracticeGameABI,
+        functionName: "gameEngine",
+      });
+
+      // Decode using GameEngine
+      const decodedCombat = await viemClient.readContract({
+        address: gameEngineAddress,
+        abi: GameEngineABI,
+        functionName: "decodeCombatLog",
+        args: [combatBytes],
+      });
+
+      // Extract actions array - skip gameEngineVersion which is at index 1
+      const actions = decodedCombat[3] as CombatAction[];
+
+      // Map the actions with proper enum conversion
+      const mappedActions = actions.map((action) => {
+        return {
+          p1Result: getEnumKeyByValue(
+            CombatResultType as unknown as Record<string, number>,
+            Number(action.p1Result),
+          ),
+          p1Damage: Number(action.p1Damage),
+          p1StaminaLost: Number(action.p1StaminaLost),
+          p2Result: getEnumKeyByValue(
+            CombatResultType as unknown as Record<string, number>,
+            Number(action.p2Result),
+          ),
+          p2Damage: Number(action.p2Damage),
+          p2StaminaLost: Number(action.p2StaminaLost),
+        };
+      });
+
+      const result: DecodedCombatResult = {
+        winner: decodedCombat[0] ? Number(player1Id) : Number(player2Id),
+        condition: getEnumKeyByValue(
+          WinCondition as unknown as Record<string, number>,
+          Number(decodedCombat[2]),
+        ) as keyof typeof WinCondition,
+        actions: mappedActions as MappedCombatAction[],
+        gameEngineVersion: Number(decodedCombat[1]),
+      };
+
+      // Verify the result has the expected structure
+      if (!result.actions || result.actions.length === 0) {
+        throw new Error("No actions in processed result");
+      }
+
+      return result;
+    } catch (error) {
+      console.error("Error loading combat bytes:", error);
+      throw error;
+    }
   }
+
+  // async loadCombatBytesDuelMode(
+  //   txId: string,
+  //   network: string,
+  // ): Promise<DecodedCombatResult> {
+  //   try {
+  //     // Get transaction receipt
+  //     const receipt = await viemClient.getTransactionReceipt({
+  //       hash: txId as `0x${string}`,
+  //     });
+
+  //     // Parse the combat result event logs using DuelGameABI
+  //     const parsedLogs = parseEventLogs({
+  //       abi: DuelGameABI,
+  //       eventName: "CombatResult",
+  //       logs: receipt.logs,
+  //     });
+
+  //     if (!parsedLogs || parsedLogs.length === 0) {
+  //       throw new Error("Combat result log not found");
+  //     }
+
+  //     const combatLog = parsedLogs[0];
+
+  //     const player1Data = combatLog.args.player1Data;
+  //     const player2Data = combatLog.args.player2Data;
+  //     const winningPlayerId = combatLog.args.winningPlayerId;
+  //     const packedResults = combatLog.args.packedResults;
+
+  //     // Get player contract to decode player data
+  //     const gameContractAddress = process.env
+  //       .NEXT_PUBLIC_DUEL_GAME_CONTRACT_ADDRESS as Address;
+  //     const playerContractAddress = await viemClient.readContract({
+  //       address: gameContractAddress,
+  //       abi: DuelGameABI,
+  //       functionName: "playerContract",
+  //     });
+
+  //     // Decode player data from indexed parameters
+  //     const [player1Id, player1Stats] = await viemClient.readContract({
+  //       address: playerContractAddress,
+  //       abi: PlayerABI,
+  //       functionName: "decodePlayerData",
+  //       args: [player1Data],
+  //     });
+  //     const [player2Id, player2Stats] = await viemClient.readContract({
+  //       address: playerContractAddress,
+  //       abi: PlayerABI,
+  //       functionName: "decodePlayerData",
+  //       args: [player2Data],
+  //     });
+
+  //     // Get game engine address
+  //     const gameEngineAddress = await viemClient.readContract({
+  //       address: gameContractAddress,
+  //       abi: DuelGameABI,
+  //       functionName: "gameEngine",
+  //     });
+
+  //     // Decode combat bytes
+  //     const decodedCombat = await viemClient.readContract({
+  //       address: gameEngineAddress,
+  //       abi: GameEngineABI,
+  //       functionName: "decodeCombatLog",
+  //       args: [packedResults],
+  //     });
+
+  //     // Extract actions array - skip gameEngineVersion which is at index 1
+  //     const actions = decodedCombat[3] as CombatAction[];
+
+  //     // Map the actions with proper enum conversion
+  //     const mappedActions = actions.map((action) => {
+  //       return {
+  //         p1Result: getEnumKeyByValue(
+  //           CombatResultType as unknown as Record<string, number>,
+  //           Number(action.p1Result),
+  //         ),
+  //         p1Damage: Number(action.p1Damage),
+  //         p1StaminaLost: Number(action.p1StaminaLost),
+  //         p2Result: getEnumKeyByValue(
+  //           CombatResultType as unknown as Record<string, number>,
+  //           Number(action.p2Result),
+  //         ),
+  //         p2Damage: Number(action.p2Damage),
+  //         p2StaminaLost: Number(action.p2StaminaLost),
+  //       };
+  //     });
+
+  //     const result: DuelResult = {
+  //       winner: winningPlayerId,
+  //       condition: getEnumKeyByValue(
+  //         WinCondition as unknown as Record<string, number>,
+  //         Number(decodedCombat[2]),
+  //       ) as keyof typeof WinCondition,
+  //       actions: mappedActions as MappedCombatAction[],
+  //       player1Id: Number(player1Id),
+  //       player2Id: Number(player2Id),
+  //       player1Stats,
+  //       player2Stats,
+  //       winningPlayerId,
+  //       blockNumber: receipt.blockNumber.toString(),
+  //       gameEngineVersion: Number(decodedCombat[1]),
+  //     };
+
+  //     // Verify the result has the expected structure
+  //     if (!result.actions || result.actions.length === 0) {
+  //       throw new Error("No actions in processed result");
+  //     }
+
+  //     return result;
+  //   } catch (error) {
+  //     console.error("Error loading duel data:", error);
+  //     throw error;
+  //   }
+  // }
 }

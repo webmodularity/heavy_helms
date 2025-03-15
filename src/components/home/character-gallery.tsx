@@ -5,7 +5,7 @@ import { usePrivy } from "@privy-io/react-auth";
 import { motion } from "framer-motion";
 import CharacterCard from "../CharacterCard";
 import { CTAButton as CTAButtonComponent } from "../ui/cta-button";
-import { getStanceDisplayName, getWeaponDisplayName, getArmorDisplayName } from "@/utils/equipment";
+import { getStanceDisplayName, getWeaponDisplayName, getArmorDisplayName } from "@/lib/equipment-utils";
 
 interface CharacterGalleryProps {
   characters: Character[];

@@ -1,4 +1,18 @@
-import { WeaponType, ArmorType, StanceType } from './equipment.types';
+import type { Skin } from "./skin.types";
+
+
+export interface Player {
+  id: string;
+  name: PlayerName;
+  attributes: PlayerAttributes;
+  currentSkin: Skin;
+  record: PlayerRecord;
+  calculatedStats?: CalculatedStats;
+  isRetired: boolean;
+  isImmortal: boolean;
+}
+
+export type Character = Player;
 
 export interface RawPlayerData {
   id: string;
@@ -27,6 +41,8 @@ export interface RawPlayerData {
   wins: number;
   losses: number;
   kills: number;
+  isRetired: boolean;
+  isImmortal: boolean;
 }
 
 export interface PlayerAttributes {
@@ -42,30 +58,6 @@ export interface PlayerName {
   firstName: string;
   surname: string;
   fullName?: string; // Derived field, could be computed
-}
-
-export interface PlayerSkin {
-  collection: SkinCollection;
-  tokenId: number;
-  metadataURL: string;
-  imageURL: string;
-  weapon: WeaponType;
-  armor: ArmorType;
-  stance: StanceType;
-}
-
-export interface SkinCollection {
-  id: string;
-  contractAddress: string;
-  isVerified: boolean;
-  skinType: SkinType;
-  requiredNFTAddress?: string;
-}
-
-export enum SkinType {
-  Player = 0,
-  DefaultPlayer = 1,
-  Monster = 2
 }
 
 export interface PlayerRecord {
@@ -88,18 +80,6 @@ export interface CalculatedStats {
   parryChance: number;
   baseSurvivalRate: number;
 }
-
-export interface Player {
-  id: string;
-  name: PlayerName;
-  attributes: PlayerAttributes;
-  currentSkin: PlayerSkin;
-  record: PlayerRecord;
-  calculatedStats?: CalculatedStats;
-}
-
-
-export type Character = Player;
 
 
 
