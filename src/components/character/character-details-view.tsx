@@ -19,12 +19,11 @@ import {
   Flame,
   Flag,
   Trash2,
-  AlertOctagon,
 } from "lucide-react";
 import { motion } from "framer-motion";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { RetirementConfirmationDialog } from "../dialogs/retirement-confirmation-dialog";
 
 interface CharacterDetailsViewProps {
   characterId: string;
@@ -43,93 +42,12 @@ export function CharacterDetailsView({
     const result = await retirePlayer();
 
     if (result.success) {
-      setShowConfirm(false);
-
       // Redirect to home after successful retirement
       setTimeout(() => {
         router.push("/");
       }, 2000);
     }
   };
-
-  // Add a confirmation dialog component
-  const RetirementConfirmation = () => (
-    <motion.div
-      className="fixed inset-0 bg-black/80 flex items-center justify-center z-50"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-    >
-      <motion.div
-        className="bg-stone-900 border border-red-500/20 p-6 rounded-lg max-w-md"
-        initial={{ scale: 0.9, opacity: 0 }}
-        animate={{ scale: 1, opacity: 1 }}
-        exit={{ scale: 0.9, opacity: 0 }}
-      >
-        {txHash ? (
-          <div className="text-center">
-            <div className="flex items-center justify-center mb-4 text-yellow-500">
-              <Trophy className="h-6 w-6 mr-2" />
-              <h3 className="text-xl font-bold">Transaction Submitted</h3>
-            </div>
-
-            <p className="text-stone-300 mb-4">
-              Your request to retire {character?.name.fullName} has been
-              submitted to the blockchain.
-            </p>
-
-            <a
-              href={`https://sepolia.basescan.org/tx/${txHash}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-blue-400 underline mb-6 inline-block"
-            >
-              View transaction on BaseScan
-            </a>
-
-            <p className="text-stone-400 text-sm mt-4">
-              Please wait while the transaction is being processed. This dialog
-              will close automatically upon completion.
-            </p>
-          </div>
-        ) : (
-          <>
-            <div className="flex items-center mb-4 text-red-500">
-              <AlertOctagon className="h-6 w-6 mr-2" />
-              <h3 className="text-xl font-bold">Confirm Retirement</h3>
-            </div>
-
-            <p className="text-stone-300 mb-6">
-              Are you sure you want to retire{" "}
-              <span className="text-yellow-400 font-semibold">
-                {character?.name.fullName}
-              </span>
-              ? This action cannot be undone, and your warrior will no longer be
-              available for battles.
-            </p>
-
-            <div className="flex justify-end space-x-4">
-              <Button
-                variant="ghost"
-                onClick={() => setShowConfirm(false)}
-                disabled={isRetiring}
-              >
-                Cancel
-              </Button>
-              <Button
-                variant="destructive"
-                onClick={handleRetirement}
-                disabled={isRetiring}
-                className="bg-red-700 hover:bg-red-800 text-white"
-              >
-                {isRetiring ? "Retiring..." : "Confirm Retirement"}
-              </Button>
-            </div>
-          </>
-        )}
-      </motion.div>
-    </motion.div>
-  );
 
   if (isLoading) {
     return <CharacterDetailsSkeleton />;
@@ -385,8 +303,15 @@ export function CharacterDetailsView({
         </Button>
       </motion.div>
 
-      {/* Render confirmation dialog when needed */}
-      {showConfirm && <RetirementConfirmation />}
+      {/* Use the new dialog component */}
+      <RetirementConfirmationDialog
+        open={showConfirm}
+        onOpenChange={setShowConfirm}
+        characterName={character.name.fullName || ""}
+        onConfirm={handleRetirement}
+        isRetiring={isRetiring}
+        txHash={txHash}
+      />
     </>
   );
 }
