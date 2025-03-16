@@ -360,7 +360,11 @@ export class Preloader extends Scene {
         throw new Error("Invalid player data returned from API");
       }
 
-      [this.player1, this.player2] = players;
+      // Ensure players are assigned correctly based on their IDs
+      // instead of the order they come back from the API
+      this.player1 = players.find((p) => p.id === player1Id) || players[0];
+      this.player2 = players.find((p) => p.id === player2Id) || players[1];
+
       console.log("Assigned players:", this.player1, this.player2);
       return players;
     } catch (error) {
