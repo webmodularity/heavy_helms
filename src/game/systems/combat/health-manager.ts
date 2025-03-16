@@ -1,31 +1,6 @@
+import type { Player } from "@/types/player.types";
 import type { Scene } from "phaser";
 import * as WebFont from "webfontloader";
-
-interface PlayerStats {
-  maxHealth: number;
-  maxEndurance: number;
-  currentHealth: number;
-  currentEndurance: number;
-  currentStamina: number;
-}
-
-interface PlayerData {
-  name: {
-    fullName: string;
-  };
-  stats: PlayerStats;
-}
-
-interface PlayerStatsDisplay {
-  update: (data: { stats: PlayerStats }) => void;
-}
-
-interface CustomScene extends Scene {
-  player1Data: PlayerData;
-  player2Data: PlayerData;
-  player1Stats?: PlayerStatsDisplay;
-  player2Stats?: PlayerStatsDisplay;
-}
 
 interface BarConfig {
   width: number;
@@ -62,14 +37,18 @@ interface Tweens {
 }
 
 export class HealthManager {
-  private scene: CustomScene;
+  private scene: Scene;
+  private player1: Player;
+  private player2: Player;
   private barConfig: BarConfig;
   private p1Bars: PlayerBars | null;
   private p2Bars: PlayerBars | null;
   private tweens: Tweens;
 
-  constructor(scene: CustomScene) {
+  constructor(scene: Scene, player1: Player, player2: Player) {
     this.scene = scene;
+    this.player1 = player1;
+    this.player2 = player2;
     this.barConfig = {
       width: 400,
       staminaWidth: 300,
@@ -99,10 +78,10 @@ export class HealthManager {
 
   createBars() {
     // Get max values from player data
-    const p1MaxHealth = this.scene.player1Data.stats.maxHealth;
-    const p2MaxHealth = this.scene.player2Data.stats.maxHealth;
-    const p1MaxEndurance = this.scene.player1Data.stats.maxEndurance;
-    const p2MaxEndurance = this.scene.player2Data.stats.maxEndurance;
+    const p1MaxHealth = this.player1.calculatedStats?.maxHealth || 0;
+    const p2MaxHealth = this.player2.calculatedStats?.maxHealth || 0;
+    const p1MaxEndurance = this.player1.calculatedStats?.maxEndurance || 0;
+    const p2MaxEndurance = this.player2.calculatedStats?.maxEndurance || 0;
 
     // Player 1 bars (right-aligned, white accent on left)
     this.p1Bars = {
@@ -207,8 +186,8 @@ export class HealthManager {
   }
 
   createPlayerLabels() {
-    const p1Name = this.scene.player1Data.name.fullName;
-    const p2Name = this.scene.player2Data.name.fullName;
+    const p1Name = this.player1.name.fullName || "";
+    const p2Name = this.player2.name.fullName || "";
 
     // Player labels
     this.scene.add
@@ -257,21 +236,6 @@ export class HealthManager {
       p1Stamina,
       p2Stamina,
     };
-
-    // Update stat displays if they exist
-    if (this.scene.player1Stats) {
-      const stats = { ...this.scene.player1Data.stats };
-      stats.currentHealth = p1Health;
-      stats.currentEndurance = p1Stamina;
-      this.scene.player1Stats.update({ stats });
-    }
-
-    if (this.scene.player2Stats) {
-      const stats = { ...this.scene.player2Data.stats };
-      stats.currentHealth = p2Health;
-      stats.currentEndurance = p2Stamina;
-      this.scene.player2Stats.update({ stats });
-    }
 
     // Kill any existing tweens
     if (this.tweens.p1Health) this.tweens.p1Health.stop();

@@ -1,27 +1,5 @@
+import type { Player } from "@/types/player.types";
 import type { GameObjects, Scene } from "phaser";
-
-interface PlayerStats {
-  weapon?: string;
-  armor?: string;
-  stance?: string;
-  strength?: number;
-  constitution?: number;
-  size?: number;
-  agility?: number;
-  stamina?: number;
-  luck?: number;
-  currentHealth?: number;
-  maxHealth?: number;
-  currentEndurance?: number;
-  maxEndurance?: number;
-  wins?: number;
-  losses?: number;
-  kills?: number;
-}
-
-interface PlayerData {
-  stats?: PlayerStats;
-}
 
 interface DisplayStyles {
   container: {
@@ -138,7 +116,7 @@ export class PlayerStatsDisplay {
     this.container.setDepth(10);
   }
 
-  public update(playerData: PlayerData): void {
+  public update(player: Player): void {
     // Clear existing elements
     if (this.textElements.length > 0) {
       for (const element of this.textElements) {
@@ -188,44 +166,32 @@ export class PlayerStatsDisplay {
       currentY += spacing;
     };
 
-    const stats = playerData.stats || {};
-
     // Strategy section
     addHeader("Strategy");
-    addTextRow("Weapon", stats.weapon || "None");
-    addTextRow("Armor", stats.armor || "None");
-    addTextRow("Stance", stats.stance || "None");
+    addTextRow("Weapon", player.currentSkin.weapon || "None");
+    addTextRow("Armor", player.currentSkin.armor || "None");
+    addTextRow("Stance", player.currentSkin.stance || "None");
     currentY += spacing / 2;
 
     // Stats section
     addHeader("Stats");
-    addTextRow("Str", stats.strength || 0);
-    addTextRow("Con", stats.constitution || 0);
-    addTextRow("Size", stats.size || 0);
-    addTextRow("Agi", stats.agility || 0);
-    addTextRow("Stam", stats.stamina || 0);
-    addTextRow("Luck", stats.luck || 0);
-    addTextRow("HP", `${stats.currentHealth || 0}/${stats.maxHealth || 0}`);
-    addTextRow(
-      "STAM",
-      `${stats.currentEndurance || 0}/${stats.maxEndurance || 0}`,
-    );
+    addTextRow("Str", player.attributes.strength || 0);
+    addTextRow("Con", player.attributes.constitution || 0);
+    addTextRow("Size", player.attributes.size || 0);
+    addTextRow("Agi", player.attributes.agility || 0);
+    addTextRow("Stam", player.attributes.stamina || 0);
+    addTextRow("Luck", player.attributes.luck || 0);
+    addTextRow("HP", `${0}/${0}`);
+    addTextRow("STAM", `${0}/${0}`);
     currentY += spacing / 2;
 
     // Reputation section
     addHeader("Reputation");
     addTextRow(
       "Record",
-      `${stats.wins || 0}-${stats.losses || 0}-${stats.kills || 0}`,
+      `${player.record.wins || 0}-${player.record.losses || 0}-${player.record.kills || 0}`,
     );
-    addTextRow(
-      "ID",
-      this.isRightSide
-        ? // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-          (this.scene as any).player2Id
-        : // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-          (this.scene as any).player1Id,
-    );
+    addTextRow("ID", player.id);
 
     // Create background with calculated dimensions
     const bg = this.scene.add.graphics();

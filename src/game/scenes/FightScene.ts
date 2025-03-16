@@ -1,21 +1,17 @@
 import { Scene } from "phaser";
 import { EventBus } from "../EventBus";
-import { createPlayerAnimations } from "../systems/animation-system";
 
 import { DamageNumbers } from "../objects/DamageNumbers";
 import { CombatAnimator } from "../systems/combat/combat-animator";
 import { CombatAudioManager } from "../systems/combat/combat-audio-manager";
-import { CombatSequenceHandler } from "../systems/combat/combat-sequence-handler";
-import { DebugHealthManager } from "../systems/combat/debug-health-manager";
 import { HealthManager } from "../systems/combat/health-manager";
-import { VictoryHandler } from "../systems/combat/victory-handler";
-import { PlayerStatsDisplay } from "../ui/PlayerStatsDisplay";
+import { PlayerStatsDisplay } from "../systems/combat/player-stats-display";
 import type {
-  DecodedCombatResult,
   CombatAction,
-  RawCombatAction,
+  DecodedCombatResult,
   SceneData,
 } from "@/types/game.types";
+import type { Player } from "@/types/player.types";
 
 interface TextStyles {
   mainText: Phaser.GameObjects.Text;
@@ -25,34 +21,28 @@ interface TextStyles {
 
 export class FightScene extends Scene {
   // Scene data
-  private player1Id = "1";
-  private player2Id = "2";
-  private player1Data?: PlayerData;
-  private player2Data?: PlayerData;
+  private player1: Player;
+  private player2: Player;
   private network = "mainnet";
   private blockNumber = "0";
   private txId = "Practice";
-  private combatBytesFromTx?: CombatBytes; // Now properly typed
-  private gameMode = "practice";
+  private decodedCombatBytes: DecodedCombatResult;
 
   // Game objects
-  private player?: Phaser.Physics.Arcade.Sprite;
-  private player2?: Phaser.Physics.Arcade.Sprite;
-  private combatData?: CombatData;
+  private player1Sprite: Phaser.Physics.Arcade.Sprite;
+  private player2Sprite: Phaser.Physics.Arcade.Sprite;
   private countdownText?: Phaser.GameObjects.Text;
   private networkText?: Phaser.GameObjects.Text;
   private txIdText?: Phaser.GameObjects.Text;
   private backgroundMusic?: Phaser.Sound.BaseSound;
 
   // Scene managers
-  private healthManager?: HealthManager | DebugHealthManager;
-  private animator?: CombatAnimator;
-  private sequenceHandler?: CombatSequenceHandler;
-  private damageNumbers?: DamageNumbers;
-  private victoryHandler?: VictoryHandler;
-  private audioManager?: CombatAudioManager;
-  private player1Stats?: PlayerStatsDisplay;
-  private player2Stats?: PlayerStatsDisplay;
+  private healthManager: HealthManager;
+  private animator: CombatAnimator;
+  private damageNumbers: DamageNumbers;
+  private audioManager: CombatAudioManager;
+  private player1Stats: PlayerStatsDisplay;
+  private player2Stats: PlayerStatsDisplay;
 
   // Game state
   private isInitialized = false;
@@ -60,17 +50,15 @@ export class FightScene extends Scene {
   private playerStartX = 0;
   private player2StartX = 0;
   private centerX = 0;
-  private fKey?: Phaser.Input.Keyboard.Key;
-  private rKey?: Phaser.Input.Keyboard.Key;
-  private winCondition?: string;
-  private winner = false;
+  // private fKey?: Phaser.Input.Keyboard.Key;
+  // private rKey?: Phaser.Input.Keyboard.Key;
 
   // Combat timing constants
   private SEQUENCE_DELAY = 1500;
-  private COUNTER_DELAY = 750;
-  private INITIAL_DELAY = 500;
-  private USE_DEBUG = false;
-
+  private DEFENSE_DELAY = 50;
+  private VICTORY_DELAY = 1000;
+  private WALK_DISTANCE = 100;
+  private WALK_DURATION = 1000;
   // UI Configurations
   private countdownConfig = {
     fontSize: "120px",
@@ -123,12 +111,9 @@ export class FightScene extends Scene {
     }
     this.isInitialized = true;
 
-    this.player1Id = data.player1Id;
-    this.player2Id = data.player2Id;
-    this.gameMode = data.txId === "Practice" ? "practice" : "duel";
-    this.player1Data = data.player1Data;
-    this.player2Data = data.player2Data;
-    this.combatBytesFromTx = data.combatBytes;
+    this.player1 = data.player1;
+    this.player2 = data.player2;
+    this.decodedCombatBytes = data.decodedCombatBytes;
     this.network = data.network;
     this.blockNumber = data.blockNumber;
     this.txId = data.txId;
@@ -195,87 +180,49 @@ export class FightScene extends Scene {
 
     // 2. Player Setup
     const groundY = 600;
-    this.player = this.physics.add
-      .sprite(125, groundY - 40, `player${this.player1Id}`)
+    this.player1Sprite = this.physics.add
+      .sprite(125, groundY - 40, `player${this.player1.id}-spritesheet`)
       .setFlipX(false)
       .setOrigin(0.5, 1)
       .setDisplaySize(300, 300)
       .setDepth(5);
 
-    this.player2 = this.physics.add
-      .sprite(835, groundY - 40, `player${this.player2Id}`)
+    this.player2Sprite = this.physics.add
+      .sprite(835, groundY - 40, `player${this.player2.id}-spritesheet`)
       .setFlipX(true)
       .setOrigin(0.5, 1)
       .setDisplaySize(300, 300)
       .setDepth(5);
 
     // 3. Animation Setup
-    if (this.player1Data?.jsonData) {
-      const texture1 = this.textures.get(`player${this.player1Id}`);
-      if (texture1) {
-        texture1.get("__BASE").customData = this.player1Data.jsonData;
-      }
-    }
-
-    if (this.player2Data?.jsonData) {
-      const texture2 = this.textures.get(`player${this.player2Id}`);
-      if (texture2) {
-        texture2.get("__BASE").customData = this.player2Data.jsonData;
-      }
-    }
-
-    createPlayerAnimations(this, `player${this.player1Id}`);
-    createPlayerAnimations(this, `player${this.player2Id}`, true);
+    this.createPlayerAnimations(this.player1, this.player1Sprite, false);
+    this.createPlayerAnimations(this.player2, this.player2Sprite, true);
 
     // 4. Manager Initialization
-    this.healthManager = this.USE_DEBUG
-      ? // biome-ignore lint/style/noNonNullAssertion: <explanation>
-        new DebugHealthManager(this, this.player1Data!, this.player2Data)
-      : new HealthManager(this);
+    this.healthManager = new HealthManager(this, this.player1, this.player2);
     this.healthManager.createBars();
     this.animator = new CombatAnimator(this);
-    this.sequenceHandler = new CombatSequenceHandler(this);
     this.damageNumbers = new DamageNumbers(this);
-    this.victoryHandler = new VictoryHandler(this);
 
     // 5. Initial Animations
-    this.player.play("idle");
-    this.player2.play("idle2");
+    this.player1Sprite.play("idle");
+    this.player2Sprite.play("idle2");
 
     // 6. Combat Setup
-    try {
-      let combatData;
-      if (this.combatBytesFromTx) {
-        // Use combat data from transaction for duel mode
-        combatData = this.combatBytesFromTx;
-        if (!combatData || !combatData.actions) {
-          throw new Error("Invalid combat data from transaction");
-        }
-      } else {
-        // Load combat data from practice game for practice mode
-        //combatData = await loadCombatBytes(this.player1Id, this.player2Id);
-      }
-      this.combatData = combatData;
-
-      // Store initial positions and setup keyboard
-      this.playerStartX = this.player.x;
-      this.player2StartX = this.player2.x;
-      this.centerX = this.cameras.main.centerX;
-      this.fKey = this.input.keyboard.addKey("F");
-      this.rKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
-      this.isFightSequencePlaying = false;
-    } catch (error) {
-      // Handle error silently
-      console.error("Error setting up combat:", error);
-    }
+    this.playerStartX = this.player1Sprite.x;
+    this.player2StartX = this.player2Sprite.x;
+    this.centerX = this.cameras.main.centerX;
+    this.isFightSequencePlaying = false;
+    // this.fKey = this.input.keyboard.addKey("F");
+    // this.rKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.R);
 
     // 7. Event Setup
     this.events.once("fightComplete", () => {
-      if (this.combatData && this.player && this.player2) {
-        this.victoryHandler?.handleVictory(
-          this.combatData.winner,
-          this.player,
-          this.player2,
+      if (this.player1Sprite && this.player2Sprite) {
+        this.handleVictory(
+          this.decodedCombatBytes.winner,
+          this.player1Sprite,
+          this.player2Sprite,
         );
       }
     });
@@ -285,7 +232,7 @@ export class FightScene extends Scene {
       .text(
         5,
         this.cameras.main.height - 5,
-        `Network: ${this.network} | Block#: ${this.blockNumber} | GameEngine: v${Math.floor((this.combatData?.gameEngineVersion || 0) / 100)}.${(this.combatData?.gameEngineVersion || 0) % 100}`,
+        `Network: ${this.network} | Block#: ${this.blockNumber} | GameEngine: v${Math.floor((this.decodedCombatBytes.gameEngineVersion || 0) / 100)}.${(this.decodedCombatBytes?.gameEngineVersion || 0) % 100}`,
         {
           fontFamily: "Arial",
           fontSize: "10px",
@@ -322,8 +269,8 @@ export class FightScene extends Scene {
     );
 
     // Update stats but don't show yet
-    if (this.player1Data) this.player1Stats.update(this.player1Data);
-    if (this.player2Data) this.player2Stats.update(this.player2Data);
+    this.player1Stats.update(this.player1);
+    this.player2Stats.update(this.player2);
 
     // Inform any listeners that the scene is ready
     EventBus.emit("current-scene-ready", this);
@@ -331,55 +278,59 @@ export class FightScene extends Scene {
 
   // Game State Management
   update() {
-    if (!this.rKey) return;
+    // if (!this.rKey) return;
 
-    if (Phaser.Input.Keyboard.JustDown(this.rKey)) {
-      this.resetFight();
-    }
+    // if (Phaser.Input.Keyboard.JustDown(this.rKey)) {
+    //   this.resetFight();
+    // }
 
-    if (!this.player || !this.player2) return;
+    if (!this.player1Sprite || !this.player2Sprite) return;
 
     // Dynamic depth adjustment
     if (
-      this.player.anims?.currentAnim?.key === "attacking" ||
-      this.player.anims?.currentAnim?.key === "blocking"
+      this.player1Sprite.anims?.currentAnim?.key === "attacking" ||
+      this.player1Sprite.anims?.currentAnim?.key === "blocking"
     ) {
-      this.player.setDepth(6);
-      this.player2.setDepth(5);
+      this.player1Sprite.setDepth(6);
+      this.player2Sprite.setDepth(5);
     } else if (
-      this.player2.anims?.currentAnim?.key === "attacking2" ||
-      this.player2.anims?.currentAnim?.key === "blocking2"
+      this.player2Sprite.anims?.currentAnim?.key === "attacking2" ||
+      this.player2Sprite.anims?.currentAnim?.key === "blocking2"
     ) {
-      this.player2.setDepth(6);
-      this.player.setDepth(5);
+      this.player2Sprite.setDepth(6);
+      this.player1Sprite.setDepth(5);
     } else {
-      this.player.setDepth(5);
-      this.player2.setDepth(5);
+      this.player1Sprite.setDepth(5);
+      this.player2Sprite.setDepth(5);
     }
 
-    if (this.fKey?.isDown && !this.isFightSequencePlaying) {
-      this.startFightSequence();
-    }
+    // if (this.fKey?.isDown && !this.isFightSequencePlaying) {
+    //   this.startFightSequence();
+    // }
   }
 
   // Combat Sequence Methods
   startFightSequence() {
-    if (this.isFightSequencePlaying || !this.player || !this.player2) {
+    if (
+      this.isFightSequencePlaying ||
+      !this.player1Sprite ||
+      !this.player2Sprite
+    ) {
       // Handle error silently
       return;
     }
     this.isFightSequencePlaying = true;
 
     this.startCountdown().then(() => {
-      if (!this.player || !this.player2) return;
+      if (!this.player1Sprite || !this.player2Sprite) return;
 
       // Initial run to center
-      this.animator?.playAnimation(this.player, "running");
-      this.animator?.playAnimation(this.player2, "running", true);
+      this.animator?.playAnimation(this.player1Sprite, "running");
+      this.animator?.playAnimation(this.player2Sprite, "running", true);
 
       // Move players to center and show stats during the run
       this.tweens.add({
-        targets: this.player,
+        targets: this.player1Sprite,
         x: this.centerX - 75,
         duration: 1000,
         onStart: () => {
@@ -388,12 +339,12 @@ export class FightScene extends Scene {
           });
         },
         onComplete: () => {
-          this.animator?.playAnimation(this.player, "idle");
+          this.animator?.playAnimation(this.player1Sprite, "idle");
         },
       });
 
       this.tweens.add({
-        targets: this.player2,
+        targets: this.player2Sprite,
         x: this.centerX + 75,
         duration: 1000,
         onStart: () => {
@@ -402,8 +353,8 @@ export class FightScene extends Scene {
           });
         },
         onComplete: () => {
-          this.animator?.playAnimation(this.player2, "idle", true);
-          if (this.combatData?.actions) {
+          this.animator?.playAnimation(this.player2Sprite, "idle", true);
+          if (this.decodedCombatBytes.actions) {
             this.time.delayedCall(500, () => {
               this.playCombatSequence(0);
             });
@@ -414,18 +365,13 @@ export class FightScene extends Scene {
   }
 
   playCombatSequence(actionIndex: number) {
-    if (!this.combatData?.actions) return;
+    if (!this.decodedCombatBytes.actions) return;
 
-    const action = this.combatData.actions[actionIndex];
-    const isLastAction = actionIndex === this.combatData.actions.length - 1;
+    const action = this.decodedCombatBytes.actions[actionIndex];
+    const isLastAction =
+      actionIndex === this.decodedCombatBytes.actions.length - 1;
 
-    // Set win condition and winner for the last action
-    if (isLastAction) {
-      this.winCondition = this.combatData.condition;
-      this.winner = this.combatData.winner === this.player1Id;
-    }
-
-    this.sequenceHandler?.handleSequence(action, isLastAction);
+    this.handleSequence(action, isLastAction);
 
     this.events.once("sequenceComplete", (isLast: boolean) => {
       if (!isLast) {
@@ -436,29 +382,6 @@ export class FightScene extends Scene {
     });
   }
 
-  resetFight() {
-    if (!this.player || !this.player2) return;
-
-    this.isFightSequencePlaying = false;
-
-    // Reset players to initial positions
-    this.player.x = this.playerStartX;
-    this.player2.x = this.player2StartX;
-
-    // Reset animations
-    this.animator?.playAnimation(this.player, "idle");
-    this.animator?.playAnimation(this.player2, "idle", true);
-
-    // Clear any ongoing tweens
-    this.tweens.killAll();
-
-    // Start a new sequence
-    this.time.delayedCall(500, () => {
-      this.startFightSequence();
-    });
-  }
-
-  // UI Helper Methods
   startCountdown(): Promise<void> {
     return new Promise((resolve) => {
       const numbers = ["3", "2", "1", "Fight!"];
@@ -495,6 +418,7 @@ export class FightScene extends Scene {
             targets: [texts.shadowText, texts.mainText, texts.metalGradient],
             alpha: {
               from: 0,
+              // biome-ignore lint/suspicious/noExplicitAny: <explanation>
               to: (target: any) =>
                 target === texts.metalGradient
                   ? 0.3
@@ -537,6 +461,7 @@ export class FightScene extends Scene {
             targets: [texts.shadowText, texts.mainText, texts.metalGradient],
             alpha: {
               from: 0,
+              // biome-ignore lint/suspicious/noExplicitAny: <explanation>
               to: (target: any) =>
                 target === texts.metalGradient
                   ? 0.3
@@ -590,7 +515,6 @@ export class FightScene extends Scene {
     playerType: string,
   ) {
     const isPlayer2 = playerType === "player2";
-    const suffix = isPlayer2 ? "2" : "";
     const originalX = winner.x;
 
     const walkDistance = 300;
@@ -635,7 +559,7 @@ export class FightScene extends Scene {
           onComplete: () => {
             this.animator?.playAnimation(winner, "idle", isPlayer2);
             this.time.delayedCall(500, () => {
-              this.playTauntSequence(winner, suffix);
+              this.playTauntSequence(winner, isPlayer2);
             });
           },
         },
@@ -643,26 +567,6 @@ export class FightScene extends Scene {
 
       this.tweens.chain({
         tweens: sequence,
-      });
-    });
-  }
-
-  // Simplified taunt sequence
-  playTauntSequence(
-    winner: Phaser.Physics.Arcade.Sprite,
-    suffix: string,
-    count = 0,
-  ) {
-    if (count >= 3) {
-      this.animator?.playAnimation(winner, "idle", suffix === "2");
-      return;
-    }
-
-    this.animator?.playAnimation(winner, "taunting", suffix === "2");
-    winner.once("animationcomplete", () => {
-      this.animator?.playAnimation(winner, "idle", suffix === "2");
-      this.time.delayedCall(800, () => {
-        this.playTauntSequence(winner, suffix, count + 1);
       });
     });
   }
@@ -682,13 +586,783 @@ export class FightScene extends Scene {
 
     // Clear all game objects
     this.children.removeAll();
+  }
 
-    // Reset any class properties
-    this.audioManager = undefined;
-    this.animator = undefined;
-    this.sequenceHandler = undefined;
-    this.healthManager = undefined;
-    this.damageNumbers = undefined;
-    this.victoryHandler = undefined;
+  private createPlayerAnimations(
+    player: Player,
+    sprite: Phaser.Physics.Arcade.Sprite,
+    isPlayer2 = false,
+  ) {
+    const textureKey = `player${player.id}-spritesheet`;
+    const texture = this.textures.get(textureKey);
+    if (!texture) return;
+
+    // Get all frame names for this texture
+    const frameNames = texture.getFrameNames();
+
+    // Create animations for each action type
+    this.createAnimationForAction(
+      player,
+      textureKey,
+      frameNames,
+      "idle",
+      isPlayer2,
+    );
+    this.createAnimationForAction(
+      player,
+      textureKey,
+      frameNames,
+      "walking",
+      isPlayer2,
+    );
+    this.createAnimationForAction(
+      player,
+      textureKey,
+      frameNames,
+      "running",
+      isPlayer2,
+    );
+    this.createAnimationForAction(
+      player,
+      textureKey,
+      frameNames,
+      "attacking",
+      isPlayer2,
+    );
+    this.createAnimationForAction(
+      player,
+      textureKey,
+      frameNames,
+      "blocking",
+      isPlayer2,
+    );
+    this.createAnimationForAction(
+      player,
+      textureKey,
+      frameNames,
+      "dying",
+      isPlayer2,
+    );
+    this.createAnimationForAction(
+      player,
+      textureKey,
+      frameNames,
+      "hurt",
+      isPlayer2,
+    );
+    this.createAnimationForAction(
+      player,
+      textureKey,
+      frameNames,
+      "dodging",
+      isPlayer2,
+    );
+    this.createAnimationForAction(
+      player,
+      textureKey,
+      frameNames,
+      "taunting",
+      isPlayer2,
+    );
+
+    // Start with idle animation
+    const animKey = isPlayer2 ? "idle2" : "idle";
+    sprite.play(animKey);
+  }
+
+  private createAnimationForAction(
+    player: Player,
+    textureKey: string,
+    allFrames: string[],
+    actionType: keyof typeof player.currentSkin.spritesheet.fps,
+    isPlayer2 = false,
+  ) {
+    // Filter frames for this action type
+    const actionFrames = allFrames.filter((name) =>
+      name.startsWith(`${actionType}_`),
+    );
+
+    if (actionFrames.length > 0) {
+      // Sort frames by their numeric suffix
+      actionFrames.sort((a, b) => {
+        const numA = Number.parseInt(
+          a.replace(`${actionType}_`, "").replace(".png", ""),
+        );
+        const numB = Number.parseInt(
+          b.replace(`${actionType}_`, "").replace(".png", ""),
+        );
+        return numA - numB;
+      });
+
+      // Create the animation
+      const animKey = isPlayer2 ? `${actionType}2` : actionType;
+
+      // Remove existing animation if it exists
+      if (this.anims.exists(animKey)) {
+        this.anims.remove(animKey);
+      }
+
+      this.anims.create({
+        key: animKey,
+        frames: actionFrames.map((frameName) => ({
+          key: textureKey,
+          frame: frameName,
+        })),
+        frameRate: player.currentSkin.spritesheet.fps[actionType],
+        repeat:
+          actionType === "idle" ||
+          actionType === "walking" ||
+          actionType === "running"
+            ? -1
+            : 0,
+      });
+    }
+  }
+
+  handleSequence(action: CombatAction, isLastAction: boolean): void {
+    // Handle exhaustion first
+    if (
+      action.p1Result === "EXHAUSTED" ||
+      (isLastAction &&
+        this.decodedCombatBytes.condition === "EXHAUSTION" &&
+        !this.decodedCombatBytes.winner)
+    ) {
+      this.damageNumbers.show(
+        this.player1Sprite.x,
+        this.player1Sprite.y - 200,
+        "Exhausted!",
+        "exhausted",
+        1.2,
+      );
+      this.animator.playAnimation(this.player1Sprite, "idle", false);
+
+      // Force immediate stamina update
+      if (this.scene.player1Data?.stats) {
+        this.scene.player1Data.stats.currentEndurance = 0;
+        this.scene.player1Data.stats.currentStamina = 0;
+      }
+
+      // Kill all tweens and force stamina to 0
+      if (this.healthManager) {
+        for (const tween of Object.values(this.healthManager.tweens)) {
+          tween?.stop();
+        }
+
+        if (this.healthManager.p1Bars) {
+          this.healthManager.p1Bars.stamina = 0;
+        }
+
+        // Force immediate bar update
+        this.healthManager.p1Bars.staminaFill.displayWidth = 0;
+
+        // Force stats update
+        this.player1Stats?.update({
+          stats: this.scene.player1Data.stats,
+        });
+      }
+
+      // Add delay before completing sequence
+      this.time.delayedCall(1000, () => {
+        this.completeSequence(isLastAction);
+      });
+      return;
+    }
+
+    if (
+      action.p2Result === "EXHAUSTED" ||
+      (isLastAction &&
+        this.decodedCombatBytes.condition === "EXHAUSTION" &&
+        this.decodedCombatBytes.winner)
+    ) {
+      this.damageNumbers.show(
+        this.player2Sprite.x,
+        this.player2Sprite.y - 200,
+        "Exhausted!",
+        "exhausted",
+        1.2,
+      );
+      this.animator.playAnimation(this.player2Sprite, "idle", true);
+
+      // Force immediate stamina update
+      if (this.scene.player2Data?.stats) {
+        this.scene.player2Data.stats.currentEndurance = 0;
+        this.scene.player2Data.stats.currentStamina = 0;
+      }
+
+      // Kill all tweens and force stamina to 0
+      if (this.healthManager) {
+        for (const tween of Object.values(this.healthManager.tweens)) {
+          tween?.stop();
+        }
+
+        if (this.healthManager.p2Bars) {
+          this.healthManager.p2Bars.stamina = 0;
+        }
+
+        // Force immediate bar update
+        this.healthManager.p2Bars.staminaFill.displayWidth = 0;
+
+        // Force stats update
+        this.player2Stats?.update({
+          stats: this.scene.player2Data.stats,
+        });
+      }
+
+      // Add delay before completing sequence
+      this.time.delayedCall(1000, () => {
+        this.completeSequence(isLastAction);
+      });
+      return;
+    }
+
+    // Get current values
+    const currentP1Health = this.healthManager.p1Bars.health;
+    const currentP2Health = this.healthManager.p2Bars.health;
+    const currentP1Stamina = this.healthManager.p1Bars.stamina;
+    const currentP2Stamina = this.healthManager.p2Bars.stamina;
+
+    // Initialize new values with current values
+    let newP1Health = currentP1Health;
+    let newP2Health = currentP2Health;
+    const newP1Stamina = Math.max(
+      0,
+      currentP1Stamina - (action.p1StaminaLost || 0),
+    );
+    const newP2Stamina = Math.max(
+      0,
+      currentP2Stamina - (action.p2StaminaLost || 0),
+    );
+
+    // Handle P2's defensive actions that deal damage
+    if (
+      ["COUNTER", "COUNTER_CRIT", "RIPOSTE", "RIPOSTE_CRIT"].includes(
+        action.p2Result,
+      )
+    ) {
+      const damage = Number(action.p2Damage);
+      newP1Health = Math.max(0, currentP1Health - damage);
+    }
+    // If P2 gets HIT normally, apply P1's damage
+    else if (action.p2Result === "HIT" || action.p2Result === "CRIT") {
+      const damage = Number(action.p1Damage);
+      newP2Health = Math.max(0, currentP2Health - damage);
+    }
+
+    // Handle P1's defensive actions that deal damage
+    if (
+      ["COUNTER", "COUNTER_CRIT", "RIPOSTE", "RIPOSTE_CRIT"].includes(
+        action.p1Result,
+      )
+    ) {
+      const damage = Number(action.p1Damage);
+      newP2Health = Math.max(0, currentP2Health - damage);
+    }
+    // If P1 gets HIT normally, apply P2's damage
+    else if (action.p1Result === "HIT" || action.p1Result === "CRIT") {
+      const damage = Number(action.p2Damage);
+      newP1Health = Math.max(0, currentP1Health - damage);
+    }
+
+    // Store the calculated values for the animation sequence
+    this.pendingHealthUpdate = {
+      p1Health: newP1Health,
+      p2Health: newP2Health,
+      p1Stamina: newP1Stamina,
+      p2Stamina: newP2Stamina,
+    };
+
+    // Update the health bars with actual values after a longer delay
+    this.time.delayedCall(1200, () => {
+      this.healthManager.updateBars(
+        newP1Health,
+        newP2Health,
+        newP1Stamina,
+        newP2Stamina,
+      );
+    });
+
+    // Continue with animation sequence
+    if (this.isOffensiveAction(action.p2Result)) {
+      this.playAttackSequence(
+        this.player2Sprite,
+        this.player1Sprite,
+        action.p2Result,
+        action.p2Damage,
+        action.p1Result,
+        true,
+        isLastAction,
+        action,
+      );
+    } else if (this.isOffensiveAction(action.p1Result)) {
+      this.playAttackSequence(
+        this.player1Sprite,
+        this.player2Sprite,
+        action.p1Result,
+        action.p1Damage,
+        action.p2Result,
+        false,
+        isLastAction,
+        action,
+      );
+    }
+  }
+
+  playAttackSequence(
+    attacker: Phaser.Physics.Arcade.Sprite,
+    defender: Phaser.Physics.Arcade.Sprite,
+    attackResult: string,
+    attackerDamage: number,
+    defenderResult: string,
+    isPlayer2: boolean,
+    isLastAction: boolean,
+    action: CombatAction,
+  ): void {
+    // Convert to uppercase string for consistency
+    const attackText = attackResult.toString().toUpperCase();
+
+    // Play attack animation
+    this.animator.playAnimation(attacker, "attacking", isPlayer2);
+
+    // Only play attack sound if it's not being defended against
+    const isDefended = [
+      "BLOCK",
+      "PARRY",
+      "COUNTER",
+      "COUNTER_CRIT",
+      "RIPOSTE",
+      "RIPOSTE_CRIT",
+    ].includes(defenderResult);
+    if (!isDefended) {
+      const weaponType = "SwordAndShield";
+      const armorType = "Leather";
+      const isCrit = attackResult === "CRIT";
+      const isMiss = defenderResult === "MISS" || defenderResult === "DODGE";
+      this.audioManager.playAttackSound(weaponType, armorType, isCrit, isMiss);
+    }
+
+    attacker.once("animationcomplete", () => {
+      this.animator.playAnimation(attacker, "idle", isPlayer2);
+
+      this.time.delayedCall(this.DEFENSE_DELAY, () => {
+        if (
+          ["COUNTER", "COUNTER_CRIT", "RIPOSTE", "RIPOSTE_CRIT"].includes(
+            defenderResult,
+          )
+        ) {
+          const defenderDamage = !isPlayer2 ? action.p2Damage : action.p1Damage;
+          this.playDefenseAnimation(
+            defender,
+            defenderResult,
+            defenderDamage,
+            !isPlayer2,
+            isLastAction,
+            defenderResult.includes("CRIT"),
+          );
+        } else {
+          this.playDefenseAnimation(
+            defender,
+            defenderResult,
+            attackerDamage,
+            !isPlayer2,
+            isLastAction,
+            attackText === "CRIT",
+          );
+        }
+      });
+    });
+  }
+
+  playDefenseAnimation(
+    defender: Phaser.Physics.Arcade.Sprite,
+    defenseType: string,
+    damage: number,
+    isPlayer2: boolean,
+    isLastAction: boolean,
+    isCrit = false,
+  ): void {
+    const defenseText = defenseType.toString().toUpperCase();
+    const attacker = isPlayer2 ? this.player1Sprite : this.player2Sprite;
+
+    // Handle exhaustion first
+    if (defenseText === "EXHAUSTED") {
+      this.damageNumbers.show(
+        defender.x,
+        defender.y - 200,
+        "Exhausted!",
+        "exhausted",
+        1.2,
+      );
+      this.animator.playAnimation(defender, "idle", isPlayer2);
+
+      // Force immediate stamina update
+      if (isPlayer2) {
+        if (this.scene.player2Data?.stats) {
+          this.scene.player2Data.stats.currentEndurance = 0;
+          this.scene.player2Data.stats.currentStamina = 0;
+        }
+
+        // Kill all tweens and force stamina to 0
+        if (this.healthManager) {
+          for (const tween of Object.values(this.healthManager.tweens)) {
+            tween?.stop();
+          }
+
+          if (this.healthManager.p2Bars) {
+            this.healthManager.p2Bars.stamina = 0;
+          }
+
+          // Force immediate bar update
+          this.healthManager.p2Bars.staminaFill.displayWidth = 0;
+
+          // Force stats update
+          this.player2Stats?.update({
+            stats: this.scene.player2Data.stats,
+          });
+        }
+      } else {
+        if (this.scene.player1Data?.stats) {
+          this.scene.player1Data.stats.currentEndurance = 0;
+          this.scene.player1Data.stats.currentStamina = 0;
+        }
+
+        // Kill all tweens and force stamina to 0
+        if (this.healthManager) {
+          for (const tween of Object.values(this.healthManager.tweens)) {
+            tween?.stop();
+          }
+
+          if (this.healthManager.p1Bars) {
+            this.healthManager.p1Bars.stamina = 0;
+          }
+
+          // Force immediate bar update
+          this.healthManager.p1Bars.staminaFill.displayWidth = 0;
+
+          // Force stats update
+          this.player1Stats?.update({
+            stats: this.scene.player1Data.stats,
+          });
+        }
+      }
+
+      this.completeSequence(isLastAction);
+      return;
+    }
+
+    switch (defenseText) {
+      case "MISS":
+      case "DODGE":
+        // Remove sound playing from here
+        this.damageNumbers.show(
+          defender.x,
+          defender.y - 200,
+          defenseText === "MISS" ? "Miss!" : "Dodge!",
+          defenseText === "MISS" ? "miss" : "dodge",
+        );
+
+        if (defenseText === "DODGE") {
+          this.animator.playAnimation(defender, "dodging", isPlayer2);
+          defender.once("animationcomplete", () => {
+            this.animator.playAnimation(defender, "idle", isPlayer2);
+            this.completeSequence(isLastAction);
+          });
+        } else {
+          this.completeSequence(isLastAction);
+        }
+        return;
+      case "HIT":
+        // Remove sound playing from here
+        this.damageNumbers.show(
+          defender.x,
+          defender.y - 200,
+          `-${damage}`,
+          "damage",
+          isCrit ? 1.2 : 1.0,
+        );
+        this.animator.playAnimation(defender, "hurt", isPlayer2);
+        defender.once("animationcomplete", () => {
+          this.animator.playAnimation(defender, "idle", isPlayer2);
+          this.completeSequence(isLastAction);
+        });
+        return;
+      case "BLOCK":
+        this.audioManager.playDefenseSound("BLOCK");
+        this.damageNumbers.show(
+          defender.x,
+          defender.y - 200,
+          "Block!",
+          "block",
+        );
+        this.animator.playAnimation(defender, "blocking", isPlayer2);
+        defender.once("animationcomplete", () => {
+          this.animator.playAnimation(defender, "idle", isPlayer2);
+          this.completeSequence(isLastAction);
+        });
+        return;
+      case "PARRY":
+        this.audioManager.playDefenseSound("PARRY");
+        this.damageNumbers.show(
+          defender.x,
+          defender.y - 200,
+          "Parry!",
+          "block",
+        );
+        this.animator.playAnimation(defender, "attacking", isPlayer2);
+        defender.once("animationcomplete", () => {
+          this.animator.playAnimation(defender, "idle", isPlayer2);
+          this.completeSequence(isLastAction);
+        });
+        return;
+      case "COUNTER":
+      case "COUNTER_CRIT":
+        this.audioManager.playDefenseSound(
+          defenseText,
+          defenseText === "COUNTER_CRIT",
+        );
+        this.damageNumbers.show(
+          defender.x,
+          defender.y - 200,
+          "Counter!",
+          "counter",
+        );
+        this.animator.playAnimation(defender, "blocking", isPlayer2);
+        defender.once("animationcomplete", () => {
+          this.time.delayedCall(this.DEFENSE_DELAY, () => {
+            this.animator.playAnimation(defender, "attacking", isPlayer2);
+            this.damageNumbers.show(
+              attacker.x,
+              attacker.y - 200,
+              `-${damage}`,
+              "damage",
+              defenseText === "COUNTER_CRIT" ? 1.2 : 1.0,
+            );
+            defender.once("animationcomplete", () => {
+              this.animator.playAnimation(defender, "idle", isPlayer2);
+              this.completeSequence(isLastAction);
+            });
+          });
+        });
+        return;
+      case "RIPOSTE":
+      case "RIPOSTE_CRIT":
+        this.audioManager.playDefenseSound(
+          defenseText,
+          defenseText === "RIPOSTE_CRIT",
+        );
+        this.damageNumbers.show(
+          defender.x,
+          defender.y - 200,
+          "Riposte!",
+          "counter",
+        );
+        this.animator.playAnimation(defender, "attacking", isPlayer2);
+        defender.once("animationcomplete", () => {
+          this.time.delayedCall(this.DEFENSE_DELAY, () => {
+            this.animator.playAnimation(defender, "attacking", isPlayer2);
+            this.damageNumbers.show(
+              attacker.x,
+              attacker.y - 200,
+              `-${damage}`,
+              "damage",
+              defenseText === "RIPOSTE_CRIT" ? 1.2 : 1.0,
+            );
+            defender.once("animationcomplete", () => {
+              this.animator.playAnimation(defender, "idle", isPlayer2);
+              this.completeSequence(isLastAction);
+            });
+          });
+        });
+        return;
+    }
+
+    this.animator.playAnimation(defender, "hurt", isPlayer2);
+    defender.once("animationcomplete", () => {
+      this.animator.playAnimation(defender, "idle", isPlayer2);
+      this.completeSequence(isLastAction);
+    });
+  }
+
+  completeSequence(isLastAction: boolean): void {
+    if (isLastAction) {
+      this.events.emit("fightComplete");
+    } else {
+      this.events.emit("sequenceComplete", isLastAction);
+    }
+  }
+
+  startVictoryLap(
+    winner: Phaser.Physics.Arcade.Sprite,
+    isPlayer2: boolean,
+  ): void {
+    this.animator.playAnimation(winner, "victory", isPlayer2);
+
+    winner.once("animationcomplete", () => {
+      this.animator.playAnimation(winner, "walking", isPlayer2);
+
+      this.tweens.add({
+        targets: winner,
+        x: isPlayer2 ? -100 : this.cameras.main.width + 100,
+        duration: 2000,
+        ease: "Linear",
+        onComplete: () => {
+          this.events.emit("victoryComplete");
+        },
+      });
+    });
+  }
+
+  isOffensiveAction(result: string): boolean {
+    const resultStr = result.toString().toUpperCase();
+    return ["ATTACK", "CRIT"].includes(resultStr);
+  }
+
+  handleVictory(
+    winner: string | number,
+    player1: Phaser.Physics.Arcade.Sprite,
+    player2: Phaser.Physics.Arcade.Sprite,
+  ): void {
+    const winnerId = Number(winner);
+    const p1Id = Number(this.player1.id);
+    const p2Id = Number(this.player2.id);
+
+    if (winnerId === p1Id) {
+      this.playVictorySequence(player1, player2);
+    } else if (winnerId === p2Id) {
+      this.playVictorySequence(player2, player1, true);
+    } else {
+      console.error("Invalid winner ID:", winner);
+    }
+  }
+
+  playVictorySequence(
+    winner: Phaser.Physics.Arcade.Sprite,
+    loser: Phaser.Physics.Arcade.Sprite,
+    isPlayer2 = false,
+  ): void {
+    // Play dying animation for loser
+    this.animator.playAnimation(loser, "dying", !isPlayer2);
+
+    // Get the player name from the scene data
+    const winnerName = isPlayer2
+      ? this.player2.name.fullName
+      : this.player1.name.fullName;
+
+    // First add Victory text
+    const victoryText = this.add
+      .text(
+        this.cameras.main.centerX,
+        this.cameras.main.centerY - 90,
+        "Victory",
+        {
+          fontFamily: "Bokor",
+          fontSize: "120px",
+          color: "#ff3333",
+          stroke: "#000000",
+          strokeThickness: 8,
+          align: "center",
+        },
+      )
+      .setOrigin(0.5)
+      .setDepth(100)
+      .setAlpha(0);
+
+    // Fade in Victory text first
+    this.tweens.add({
+      targets: victoryText,
+      alpha: 1,
+      duration: 1000,
+      ease: "Power1",
+      onComplete: () => {
+        // After Victory text is in, add Player text
+        const playerText = this.add
+          .text(
+            this.cameras.main.centerX,
+            this.cameras.main.centerY - 10,
+            // biome-ignore lint/style/noNonNullAssertion: <explanation>
+            winnerName!,
+            {
+              fontFamily: "Bokor",
+              fontSize: "60px",
+              color: "#ff3333",
+              stroke: "#000000",
+              strokeThickness: 6,
+              align: "center",
+            },
+          )
+          .setOrigin(0.5)
+          .setDepth(100)
+          .setAlpha(0);
+
+        // Slide in and fade in player text
+        this.tweens.add({
+          targets: playerText,
+          alpha: 1,
+          x: {
+            from: this.cameras.main.centerX - 100,
+            to: this.cameras.main.centerX,
+          },
+          duration: 800,
+          ease: "Power2",
+        });
+      },
+    });
+
+    // After victory delay, turn and walk away, then taunt
+    this.time.delayedCall(this.VICTORY_DELAY, () => {
+      // Turn away from opponent
+      winner.setFlipX(!isPlayer2);
+
+      // Play walking animation
+      this.animator.playAnimation(winner, "walking", isPlayer2);
+
+      // Walk away from opponent
+      this.tweens.add({
+        targets: winner,
+        x: winner.x + (isPlayer2 ? this.WALK_DISTANCE : -this.WALK_DISTANCE),
+        duration: this.WALK_DURATION,
+        ease: "Linear",
+        onComplete: () => {
+          // After walking away, start taunting sequence
+          this.playTauntSequence(winner, isPlayer2);
+        },
+      });
+    });
+  }
+
+  playTauntSequence(
+    winner: Phaser.Physics.Arcade.Sprite,
+    isPlayer2: boolean,
+    currentTauntCount = 0,
+  ): void {
+    const MAX_TAUNTS = 4; // Total of 4 taunts (2 before, 2 after)
+
+    // After first 2 taunts, play attack animation
+    if (currentTauntCount === 2) {
+      this.animator.playAnimation(winner, "attacking", isPlayer2);
+      winner.once("animationcomplete", () => {
+        // Continue with taunt sequence after attack
+        this.animator.playAnimation(winner, "taunting", isPlayer2);
+        winner.once("animationcomplete", () => {
+          this.playTauntSequence(winner, isPlayer2, currentTauntCount + 1);
+        });
+      });
+      return;
+    }
+
+    if (currentTauntCount >= MAX_TAUNTS) {
+      this.animator.playAnimation(winner, "idle", isPlayer2);
+      return;
+    }
+
+    this.animator.playAnimation(winner, "taunting", isPlayer2);
+
+    winner.once("animationcomplete", () => {
+      const nextTauntCount = currentTauntCount + 1;
+      if (nextTauntCount < MAX_TAUNTS) {
+        this.playTauntSequence(winner, isPlayer2, nextTauntCount);
+      } else {
+        this.animator.playAnimation(winner, "idle", isPlayer2);
+      }
+    });
   }
 }

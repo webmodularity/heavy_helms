@@ -246,7 +246,9 @@ export class Preloader extends Scene {
     this.load.atlas(
       `player${player.id}-spritesheet`,
       player.currentSkin.spritesheet.image,
-      { textures: [player.currentSkin.spritesheet] },
+      {
+        frames: player.currentSkin.spritesheet.frames,
+      },
     );
   }
 

@@ -34,16 +34,16 @@ export const MAX_ROUNDS = 50;
 
 export interface DecodedCombatResult {
   winner: number;
-  condition: keyof typeof WinCondition | undefined;
+  condition: keyof typeof WinCondition;
   actions: CombatAction[];
   gameEngineVersion: number;
 }
 
 export interface CombatAction {
-  p1Result: keyof typeof CombatResultType | undefined;
+  p1Result: keyof typeof CombatResultType;
   p1Damage: number;
   p1StaminaLost: number;
-  p2Result: keyof typeof CombatResultType | undefined;
+  p2Result: keyof typeof CombatResultType;
   p2Damage: number;
   p2StaminaLost: number;
 }
