@@ -24,6 +24,7 @@ import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { RetirementConfirmationDialog } from "../dialogs/retirement-confirmation-dialog";
+import { getArmorDisplayName, getStanceDisplayName, getWeaponDisplayName } from "@/lib/equipment-utils";
 
 interface CharacterDetailsViewProps {
   characterId: string;
@@ -267,19 +268,19 @@ export function CharacterDetailsView({
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <EquipmentCard
             title="Weapon"
-            value={String(character.currentSkin.weapon || "Standard Weapon")}
+            value={getWeaponDisplayName(character.currentSkin.weapon)}
             icon={<Swords className="h-5 w-5" />}
           />
 
           <EquipmentCard
             title="Armor"
-            value={String(character.currentSkin.armor || "Standard Armor")}
+            value={getArmorDisplayName(character.currentSkin.armor)}
             icon={<Shield className="h-5 w-5" />}
           />
 
           <EquipmentCard
             title="Fighting Style"
-            value={String(character.currentSkin.stance || "Balanced")}
+            value={getStanceDisplayName(character.currentSkin.stance)}
             icon={<Flame className="h-5 w-5" />}
           />
         </div>
