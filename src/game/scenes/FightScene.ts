@@ -1,11 +1,11 @@
 import { Scene } from "phaser";
 import { EventBus } from "../EventBus";
 
-import { DamageNumbers } from "../objects/DamageNumbers";
-import { CombatAnimator } from "../systems/combat/combat-animator";
-import { CombatAudioManager } from "../systems/combat/combat-audio-manager";
-import { HealthManager } from "../systems/combat/health-manager";
-import { PlayerStatsDisplay } from "../systems/combat/player-stats-display";
+import { DamageNumbers } from "../systems/damage-numbers";
+import { CombatAnimator } from "../systems/combat-animator";
+import { CombatAudioManager } from "../systems/combat-audio-manager";
+import { HealthManager } from "../systems/health-manager";
+import { PlayerStatsDisplay } from "../systems/player-stats-display";
 import type {
   CombatAction,
   DecodedCombatResult,
