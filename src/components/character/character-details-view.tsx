@@ -294,8 +294,8 @@ export function CharacterDetailsView({
       >
         {/* Add retirement button */}
         <Button
-          variant="outline"
-          className="border-red-700/40 hover:border-red-700 hover:bg-red-900/20 text-red-400 transition-all duration-300"
+          variant="destructive"
+          // className="border-red-700/40 hover:border-red-700 hover:bg-red-900/20 text-red-400 transition-all duration-300"
           onClick={() => setShowConfirm(true)}
         >
           <Trash2 className="mr-1 h-4 w-4" />
