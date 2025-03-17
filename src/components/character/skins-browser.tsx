@@ -6,11 +6,33 @@ import { fetchVerifiedSkinCollections } from "@/lib/player-api";
 import { SectionHeader } from "@/components/ui/section-header";
 
 import { SkinType } from "@/types/skin.types";
-import type { Character } from "@/types/player.types";
+import type { Character, PlayerAttributes } from "@/types/player.types";
 import { Paintbrush } from "lucide-react";
 import { motion } from "framer-motion";
 import { SkinCard } from "./skin-card";
 import { SkinTypeFilter } from "./skin-type-filter";
+import { SkinDetailsDialog } from "../dialogs/skin-details-dialog";
+import { useEquipSkin } from "@/hooks/use-equip-skin";
+import { usePlayerById } from "@/hooks/use-player-by-id";
+
+interface SkinWithMetadataURI {
+  id: string;
+  tokenId: number;
+  metadataURI: string;
+  weapon: number;
+  armor: number;
+  stance: number;
+  skinIndex: number;
+  collection: {
+    id: string;
+    registryId: string;
+    contractAddress: string;
+    skinType: SkinType;
+    requiredNFTAddress?: string;
+    isVerified: boolean;
+  };
+  imageURL?: string;
+}
 
 interface SkinsBrowserProps {
   character: Character;
@@ -21,6 +43,14 @@ export function SkinsBrowser({ character }: SkinsBrowserProps) {
     null,
   );
   const [selectedSkinId, setSelectedSkinId] = useState<string | null>(null);
+
+  // State for the details dialog
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const [selectedSkinForDetails, setSelectedSkinForDetails] =
+    useState<SkinWithMetadataURI | null>(null);
+
+  // For equipping the selected skin
+  const { equipSkin, isEquipping } = useEquipSkin(character.id);
 
   // Fetch verified skin collections
   const { data: skinCollections, isLoading } = useQuery({
@@ -37,6 +67,9 @@ export function SkinsBrowser({ character }: SkinsBrowserProps) {
       .flatMap((collection) =>
         collection.skins.map((skin) => ({
           ...skin,
+          skinIndex: collection.skins.findIndex(
+            (s) => s.tokenId === skin.tokenId,
+          ),
           collection: {
             id: collection.id,
             contractAddress: collection.contractAddress,
@@ -48,7 +81,6 @@ export function SkinsBrowser({ character }: SkinsBrowserProps) {
         })),
       )
       .filter((skin) => skin.collection.skinType !== SkinType.Monster);
-
     // Filter by skin type if selected
     return selectedSkinType !== null
       ? allSkins.filter((skin) => skin.collection.skinType === selectedSkinType)
@@ -60,11 +92,42 @@ export function SkinsBrowser({ character }: SkinsBrowserProps) {
     setSelectedSkinId(skinId === selectedSkinId ? null : skinId);
   };
 
+  // Handle viewing skin details
+  const handleViewSkinDetails = (skin: SkinWithMetadataURI) => {
+    setSelectedSkinForDetails(skin);
+    setDetailsDialogOpen(true);
+  };
+
   // Handle skin type filter change
   const handleFilterChange = (skinType: SkinType | null) => {
     setSelectedSkinType(skinType);
     setSelectedSkinId(null); // Reset selection when filter changes
   };
+
+  // Handle equipping the skin from the dialog
+  const handleEquipSkin = async () => {
+    if (!selectedSkinForDetails) return;
+
+    const isCurrentSkin =
+      character.currentSkin.collection.id ===
+        selectedSkinForDetails.collection.id &&
+      character.currentSkin.tokenId === selectedSkinForDetails.tokenId;
+
+    if (isCurrentSkin || isEquipping) return;
+
+    await equipSkin(
+      Number.parseInt(selectedSkinForDetails.collection.registryId, 10),
+      selectedSkinForDetails.tokenId,
+    );
+
+    // Close the dialog after equipping
+    setDetailsDialogOpen(false);
+  };
+
+  // Check if the skin is currently equipped
+  const isCurrentSkin = (skin: SkinWithMetadataURI) =>
+    character.currentSkin.collection.id === skin.collection.id &&
+    character.currentSkin.tokenId === skin.tokenId;
 
   return (
     <section className="mt-12 mb-16">
@@ -89,7 +152,7 @@ export function SkinsBrowser({ character }: SkinsBrowserProps) {
             .fill(0)
             .map((_, index) => (
               <div
-                key={`skeleton-${index}`}
+                key={`skeleton-${index.toString()}`}
                 className="aspect-square bg-stone-800/50 rounded-lg animate-pulse"
               />
             ))}
@@ -106,12 +169,9 @@ export function SkinsBrowser({ character }: SkinsBrowserProps) {
               key={skin.id}
               skin={skin}
               isSelected={selectedSkinId === skin.id}
-              isCurrentSkin={
-                character.currentSkin.collection.id === skin.collection.id &&
-                character.currentSkin.tokenId === skin.tokenId
-              }
+              isCurrentSkin={isCurrentSkin(skin)}
               onSelect={() => handleSelectSkin(skin.id)}
-              character={character}
+              onViewDetails={handleViewSkinDetails}
               delay={index * 0.05}
             />
           ))}
@@ -124,6 +184,19 @@ export function SkinsBrowser({ character }: SkinsBrowserProps) {
               : "No skins available"}
           </p>
         </div>
+      )}
+
+      {/* Single Skin Details Dialog */}
+      {selectedSkinForDetails && (
+        <SkinDetailsDialog
+          open={detailsDialogOpen}
+          onOpenChange={setDetailsDialogOpen}
+          skin={selectedSkinForDetails}
+          character={character}
+          isCurrentSkin={isCurrentSkin(selectedSkinForDetails)}
+          onEquip={handleEquipSkin}
+          isEquipping={isEquipping}
+        />
       )}
     </section>
   );

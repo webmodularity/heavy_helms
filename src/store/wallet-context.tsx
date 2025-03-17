@@ -8,7 +8,6 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { getChainId } from "viem/actions";
 import { baseSepolia } from "viem/chains";
 
 // Base Sepolia Chain ID
@@ -68,7 +67,6 @@ export function WalletProvider({ children }: { children: ReactNode }) {
 
         // Get current chain directly from wallet object
         const chainId = wallet.chainId;
-        console.log("chainId", chainId);
         setCurrentChainId(chainId);
       } catch (error) {
         console.error("Failed to get chain ID:", error);

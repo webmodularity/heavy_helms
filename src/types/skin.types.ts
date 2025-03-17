@@ -26,6 +26,7 @@ export interface SkinCollection {
 
 export interface SkinResponse extends Omit<Skin, "metadataURL" | "collection" | "spritesheet"> {
   id: string;
+  metadataURI:string
 }
 export interface VerifiedSkinCollectionResponse extends Omit<SkinCollection, "isVerified"> {
   skins: Array<SkinResponse>;

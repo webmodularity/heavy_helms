@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { SkinType } from "@/types/skin.types";
-import type { Character } from "@/types/player.types";
+import type { Character, PlayerAttributes } from "@/types/player.types";
 import { Check, Loader, Sparkles } from "lucide-react";
 import Image from "next/image";
 import {
@@ -18,6 +18,8 @@ import {
 } from "@/lib/equipment-utils";
 import { usePlayer } from "@/store/player-context";
 import { useEffect, useState } from "react";
+import { useValidateSkin } from "@/hooks/use-validate-skin";
+import { usePlayerById } from "@/hooks/use-player-by-id";
 
 // Define a more specific type for the skin from the GraphQL query
 interface SkinWithMetadataURI {
@@ -27,6 +29,7 @@ interface SkinWithMetadataURI {
   weapon: number;
   armor: number;
   stance: number;
+  skinIndex: number;
   collection: {
     id: string;
     registryId: string;
@@ -60,36 +63,15 @@ export function SkinDetailsDialog({
   // Determine if this is a default or verified skin
   const isDefaultSkin = skin.collection.skinType === SkinType.DefaultPlayer;
   const isVerifiedSkin = skin.collection.skinType === SkinType.Player;
-  const { validateSkinOwnership } = usePlayer();
-  const [isLoading, setIsLoading] = useState(true);
-  const [isValid, setIsValid] = useState(false);
-
-  useEffect(() => {
-    const validateSkin = async () => {
-      const result = await validateSkinOwnership(
-        {
-          skinIndex: Number.parseInt(skin.collection.id, 10),
-          skinTokenId: skin.tokenId,
-        },
-        skin.collection.skinType,
-      );
-      console.log(result);
-      setIsValid(result.success);
-      setIsLoading(false);
-    };
-    if (isDefaultSkin) {
-      setIsValid(true);
-      setIsLoading(false);
-    } else {
-      validateSkin();
-    }
-  }, [
-    skin.collection.id,
+  const { data: player } = usePlayerById(character.id);
+  const { isValid, isValidating, error, refetch } = useValidateSkin(
+    skin.skinIndex,
     skin.tokenId,
-    validateSkinOwnership,
     skin.collection.skinType,
-    isDefaultSkin,
-  ]);
+    player?.attributes as PlayerAttributes,
+    skin.weapon,
+    skin.armor,
+  );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -179,7 +161,7 @@ export function SkinDetailsDialog({
             <Button
               className="w-full bg-yellow-600 hover:bg-yellow-700 text-stone-100"
               onClick={onEquip}
-              disabled={isEquipping || !isValid || isLoading}
+              disabled={isEquipping || !isValid || isValidating}
             >
               {isEquipping ? (
                 <>
@@ -191,6 +173,7 @@ export function SkinDetailsDialog({
               )}
             </Button>
           )}
+          {error && <p className="text-xs text-red-500">{error}</p>}
         </div>
       </DialogContent>
     </Dialog>
