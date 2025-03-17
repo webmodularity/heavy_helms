@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { CardContainer } from "@/components/character/card-container";
 import type { Character } from "@/types/player.types";
 import Image from "next/image";
+import { YellowButton } from "@/components/ui/yellow-button";
 
 interface CharacterCardProps {
   character: Character;
@@ -61,32 +62,17 @@ export function CharacterCard({
 
         <div className="mt-4 flex space-x-2">
           {isSelected ? (
-            <Button
-              variant="outline"
-              size="sm"
-              className="border-yellow-700/50 hover:border-yellow-700 hover:bg-yellow-900/30 text-yellow-500"
-              onClick={onDeselect}
-            >
+            <YellowButton onClick={onDeselect}>
               Deselect
-            </Button>
+            </YellowButton>
           ) : (
-            <Button
-              variant="outline"
-              size="sm"
-              className="border-yellow-700/50 hover:border-yellow-700 hover:bg-yellow-900/30 text-yellow-500"
-              onClick={onSelect}
-            >
+            <YellowButton onClick={onSelect}>
               Select
-            </Button>
+            </YellowButton>
           )}
-          <Button
-            variant="outline"
-            size="sm"
-            className="border-yellow-700/50 hover:border-yellow-700 hover:bg-yellow-900/30 text-yellow-500"
-            onClick={onViewDetails}
-          >
+          <YellowButton onClick={onViewDetails}>
             Details
-          </Button>
+          </YellowButton>
         </div>
       </div>
     </CardContainer>
