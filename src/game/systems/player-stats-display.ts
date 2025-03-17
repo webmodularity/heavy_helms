@@ -25,6 +25,12 @@ interface DisplayStyles {
   };
 }
 
+interface StateTweens {
+  health: Phaser.Tweens.Tween | null;
+  stamina: Phaser.Tweens.Tween | null;
+  duration: number;
+}
+
 export class PlayerStatsDisplay {
   private scene: Scene;
   private x: number;
@@ -42,6 +48,19 @@ export class PlayerStatsDisplay {
   private container: GameObjects.Container;
   private textElements: GameObjects.Text[];
   private background?: GameObjects.Graphics;
+
+  // Reference for health and stamina text elements
+  private healthText?: GameObjects.Text;
+  private staminaText?: GameObjects.Text;
+
+  // Tween values
+  private currentHealth = 0;
+  private currentStamina = 0;
+  private tweens: StateTweens;
+  private updateDelay = 1200;
+
+  // Player reference
+  private player: Player | null = null;
 
   constructor(scene: Scene, x: number, y: number, isRightSide = false) {
     this.scene = scene;
@@ -95,6 +114,13 @@ export class PlayerStatsDisplay {
       },
     };
 
+    // Initialize tweens
+    this.tweens = {
+      health: null,
+      stamina: null,
+      duration: 500, // Duration of health/stamina change animation
+    };
+
     // Create container immediately
     this.createContainer();
     // Set initial position
@@ -116,7 +142,101 @@ export class PlayerStatsDisplay {
     this.container.setDepth(10);
   }
 
+  public updateWithDelay(player: Player): void {
+    // Store player reference immediately
+    this.player = player;
+
+    // Delay the actual update to match health bar animation timing
+    this.scene.time.delayedCall(this.updateDelay, () => {
+      // If this is the first update, initialize current values
+      if (this.currentHealth === 0 && this.currentStamina === 0) {
+        this.currentHealth = player.currentState?.currentHealth ?? 0;
+        this.currentStamina = player.currentState?.currentEndurance ?? 0;
+      }
+
+      // Get target values
+      const targetHealth = player.currentState?.currentHealth ?? 0;
+      const targetStamina = player.currentState?.currentEndurance ?? 0;
+
+      // Only tween health and stamina values
+      this.updateStatsWithTween(targetHealth, targetStamina);
+    });
+  }
+
   public update(player: Player): void {
+    // Store player reference
+    this.player = player;
+
+    // If this is the first update, initialize current values
+    if (this.currentHealth === 0 && this.currentStamina === 0) {
+      this.currentHealth = player.currentState?.currentHealth ?? 0;
+      this.currentStamina = player.currentState?.currentEndurance ?? 0;
+    }
+
+    // Get target values
+    const targetHealth = player.currentState?.currentHealth ?? 0;
+    const targetStamina = player.currentState?.currentEndurance ?? 0;
+
+    // First initial update or non-stat-related update
+    const isFirstUpdate = !this.healthText || !this.staminaText;
+    const statsChanged =
+      this.currentHealth !== targetHealth ||
+      this.currentStamina !== targetStamina;
+
+    if (isFirstUpdate || !statsChanged) {
+      this.fullUpdate(player);
+      return;
+    }
+
+    // Only tween the health and stamina values
+    this.updateStatsWithTween(targetHealth, targetStamina);
+  }
+
+  private updateStatsWithTween(targetHealth: number, targetStamina: number) {
+    // Kill any existing tweens
+    if (this.tweens.health) this.tweens.health.stop();
+    if (this.tweens.stamina) this.tweens.stamina.stop();
+
+    // Update health with tween
+    this.tweens.health = this.scene.tweens.addCounter({
+      from: this.currentHealth,
+      to: targetHealth,
+      duration: this.tweens.duration,
+      onUpdate: (tween) => {
+        this.currentHealth = Math.floor(tween.getValue());
+        this.updateHealthText();
+      },
+    });
+
+    // Update stamina with tween
+    this.tweens.stamina = this.scene.tweens.addCounter({
+      from: this.currentStamina,
+      to: targetStamina,
+      duration: this.tweens.duration,
+      onUpdate: (tween) => {
+        this.currentStamina = Math.floor(tween.getValue());
+        this.updateStaminaText();
+      },
+    });
+  }
+
+  private updateHealthText() {
+    if (this.healthText && this.player) {
+      const maxHealth = this.player.calculatedStats?.maxHealth ?? 100;
+      this.healthText.setText(`${Math.floor(this.currentHealth)}/${maxHealth}`);
+    }
+  }
+
+  private updateStaminaText() {
+    if (this.staminaText && this.player) {
+      const maxEndurance = this.player.calculatedStats?.maxEndurance ?? 100;
+      this.staminaText.setText(
+        `${Math.floor(this.currentStamina)}/${maxEndurance}`,
+      );
+    }
+  }
+
+  private fullUpdate(player: Player): void {
     // Clear existing elements
     if (this.textElements.length > 0) {
       for (const element of this.textElements) {
@@ -163,6 +283,16 @@ export class PlayerStatsDisplay {
         valueText.x + valueText.width + this.padding,
       );
       this.textElements.push(labelText, valueText);
+
+      // Store references to health and stamina text
+      if (label === "HP") {
+        this.healthText = valueText;
+        this.currentHealth = player.currentState?.currentHealth ?? 0;
+      } else if (label === "STAM") {
+        this.staminaText = valueText;
+        this.currentStamina = player.currentState?.currentEndurance ?? 0;
+      }
+
       currentY += spacing;
     };
 

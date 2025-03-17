@@ -744,15 +744,10 @@ export class FightScene extends Scene {
       }
 
       // Update health bars
-      this.healthManager.updateBars(
-        this.player1.currentState?.currentHealth || 0,
-        this.player2.currentState?.currentHealth || 0,
-        0, // Force player1 stamina to 0
-        this.player2.currentState?.currentEndurance || 0,
-      );
+      this.healthManager.updateBars();
 
-      // Update player stats display
-      this.refreshPlayerStats();
+      // Update player stats display with delay
+      this.refreshPlayerStats(true);
 
       // Add delay before completing sequence
       this.time.delayedCall(1000, () => {
@@ -782,15 +777,10 @@ export class FightScene extends Scene {
       }
 
       // Update health bars
-      this.healthManager.updateBars(
-        this.player1.currentState?.currentHealth || 0,
-        this.player2.currentState?.currentHealth || 0,
-        this.player1.currentState?.currentEndurance || 0,
-        0, // Force player2 stamina to 0
-      );
+      this.healthManager.updateBars();
 
-      // Update player stats display
-      this.refreshPlayerStats();
+      // Update player stats display with delay
+      this.refreshPlayerStats(true);
 
       // Add delay before completing sequence
       this.time.delayedCall(1000, () => {
@@ -859,16 +849,11 @@ export class FightScene extends Scene {
     }
 
     // Update player stats displays
-    this.refreshPlayerStats();
+    this.refreshPlayerStats(true);
 
     // Update the health bars with actual values after a longer delay
     this.time.delayedCall(1200, () => {
-      this.healthManager.updateBars(
-        newP1Health,
-        newP2Health,
-        newP1Stamina,
-        newP2Stamina,
-      );
+      this.healthManager.updateBars();
     });
 
     // Continue with animation sequence
@@ -991,30 +976,20 @@ export class FightScene extends Scene {
         }
 
         // Update health bars
-        this.healthManager.updateBars(
-          this.player1.currentState?.currentHealth || 0,
-          this.player2.currentState?.currentHealth || 0,
-          this.player1.currentState?.currentEndurance || 0,
-          0, // Force player2 stamina to 0
-        );
+        this.healthManager.updateBars();
 
-        // Update player stats display
-        this.refreshPlayerStats();
+        // Update player stats display with delay
+        this.refreshPlayerStats(true);
       } else {
         if (this.player1.currentState) {
           this.player1.currentState.currentEndurance = 0;
         }
 
         // Update health bars
-        this.healthManager.updateBars(
-          this.player1.currentState?.currentHealth || 0,
-          this.player2.currentState?.currentHealth || 0,
-          0, // Force player1 stamina to 0
-          this.player2.currentState?.currentEndurance || 0,
-        );
+        this.healthManager.updateBars();
 
-        // Update player stats display
-        this.refreshPlayerStats();
+        // Update player stats display with delay
+        this.refreshPlayerStats(true);
       }
 
       this.completeSequence(isLastAction);
@@ -1341,8 +1316,23 @@ export class FightScene extends Scene {
     });
   }
 
-  private refreshPlayerStats(): void {
-    this.player1Stats?.update(this.player1);
-    this.player2Stats?.update(this.player2);
+  private refreshPlayerStats(withDelay = false): void {
+    if (withDelay) {
+      // For combat damage, use delayed update for both stats and health bars
+      this.player1Stats?.updateWithDelay(this.player1);
+      this.player2Stats?.updateWithDelay(this.player2);
+
+      // Update health/stamina bars with same delay
+      this.time.delayedCall(1200, () => {
+        this.healthManager.updateBars();
+      });
+    } else {
+      // For initial setup, update immediately
+      this.player1Stats?.update(this.player1);
+      this.player2Stats?.update(this.player2);
+
+      // Update health/stamina bars immediately
+      this.healthManager.updateBars();
+    }
   }
 }

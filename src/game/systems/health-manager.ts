@@ -22,7 +22,7 @@ interface PlayerBars {
   healthFill: Phaser.GameObjects.Image;
   staminaBg: Phaser.GameObjects.Image;
   staminaFill: Phaser.GameObjects.Image;
-  health: number;
+  health: number; // Keep these for smooth animations
   maxHealth: number;
   stamina: number;
   maxStamina: number;
@@ -78,10 +78,20 @@ export class HealthManager {
 
   createBars() {
     // Get max values from player data
-    const p1MaxHealth = this.player1.calculatedStats?.maxHealth || 0;
-    const p2MaxHealth = this.player2.calculatedStats?.maxHealth || 0;
-    const p1MaxEndurance = this.player1.calculatedStats?.maxEndurance || 0;
-    const p2MaxEndurance = this.player2.calculatedStats?.maxEndurance || 0;
+    const p1MaxHealth = this.player1.calculatedStats?.maxHealth || 100;
+    const p2MaxHealth = this.player2.calculatedStats?.maxHealth || 100;
+    const p1MaxEndurance = this.player1.calculatedStats?.maxEndurance || 100;
+    const p2MaxEndurance = this.player2.calculatedStats?.maxEndurance || 100;
+
+    // Get current values from player state
+    const p1CurrentHealth =
+      this.player1.currentState?.currentHealth || p1MaxHealth;
+    const p2CurrentHealth =
+      this.player2.currentState?.currentHealth || p2MaxHealth;
+    const p1CurrentStamina =
+      this.player1.currentState?.currentEndurance || p1MaxEndurance;
+    const p2CurrentStamina =
+      this.player2.currentState?.currentEndurance || p2MaxEndurance;
 
     // Player 1 bars (right-aligned, white accent on left)
     this.p1Bars = {
@@ -128,9 +138,9 @@ export class HealthManager {
           this.barConfig.staminaWidth,
           this.barConfig.staminaHeight,
         ),
-      health: p1MaxHealth,
+      health: p1CurrentHealth,
       maxHealth: p1MaxHealth,
-      stamina: p1MaxEndurance,
+      stamina: p1CurrentStamina,
       maxStamina: p1MaxEndurance,
     };
 
@@ -170,11 +180,14 @@ export class HealthManager {
           this.barConfig.staminaWidth,
           this.barConfig.staminaHeight,
         ),
-      health: p2MaxHealth,
+      health: p2CurrentHealth,
       maxHealth: p2MaxHealth,
-      stamina: p2MaxEndurance,
+      stamina: p2CurrentStamina,
       maxStamina: p2MaxEndurance,
     };
+
+    // Initialize the display
+    this.updateBarDisplays();
 
     // Load fonts and create player labels
     WebFont.load({
@@ -223,19 +236,28 @@ export class HealthManager {
       .setDepth(98);
   }
 
-  updateBars(
+  // Method to update the bars from player state
+  updateBars() {
+    if (!this.p1Bars || !this.p2Bars) return;
+
+    // Get current values from player state
+    const p1Health = this.player1.currentState?.currentHealth || 0;
+    const p2Health = this.player2.currentState?.currentHealth || 0;
+    const p1Stamina = this.player1.currentState?.currentEndurance || 0;
+    const p2Stamina = this.player2.currentState?.currentEndurance || 0;
+
+    // Update the bars with values from player state
+    this.animateBars(p1Health, p2Health, p1Stamina, p2Stamina);
+  }
+
+  // Private method to handle the actual animation logic
+  private animateBars(
     p1Health: number,
     p2Health: number,
     p1Stamina: number,
     p2Stamina: number,
   ) {
-    // Store target values
-    const targetValues = {
-      p1Health,
-      p2Health,
-      p1Stamina,
-      p2Stamina,
-    };
+    if (!this.p1Bars || !this.p2Bars) return;
 
     // Kill any existing tweens
     if (this.tweens.p1Health) this.tweens.p1Health.stop();
@@ -245,9 +267,8 @@ export class HealthManager {
 
     // Create new tweens
     this.tweens.p1Health = this.scene.tweens.addCounter({
-      // biome-ignore lint/style/noNonNullAssertion: <explanation>
-      from: this.p1Bars!.health,
-      to: targetValues.p1Health,
+      from: this.p1Bars.health,
+      to: p1Health,
       duration: this.tweens.duration,
       onUpdate: (tween: Phaser.Tweens.Tween) => {
         // biome-ignore lint/style/noNonNullAssertion: <explanation>
@@ -257,9 +278,8 @@ export class HealthManager {
     });
 
     this.tweens.p2Health = this.scene.tweens.addCounter({
-      // biome-ignore lint/style/noNonNullAssertion: <explanation>
-      from: this.p2Bars!.health,
-      to: targetValues.p2Health,
+      from: this.p2Bars.health,
+      to: p2Health,
       duration: this.tweens.duration,
       onUpdate: (tween: Phaser.Tweens.Tween) => {
         // biome-ignore lint/style/noNonNullAssertion: <explanation>
@@ -269,9 +289,8 @@ export class HealthManager {
     });
 
     this.tweens.p1Stamina = this.scene.tweens.addCounter({
-      // biome-ignore lint/style/noNonNullAssertion: <explanation>
-      from: this.p1Bars!.stamina,
-      to: targetValues.p1Stamina,
+      from: this.p1Bars.stamina,
+      to: p1Stamina,
       duration: this.tweens.duration,
       onUpdate: (tween: Phaser.Tweens.Tween) => {
         // biome-ignore lint/style/noNonNullAssertion: <explanation>
@@ -281,9 +300,8 @@ export class HealthManager {
     });
 
     this.tweens.p2Stamina = this.scene.tweens.addCounter({
-      // biome-ignore lint/style/noNonNullAssertion: <explanation>
-      from: this.p2Bars!.stamina,
-      to: targetValues.p2Stamina,
+      from: this.p2Bars.stamina,
+      to: p2Stamina,
       duration: this.tweens.duration,
       onUpdate: (tween: Phaser.Tweens.Tween) => {
         // biome-ignore lint/style/noNonNullAssertion: <explanation>
@@ -294,39 +312,31 @@ export class HealthManager {
   }
 
   updateBarDisplays() {
+    if (!this.p1Bars || !this.p2Bars) return;
+
     // Calculate the actual widths
     const p1HealthWidth =
-      // biome-ignore lint/style/noNonNullAssertion: <explanation>
-      this.barConfig.width * (this.p1Bars!.health / this.p1Bars!.maxHealth);
+      this.barConfig.width * (this.p1Bars.health / this.p1Bars.maxHealth);
     const p2HealthWidth =
-      // biome-ignore lint/style/noNonNullAssertion: <explanation>
-      this.barConfig.width * (this.p2Bars!.health / this.p2Bars!.maxHealth);
+      this.barConfig.width * (this.p2Bars.health / this.p2Bars.maxHealth);
     const p1StaminaWidth =
       this.barConfig.staminaWidth *
-      // biome-ignore lint/style/noNonNullAssertion: <explanation>
-      (this.p1Bars!.stamina / this.p1Bars!.maxStamina);
+      (this.p1Bars.stamina / this.p1Bars.maxStamina);
     const p2StaminaWidth =
       this.barConfig.staminaWidth *
-      // biome-ignore lint/style/noNonNullAssertion: <explanation>
-      (this.p2Bars!.stamina / this.p2Bars!.maxStamina);
+      (this.p2Bars.stamina / this.p2Bars.maxStamina);
 
     // Update Player 1 bars (right-aligned, drains right-to-left)
-    // biome-ignore lint/style/noNonNullAssertion: <explanation>
-    this.p1Bars!.healthFill.setX(this.barConfig.p1x + this.barConfig.width);
-    // biome-ignore lint/style/noNonNullAssertion: <explanation>
-    this.p1Bars!.healthFill.displayWidth = p1HealthWidth;
+    this.p1Bars.healthFill.setX(this.barConfig.p1x + this.barConfig.width);
+    this.p1Bars.healthFill.displayWidth = p1HealthWidth;
 
-    // biome-ignore lint/style/noNonNullAssertion: <explanation>
-    this.p1Bars!.staminaFill.setX(
+    this.p1Bars.staminaFill.setX(
       this.barConfig.p1x + this.barConfig.width - this.barConfig.nudgeFactor,
     );
-    // biome-ignore lint/style/noNonNullAssertion: <explanation>
-    this.p1Bars!.staminaFill.displayWidth = p1StaminaWidth;
+    this.p1Bars.staminaFill.displayWidth = p1StaminaWidth;
 
     // Update Player 2 bars (left-aligned, drains left-to-right)
-    // biome-ignore lint/style/noNonNullAssertion: <explanation>
-    this.p2Bars!.healthFill.displayWidth = p2HealthWidth;
-    // biome-ignore lint/style/noNonNullAssertion: <explanation>
-    this.p2Bars!.staminaFill.displayWidth = p2StaminaWidth;
+    this.p2Bars.healthFill.displayWidth = p2HealthWidth;
+    this.p2Bars.staminaFill.displayWidth = p2StaminaWidth;
   }
 }
