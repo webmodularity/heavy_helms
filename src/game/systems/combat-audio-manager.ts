@@ -1,5 +1,5 @@
+import type { CombatResultType } from "@/types/game.types";
 import type { Scene } from "phaser";
-import type { CombatResultType } from "../../utils/combat-decoder";
 
 interface SoundEffect {
   key: string;
