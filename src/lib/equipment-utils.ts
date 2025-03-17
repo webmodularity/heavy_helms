@@ -1,4 +1,4 @@
-import { WeaponType, ArmorType, StanceType } from '../types/equipment.types';
+import { WeaponType, ArmorType, StanceType } from "../types/equipment.types";
 
 export const WEAPON_DISPLAY_NAMES: Record<WeaponType, string> = {
   [WeaponType.SwordAndShield]: "Sword + Shield",
@@ -7,7 +7,7 @@ export const WEAPON_DISPLAY_NAMES: Record<WeaponType, string> = {
   [WeaponType.Greatsword]: "Greatsword",
   [WeaponType.Battleaxe]: "Battleaxe",
   [WeaponType.Quarterstaff]: "Quarterstaff",
-  [WeaponType.Spear]: "Spear"
+  [WeaponType.Spear]: "Spear",
 };
 
 export function getWeaponDisplayName(weapon: WeaponType): string {
@@ -18,7 +18,7 @@ export const ARMOR_DISPLAY_NAMES: Record<ArmorType, string> = {
   [ArmorType.Cloth]: "Cloth",
   [ArmorType.Leather]: "Leather",
   [ArmorType.Chain]: "Chain",
-  [ArmorType.Plate]: "Plate"
+  [ArmorType.Plate]: "Plate",
 };
 
 export function getArmorDisplayName(armor: ArmorType): string {
@@ -26,11 +26,11 @@ export function getArmorDisplayName(armor: ArmorType): string {
 }
 
 export const STANCE_DISPLAY_NAMES: Record<StanceType, string> = {
-  [StanceType.Defensive]: "defensive",
-  [StanceType.Balanced]: "balanced",
-  [StanceType.Offensive]: "offensive"
+  [StanceType.Defensive]: "Defensive",
+  [StanceType.Balanced]: "Balanced",
+  [StanceType.Offensive]: "Offensive",
 };
 
 export function getStanceDisplayName(stance: StanceType): string {
-  return STANCE_DISPLAY_NAMES[stance] || "balanced";
+  return STANCE_DISPLAY_NAMES[stance] || "Balanced";
 }

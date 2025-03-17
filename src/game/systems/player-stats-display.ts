@@ -1,5 +1,15 @@
 import type { Player } from "@/types/player.types";
 import type { GameObjects, Scene } from "phaser";
+import {
+  getWeaponDisplayName,
+  getArmorDisplayName,
+  getStanceDisplayName,
+} from "@/lib/equipment-utils";
+import type {
+  WeaponType,
+  ArmorType,
+  StanceType,
+} from "@/types/equipment.types";
 
 interface DisplayStyles {
   container: {
@@ -298,9 +308,20 @@ export class PlayerStatsDisplay {
 
     // Strategy section
     addHeader("Strategy");
-    addTextRow("Weapon", player.currentSkin.weapon || "None");
-    addTextRow("Armor", player.currentSkin.armor || "None");
-    addTextRow("Stance", player.currentSkin.stance || "None");
+
+    // Convert numeric values to display names using the utility functions
+    const weaponValue = player.currentSkin.weapon || 0;
+    const armorValue = player.currentSkin.armor || 0;
+    const stanceValue = player.currentSkin.stance || 0;
+
+    // Use the utility functions to get display names
+    const weaponDisplay = getWeaponDisplayName(weaponValue as WeaponType);
+    const armorDisplay = getArmorDisplayName(armorValue as ArmorType);
+    const stanceDisplay = getStanceDisplayName(stanceValue as StanceType);
+
+    addTextRow("Weapon", weaponDisplay);
+    addTextRow("Armor", armorDisplay);
+    addTextRow("Stance", stanceDisplay);
     currentY += spacing / 2;
 
     // Stats section
