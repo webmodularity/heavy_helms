@@ -11,10 +11,12 @@ import { useInView } from "react-intersection-observer";
 import { BattleSection } from "../battle/battle-section";
 import { WarriorSelection } from "../character/warrior-selection";
 import { SectionHeader } from "../ui/section-header";
-
+import { useQuery } from "@tanstack/react-query";
+import { GET_VERIFIED_SKIN_COLLECTIONS } from "@/lib/gql-queries";
+import { request } from "graphql-request";
+import { fetchVerifiedSkinCollections } from "@/lib/player-api";
 export function AuthenticatedView() {
   // const { players } = useOwnedPlayers();
-;
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(
     null,
   );
@@ -23,6 +25,13 @@ export function AuthenticatedView() {
     threshold: 0.1,
   });
   const [hasBattleInView, setHasBattleInView] = useState(false);
+
+  const { data: verifiedSkinCollections } = useQuery({
+    queryKey: ["verifiedSkinCollections"],
+    queryFn: () => fetchVerifiedSkinCollections(),
+  });
+
+  console.log("verifiedSkinCollections", verifiedSkinCollections);
 
   // Update hasBattleInView state when inView changes
   useEffect(() => {

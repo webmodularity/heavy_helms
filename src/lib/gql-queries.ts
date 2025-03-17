@@ -54,3 +54,23 @@ export const GET_PLAYERS_BY_IDS = gql`
   }
   ${PLAYER_DATA_FRAGMENT}
 `;
+
+export const GET_VERIFIED_SKIN_COLLECTIONS = gql`
+  query GetVerifiedSkinCollections {
+  skinCollections(where: { isVerified: true }) {
+    id
+    registryId
+    contractAddress
+    skinType
+    requiredNFTAddress
+    skins {
+      id
+      tokenId
+      metadataURI
+      weapon
+      armor
+      stance
+      }
+    }
+  }
+`;

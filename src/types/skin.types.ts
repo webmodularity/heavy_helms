@@ -24,6 +24,14 @@ export interface SkinCollection {
   requiredNFTAddress?: string;
 }
 
+export interface SkinResponse extends Omit<Skin, "metadataURL" | "collection" | "spritesheet"> {
+  id: string;
+}
+export interface VerifiedSkinCollectionResponse extends Omit<SkinCollection, "isVerified"> {
+  skins: Array<SkinResponse>;
+  registryId: string;
+}
+
 export interface Spritesheet {
   image: string;
   fps: AnimationFPS;

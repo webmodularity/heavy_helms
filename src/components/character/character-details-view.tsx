@@ -25,6 +25,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { RetirementConfirmationDialog } from "../dialogs/retirement-confirmation-dialog";
 import { getArmorDisplayName, getStanceDisplayName, getWeaponDisplayName } from "@/lib/equipment-utils";
+import { SkinsBrowser } from "./skins-browser";
 
 interface CharacterDetailsViewProps {
   characterId: string;
@@ -285,6 +286,11 @@ export function CharacterDetailsView({
           />
         </div>
       </motion.div>
+
+      {/* Skins Browser Section */}
+      {!character.isRetired && (
+        <SkinsBrowser character={character} />
+      )}
 
       {/* Action Buttons - Now with enhanced hover effects */}
       <motion.div

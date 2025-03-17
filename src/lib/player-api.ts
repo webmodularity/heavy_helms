@@ -1,6 +1,6 @@
 import { request } from "graphql-request";
 import { SUBGRAPH_URL } from "@/config";
-import { GET_PLAYERS_BY_IDS, GET_OWNED_PLAYERS_QUERY } from "./gql-queries";
+import { GET_PLAYERS_BY_IDS, GET_OWNED_PLAYERS_QUERY, GET_VERIFIED_SKIN_COLLECTIONS } from "./gql-queries";
 import type {
   RawPlayerData,
   Player,
@@ -20,7 +20,7 @@ import {
   DEFAULT_SPRITESHEET_URL,
   DEFAULT_SPRITESHEET_DATA,
 } from "@/lib/default-skin-data";
-import type { Skin, Spritesheet, SkinCollection } from "@/types/skin.types";
+import type { Skin, Spritesheet, SkinCollection, VerifiedSkinCollectionResponse } from "@/types/skin.types";
 
 // Define response types for GraphQL queries
 interface PlayersResponse {
@@ -53,6 +53,14 @@ export async function fetchPlayersByIds(
     console.error("Error fetching players from subgraph:", error);
     throw error;
   }
+}
+
+export async function fetchVerifiedSkinCollections(): Promise<VerifiedSkinCollectionResponse[]> {
+  const response = await request<{skinCollections: VerifiedSkinCollectionResponse[]}>(
+    SUBGRAPH_URL,
+    GET_VERIFIED_SKIN_COLLECTIONS,
+  );
+  return response.skinCollections;
 }
 
 /**

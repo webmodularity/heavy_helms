@@ -1,3 +1,4 @@
+import type { SkinType } from '@/types/skin.types';
 import { WeaponType, ArmorType, StanceType } from '../types/equipment.types';
 
 export const WEAPON_DISPLAY_NAMES: Record<WeaponType, string> = {
@@ -34,3 +35,7 @@ export const STANCE_DISPLAY_NAMES: Record<StanceType, string> = {
 export function getStanceDisplayName(stance: StanceType): string {
   return STANCE_DISPLAY_NAMES[stance] || "balanced";
 }
+
+// export function getSkinTypeDisplayName(skinType: SkinType): string {
+//   return SKIN_TYPE_DISPLAY_NAMES[skinType] || "Unknown Skin Type";
+// }

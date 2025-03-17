@@ -18,7 +18,10 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { encodeFunctionData, parseEther } from "viem";
-import { useSubgraphPlayers } from '@/hooks/use-subgraph-players';
+import { useSubgraphPlayers } from "@/hooks/use-subgraph-players";
+import { SkinRegistryABI } from "@/game/abi/SkinRegistryABI.abi";
+import { SkinInfo, SkinType } from "@/types/skin.types";
+import type { PlayerAttributes } from "@/types/player.types";
 
 interface PlayerContextType {
   isCreatingCharacter: boolean;
@@ -27,6 +30,19 @@ interface PlayerContextType {
   characters: Character[];
   refreshCharacters: () => Promise<void>;
   isLoading: boolean;
+  validateSkinOwnership: (
+    skinInfo: SkinInfo,
+    skinType: SkinType,
+  ) => Promise<{ success: boolean; error?: string }>;
+  validateSkinRequirements: (
+    skinInfo: SkinInfo,
+    attributes: PlayerAttributes,
+  ) => Promise<{ success: boolean; error?: string }>;
+  equipCharacterSkin: (
+    playerId: number,
+    skinIndex: number,
+    skinTokenId: number,
+  ) => Promise<{ success: boolean; txHash?: string; error?: string }>;
 }
 
 const PlayerContext = createContext<PlayerContextType | undefined>(undefined);
@@ -225,6 +241,209 @@ export function PlayerProvider({
     players,
   ]);
 
+  // Validate skin ownership
+  const validateSkinOwnership = async (
+    skinInfo: SkinInfo,
+    skinType: SkinType,
+  ): Promise<{ success: boolean; error?: string }> => {
+    if (!authenticated || !wallets?.[0]?.address) {
+      return { success: false, error: "Wallet not connected" };
+    }
+
+    if (skinType === SkinType.DefaultPlayer) {
+      return { success: true };
+    }
+
+    try {
+      // Call the validateSkinOwnership function
+      await viemClient.readContract({
+        address: process.env.NEXT_PUBLIC_SKIN_REGISTRY_ADDRESS as `0x${string}`,
+        abi: SkinRegistryABI,
+        functionName: "validateSkinOwnership",
+        args: [
+          {
+            skinIndex: skinInfo.skinIndex,
+            skinTokenId: skinInfo.skinTokenId,
+          },
+          wallets[0].address as `0x${string}`,
+        ],
+      });
+      console.log("Skin ownership validated");
+
+      // If no error is thrown, the skin is valid
+      return { success: true };
+    } catch (error) {
+      console.error("Error validating skin ownership:", error);
+
+      // Extract user-friendly error message
+      let errorMessage = "Failed to validate skin ownership";
+      if (error instanceof Error) {
+        if (error.message.includes("SkinNotOwned")) {
+          errorMessage = "You don't own this skin";
+        } else if (error.message.includes("RequiredNFTNotOwned")) {
+          errorMessage = "You don't own the required NFT for this skin";
+        }
+      }
+
+      return { success: false, error: errorMessage };
+    }
+  };
+
+  // Validate skin requirements
+  const validateSkinRequirements = async (
+    skinInfo: SkinInfo,
+    attributes: PlayerAttributes,
+  ): Promise<{ success: boolean; error?: string }> => {
+    if (!authenticated) {
+      return { success: false, error: "Wallet not connected" };
+    }
+
+    try {
+      // Call the validateSkinRequirements function
+      await viemClient.readContract({
+        address: process.env.NEXT_PUBLIC_SKIN_REGISTRY_ADDRESS as `0x${string}`,
+        abi: SkinRegistryABI,
+        functionName: "validateSkinRequirements",
+        args: [
+          {
+            skinIndex: skinInfo.skinIndex,
+            skinTokenId: skinInfo.skinTokenId,
+          },
+          {
+            strength: attributes.strength,
+            constitution: attributes.constitution,
+            size: attributes.size,
+            agility: attributes.agility,
+            stamina: attributes.stamina,
+            luck: attributes.luck,
+          },
+          process.env
+            .NEXT_PUBLIC_EQUIPMENT_REQUIREMENTS_ADDRESS as `0x${string}`,
+        ],
+      });
+
+      // If no error is thrown, the skin meets the requirements
+      return { success: true };
+    } catch (error) {
+      console.error("Error validating skin requirements:", error);
+
+      // Extract user-friendly error message
+      let errorMessage = "Failed to validate skin requirements";
+      if (error instanceof Error) {
+        if (error.message.includes("EquipmentRequirementsNotMet")) {
+          errorMessage =
+            "Your character doesn't meet the requirements for this skin";
+        }
+      }
+
+      return { success: false, error: errorMessage };
+    }
+  };
+
+  // Equip character skin
+  const equipCharacterSkin = async (
+    playerId: number,
+    skinIndex: number,
+    skinTokenId: number,
+  ): Promise<{ success: boolean; txHash?: string; error?: string }> => {
+    if (!authenticated) {
+      return { success: false, error: "Wallet not connected" };
+    }
+
+    if (isWrongNetwork) {
+      try {
+        await switchToBaseSepolia();
+      } catch (error) {
+        return {
+          success: false,
+          error: "Failed to switch to the correct network",
+        };
+      }
+    }
+
+    // Find embedded wallet
+    const embeddedWallet = wallets?.find(
+      (wallet) => wallet.connectorType === "embedded",
+    );
+
+    if (!embeddedWallet) {
+      return { success: false, error: "No embedded wallet found" };
+    }
+
+    try {
+      // Get player contract address
+      const playerContractAddress = process.env
+        .NEXT_PUBLIC_PLAYER_CONTRACT_ADDRESS as `0x${string}`;
+
+      if (!playerContractAddress) {
+        throw new Error("Player contract address not configured");
+      }
+
+      // Prepare transaction data
+      const data = encodeFunctionData({
+        abi: PlayerABI,
+        functionName: "equipSkin",
+        args: [playerId, skinIndex, skinTokenId],
+      });
+
+      // Get provider for the embedded wallet
+      const provider = await embeddedWallet.getEthereumProvider();
+
+      // Create transaction request
+      const transactionRequest = {
+        to: playerContractAddress,
+        data,
+        from: embeddedWallet.address,
+      };
+
+      // Send transaction using the provider
+      const hash = await provider.request({
+        method: "eth_sendTransaction",
+        params: [transactionRequest],
+      });
+
+      // Save hash
+      const txHash = hash as string;
+
+      toast.success("Skin equipped successfully!", {
+        description: "Your warrior will be updated with the new skin shortly.",
+        action: {
+          label: "View on BaseScan",
+          onClick: () =>
+            window.open(`https://sepolia.basescan.org/tx/${txHash}`, "_blank"),
+        },
+      });
+
+      // Refresh characters after a short delay to allow the transaction to be processed
+      setTimeout(() => {
+        refreshCharacters();
+      }, 2000);
+
+      return { success: true, txHash };
+    } catch (error) {
+      console.error("Error equipping skin:", error);
+
+      // Extract user-friendly error message
+      let errorMessage = "Failed to equip skin";
+      if (error instanceof Error) {
+        if (error.message.includes("SkinNotOwned")) {
+          errorMessage = "You don't own this skin";
+        } else if (error.message.includes("RequiredNFTNotOwned")) {
+          errorMessage = "You don't own the required NFT for this skin";
+        } else if (error.message.includes("EquipmentRequirementsNotMet")) {
+          errorMessage =
+            "Your character doesn't meet the requirements for this skin";
+        } else {
+          errorMessage = error.message;
+        }
+      }
+
+      toast.error(errorMessage);
+
+      return { success: false, error: errorMessage };
+    }
+  };
+
   const value = {
     characters: players,
     isLoading,
@@ -232,19 +451,20 @@ export function PlayerProvider({
     isCreatingCharacter,
     txHash,
     refreshCharacters,
+    validateSkinOwnership,
+    validateSkinRequirements,
+    equipCharacterSkin,
   };
 
   return (
-    <PlayerContext.Provider value={value}>
-      {children}
-    </PlayerContext.Provider>
+    <PlayerContext.Provider value={value}>{children}</PlayerContext.Provider>
   );
 }
 
 export function usePlayer() {
   const context = useContext(PlayerContext);
   if (context === undefined) {
-    throw new Error('usePlayer must be used within a PlayerProvider');
+    throw new Error("usePlayer must be used within a PlayerProvider");
   }
   return context;
 }
