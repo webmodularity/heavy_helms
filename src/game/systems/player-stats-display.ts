@@ -181,8 +181,15 @@ export class PlayerStatsDisplay {
     addTextRow("Agi", player.attributes.agility || 0);
     addTextRow("Stam", player.attributes.stamina || 0);
     addTextRow("Luck", player.attributes.luck || 0);
-    addTextRow("HP", `${0}/${0}`);
-    addTextRow("STAM", `${0}/${0}`);
+
+    // Get health and stamina values from player state
+    const currentHealth = player.currentState?.currentHealth ?? 0;
+    const maxHealth = player.calculatedStats?.maxHealth ?? 100;
+    const currentEndurance = player.currentState?.currentEndurance ?? 0;
+    const maxEndurance = player.calculatedStats?.maxEndurance ?? 100;
+
+    addTextRow("HP", `${Math.floor(currentHealth)}/${maxHealth}`);
+    addTextRow("STAM", `${Math.floor(currentEndurance)}/${maxEndurance}`);
     currentY += spacing / 2;
 
     // Reputation section
