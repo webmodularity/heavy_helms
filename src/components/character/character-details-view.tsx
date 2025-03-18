@@ -317,7 +317,7 @@ export function CharacterDetailsView({
         characterName={character.name.fullName || ""}
         onConfirm={handleRetirement}
         isRetiring={isRetiring}
-        txHash={txHash}
+        txHash={txHash || null}
       />
     </>
   );
