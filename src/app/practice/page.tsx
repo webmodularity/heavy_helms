@@ -28,7 +28,8 @@ function GameErrorFallback() {
   );
 }
 
-export default function PracticePage() {
+// Create a separate client component that uses useSearchParams
+function PracticeGame() {
   const searchParams = useSearchParams();
   const player1Id = searchParams.get("player1Id") ?? undefined;
   const player2Id = searchParams.get("player2Id") ?? undefined;
@@ -42,22 +43,29 @@ export default function PracticePage() {
     }
   }, [player1Id, player2Id, router]);
 
-  console.log(player1Id, player2Id);
+  if (!player1Id || !player2Id) {
+    return <LoadingSpinner size="lg" text="Loading game..." />;
+  }
+
+  return (
+    <ErrorBoundary FallbackComponent={GameErrorFallback}>
+      <GameWrapper player1Id={player1Id} player2Id={player2Id} />
+    </ErrorBoundary>
+  );
+}
+
+export default function PracticePage() {
   return (
     <div className="min-h-screen flex flex-col bg-stone-9000">
       <main className="p-4 flex flex-col">
         <div className="flex-1 bg-opacity-70 rounded-lg overflow-hidden border border-yellow-600/20 shadow-lg items-center justify-center flex p-4">
           {/* Game container */}
           <div className="flex items-center justify-center flex-1 z-10">
-            <ErrorBoundary FallbackComponent={GameErrorFallback}>
-              <Suspense
-                fallback={
-                  <LoadingSpinner size="lg" text="Loading game..." />
-                }
-              >
-                <GameWrapper player1Id={player1Id} player2Id={player2Id} />
-              </Suspense>
-            </ErrorBoundary>
+            <Suspense
+              fallback={<LoadingSpinner size="lg" text="Loading game..." />}
+            >
+              <PracticeGame />
+            </Suspense>
           </div>
         </div>
       </main>

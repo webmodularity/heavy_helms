@@ -1,5 +1,5 @@
 import type { Player } from "./player.types";
-
+import type { Address } from "viem";
 export interface SceneData {
   player1: Player;
   player2: Player;

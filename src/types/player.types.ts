@@ -7,6 +7,7 @@ export interface Player {
   currentSkin: Skin;
   record: PlayerRecord;
   calculatedStats?: CalculatedStats;
+  currentState?: PlayerState;
   isRetired: boolean;
   isImmortal: boolean;
 }
@@ -85,62 +86,7 @@ export interface CalculatedStats {
   baseSurvivalRate: number;
 }
 
-/**
- * Player action in combat
- */
-export type PlayerAction =
-  | "attack"
-  | "block"
-  | "dodge"
-  | "counter"
-  | "parry"
-  | "rest";
-
-/**
- * Player state during combat
- */
 export interface PlayerState {
-  playerId: string;
   currentHealth: number;
-  maxHealth: number;
   currentEndurance: number;
-  maxEndurance: number;
-  lastAction: PlayerAction | null;
-  isAttacker: boolean;
-}
-
-/**
- * Combat state
- */
-export interface CombatState {
-  player1: PlayerState;
-  player2: PlayerState;
-  currentTurn: number;
-  isComplete: boolean;
-  winner: string | null;
-  turnHistory: TurnResult[];
-}
-
-/**
- * Turn result
- */
-export interface TurnResult {
-  attacker: string;
-  defender: string;
-  attackerAction: PlayerAction;
-  defenderAction: PlayerAction;
-  result:
-    | "hit"
-    | "miss"
-    | "blocked"
-    | "dodged"
-    | "critical"
-    | "countered"
-    | "parried";
-  damage: number;
-  attackerEndurance: number;
-  defenderEndurance: number;
-  attackerHealth: number;
-  defenderHealth: number;
-  turnNumber: number;
 }

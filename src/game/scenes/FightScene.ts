@@ -1,11 +1,11 @@
 import { Scene } from "phaser";
 import { EventBus } from "../EventBus";
 
-import { DamageNumbers } from "../objects/DamageNumbers";
-import { CombatAnimator } from "../systems/combat/combat-animator";
-import { CombatAudioManager } from "../systems/combat/combat-audio-manager";
-import { HealthManager } from "../systems/combat/health-manager";
-import { PlayerStatsDisplay } from "../systems/combat/player-stats-display";
+import { DamageNumbers } from "../systems/damage-numbers";
+import { CombatAnimator } from "../systems/combat-animator";
+import { CombatAudioManager } from "../systems/combat-audio-manager";
+import { HealthManager } from "../systems/health-manager";
+import { PlayerStatsDisplay } from "../systems/player-stats-display";
 import type {
   CombatAction,
   DecodedCombatResult,
@@ -336,6 +336,7 @@ export class FightScene extends Scene {
         onStart: () => {
           this.time.delayedCall(300, () => {
             this.player1Stats?.show();
+            this.refreshPlayerStats();
           });
         },
         onComplete: () => {
@@ -350,6 +351,7 @@ export class FightScene extends Scene {
         onStart: () => {
           this.time.delayedCall(300, () => {
             this.player2Stats?.show();
+            this.refreshPlayerStats();
           });
         },
         onComplete: () => {
@@ -736,30 +738,16 @@ export class FightScene extends Scene {
       );
       this.animator.playAnimation(this.player1Sprite, "idle", false);
 
-      // Force immediate stamina update
-      if (this.scene.player1Data?.stats) {
-        this.scene.player1Data.stats.currentEndurance = 0;
-        this.scene.player1Data.stats.currentStamina = 0;
+      // Set player1 endurance to 0
+      if (this.player1.currentState) {
+        this.player1.currentState.currentEndurance = 0;
       }
 
-      // Kill all tweens and force stamina to 0
-      if (this.healthManager) {
-        for (const tween of Object.values(this.healthManager.tweens)) {
-          tween?.stop();
-        }
+      // Update health bars
+      this.healthManager.updateBars();
 
-        if (this.healthManager.p1Bars) {
-          this.healthManager.p1Bars.stamina = 0;
-        }
-
-        // Force immediate bar update
-        this.healthManager.p1Bars.staminaFill.displayWidth = 0;
-
-        // Force stats update
-        this.player1Stats?.update({
-          stats: this.scene.player1Data.stats,
-        });
-      }
+      // Update player stats display with delay
+      this.refreshPlayerStats(true);
 
       // Add delay before completing sequence
       this.time.delayedCall(1000, () => {
@@ -783,30 +771,16 @@ export class FightScene extends Scene {
       );
       this.animator.playAnimation(this.player2Sprite, "idle", true);
 
-      // Force immediate stamina update
-      if (this.scene.player2Data?.stats) {
-        this.scene.player2Data.stats.currentEndurance = 0;
-        this.scene.player2Data.stats.currentStamina = 0;
+      // Set player2 endurance to 0
+      if (this.player2.currentState) {
+        this.player2.currentState.currentEndurance = 0;
       }
 
-      // Kill all tweens and force stamina to 0
-      if (this.healthManager) {
-        for (const tween of Object.values(this.healthManager.tweens)) {
-          tween?.stop();
-        }
+      // Update health bars
+      this.healthManager.updateBars();
 
-        if (this.healthManager.p2Bars) {
-          this.healthManager.p2Bars.stamina = 0;
-        }
-
-        // Force immediate bar update
-        this.healthManager.p2Bars.staminaFill.displayWidth = 0;
-
-        // Force stats update
-        this.player2Stats?.update({
-          stats: this.scene.player2Data.stats,
-        });
-      }
+      // Update player stats display with delay
+      this.refreshPlayerStats(true);
 
       // Add delay before completing sequence
       this.time.delayedCall(1000, () => {
@@ -815,11 +789,11 @@ export class FightScene extends Scene {
       return;
     }
 
-    // Get current values
-    const currentP1Health = this.healthManager.p1Bars.health;
-    const currentP2Health = this.healthManager.p2Bars.health;
-    const currentP1Stamina = this.healthManager.p1Bars.stamina;
-    const currentP2Stamina = this.healthManager.p2Bars.stamina;
+    // Get current values from player states
+    const currentP1Health = this.player1.currentState?.currentHealth || 0;
+    const currentP2Health = this.player2.currentState?.currentHealth || 0;
+    const currentP1Stamina = this.player1.currentState?.currentEndurance || 0;
+    const currentP2Stamina = this.player2.currentState?.currentEndurance || 0;
 
     // Initialize new values with current values
     let newP1Health = currentP1Health;
@@ -863,22 +837,23 @@ export class FightScene extends Scene {
       newP1Health = Math.max(0, currentP1Health - damage);
     }
 
-    // Store the calculated values for the animation sequence
-    this.pendingHealthUpdate = {
-      p1Health: newP1Health,
-      p2Health: newP2Health,
-      p1Stamina: newP1Stamina,
-      p2Stamina: newP2Stamina,
-    };
+    // Update player states with new values
+    if (this.player1.currentState) {
+      this.player1.currentState.currentHealth = newP1Health;
+      this.player1.currentState.currentEndurance = newP1Stamina;
+    }
+
+    if (this.player2.currentState) {
+      this.player2.currentState.currentHealth = newP2Health;
+      this.player2.currentState.currentEndurance = newP2Stamina;
+    }
+
+    // Update player stats displays
+    this.refreshPlayerStats(true);
 
     // Update the health bars with actual values after a longer delay
     this.time.delayedCall(1200, () => {
-      this.healthManager.updateBars(
-        newP1Health,
-        newP2Health,
-        newP1Stamina,
-        newP2Stamina,
-      );
+      this.healthManager.updateBars();
     });
 
     // Continue with animation sequence
@@ -994,55 +969,27 @@ export class FightScene extends Scene {
       );
       this.animator.playAnimation(defender, "idle", isPlayer2);
 
-      // Force immediate stamina update
+      // Set player endurance to 0
       if (isPlayer2) {
-        if (this.scene.player2Data?.stats) {
-          this.scene.player2Data.stats.currentEndurance = 0;
-          this.scene.player2Data.stats.currentStamina = 0;
+        if (this.player2.currentState) {
+          this.player2.currentState.currentEndurance = 0;
         }
 
-        // Kill all tweens and force stamina to 0
-        if (this.healthManager) {
-          for (const tween of Object.values(this.healthManager.tweens)) {
-            tween?.stop();
-          }
+        // Update health bars
+        this.healthManager.updateBars();
 
-          if (this.healthManager.p2Bars) {
-            this.healthManager.p2Bars.stamina = 0;
-          }
-
-          // Force immediate bar update
-          this.healthManager.p2Bars.staminaFill.displayWidth = 0;
-
-          // Force stats update
-          this.player2Stats?.update({
-            stats: this.scene.player2Data.stats,
-          });
-        }
+        // Update player stats display with delay
+        this.refreshPlayerStats(true);
       } else {
-        if (this.scene.player1Data?.stats) {
-          this.scene.player1Data.stats.currentEndurance = 0;
-          this.scene.player1Data.stats.currentStamina = 0;
+        if (this.player1.currentState) {
+          this.player1.currentState.currentEndurance = 0;
         }
 
-        // Kill all tweens and force stamina to 0
-        if (this.healthManager) {
-          for (const tween of Object.values(this.healthManager.tweens)) {
-            tween?.stop();
-          }
+        // Update health bars
+        this.healthManager.updateBars();
 
-          if (this.healthManager.p1Bars) {
-            this.healthManager.p1Bars.stamina = 0;
-          }
-
-          // Force immediate bar update
-          this.healthManager.p1Bars.staminaFill.displayWidth = 0;
-
-          // Force stats update
-          this.player1Stats?.update({
-            stats: this.scene.player1Data.stats,
-          });
-        }
+        // Update player stats display with delay
+        this.refreshPlayerStats(true);
       }
 
       this.completeSequence(isLastAction);
@@ -1080,6 +1027,7 @@ export class FightScene extends Scene {
           isCrit ? 1.2 : 1.0,
         );
         this.animator.playAnimation(defender, "hurt", isPlayer2);
+
         defender.once("animationcomplete", () => {
           this.animator.playAnimation(defender, "idle", isPlayer2);
           this.completeSequence(isLastAction);
@@ -1136,6 +1084,7 @@ export class FightScene extends Scene {
               "damage",
               defenseText === "COUNTER_CRIT" ? 1.2 : 1.0,
             );
+
             defender.once("animationcomplete", () => {
               this.animator.playAnimation(defender, "idle", isPlayer2);
               this.completeSequence(isLastAction);
@@ -1166,6 +1115,7 @@ export class FightScene extends Scene {
               "damage",
               defenseText === "RIPOSTE_CRIT" ? 1.2 : 1.0,
             );
+
             defender.once("animationcomplete", () => {
               this.animator.playAnimation(defender, "idle", isPlayer2);
               this.completeSequence(isLastAction);
@@ -1322,7 +1272,7 @@ export class FightScene extends Scene {
         duration: this.WALK_DURATION,
         ease: "Linear",
         onComplete: () => {
-          // After walking away, start taunting sequence
+          // After walking away, start taunt sequence
           this.playTauntSequence(winner, isPlayer2);
         },
       });
@@ -1364,5 +1314,25 @@ export class FightScene extends Scene {
         this.animator.playAnimation(winner, "idle", isPlayer2);
       }
     });
+  }
+
+  private refreshPlayerStats(withDelay = false): void {
+    if (withDelay) {
+      // For combat damage, use delayed update for both stats and health bars
+      this.player1Stats?.updateWithDelay(this.player1);
+      this.player2Stats?.updateWithDelay(this.player2);
+
+      // Update health/stamina bars with same delay
+      this.time.delayedCall(1200, () => {
+        this.healthManager.updateBars();
+      });
+    } else {
+      // For initial setup, update immediately
+      this.player1Stats?.update(this.player1);
+      this.player2Stats?.update(this.player2);
+
+      // Update health/stamina bars immediately
+      this.healthManager.updateBars();
+    }
   }
 }

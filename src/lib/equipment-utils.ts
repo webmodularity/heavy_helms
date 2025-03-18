@@ -1,6 +1,5 @@
-import type { SkinType } from "@/types/skin.types";
-import { WeaponType, ArmorType, StanceType } from "../types/equipment.types";
 import type { PlayerAttributes } from "@/types/player.types";
+import { WeaponType, ArmorType, StanceType } from "../types/equipment.types";
 
 export const WEAPON_DISPLAY_NAMES: Record<WeaponType, string> = {
   [WeaponType.SwordAndShield]: "Sword + Shield",
@@ -28,13 +27,13 @@ export function getArmorDisplayName(armor: ArmorType): string {
 }
 
 export const STANCE_DISPLAY_NAMES: Record<StanceType, string> = {
-  [StanceType.Defensive]: "defensive",
-  [StanceType.Balanced]: "balanced",
-  [StanceType.Offensive]: "offensive",
+  [StanceType.Defensive]: "Defensive",
+  [StanceType.Balanced]: "Balanced",
+  [StanceType.Offensive]: "Offensive",
 };
 
 export function getStanceDisplayName(stance: StanceType): string {
-  return STANCE_DISPLAY_NAMES[stance] || "balanced";
+  return STANCE_DISPLAY_NAMES[stance] || "Balanced";
 }
 
 // export function getSkinTypeDisplayName(skinType: SkinType): string {

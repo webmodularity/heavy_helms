@@ -1,5 +1,15 @@
 import type { Player } from "@/types/player.types";
 import type { GameObjects, Scene } from "phaser";
+import {
+  getWeaponDisplayName,
+  getArmorDisplayName,
+  getStanceDisplayName,
+} from "@/lib/equipment-utils";
+import type {
+  WeaponType,
+  ArmorType,
+  StanceType,
+} from "@/types/equipment.types";
 
 interface DisplayStyles {
   container: {
@@ -25,6 +35,12 @@ interface DisplayStyles {
   };
 }
 
+interface StateTweens {
+  health: Phaser.Tweens.Tween | null;
+  stamina: Phaser.Tweens.Tween | null;
+  duration: number;
+}
+
 export class PlayerStatsDisplay {
   private scene: Scene;
   private x: number;
@@ -42,6 +58,19 @@ export class PlayerStatsDisplay {
   private container: GameObjects.Container;
   private textElements: GameObjects.Text[];
   private background?: GameObjects.Graphics;
+
+  // Reference for health and stamina text elements
+  private healthText?: GameObjects.Text;
+  private staminaText?: GameObjects.Text;
+
+  // Tween values
+  private currentHealth = 0;
+  private currentStamina = 0;
+  private tweens: StateTweens;
+  private updateDelay = 1200;
+
+  // Player reference
+  private player: Player | null = null;
 
   constructor(scene: Scene, x: number, y: number, isRightSide = false) {
     this.scene = scene;
@@ -95,6 +124,13 @@ export class PlayerStatsDisplay {
       },
     };
 
+    // Initialize tweens
+    this.tweens = {
+      health: null,
+      stamina: null,
+      duration: 500, // Duration of health/stamina change animation
+    };
+
     // Create container immediately
     this.createContainer();
     // Set initial position
@@ -116,7 +152,101 @@ export class PlayerStatsDisplay {
     this.container.setDepth(10);
   }
 
+  public updateWithDelay(player: Player): void {
+    // Store player reference immediately
+    this.player = player;
+
+    // Delay the actual update to match health bar animation timing
+    this.scene.time.delayedCall(this.updateDelay, () => {
+      // If this is the first update, initialize current values
+      if (this.currentHealth === 0 && this.currentStamina === 0) {
+        this.currentHealth = player.currentState?.currentHealth ?? 0;
+        this.currentStamina = player.currentState?.currentEndurance ?? 0;
+      }
+
+      // Get target values
+      const targetHealth = player.currentState?.currentHealth ?? 0;
+      const targetStamina = player.currentState?.currentEndurance ?? 0;
+
+      // Only tween health and stamina values
+      this.updateStatsWithTween(targetHealth, targetStamina);
+    });
+  }
+
   public update(player: Player): void {
+    // Store player reference
+    this.player = player;
+
+    // If this is the first update, initialize current values
+    if (this.currentHealth === 0 && this.currentStamina === 0) {
+      this.currentHealth = player.currentState?.currentHealth ?? 0;
+      this.currentStamina = player.currentState?.currentEndurance ?? 0;
+    }
+
+    // Get target values
+    const targetHealth = player.currentState?.currentHealth ?? 0;
+    const targetStamina = player.currentState?.currentEndurance ?? 0;
+
+    // First initial update or non-stat-related update
+    const isFirstUpdate = !this.healthText || !this.staminaText;
+    const statsChanged =
+      this.currentHealth !== targetHealth ||
+      this.currentStamina !== targetStamina;
+
+    if (isFirstUpdate || !statsChanged) {
+      this.fullUpdate(player);
+      return;
+    }
+
+    // Only tween the health and stamina values
+    this.updateStatsWithTween(targetHealth, targetStamina);
+  }
+
+  private updateStatsWithTween(targetHealth: number, targetStamina: number) {
+    // Kill any existing tweens
+    if (this.tweens.health) this.tweens.health.stop();
+    if (this.tweens.stamina) this.tweens.stamina.stop();
+
+    // Update health with tween
+    this.tweens.health = this.scene.tweens.addCounter({
+      from: this.currentHealth,
+      to: targetHealth,
+      duration: this.tweens.duration,
+      onUpdate: (tween) => {
+        this.currentHealth = Math.floor(tween.getValue());
+        this.updateHealthText();
+      },
+    });
+
+    // Update stamina with tween
+    this.tweens.stamina = this.scene.tweens.addCounter({
+      from: this.currentStamina,
+      to: targetStamina,
+      duration: this.tweens.duration,
+      onUpdate: (tween) => {
+        this.currentStamina = Math.floor(tween.getValue());
+        this.updateStaminaText();
+      },
+    });
+  }
+
+  private updateHealthText() {
+    if (this.healthText && this.player) {
+      const maxHealth = this.player.calculatedStats?.maxHealth ?? 100;
+      this.healthText.setText(`${Math.floor(this.currentHealth)}/${maxHealth}`);
+    }
+  }
+
+  private updateStaminaText() {
+    if (this.staminaText && this.player) {
+      const maxEndurance = this.player.calculatedStats?.maxEndurance ?? 100;
+      this.staminaText.setText(
+        `${Math.floor(this.currentStamina)}/${maxEndurance}`,
+      );
+    }
+  }
+
+  private fullUpdate(player: Player): void {
     // Clear existing elements
     if (this.textElements.length > 0) {
       for (const element of this.textElements) {
@@ -163,14 +293,35 @@ export class PlayerStatsDisplay {
         valueText.x + valueText.width + this.padding,
       );
       this.textElements.push(labelText, valueText);
+
+      // Store references to health and stamina text
+      if (label === "HP") {
+        this.healthText = valueText;
+        this.currentHealth = player.currentState?.currentHealth ?? 0;
+      } else if (label === "STAM") {
+        this.staminaText = valueText;
+        this.currentStamina = player.currentState?.currentEndurance ?? 0;
+      }
+
       currentY += spacing;
     };
 
     // Strategy section
     addHeader("Strategy");
-    addTextRow("Weapon", player.currentSkin.weapon || "None");
-    addTextRow("Armor", player.currentSkin.armor || "None");
-    addTextRow("Stance", player.currentSkin.stance || "None");
+
+    // Convert numeric values to display names using the utility functions
+    const weaponValue = player.currentSkin.weapon || 0;
+    const armorValue = player.currentSkin.armor || 0;
+    const stanceValue = player.currentSkin.stance || 0;
+
+    // Use the utility functions to get display names
+    const weaponDisplay = getWeaponDisplayName(weaponValue as WeaponType);
+    const armorDisplay = getArmorDisplayName(armorValue as ArmorType);
+    const stanceDisplay = getStanceDisplayName(stanceValue as StanceType);
+
+    addTextRow("Weapon", weaponDisplay);
+    addTextRow("Armor", armorDisplay);
+    addTextRow("Stance", stanceDisplay);
     currentY += spacing / 2;
 
     // Stats section
@@ -181,8 +332,15 @@ export class PlayerStatsDisplay {
     addTextRow("Agi", player.attributes.agility || 0);
     addTextRow("Stam", player.attributes.stamina || 0);
     addTextRow("Luck", player.attributes.luck || 0);
-    addTextRow("HP", `${0}/${0}`);
-    addTextRow("STAM", `${0}/${0}`);
+
+    // Get health and stamina values from player state
+    const currentHealth = player.currentState?.currentHealth ?? 0;
+    const maxHealth = player.calculatedStats?.maxHealth ?? 100;
+    const currentEndurance = player.currentState?.currentEndurance ?? 0;
+    const maxEndurance = player.calculatedStats?.maxEndurance ?? 100;
+
+    addTextRow("HP", `${Math.floor(currentHealth)}/${maxHealth}`);
+    addTextRow("STAM", `${Math.floor(currentEndurance)}/${maxEndurance}`);
     currentY += spacing / 2;
 
     // Reputation section

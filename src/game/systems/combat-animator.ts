@@ -1,5 +1,20 @@
 import type { GameObjects, Scene } from "phaser";
-import { VALID_ANIMATIONS } from "../animation-system";
+
+interface AnimationConfig {
+  repeat: boolean;
+}
+
+export const VALID_ANIMATIONS: Record<string, AnimationConfig> = {
+  idle: { repeat: true },
+  walking: { repeat: true },
+  running: { repeat: true },
+  attacking: { repeat: false },
+  blocking: { repeat: false },
+  dying: { repeat: false },
+  hurt: { repeat: false },
+  dodging: { repeat: false },
+  taunting: { repeat: false },
+};
 
 type AnimationType = keyof typeof VALID_ANIMATIONS;
 

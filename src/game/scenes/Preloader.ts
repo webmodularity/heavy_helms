@@ -2,7 +2,11 @@ import { viemClient } from "@/config";
 import { Scene } from "phaser";
 import { EventBus } from "../EventBus";
 import { fetchAndConvertPlayers } from "../../lib/player-api";
-import type { Player, PlayerLoadout } from "@/types/player.types";
+import type {
+  Player,
+  PlayerLoadout,
+  CalculatedStats,
+} from "@/types/player.types";
 import { DuelGameABI, GameEngineABI, PracticeGameABI } from "../abi";
 import type { Address } from "viem";
 import { getEnumKeyByValue } from "../utils/enum-utils";
@@ -27,6 +31,7 @@ export class Preloader extends Scene {
   private player2: Player;
   // Game data
   private decodedCombatBytes: DecodedCombatResult;
+  private gameEngineAddress: Address;
 
   // Loading state
   private loadingBar?: Phaser.GameObjects.Graphics;
@@ -189,6 +194,13 @@ export class Preloader extends Scene {
         throw new Error("FATAL: Both player IDs are required");
       }
 
+      this.gameEngineAddress = await viemClient.readContract({
+        address: process.env
+          .NEXT_PUBLIC_PRACTICE_GAME_CONTRACT_ADDRESS as Address,
+        abi: PracticeGameABI,
+        functionName: "gameEngine",
+      });
+
       // Practice Mode - load players
       this.events.emit("status-update", "Loading player data...");
       await this.loadPlayersByPlayerIds(this.player1Id, this.player2Id);
@@ -227,6 +239,10 @@ export class Preloader extends Scene {
         player2Loadout,
       );
 
+      // Shared between game modes
+      // Load CalculatedStats + Initial PlayerState
+      await this.loadPlayerStates();
+
       // Remove the complete listener to avoid duplicate calls
       this.load.off("complete", this.onLoadComplete, this);
       // Start loading the queued player assets
@@ -239,6 +255,113 @@ export class Preloader extends Scene {
     } catch (error) {
       console.error("FATAL ERROR: Failed to load player data:", error);
       throw new Error("FATAL: Cannot load players");
+    }
+  }
+
+  private async loadPlayerStates() {
+    try {
+      // Create FighterStats objects for both players
+      const player1FighterStats = {
+        weapon: this.player1.currentSkin.weapon,
+        armor: this.player1.currentSkin.armor,
+        stance: this.player1.currentSkin.stance,
+        attributes: {
+          strength: this.player1.attributes.strength,
+          constitution: this.player1.attributes.constitution,
+          size: this.player1.attributes.size,
+          agility: this.player1.attributes.agility,
+          stamina: this.player1.attributes.stamina,
+          luck: this.player1.attributes.luck,
+        },
+      };
+
+      const player2FighterStats = {
+        weapon: this.player2.currentSkin.weapon,
+        armor: this.player2.currentSkin.armor,
+        stance: this.player2.currentSkin.stance,
+        attributes: {
+          strength: this.player2.attributes.strength,
+          constitution: this.player2.attributes.constitution,
+          size: this.player2.attributes.size,
+          agility: this.player2.attributes.agility,
+          stamina: this.player2.attributes.stamina,
+          luck: this.player2.attributes.luck,
+        },
+      };
+
+      // Make multicall to get calculated stats for both players
+      const results = await viemClient.multicall({
+        contracts: [
+          {
+            address: this.gameEngineAddress,
+            abi: GameEngineABI,
+            functionName: "calculateStats",
+            args: [player1FighterStats],
+          },
+          {
+            address: this.gameEngineAddress,
+            abi: GameEngineABI,
+            functionName: "calculateStats",
+            args: [player2FighterStats],
+          },
+        ],
+      });
+
+      // Check for errors and extract results
+      if (results[0].status === "failure") {
+        throw results[0].error;
+      }
+      if (results[1].status === "failure") {
+        throw results[1].error;
+      }
+
+      const player1Stats = results[0].result;
+      const player2Stats = results[1].result;
+
+      // Assign calculated stats to player objects
+      this.player1.calculatedStats = {
+        maxHealth: Number(player1Stats.maxHealth),
+        maxEndurance: Number(player1Stats.maxEndurance),
+        damageModifier: Number(player1Stats.damageModifier),
+        hitChance: Number(player1Stats.hitChance),
+        blockChance: Number(player1Stats.blockChance),
+        dodgeChance: Number(player1Stats.dodgeChance),
+        critChance: Number(player1Stats.critChance),
+        initiative: Number(player1Stats.initiative),
+        counterChance: Number(player1Stats.counterChance),
+        critMultiplier: Number(player1Stats.critMultiplier),
+        parryChance: Number(player1Stats.parryChance),
+        baseSurvivalRate: Number(player1Stats.baseSurvivalRate),
+      };
+
+      this.player2.calculatedStats = {
+        maxHealth: Number(player2Stats.maxHealth),
+        maxEndurance: Number(player2Stats.maxEndurance),
+        damageModifier: Number(player2Stats.damageModifier),
+        hitChance: Number(player2Stats.hitChance),
+        blockChance: Number(player2Stats.blockChance),
+        dodgeChance: Number(player2Stats.dodgeChance),
+        critChance: Number(player2Stats.critChance),
+        initiative: Number(player2Stats.initiative),
+        counterChance: Number(player2Stats.counterChance),
+        critMultiplier: Number(player2Stats.critMultiplier),
+        parryChance: Number(player2Stats.parryChance),
+        baseSurvivalRate: Number(player2Stats.baseSurvivalRate),
+      };
+
+      // Initialize player states with full health and endurance
+      this.player1.currentState = {
+        currentHealth: this.player1.calculatedStats.maxHealth,
+        currentEndurance: this.player1.calculatedStats.maxEndurance,
+      };
+
+      this.player2.currentState = {
+        currentHealth: this.player2.calculatedStats.maxHealth,
+        currentEndurance: this.player2.calculatedStats.maxEndurance,
+      };
+    } catch (error) {
+      console.error("Error loading player states:", error);
+      throw error;
     }
   }
 
@@ -349,10 +472,8 @@ export class Preloader extends Scene {
 
   async loadPlayersByPlayerIds(player1Id: string, player2Id: string) {
     try {
-      console.log("Loading players with IDs:", player1Id, player2Id);
-      const playerIds = [player1Id, player2Id];
-      const players = await fetchAndConvertPlayers(playerIds);
-      console.log("Fetched players:", players);
+      const playerIds: string[] = [player1Id, player2Id];
+      const players: Player[] = await fetchAndConvertPlayers(playerIds);
 
       // Check if we got valid player data
       if (!players || players.length < 2 || !players[0] || !players[1]) {
@@ -360,8 +481,11 @@ export class Preloader extends Scene {
         throw new Error("Invalid player data returned from API");
       }
 
-      [this.player1, this.player2] = players;
-      console.log("Assigned players:", this.player1, this.player2);
+      // Ensure players are assigned correctly based on their IDs
+      // instead of the order they come back from the API
+      this.player1 = players.find((p) => p.id === player1Id) || players[0];
+      this.player2 = players.find((p) => p.id === player2Id) || players[1];
+
       return players;
     } catch (error) {
       console.error("FATAL ERROR: Failed to load player data:", error);
@@ -397,38 +521,18 @@ export class Preloader extends Scene {
     player2Loadout: PlayerLoadout,
   ): Promise<DecodedCombatResult> {
     try {
-      const gameContractAddress = process.env
-        .NEXT_PUBLIC_PRACTICE_GAME_CONTRACT_ADDRESS as Address;
-
-      const multicallResults = await viemClient.multicall({
-        contracts: [
-          {
-            address: gameContractAddress,
-            abi: PracticeGameABI,
-            functionName: "play",
-            args: [player1Loadout, player2Loadout],
-          },
-          {
-            address: gameContractAddress,
-            abi: PracticeGameABI,
-            functionName: "gameEngine",
-          },
-        ],
+      const combatBytes = await viemClient.readContract({
+        address: process.env
+          .NEXT_PUBLIC_PRACTICE_GAME_CONTRACT_ADDRESS as Address,
+        abi: PracticeGameABI,
+        functionName: "play",
+        // @ts-ignore - Using the exact same structure as before, but TypeScript is having issues
+        args: [player1Loadout, player2Loadout],
       });
 
-      // Extract the results and handle potential errors
-      if (multicallResults[0].status === "failure") {
-        throw multicallResults[0].error;
-      }
-      if (multicallResults[1].status === "failure") {
-        throw multicallResults[1].error;
-      }
-
-      const combatBytes = multicallResults[0].result;
-      const gameEngineAddress = multicallResults[1].result;
       return await this.decodeCombatBytes(
         combatBytes,
-        gameEngineAddress,
+        this.gameEngineAddress,
         player1Loadout.playerId,
         player2Loadout.playerId,
       );
