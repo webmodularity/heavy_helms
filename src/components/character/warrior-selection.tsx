@@ -1,6 +1,5 @@
 "use client";
 
-import { usePlayer } from "@/store/player-context";
 import type { Character } from "@/types/player.types";
 import { useRouter } from "next/navigation";
 import { useRef, useMemo } from "react";
@@ -9,6 +8,7 @@ import { CharacterCard } from "./playable-character-card";
 import { NewCharacterCard } from "./new-character-card";
 import { CharacterCardSkeleton } from "../ui/skeletons/character-card-skeleton";
 import { useCreateCharacter } from "@/hooks/use-create-character";
+import { useSubgraphPlayers } from "@/hooks/use-subgraph-players";
 
 interface WarriorSelectionProps {
   selectedCharacter: Character | null;
@@ -23,7 +23,8 @@ export function WarriorSelection({
 }: WarriorSelectionProps) {
   const router = useRouter();
   const characterListRef = useRef<HTMLDivElement>(null);
-  const { characters: players, isLoading } = usePlayer();
+  const { players, isLoading } = useSubgraphPlayers();
+
   const { createCharacter, isCreatingCharacter, txHash } = useCreateCharacter();
 
   const handleViewDetails = (character: Character) => {
@@ -31,16 +32,19 @@ export function WarriorSelection({
   };
 
   // Generate stable skeleton keys
-  const skeletonKeys = useMemo(() => 
-    Array(4).fill(0).map((_, i) => `skeleton-${i}`), 
-    []
+  const skeletonKeys = useMemo(
+    () =>
+      Array(4)
+        .fill(0)
+        .map((_, i) => `skeleton-${i}`),
+    [],
   );
 
   // Render skeleton loaders while characters are loading
   const renderSkeletons = () => {
-    return skeletonKeys.map((key, index) => 
+    return skeletonKeys.map((key, index) => (
       <CharacterCardSkeleton key={key} index={index} />
-    );
+    ));
   };
 
   return (
@@ -58,7 +62,7 @@ export function WarriorSelection({
           renderSkeletons()
         ) : (
           <>
-            {players.map((character, index) => (
+            {players?.map((character, index) => (
               <CharacterCard
                 key={character.id}
                 character={character}
@@ -72,7 +76,7 @@ export function WarriorSelection({
 
             {/* Character Creation Card */}
             <NewCharacterCard
-              delay={players.length}
+              delay={players?.length || 0}
               onClick={createCharacter}
               isCreating={isCreatingCharacter}
               txHash={txHash}

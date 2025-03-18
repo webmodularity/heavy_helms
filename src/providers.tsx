@@ -4,7 +4,6 @@ import { PrivyProvider } from "@privy-io/react-auth";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { base, baseSepolia } from "viem/chains";
-import { PlayerProvider } from "./store/player-context";
 import { WalletProvider } from "./store/wallet-context";
 
 interface ProvidersProps {
@@ -33,10 +32,8 @@ function Providers({ children }: ProvidersProps) {
         }}
       >
         <WalletProvider>
-          <PlayerProvider>
-            {/* Initialize EventBus globally for Phaser games */}
-            {children}
-          </PlayerProvider>
+          {/* Initialize EventBus globally for Phaser games */}
+          {children}
         </WalletProvider>
       </PrivyProvider>
     </QueryClientProvider>

@@ -16,8 +16,6 @@ import {
   getStanceDisplayName,
   getWeaponDisplayName,
 } from "@/lib/equipment-utils";
-import { usePlayer } from "@/store/player-context";
-import { useEffect, useState } from "react";
 import { useValidateSkin } from "@/hooks/use-validate-skin";
 import { usePlayerById } from "@/hooks/use-player-by-id";
 
