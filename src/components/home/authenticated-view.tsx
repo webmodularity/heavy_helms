@@ -56,7 +56,7 @@ export function AuthenticatedView() {
 
   return (
     <>
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto px-0 sm:px-2 md:px-4">
         <WarriorSelection
           selectedCharacter={selectedCharacter}
           onSelectCharacter={handleSelectCharacter}
@@ -74,7 +74,9 @@ export function AuthenticatedView() {
           battleSectionRef={battleSectionRef}
         />
       </div>
-      <RecentActivity />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <RecentActivity />
+      </div>
     </>
   );
 }

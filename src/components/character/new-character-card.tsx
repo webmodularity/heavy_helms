@@ -18,7 +18,7 @@ export function NewCharacterCard({
 }: NewCharacterCardProps) {
   return (
     <motion.div
-      className={`relative rounded-lg overflow-hidden border-2 border-dashed border-yellow-700/40 bg-gradient-to-b from-black/30 to-black/10 flex flex-col justify-center items-center p-5 h-[320px] cursor-pointer transition-colors hover:bg-black/20 hover:border-yellow-700/60 ${
+      className={`min-w-[220px] relative rounded-lg overflow-hidden border-2 border-dashed border-yellow-700/40 bg-gradient-to-b from-black/30 to-black/10 flex flex-col justify-center items-center p-5 h-[320px] cursor-pointer transition-colors hover:bg-black/20 hover:border-yellow-700/60 snap-start ${
         isCreating ? "pointer-events-none" : ""
       }`}
       initial={{ opacity: 0, y: 20 }}

@@ -54,35 +54,40 @@ export function WarriorSelection({
         subtitle="Select your warrior to enter the battles"
       />
 
-      <div
-        ref={characterListRef}
-        className="flex space-x-4 md:space-x-6 mt-4 overflow-x-auto py-4 snap-x px-4"
-      >
-        {isLoading ? (
-          renderSkeletons()
-        ) : (
-          <>
-            {players?.map((character, index) => (
-              <CharacterCard
-                key={character.id}
-                character={character}
-                index={index}
-                isSelected={selectedCharacter?.id === character.id}
-                onSelect={() => onSelectCharacter(character)}
-                onDeselect={onDeselectCharacter}
-                onViewDetails={() => handleViewDetails(character)}
-              />
-            ))}
+      <div className="relative max-w-full px-4 md:px-6">
+        <div
+          ref={characterListRef}
+          className="flex gap-4 md:gap-5 mt-4 overflow-x-auto pb-4 pt-2 snap-x scrollbar-thin scrollbar-thumb-yellow-600/20 scrollbar-track-transparent" 
+        >
+          {isLoading ? (
+            renderSkeletons()
+          ) : (
+            <>
+              {players?.map((character, index) => (
+                <CharacterCard
+                  key={character.id}
+                  character={character}
+                  index={index}
+                  isSelected={selectedCharacter?.id === character.id}
+                  onSelect={() => onSelectCharacter(character)}
+                  onDeselect={onDeselectCharacter}
+                  onViewDetails={() => handleViewDetails(character)}
+                />
+              ))}
 
-            {/* Character Creation Card */}
-            <NewCharacterCard
-              delay={players?.length || 0}
-              onClick={createCharacter}
-              isCreating={isCreatingCharacter}
-              txHash={txHash}
-            />
-          </>
-        )}
+              {/* Character Creation Card */}
+              <NewCharacterCard
+                delay={players?.length || 0}
+                onClick={createCharacter}
+                isCreating={isCreatingCharacter}
+                txHash={txHash}
+              />
+            </>
+          )}
+        </div>
+        
+        {/* Scroll Indicators - Optional enhancement */}
+        <div className="hidden md:block absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-black/40 to-transparent pointer-events-none" />
       </div>
     </section>
   );
