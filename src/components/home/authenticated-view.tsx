@@ -1,7 +1,6 @@
 // src/components/home/authenticated-view.tsx
 "use client";
 import { Button } from "@/components/ui/button";
-import { usePlayer } from "@/store/player-context";
 import type { Character } from "@/types/player.types";
 import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
@@ -13,11 +12,10 @@ import { WarriorSelection } from "../character/warrior-selection";
 import { SectionHeader } from "../ui/section-header";
 
 export function AuthenticatedView() {
-  // const { players } = useOwnedPlayers();
-;
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(
     null,
   );
+
   const battleSectionRef = useRef<HTMLElement>(null);
   const { ref: inViewRef, inView } = useInView({
     threshold: 0.1,
@@ -58,7 +56,7 @@ export function AuthenticatedView() {
 
   return (
     <>
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-7xl mx-auto px-0 sm:px-2 md:px-4">
         <WarriorSelection
           selectedCharacter={selectedCharacter}
           onSelectCharacter={handleSelectCharacter}
@@ -76,7 +74,9 @@ export function AuthenticatedView() {
           battleSectionRef={battleSectionRef}
         />
       </div>
-      <RecentActivity />
+      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+        <RecentActivity />
+      </div>
     </>
   );
 }
