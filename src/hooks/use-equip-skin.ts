@@ -1,5 +1,7 @@
+import type { SkinWithMetadataURI } from "@/components/character/skins-browser";
 import { PlayerABI } from "@/game/abi/PlayerABI.abi";
 import { useWallet } from "@/hooks/use-wallet";
+import type { Character } from "@/types/player.types";
 import { usePrivy } from "@privy-io/react-auth";
 import { useWallets } from "@privy-io/react-auth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -10,6 +12,7 @@ interface EquipSkinResult {
   success: boolean;
   txHash?: string;
   error?: string;
+  newSkin?: SkinWithMetadataURI;
 }
 
 export function useEquipSkin(playerId: string) {
@@ -21,11 +24,12 @@ export function useEquipSkin(playerId: string) {
   const mutation = useMutation<
     EquipSkinResult,
     Error,
-    { skinIndex: number; skinTokenId: number }
+    { skinIndex: number; skinTokenId: number; newSkin?: SkinWithMetadataURI }
   >({
     mutationFn: async ({
       skinIndex,
       skinTokenId,
+      newSkin,
     }): Promise<EquipSkinResult> => {
       if (!authenticated) {
         throw new Error("Wallet not connected");
@@ -76,7 +80,7 @@ export function useEquipSkin(playerId: string) {
       });
 
       // Return success and transaction hash
-      return { success: true, txHash: hash as string };
+      return { success: true, txHash: hash as string, newSkin };
     },
 
     onSuccess: async (data) => {
@@ -96,13 +100,19 @@ export function useEquipSkin(playerId: string) {
       }
 
       // Invalidate and refetch queries after successful mutation
-      await queryClient.invalidateQueries({ queryKey: ["playerIds"] });
-      await queryClient.invalidateQueries({ queryKey: ["players"] });
-
-      // Add a small delay to allow the blockchain to update
-      setTimeout(() => {
-        queryClient.invalidateQueries({ queryKey: ["players"] });
-      }, 2000);
+      // await queryClient.invalidateQueries({
+      //   queryKey: ["player", playerId],
+      // });
+      queryClient.setQueryData(["player", playerId], (oldData: Character) => {
+        console.log("should be updating player", {oldSkin: oldData.currentSkin, newSkin: data.newSkin});
+        return {
+          ...oldData,
+          currentSkin: {
+            ...oldData.currentSkin,
+            ...data.newSkin,
+          },
+        };
+      });
     },
 
     onError: (error) => {
@@ -127,9 +137,9 @@ export function useEquipSkin(playerId: string) {
     },
   });
 
-  const equipSkin = async (skinIndex: number, skinTokenId: number) => {
+  const equipSkin = async (skinIndex: number, skinTokenId: number, newSkin?: SkinWithMetadataURI) => {
     try {
-      return await mutation.mutateAsync({ skinIndex, skinTokenId });
+      return await mutation.mutateAsync({ skinIndex, skinTokenId, newSkin });
     } catch (error) {
       // Error is already handled in onError callback
       return {

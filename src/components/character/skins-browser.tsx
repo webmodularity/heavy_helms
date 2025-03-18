@@ -13,9 +13,8 @@ import { SkinCard } from "./skin-card";
 import { SkinTypeFilter } from "./skin-type-filter";
 import { SkinDetailsDialog } from "../dialogs/skin-details-dialog";
 import { useEquipSkin } from "@/hooks/use-equip-skin";
-import { usePlayerById } from "@/hooks/use-player-by-id";
 
-interface SkinWithMetadataURI {
+export interface SkinWithMetadataURI {
   id: string;
   tokenId: number;
   metadataURI: string;
@@ -118,6 +117,7 @@ export function SkinsBrowser({ character }: SkinsBrowserProps) {
     await equipSkin(
       Number.parseInt(selectedSkinForDetails.collection.registryId, 10),
       selectedSkinForDetails.tokenId,
+      selectedSkinForDetails,
     );
 
     // Close the dialog after equipping
