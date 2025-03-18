@@ -84,6 +84,10 @@ export function useEquipSkin(playerId: string) {
     },
 
     onSuccess: async (data) => {
+      // Find embedded wallet
+      const embeddedWallet = wallets?.find(
+        (wallet) => wallet.connectorType === "embedded",
+      );
       if (data.txHash) {
         toast.success("Skin equipped successfully!", {
           description:
@@ -99,12 +103,8 @@ export function useEquipSkin(playerId: string) {
         });
       }
 
-      // Invalidate and refetch queries after successful mutation
-      // await queryClient.invalidateQueries({
-      //   queryKey: ["player", playerId],
-      // });
+      // Update the player in the cache
       queryClient.setQueryData(["player", playerId], (oldData: Character) => {
-        console.log("should be updating player", {oldSkin: oldData.currentSkin, newSkin: data.newSkin});
         return {
           ...oldData,
           currentSkin: {
@@ -113,6 +113,19 @@ export function useEquipSkin(playerId: string) {
           },
         };
       });
+
+      // Update the player in the owned players cache
+      queryClient.setQueryData(
+        ["owned-players", embeddedWallet?.address],
+        (oldData: Character[]) => {
+          return oldData.map((player) => {
+            if (player.id === playerId) {
+              return { ...player, currentSkin: data.newSkin };
+            }
+            return player;
+          });
+        },
+      );
     },
 
     onError: (error) => {
@@ -137,7 +150,11 @@ export function useEquipSkin(playerId: string) {
     },
   });
 
-  const equipSkin = async (skinIndex: number, skinTokenId: number, newSkin?: SkinWithMetadataURI) => {
+  const equipSkin = async (
+    skinIndex: number,
+    skinTokenId: number,
+    newSkin?: SkinWithMetadataURI,
+  ) => {
     try {
       return await mutation.mutateAsync({ skinIndex, skinTokenId, newSkin });
     } catch (error) {
