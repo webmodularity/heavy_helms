@@ -56,7 +56,7 @@ export function WarriorSelection({
 
       <div
         ref={characterListRef}
-        className="flex space-x-4 md:space-x-6 mt-4 overflow-x-auto pb-4 snap-x"
+        className="flex space-x-4 md:space-x-6 mt-4 overflow-x-auto py-4 snap-x px-4"
       >
         {isLoading ? (
           renderSkeletons()

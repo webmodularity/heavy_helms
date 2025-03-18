@@ -1,10 +1,12 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
 import { CardContainer } from "@/components/character/card-container";
 import type { Character } from "@/types/player.types";
 import Image from "next/image";
 import { YellowButton } from "@/components/ui/yellow-button";
+import { motion } from "framer-motion";
+import { Dumbbell, Footprints, Heart } from "lucide-react";
+import { Check } from "lucide-react";
 
 interface CharacterCardProps {
   character: Character;
@@ -13,6 +15,30 @@ interface CharacterCardProps {
   onSelect: () => void;
   onDeselect: () => void;
   onViewDetails: () => void;
+}
+
+function AttributeBar({ label, value, icon }: { label: string; value: number; icon: React.ReactNode }) {
+  const percentage = (value / 10) * 100;
+  
+  return (
+    <div className="space-y-1.5">
+      <div className="flex justify-between items-center text-xs">
+        <span className="flex items-center text-zinc-400">
+          {icon}
+          <span className="ml-1.5">{label}</span>
+        </span>
+        <span className="font-medium text-white">{value}</span>
+      </div>
+      <div className="h-1.5 w-full bg-stone-800/80 rounded-full overflow-hidden">
+        <motion.div 
+          className="h-full bg-gradient-to-r from-amber-700 to-yellow-500 rounded-full"
+          initial={{ width: 0 }}
+          animate={{ width: `${percentage}%` }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+        />
+      </div>
+    </div>
+  );
 }
 
 export function CharacterCard({
@@ -25,52 +51,79 @@ export function CharacterCard({
 }: CharacterCardProps) {
   return (
     <CardContainer index={index} isSelected={isSelected}>
-      <div className="aspect-square relative bg-gradient-to-b from-stone-800/30 to-stone-900/30 overflow-hidden">
-        <Image
-          src={
-            character.currentSkin.imageURL
-          }
-          alt={`Character ${character.name}`}
-          width={300}
-          height={300}
-          className="object-cover"
-          priority
-        />
-        <div className="absolute top-3 left-3 bg-black/50 px-2 py-1 rounded text-xs font-semibold backdrop-blur-sm text-yellow-500">
-          ID: {character.id}
+      <div className="relative">
+        {/* Character Image */}
+        <div className="aspect-square relative bg-gradient-to-b from-stone-800/30 to-stone-900/30 overflow-hidden group">
+          <motion.div
+            className="absolute inset-0 bg-gradient-radial from-yellow-500/10 to-transparent opacity-0 z-10"
+            initial={false}
+            animate={isSelected ? { opacity: 0.4 } : { opacity: 0 }}
+            transition={{ duration: 0.6 }}
+          />
+          
+          <Image
+            src={character.currentSkin.imageURL}
+            alt={`Character ${character.name.fullName}`}
+            width={300}
+            height={300}
+            className="object-cover transition-transform duration-500 group-hover:scale-105"
+            priority
+          />
+          
+          {/* Character ID Badge */}
+          <div className="absolute top-3 left-3 bg-black/70 backdrop-blur-sm px-2 py-1 rounded text-xs font-mono text-yellow-500 border border-yellow-500/30 z-20">
+            ID: {character.id}
+          </div>
+          
+          {/* Selected Badge */}
+          {isSelected && (
+            <div className="absolute top-3 right-3 bg-yellow-500 text-black px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1 z-20">
+              <Check size={12} /> Selected
+            </div>
+          )}
         </div>
       </div>
 
-      <div className="p-4">
-        <h3 className="font-medium text-lg text-yellow-500">
+      <div className="p-4 space-y-4">
+        {/* Character Name */}
+        <h3 className="font-bold text-lg text-yellow-500 truncate">
           {character.name.fullName}
         </h3>
-        <div className="mt-1 text-xs space-y-1 text-zinc-400">
-          <div className="flex justify-between">
-            <span>Strength</span>
-            <span className="text-white">{character.attributes.strength}</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Agility</span>
-            <span className="text-white">{character.attributes.agility}</span>
-          </div>
-          <div className="flex justify-between">
-            <span>Stamina</span>
-            <span className="text-white">{character.attributes.stamina}</span>
-          </div>
+        
+        {/* Attributes */}
+        <div className="space-y-2.5">
+          <AttributeBar 
+            label="Strength" 
+            value={character.attributes.strength} 
+            icon={<Dumbbell className="h-3.5 w-3.5 text-yellow-600" />} 
+          />
+          <AttributeBar 
+            label="Agility" 
+            value={character.attributes.agility} 
+            icon={<Footprints className="h-3.5 w-3.5 text-yellow-600" />} 
+          />
+          <AttributeBar 
+            label="Stamina" 
+            value={character.attributes.stamina} 
+            icon={<Heart className="h-3.5 w-3.5 text-yellow-600" />} 
+          />
         </div>
 
-        <div className="mt-4 flex space-x-2">
-          {isSelected ? (
-            <YellowButton onClick={onDeselect}>
-              Deselect
-            </YellowButton>
-          ) : (
-            <YellowButton onClick={onSelect}>
-              Select
-            </YellowButton>
-          )}
-          <YellowButton onClick={onViewDetails}>
+        {/* Action Buttons */}
+        <div className="grid grid-cols-2 gap-2 pt-2">
+          <YellowButton 
+            onClick={isSelected ? onDeselect : onSelect}
+            className="w-full"
+            variant={isSelected ? "outline" : "default"}
+          >
+            {isSelected ? "Deselect" : "Select"}
+          </YellowButton>
+          
+          <YellowButton 
+            onClick={onViewDetails}
+            className="w-full"
+            variant="outline"
+          >
             Details
           </YellowButton>
         </div>
