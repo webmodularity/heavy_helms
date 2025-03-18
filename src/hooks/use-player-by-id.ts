@@ -1,9 +1,8 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { GET_PLAYERS_BY_IDS } from "@/lib/gql-queries";
 import { convertRawPlayerToPlayer } from "@/lib/player-api";
-import request, { GraphQLClient } from "graphql-request";
+import request from "graphql-request";
 import type { Player, RawPlayerData } from "@/types/player.types";
-import { useSubgraphPlayers } from "./use-subgraph-players";
 import { SUBGRAPH_URL } from "@/config";
 import { useWallets } from "@privy-io/react-auth";
 
