@@ -18,7 +18,9 @@ export function useRetirePlayer(playerId: string) {
   const { wallets } = useWallets();
   const { user, authenticated } = usePrivy();
   const queryClient = useQueryClient();
-
+  const embeddedWallet = wallets.find(
+    (wallet) => wallet.connectorType === "embedded",
+  );
   /**
    * Retires the player with the given ID
    * @returns Promise that resolves when the player is retired
@@ -43,9 +45,6 @@ export function useRetirePlayer(playerId: string) {
     }
 
     // Find embedded wallet
-    const embeddedWallet = wallets.find(
-      (wallet) => wallet.connectorType === "embedded",
-    );
 
     if (!embeddedWallet) {
       toast.error("No embedded wallet found", {
@@ -131,26 +130,16 @@ export function useRetirePlayer(playerId: string) {
             for (let i = 0; i < attempts; i++) {
               console.log(`Refresh attempt ${i + 1} of ${attempts}`);
 
+              // Add a delay to ensure blockchain state is updated
+              await new Promise((resolve) => setTimeout(resolve, delay));
+
               // Clear all related caches
               await queryClient.invalidateQueries({
                 queryKey: ["player", playerId],
               });
 
               await queryClient.invalidateQueries({
-                queryKey: ["owned-players"],
-              });
-
-              // Add a delay to ensure blockchain state is updated
-              await new Promise((resolve) => setTimeout(resolve, delay));
-
-              // Explicitly refetch characters
-              await queryClient.invalidateQueries({
-                queryKey: ["playerIds"],
-              });
-
-              // Then invalidate all player data queries
-              await queryClient.invalidateQueries({
-                queryKey: ["players"],
+                queryKey: ["owned-players", embeddedWallet.address],
               });
             }
           };
