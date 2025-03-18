@@ -8,6 +8,7 @@ interface NFTMetadata {
     trait_type: string;
     value: string | number;
   }>;
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   [key: string]: any;
 }
 

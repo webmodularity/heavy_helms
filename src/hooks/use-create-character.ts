@@ -16,6 +16,10 @@ export function useCreateCharacter() {
   const { wallets } = useWallets();
   const { isWrongNetwork, switchToBaseSepolia } = useWallet();
   const queryClient = useQueryClient();
+  // Find embedded wallet
+  const embeddedWallet = wallets?.find(
+    (wallet) => wallet.connectorType === "embedded",
+  );
 
   // Create a mutation for character creation
   const mutation = useMutation({
@@ -23,15 +27,10 @@ export function useCreateCharacter() {
       if (!authenticated) {
         throw new Error("Authentication required");
       }
-      
+
       if (isWrongNetwork) {
         await switchToBaseSepolia();
       }
-
-      // Find embedded wallet
-      const embeddedWallet = wallets?.find(
-        (wallet) => wallet.connectorType === "embedded",
-      );
 
       if (!embeddedWallet) {
         throw new Error("No embedded wallet found");
@@ -81,14 +80,11 @@ export function useCreateCharacter() {
 
       return { txHash: hash as string };
     },
-    
-    onMutate: () => {
-      toast.loading("Creating character...");
-    },
-    
+
     onSuccess: async ({ txHash }) => {
       toast.success("Character creation submitted", {
-        description: "Your character creation request has been submitted to the blockchain.",
+        description:
+          "Your character creation request has been submitted to the blockchain.",
         action: {
           label: "View on BaseScan",
           onClick: () =>
@@ -96,28 +92,10 @@ export function useCreateCharacter() {
         },
         duration: 5000,
       });
-      
-      // Use the retry pattern with delay to ensure blockchain state is updated
-      const refreshWithRetry = async (attempts = 3, delay = 1500) => {
-        for (let i = 0; i < attempts; i++) {
-          console.log(`Refresh attempt ${i + 1} of ${attempts}`);
 
-          // Clear all related caches
-          await queryClient.invalidateQueries({
-            queryKey: ["playerIds"],
-          });
-
-          await queryClient.invalidateQueries({
-            queryKey: ["players"],
-          });
-
-          // Add a delay
-          await new Promise((resolve) => setTimeout(resolve, delay));
-        }
-      };
-
-      // Execute the refresh with retry
-      await refreshWithRetry();
+      queryClient.invalidateQueries({
+        queryKey: ["owned-players", embeddedWallet?.address],
+      });
 
       // Show final success toast
       toast.success("Character created successfully!", {
@@ -125,15 +103,16 @@ export function useCreateCharacter() {
         duration: 3000,
       });
     },
-    
+
     onError: (error) => {
       console.error("Error creating character:", error);
-      
+
       // Show error toast
       toast.error("Error creating character", {
-        description: error instanceof Error ? error.message : "An unknown error occurred",
+        description:
+          error instanceof Error ? error.message : "An unknown error occurred",
       });
-    }
+    },
   });
 
   const createCharacter = async () => {
@@ -143,7 +122,7 @@ export function useCreateCharacter() {
       });
       return;
     }
-    
+
     mutation.mutate();
   };
 

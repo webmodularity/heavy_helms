@@ -16,9 +16,9 @@ export function usePlayerById(playerId: string) {
   const queryClient = useQueryClient();
   // Get the connected wallet address
   const { wallets } = useWallets();
-  const address = wallets
-    ?.find((wallet) => wallet.connectorType === "embedded")
-    ?.address?.toLowerCase();
+  const address = wallets?.find(
+    (wallet) => wallet.connectorType === "embedded",
+  )?.address;
 
   return useQuery({
     queryKey: ["player", playerId],
