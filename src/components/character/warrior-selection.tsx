@@ -24,7 +24,7 @@ export function WarriorSelection({
   const router = useRouter();
   const characterListRef = useRef<HTMLDivElement>(null);
   const { players, isLoading } = useSubgraphPlayers();
-
+  console.log("players", players)
   const { createCharacter, isCreatingCharacter, txHash } = useCreateCharacter();
 
   const handleViewDetails = (character: Character) => {

@@ -6,6 +6,8 @@ import { ChevronUp } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { CTAButton } from "../ui/cta-button";
 import { SectionHeader } from "../ui/section-header";
+import { useState } from "react";
+import { CreateChallengeForm } from "@/components/duel/create-challenge-form";
 
 interface BattleSectionProps {
   selectedCharacter: Character | null;
@@ -38,7 +40,7 @@ export function BattleSection({
         "Challenge warriors across the realm. Victory brings glory and rewards - defeat leaves scars.",
       actionLabel: "Challenge",
       route: "/duel",
-      available: false,
+      available: true,
     },
     {
       id: "tournament",
@@ -97,15 +99,58 @@ function BattleCard({
   glowDelay,
 }: BattleCardProps) {
   const router = useRouter();
+  const [showChallengeForm, setShowChallengeForm] = useState(false);
 
   const handleAction = () => {
     if (selectedCharacter && battleType.available) {
-      router.push(
-        `${battleType.route}?player1Id=${selectedCharacter.id}&player2Id=2`,
-      );
+      if (battleType.id === "duel") {
+        // Show challenge form instead of navigating
+        setShowChallengeForm(true);
+      } else {
+        router.push(
+          `${battleType.route}?player1Id=${selectedCharacter.id}&player2Id=2`,
+        );
+      }
     }
   };
 
+  const handleChallengeSuccess = () => {
+    // Close the form and potentially show a success message or redirect
+    setShowChallengeForm(false);
+    
+    // Scroll to the challenges tab in the Activity Section
+    const activitySection = document.getElementById("activity-section");
+    if (activitySection) {
+      activitySection.scrollIntoView({ behavior: "smooth" });
+      
+      // Activate the challenges tab
+      // This would need a ref or context to control the tab state
+      // For now, we'll just note that this is where we'd do it
+    }
+  };
+
+  // If we're showing the challenge form for duel mode, render it instead
+  if (showChallengeForm && selectedCharacter && battleType.id === "duel") {
+    return (
+      <motion.div
+        className="relative bg-gradient-to-b from-amber-900/10 to-stone-900/40 rounded-lg border border-yellow-600/20 overflow-hidden"
+        initial={{ opacity: 0, y: 40 }}
+        animate={{
+          opacity: 1,
+          y: 0,
+          transition: { duration: 0.7, delay: animationDelay },
+        }}
+      >
+        <CreateChallengeForm 
+          character={selectedCharacter}
+          onSuccess={handleChallengeSuccess}
+          onCancel={() => setShowChallengeForm(false)}
+        />
+      </motion.div>
+    );
+  }
+
+  // Original battle card rendering code
   return (
     <motion.div
       className={`relative bg-gradient-to-b from-amber-900/10 to-stone-900/40 rounded-lg border border-yellow-600/20 overflow-hidden ${
