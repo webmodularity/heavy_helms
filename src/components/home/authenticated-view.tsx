@@ -1,6 +1,5 @@
 // src/components/home/authenticated-view.tsx
 "use client";
-import { Button } from "@/components/ui/button";
 import type { Character } from "@/types/player.types";
 import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
@@ -9,8 +8,7 @@ import React from "react";
 import { useInView } from "react-intersection-observer";
 import { BattleSection } from "../battle/battle-section";
 import { WarriorSelection } from "../character/warrior-selection";
-import { SectionHeader } from "../ui/section-header";
-import { ActiveChallenges, ActivitySection } from "./activity-section";
+import { ActivitySection } from "./activity-section";
 
 export function AuthenticatedView() {
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(

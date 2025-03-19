@@ -8,7 +8,7 @@ import { toast } from "sonner";
 import { formatEther } from "viem";
 
 // This is a placeholder - replace with your actual contract address
-const DUEL_GAME_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_DUEL_GAME_ADDRESS as `0x${string}`;
+const DUEL_GAME_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_DUEL_GAME_CONTRACT_ADDRESS as `0x${string}`;
 
 export interface Challenge {
   id: bigint;
@@ -31,6 +31,29 @@ export interface Challenge {
       tokenId: number;
     };
   };
+}
+
+export interface RawChallenge {
+    0: number;
+    1: number;
+    2: bigint;
+    3: bigint;
+    4: {
+        playerId: number;
+        skin: {
+            skinIndex: number;
+            skinTokenId: number;
+        };
+    };
+    5: {
+        playerId: number;
+        skin: {
+            skinIndex: number;
+            tokenId: number;
+        };
+    };
+    6: boolean;
+    7: bigint;
 }
 
 export function useChallenges() {
@@ -65,7 +88,6 @@ export function useChallenges() {
           abi: DuelGameABI,
           functionName: 'getUserActiveChallenges',
           args: [walletAddress],
-          account: walletAddress,
         }) as bigint[];
 
         console.log('challengeIds', challengeIds)
@@ -86,15 +108,37 @@ export function useChallenges() {
             // Format the challenge data
             // Note: This assumes the 'challenges' function returns data in the order
             // defined in the ABI which matches our Challenge interface
+            
             return {
               id,
               // Map the returned array to our object structure
-              ...(challengeData as any)
+              ...(challengeData as unknown as RawChallenge)
             };
           })
         );
 
-        return challengesData;
+        return challengesData.map((challenge) => ({
+          id: challenge.id,
+          challengerId: challenge[0],
+          defenderId: challenge[1],
+          wagerAmount: challenge[2],
+          createdBlock: challenge[3],
+          fulfilled: challenge[6],
+          challengerLoadout: {
+            playerId: challenge[4].playerId,
+            skin: {
+              skinIndex: challenge[4].skin.skinIndex,
+              skinTokenId: challenge[4].skin.skinTokenId,
+            },
+          },
+          defenderLoadout: {
+            playerId: challenge[5].playerId,
+            skin: {
+              skinIndex: challenge[5].skin.skinIndex,
+              tokenId: challenge[5].skin.tokenId,
+            },
+          },
+        }));
       } catch (error) {
         console.error('Error fetching challenges:', error);
         throw error;

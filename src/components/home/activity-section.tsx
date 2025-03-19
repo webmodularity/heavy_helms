@@ -224,6 +224,7 @@ function ActiveChallenges({
   return (
     <div className="space-y-4">
       {challenges.map((challenge) => {
+        console.log("challenge", challenge);
         const isExpanded = expandedChallenge === challenge.id;
         const isChallenger =
           challenge.challengerId ===
