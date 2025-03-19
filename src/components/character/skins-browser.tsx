@@ -21,7 +21,6 @@ export interface SkinWithMetadataURI {
   weapon: number;
   armor: number;
   stance: number;
-  skinIndex: number;
   collection: {
     id: string;
     registryId: string;
@@ -66,9 +65,6 @@ export function SkinsBrowser({ character }: SkinsBrowserProps) {
       .flatMap((collection) =>
         collection.skins.map((skin) => ({
           ...skin,
-          skinIndex: collection.skins.findIndex(
-            (s) => s.tokenId === skin.tokenId,
-          ),
           collection: {
             id: collection.id,
             contractAddress: collection.contractAddress,

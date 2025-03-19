@@ -27,7 +27,6 @@ interface SkinWithMetadataURI {
   weapon: number;
   armor: number;
   stance: number;
-  skinIndex: number;
   collection: {
     id: string;
     registryId: string;
@@ -62,8 +61,9 @@ export function SkinDetailsDialog({
   const isDefaultSkin = skin.collection.skinType === SkinType.DefaultPlayer;
   const isVerifiedSkin = skin.collection.skinType === SkinType.Player;
   const { data: player } = usePlayerById(character.id);
-  const { isValid, isValidating, error, refetch } = useValidateSkin(
-    skin.skinIndex,
+  console.log("SKIN", skin);
+  const { isValid, isValidating, error } = useValidateSkin(
+    Number(skin.collection.id),
     skin.tokenId,
     skin.collection.skinType,
     player?.attributes as PlayerAttributes,

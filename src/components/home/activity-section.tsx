@@ -4,8 +4,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { SectionHeader } from "@/components/ui/section-header";
 import { motion } from "framer-motion";
-import { useCancelChallenge } from "@/hooks/useCancelChallenge";
-import { useAcceptChallenge } from "@/hooks/useAcceptChallenge";
+import { useCancelChallenge } from "@/hooks/use-cancel-challenge";
+import { useAcceptChallenge } from "@/hooks/use-accept-challenge";
 import { usePrivy } from "@privy-io/react-auth";
 import { Loader2, Shield, Swords } from "lucide-react";
 import { useState } from "react";
@@ -14,7 +14,7 @@ import { YellowButton } from "@/components/ui/yellow-button";
 import { ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import type { Character } from "@/types/player.types";
-import { type Challenge, useChallenges } from "@/hooks/useChallenges";
+import { type Challenge, useChallenges } from "@/hooks/use-challenges";
 
 interface ActivitySectionProps {
   selectedCharacter: Character | null;

@@ -23,7 +23,6 @@ interface SkinWithMetadataURI {
   weapon: number;
   armor: number;
   stance: number;
-  skinIndex: number;
   collection: {
     id: string;
     registryId: string;

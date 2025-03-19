@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
 import { Loader2 } from "lucide-react";
 import type { Character } from "@/types/player.types";
-import { useCreateChallenge } from "@/hooks/useCreateChallenge";
+import { useCreateChallenge } from "@/hooks/use-create-challenge";
 
 // This is a placeholder - replace with your actual contract address
 const DUEL_GAME_CONTRACT_ADDRESS = process.env

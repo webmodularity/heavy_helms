@@ -51,7 +51,7 @@ export function useAcceptChallenge() {
       const defenderLoadout = {
         playerId: Number(character.id),
         skin: {
-          skinIndex: character.currentSkin.skinIndex,
+          skinIndex: Number(character.currentSkin.collection.id),
           skinTokenId: character.currentSkin.tokenId,
         },
       };

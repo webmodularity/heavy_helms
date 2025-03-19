@@ -41,7 +41,7 @@ export function useValidateSkinOwnership(
         // Based on the ABI, we need an object with skinIndex and skinTokenId properties
         await viemClient.readContract({
           address: process.env
-            .NEXT_PUBLIC_SKIN_REGISTRY_ADDRESS as `0x${string}`,
+            .NEXT_PUBLIC_SKIN_REGISTRY_CONTRACT_ADDRESS as `0x${string}`,
           abi: SkinRegistryABI,
           functionName: "validateSkinOwnership",
           args: [
