@@ -81,4 +81,5 @@ export const GET_ACTIVE_PLAYERS_QUERY = gql`
       ...PlayerDataFields
     }
   }
+  ${PLAYER_DATA_FRAGMENT}
 `;

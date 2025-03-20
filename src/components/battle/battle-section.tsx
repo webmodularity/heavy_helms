@@ -123,9 +123,9 @@ function BattleCard({
     if (activitySection) {
       activitySection.scrollIntoView({ behavior: "smooth" });
       
-      // Activate the challenges tab
-      // This would need a ref or context to control the tab state
-      // For now, we'll just note that this is where we'd do it
+      // Set the active tab to "challenges"
+      const event = new CustomEvent("activateChallengesTab");
+      document.dispatchEvent(event);
     }
   };
 
