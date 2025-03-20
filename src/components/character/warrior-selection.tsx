@@ -8,7 +8,7 @@ import { CharacterCard } from "./playable-character-card";
 import { NewCharacterCard } from "./new-character-card";
 import { CharacterCardSkeleton } from "../ui/skeletons/character-card-skeleton";
 import { useCreateCharacter } from "@/hooks/use-create-character";
-import { useSubgraphPlayers } from "@/hooks/use-subgraph-players";
+import { useOwnPlayers } from "@/hooks/use-own-players";
 
 interface WarriorSelectionProps {
   selectedCharacter: Character | null;
@@ -23,7 +23,7 @@ export function WarriorSelection({
 }: WarriorSelectionProps) {
   const router = useRouter();
   const characterListRef = useRef<HTMLDivElement>(null);
-  const { players, isLoading } = useSubgraphPlayers();
+  const { players, isLoading } = useOwnPlayers();
   console.log("players", players)
   const { createCharacter, isCreatingCharacter, txHash } = useCreateCharacter();
 

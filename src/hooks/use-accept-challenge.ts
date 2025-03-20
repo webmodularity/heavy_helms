@@ -9,7 +9,7 @@ import { encodeFunctionData } from "viem";
 import type { Character } from "@/types/player.types";
 
 // This is a placeholder - replace with your actual contract address
-const DUEL_GAME_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_DUEL_GAME_ADDRESS as `0x${string}`;
+const DUEL_GAME_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_DUEL_GAME_CONTRACT_ADDRESS as `0x${string}`;
 
 interface AcceptChallengeParams {
   character: Character;

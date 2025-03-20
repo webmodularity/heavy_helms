@@ -74,3 +74,11 @@ export const GET_VERIFIED_SKIN_COLLECTIONS = gql`
     }
   }
 `;
+
+export const GET_ACTIVE_PLAYERS_QUERY = gql`
+  query GetActivePlayers {
+    players(where: { isRetired: false }) {
+      ...PlayerDataFields
+    }
+  }
+`;
