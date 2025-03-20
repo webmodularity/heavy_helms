@@ -9,12 +9,8 @@ import { motion } from "framer-motion";
 import { Loader2, Search, User } from "lucide-react";
 import type { Character, Player } from "@/types/player.types";
 import { useCreateChallenge } from "@/hooks/use-create-challenge";
-import { SelectChallengerModal } from "@/components/duel/select-challenger-modal";
+import { SelectChallengerModal } from "@/components/dialogs/select-challenger-modal";
 import Image from "next/image";
-
-// This is a placeholder - replace with your actual contract address
-const DUEL_GAME_CONTRACT_ADDRESS = process.env
-  .NEXT_PUBLIC_DUEL_GAME_ADDRESS as `0x${string}`;
 
 interface CreateChallengeFormProps {
   character: Character;
@@ -29,7 +25,9 @@ export function CreateChallengeForm({
 }: CreateChallengeFormProps) {
   const [defenderId, setDefenderId] = useState<string>("");
   const [wagerAmount, setWagerAmount] = useState<string>("0.01");
-  const [selectedChallenger, setSelectedChallenger] = useState<Player | null>(null);
+  const [selectedChallenger, setSelectedChallenger] = useState<Player | null>(
+    null,
+  );
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { createChallenge, isCreatingChallenge, error } = useCreateChallenge();
@@ -48,7 +46,9 @@ export function CreateChallengeForm({
     if ((isValidDefenderId || selectedChallenger) && isValidWager) {
       await createChallenge({
         character,
-        defenderId: selectedChallenger ? Number(selectedChallenger.id) : Number.parseInt(defenderId, 10),
+        defenderId: selectedChallenger
+          ? Number(selectedChallenger.id)
+          : Number.parseInt(defenderId, 10),
         wagerAmount,
       });
 
@@ -83,7 +83,7 @@ export function CreateChallengeForm({
           <Label htmlFor="defenderId" className="text-stone-300">
             Challenger
           </Label>
-          
+
           {selectedChallenger ? (
             <div className="flex items-center space-x-3 p-2 border border-yellow-600/20 rounded-md bg-stone-900/50">
               <div className="h-10 w-10 rounded-full overflow-hidden bg-stone-800 relative">
@@ -99,7 +99,9 @@ export function CreateChallengeForm({
                   {selectedChallenger.name.fullName}
                 </h4>
                 <p className="text-xs text-stone-400">
-                  ID: {selectedChallenger.id} • W: {selectedChallenger.record.wins} / L: {selectedChallenger.record.losses}
+                  ID: {selectedChallenger.id} • W:{" "}
+                  {selectedChallenger.record.wins} / L:{" "}
+                  {selectedChallenger.record.losses}
                 </p>
               </div>
               <YellowButton
@@ -126,15 +128,17 @@ export function CreateChallengeForm({
               </div>
               <YellowButton
                 type="button"
-                className="col-span-1"
+                // className="col-span-1"
                 onClick={() => setIsModalOpen(true)}
               >
-                <Search className="h-4 w-4 mr-1" />
-                Find
+                <div className="flex items-center gap-1">
+                  <Search className="h-4 w-4" />
+                  {/* Find */}
+                </div>
               </YellowButton>
             </div>
           )}
-          
+
           {!isValidDefenderId && defenderId !== "" && !selectedChallenger && (
             <p className="text-red-400 text-sm">
               Please enter a valid defender ID or select a challenger
@@ -163,10 +167,10 @@ export function CreateChallengeForm({
 
         {error && (
           <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-md text-red-400 text-sm">
-            {(error instanceof Error ? error.message : "An error occurred").slice(
-              0,
-              100,
-            )}
+            {(error instanceof Error
+              ? error.message
+              : "An error occurred"
+            ).slice(0, 100)}
             ...
           </div>
         )}
@@ -174,7 +178,11 @@ export function CreateChallengeForm({
         <div className="flex gap-3 pt-2">
           <YellowButton
             type="submit"
-            disabled={(!isValidDefenderId && !selectedChallenger) || !isValidWager || isCreatingChallenge}
+            disabled={
+              (!isValidDefenderId && !selectedChallenger) ||
+              !isValidWager ||
+              isCreatingChallenge
+            }
             className="w-full"
           >
             {isCreatingChallenge ? (
@@ -198,7 +206,7 @@ export function CreateChallengeForm({
           )}
         </div>
       </motion.form>
-      
+
       {/* Challenger Selection Modal */}
       <SelectChallengerModal
         isOpen={isModalOpen}

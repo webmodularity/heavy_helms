@@ -44,7 +44,7 @@ export function SelectChallengerModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-3xl bg-gradient-to-b from-stone-900 to-stone-950 border-yellow-600/20">
+      <DialogContent className="sm:max-w-3xl bg-gradient-to-b from-stone-900 to-stone-950 border-yellow-600/20 max-h-[90vh] my-4 overflow-hidden flex flex-col">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-yellow-500">
             Select a Challenger
@@ -53,8 +53,8 @@ export function SelectChallengerModal({
             Browse and select a warrior to challenge to a duel.
           </DialogDescription>
         </DialogHeader>
-        
-        <div className="mt-4">
+
+        <div className="mt-4 overflow-y-auto pr-1">
           <PlayerSelectionTable
             onSelectPlayer={handleSelectPlayer}
             currentPlayerId={currentPlayerId}
@@ -63,4 +63,4 @@ export function SelectChallengerModal({
       </DialogContent>
     </Dialog>
   );
-} 
+}

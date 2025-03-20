@@ -178,7 +178,7 @@ export function PlayerSelectionTable({
                     <YellowButton
                       size="sm"
                       onClick={() => onSelectPlayer(player)}
-                      className="opacity-0 group-hover:opacity-100 transition-opacity focus:opacity-100"
+                      className="opacity-100 group-hover:opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100"
                     >
                       Challenge
                     </YellowButton>
