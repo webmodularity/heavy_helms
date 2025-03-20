@@ -58,11 +58,17 @@ function BattleTabs({
     const handleActivateChallengesTab = () => {
       setActiveTab("challenges");
     };
-    
-    document.addEventListener("activateChallengesTab", handleActivateChallengesTab);
-    
+
+    document.addEventListener(
+      "activateChallengesTab",
+      handleActivateChallengesTab,
+    );
+
     return () => {
-      document.removeEventListener("activateChallengesTab", handleActivateChallengesTab);
+      document.removeEventListener(
+        "activateChallengesTab",
+        handleActivateChallengesTab,
+      );
     };
   }, []);
 
@@ -190,6 +196,12 @@ function ActiveChallenges({
     );
   }
 
+  const characterChallenges = challenges.filter(
+    (challenge) =>
+      challenge.challengerId.toString() === selectedCharacter?.id?.toString() ||
+      challenge.defenderId.toString() === selectedCharacter?.id?.toString(),
+  );
+
   if (!challenges || challenges.length === 0) {
     return (
       <div className="text-center py-8 text-stone-300">
@@ -204,6 +216,30 @@ function ActiveChallenges({
       </div>
     );
   }
+
+  if (!selectedCharacter) {
+    return (
+      <div className="text-center py-8 text-stone-300">
+        <Swords className="h-12 w-12 mx-auto mb-4 text-yellow-600/50" />
+        <h3 className="text-lg font-medium text-yellow-500 mb-2">
+          Please select a warrior to view your active challenges
+        </h3>
+      </div>
+    );
+  }
+
+  if (characterChallenges.length === 0) {
+    return (
+      <div className="text-center py-8 text-stone-300">
+        <Swords className="h-12 w-12 mx-auto mb-4 text-yellow-600/50" />
+        <h3 className="text-lg font-medium text-yellow-500 mb-2">
+          This warrior has no active challenges
+        </h3>
+      </div>
+    );
+  }
+
+  // const characterChallenges = challenges
 
   const handleAcceptChallenge = async (challenge: Challenge) => {
     if (!selectedCharacter) {
@@ -236,7 +272,7 @@ function ActiveChallenges({
 
   return (
     <div className="space-y-4">
-      {challenges.map((challenge) => {
+      {characterChallenges.map((challenge) => {
         console.log("challenge", challenge);
         const isExpanded = expandedChallenge === challenge.id;
         const isChallenger =
