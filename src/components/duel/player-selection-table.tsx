@@ -293,23 +293,23 @@ export function PlayerSelectionTable({
         </div>
       ),
     },
-    {
-      id: "actions",
-      header: "",
-      cell: ({ row }) => (
-        <div className="text-right">
-          <YellowButton
-            size="sm"
-            onClick={() => onSelectPlayer(row.original)}
-            className="opacity-100 group-hover:opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100"
-          >
-            Challenge
-          </YellowButton>
-        </div>
-      ),
-      enableSorting: false,
-      enableHiding: false,
-    },
+    // {
+    //   id: "actions",
+    //   header: "",
+    //   cell: ({ row }) => (
+    //     <div className="text-right">
+    //       <YellowButton
+    //         size="sm"
+    //         onClick={() => onSelectPlayer(row.original)}
+    //         className="opacity-100 group-hover:opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100"
+    //       >
+    //         Challenge
+    //       </YellowButton>
+    //     </div>
+    //   ),
+    //   enableSorting: false,
+    //   enableHiding: false,
+    // },
   ];
 
   // Create table instance with proper filtering
@@ -381,7 +381,7 @@ export function PlayerSelectionTable({
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 h-full flex flex-col">
       <div className="flex flex-col space-y-4 md:flex-row md:space-y-0 md:space-x-4 md:items-center">
         {/* Search input */}
         <div className="relative flex-1">
@@ -410,7 +410,7 @@ export function PlayerSelectionTable({
             <SelectTrigger className="w-[130px] border-yellow-600/20 focus:border-yellow-500 bg-stone-900/50 text-stone-200">
               <SelectValue placeholder="Weapon" />
             </SelectTrigger>
-            <SelectContent className="bg-stone-900 border-yellow-600/20">
+            <SelectContent className="bg-stone-900 border-yellow-600/20 text-stone-200">
               <SelectItem value="all">All Weapons</SelectItem>
               {Object.entries(WeaponTypeMap).map(([value, label]) => (
                 <SelectItem key={value} value={value}>
@@ -434,7 +434,7 @@ export function PlayerSelectionTable({
             <SelectTrigger className="w-[120px] border-yellow-600/20 focus:border-yellow-500 bg-stone-900/50 text-stone-200">
               <SelectValue placeholder="Armor" />
             </SelectTrigger>
-            <SelectContent className="bg-stone-900 border-yellow-600/20">
+            <SelectContent className="bg-stone-900 border-yellow-600/20 text-stone-200">
               <SelectItem value="all">All Armor</SelectItem>
               {Object.entries(ArmorTypeMap).map(([value, label]) => (
                 <SelectItem key={value} value={value}>
@@ -458,7 +458,7 @@ export function PlayerSelectionTable({
             <SelectTrigger className="w-[120px] border-yellow-600/20 focus:border-yellow-500 bg-stone-900/50 text-stone-200">
               <SelectValue placeholder="Stance" />
             </SelectTrigger>
-            <SelectContent className="bg-stone-900 border-yellow-600/20">
+            <SelectContent className="bg-stone-900 border-yellow-600/20 text-stone-200">
               <SelectItem value="all">All Stances</SelectItem>
               {Object.entries(StanceTypeMap).map(([value, label]) => (
                 <SelectItem key={value} value={value}>
@@ -471,9 +471,9 @@ export function PlayerSelectionTable({
       </div>
 
       {/* Players table */}
-      <div className="rounded-md border border-yellow-600/20 overflow-hidden">
+      <div className="rounded-md flex-1 border border-yellow-600/20 overflow-hidden">
         <Table className="border-collapse">
-          <TableHeader className="bg-stone-800/50">
+          <TableHeader className="bg-stone-100/50">
             <TableRow>
               {table.getHeaderGroups()[0].headers.map((header) => (
                 <TableHead key={header.id} className="text-center">
@@ -492,7 +492,8 @@ export function PlayerSelectionTable({
               table.getRowModel().rows.map((row) => (
                 <TableRow
                   key={row.id}
-                  className="group hover:bg-amber-900/10 hover:border-yellow-600/30"
+                  onClick={() => onSelectPlayer(row.original)}
+                  className="group hover:bg-amber-900/10 hover:border-yellow-600/30 cursor-pointer"
                 >
                   {row.getVisibleCells().map((cell) => (
                     <TableCell key={cell.id}>
@@ -525,7 +526,7 @@ export function PlayerSelectionTable({
           {table.getPageCount()}
         </div>
         <Button
-          variant="outline"
+          // variant="outline"
           size="sm"
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
@@ -534,7 +535,7 @@ export function PlayerSelectionTable({
           Previous
         </Button>
         <Button
-          variant="outline"
+          // variant="outline"
           size="sm"
           onClick={() => table.nextPage()}
           disabled={!table.getCanNextPage()}
