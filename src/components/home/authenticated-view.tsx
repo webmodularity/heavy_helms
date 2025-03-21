@@ -1,6 +1,5 @@
 // src/components/home/authenticated-view.tsx
 "use client";
-import { Button } from "@/components/ui/button";
 import type { Character } from "@/types/player.types";
 import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
@@ -9,7 +8,7 @@ import React from "react";
 import { useInView } from "react-intersection-observer";
 import { BattleSection } from "../battle/battle-section";
 import { WarriorSelection } from "../character/warrior-selection";
-import { SectionHeader } from "../ui/section-header";
+import { ActivitySection } from "./activity-section";
 
 export function AuthenticatedView() {
   const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(
@@ -75,74 +74,9 @@ export function AuthenticatedView() {
         />
       </div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <RecentActivity />
+        <ActivitySection selectedCharacter={selectedCharacter} />
       </div>
     </>
-  );
-}
-
-// ======== Recent Activity Component ========
-function RecentActivity() {
-  return (
-    <section className="mb-8">
-      <SectionHeader title="Battle Chronicles" subtitle="YOUR SAGA" />
-      {/* Activity Feed - Placeholder for now */}
-      <motion.div
-        className="bg-gradient-to-b from-amber-900/5 to-stone-900/30 rounded-lg border border-yellow-600/10 p-6"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.7, delay: 0.7 }}
-      >
-        <div className="flex items-center justify-between mb-6">
-          <h3 className="text-xl font-semibold text-stone-200">
-            Recent Battles
-          </h3>
-          <Button
-            variant="ghost"
-            className="text-yellow-500 hover:text-yellow-400"
-          >
-            View All
-          </Button>
-        </div>
-
-        <div className="space-y-4">
-          {/* Placeholder activities - would be dynamically generated */}
-          <div className="p-4 border-b border-stone-700/50">
-            <div className="flex justify-between mb-1">
-              <span className="text-yellow-400 font-medium">
-                Victory in Duel
-              </span>
-              <span className="text-stone-400 text-sm">2 hours ago</span>
-            </div>
-            <p className="text-stone-300 text-sm">
-              Your warrior Ross of the Glade defeated Diego Frostcaller
-            </p>
-          </div>
-
-          <div className="p-4 border-b border-stone-700/50">
-            <div className="flex justify-between mb-1">
-              <span className="text-red-400 font-medium">Defeat in Duel</span>
-              <span className="text-stone-400 text-sm">Yesterday</span>
-            </div>
-            <p className="text-stone-300 text-sm">
-              Your warrior Ross of the Glade was defeated by Kate of the Ember
-            </p>
-          </div>
-
-          <div className="p-4">
-            <div className="flex justify-between mb-1">
-              <span className="text-yellow-400 font-medium">
-                Practice Complete
-              </span>
-              <span className="text-stone-400 text-sm">2 days ago</span>
-            </div>
-            <p className="text-stone-300 text-sm">
-              Completed 5 practice matches with Ross of the Glade
-            </p>
-          </div>
-        </div>
-      </motion.div>
-    </section>
   );
 }
 

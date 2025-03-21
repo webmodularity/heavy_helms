@@ -5,7 +5,7 @@ import {
   convertRawPlayerToPlayer,
 } from "@/lib/player-api";
 
-export function useSubgraphPlayers() {
+export function useOwnPlayers() {
   // Get the connected wallet address
   const { wallets } = useWallets();
   const address = wallets?.find(
