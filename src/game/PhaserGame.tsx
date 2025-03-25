@@ -1,8 +1,7 @@
 "use client";
 
 import { forwardRef, useEffect, useLayoutEffect, useRef } from "react";
-import { EventBus } from "./EventBus";
-import StartGame from "./config/main";
+import StartGame, { gameData } from "./config/main";
 import type { Fighter } from "@/types/fighter-types";
 
 export interface IRefPhaserGame {
@@ -49,8 +48,20 @@ const PhaserGame = forwardRef<IRefPhaserGame, IProps>(function PhaserGame(
   }, [ref, player1Id, player2Id, currentActiveScene, player1]);
 
   useEffect(() => {
-    if (player1Id) EventBus.emit("set-player1-id", player1Id);
-    if (player2Id) EventBus.emit("set-player2-id", player2Id);
+    // Update registry data if props change after initialization
+    if (game.current) {
+      if (player1Id) {
+        game.current.registry.set('player1Id', player1Id);
+      }
+      
+      if (player2Id) {
+        game.current.registry.set('player2Id', player2Id);
+      }
+      
+      if (player1) {
+        game.current.registry.set('player1', player1);
+      }
+    }
 
     const handleSceneReady = (scene_instance: Phaser.Scene) => {
       console.log("scene_instance", scene_instance);
@@ -68,17 +79,17 @@ const PhaserGame = forwardRef<IRefPhaserGame, IProps>(function PhaserGame(
       }
     };
 
-    EventBus.on("current-scene-ready", handleSceneReady);
-    EventBus.on("set-player1", (player: Fighter) => {
-      console.log("player1 from event bus", player);
-    });
+    // Still listen for scene ready events
+    if (game.current) {
+      game.current.events.on("current-scene-ready", handleSceneReady);
+    }
+
     return () => {
-      EventBus.off("current-scene-ready", handleSceneReady);
-      EventBus.off("set-player1", (player: Fighter) => {
-        console.log("player1 from event bus", player);
-      });
+      if (game.current) {
+        game.current.events.off("current-scene-ready", handleSceneReady);
+      }
     };
-  }, [currentActiveScene, ref, player1Id, player2Id]);
+  }, [currentActiveScene, ref, player1Id, player2Id, player1]);
 
   return <div id="game-container" />;
 });

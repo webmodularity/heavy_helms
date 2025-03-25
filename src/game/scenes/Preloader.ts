@@ -468,19 +468,20 @@ export class Preloader extends Scene {
 
   async loadFightersByIds(fighter1Id: string, fighter2Id: string) {
     try {
-      const fighterIds: string[] = [fighter1Id, fighter2Id];
-      const fighters: Fighter[] = await fetchAndConvertFighters(fighterIds);
+      // const fighterIds: string[] = [fighter1Id, fighter2Id];
+      const fighters: Fighter[] = await fetchAndConvertFighters([fighter2Id]);
 
       // Check if we got valid fighter data
-      if (!fighters || fighters.length < 2 || !fighters[0] || !fighters[1]) {
+      if (!fighters) {
         console.error("Invalid fighter data returned:", fighters);
         throw new Error("Invalid fighter data returned from API");
       }
 
       // Ensure fighters are assigned correctly based on their IDs
       // instead of the order they come back from the API
-      this.player1 = fighters.find((f) => f.id === fighter1Id) || fighters[0];
-      this.player2 = fighters.find((f) => f.id === fighter2Id) || fighters[1];
+      // this.player1 = fighters.find((f) => f.id === fighter1Id) || fighters[0];
+      this.player1 = this.game.registry.get("player1");
+      this.player2 = fighters[0];
 
       return fighters;
     } catch (error) {

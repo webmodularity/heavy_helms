@@ -4,12 +4,20 @@ import { Boot } from "../scenes/Boot";
 import { FightScene } from "../scenes/FightScene";
 import { Preloader } from "../scenes/Preloader";
 import type { Fighter } from "@/types/fighter-types";
+
 // Game configuration interface
 interface GameConfig {
   player1Id?: string;
   player2Id?: string;
   player1?: Fighter;
 }
+
+// Create a global data object that will be passed to the game
+export const gameData = {
+  player1Id: undefined as string | undefined,
+  player2Id: undefined as string | undefined,
+  player1: undefined as Fighter | undefined
+};
 
 //  Find out more information about the Game Config at:
 //  https://newdocs.phaser.io/docs/3.70.0/Phaser.Types.Core.GameConfig
@@ -48,20 +56,28 @@ const config: Phaser.Types.Core.GameConfig = {
 };
 
 const StartGame = (parent: string, gameConfig?: GameConfig) => {
-  // Store player IDs in a global registry for access across scenes
+  // Update the global gameData object with the provided config
   if (gameConfig?.player1Id) {
-    EventBus.emit("set-player1-id", gameConfig.player1Id);
+    gameData.player1Id = gameConfig.player1Id;
   }
 
   if (gameConfig?.player2Id) {
-    EventBus.emit("set-player2-id", gameConfig.player2Id);
+    gameData.player2Id = gameConfig.player2Id;
   }
 
   if (gameConfig?.player1) {
-    EventBus.emit("set-player1", gameConfig.player1);
+    gameData.player1 = gameConfig.player1;
   }
 
-  return new Game({ ...config, parent });
+  // Create the game instance
+  const game = new Game({ ...config, parent });
+  
+  // Store the initial data in the game registry for access across scenes
+  game.registry.set('player1Id', gameData.player1Id);
+  game.registry.set('player2Id', gameData.player2Id);
+  game.registry.set('player1', gameData.player1);
+  
+  return game;
 };
 
 export default StartGame;
