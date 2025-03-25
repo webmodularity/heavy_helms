@@ -8,6 +8,7 @@ import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { Button } from "../ui/button";
+import type { Fighter } from "@/types/fighter-types";
 
 // Dynamically import PhaserGame with no SSR
 const PhaserGame = dynamic(() => import("@/game/PhaserGame"), {
@@ -17,9 +18,14 @@ const PhaserGame = dynamic(() => import("@/game/PhaserGame"), {
 interface GameWrapperProps {
   player1Id?: string;
   player2Id?: string;
+  player1?: Fighter;
 }
 
-export function GameWrapper({ player1Id, player2Id }: GameWrapperProps) {
+export function GameWrapper({
+  player1Id,
+  player2Id,
+  player1,
+}: GameWrapperProps) {
   const [isClient, setIsClient] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
@@ -61,7 +67,7 @@ export function GameWrapper({ player1Id, player2Id }: GameWrapperProps) {
       //   ref={containerRef}
       className="relative flex items-center justify-center w-[320px] h-[180px] md:w-[960px] md:h-[540px] "
     >
-      <PhaserGame player1Id={player1Id} player2Id={player2Id} />
+      <PhaserGame player1Id={player1Id} player2Id={player2Id} player1={player1} />
 
       {/* Game Controls Overlay */}
       <div className="absolute md:bottom-0 -bottom-10 right-0 p-1 md:p-2 flex md:gap-2 gap-1 bg-stone-900/70 backdrop-blur-sm rounded-tl-md z-10">

@@ -8,11 +8,12 @@ import {
 } from "./gql-queries";
 import type {
   RawPlayerData,
-  Player,
+  // Player,
   PlayerName,
   PlayerAttributes,
   PlayerRecord,
   DefaultPlayer,
+  Player,
 } from "@/types/player.types";
 import type {
   WeaponType,
@@ -51,11 +52,11 @@ interface OwnersResponse {
   owners: {
     address: string;
     totalPlayers: number;
-    activePlayers: RawPlayerData[];
+    activePlayers: RawFighterData[];
   }[];
 }
 
-interface FightersResponse {
+export interface FightersResponse {
   fighters: RawFighterData[];
 }
 
@@ -91,9 +92,9 @@ export async function fetchVerifiedSkinCollections(): Promise<
 /**
  * Fetches players owned by a specific address
  */
-export async function fetchPlayersByOwner(
+export async function fetchFightersByOwner(
   ownerAddress: string,
-): Promise<RawPlayerData[]> {
+): Promise<RawFighterData[]> {
   try {
     const response = await request<OwnersResponse>(
       SUBGRAPH_URL,
@@ -112,64 +113,64 @@ export async function fetchPlayersByOwner(
   }
 }
 
-export async function fetchAndConvertPlayers(
-  playerIds: string[],
-): Promise<Player[]> {
-  const rawPlayers = await fetchPlayersByIds(playerIds);
+// export async function fetchAndConvertPlayers(
+//   playerIds: string[],
+// ): Promise<Player[]> {
+//   const rawPlayers = await fetchPlayersByIds(playerIds);
 
-  const playerPromises = rawPlayers.map(convertRawPlayerToPlayer);
-  return Promise.all(playerPromises);
-}
+//   const playerPromises = rawPlayers.map(convertRawPlayerToPlayer);
+//   return Promise.all(playerPromises);
+// }
 
 /**
  * Creates a PlayerName object from raw data
  */
-export function createPlayerName(
-  firstName: string,
-  surname: string,
-): PlayerName {
-  return {
-    firstName,
-    surname,
-    fullName: `${firstName} ${surname}`,
-  };
-}
+// export function createPlayerName(
+//   firstName: string,
+//   surname: string,
+// ): PlayerName {
+//   return {
+//     firstName,
+//     surname,
+//     fullName: `${firstName} ${surname}`,
+//   };
+// }
 
 /**
  * Creates a PlayerAttributes object from raw data
  */
-export function createPlayerAttributes(rawData: {
-  strength: number;
-  constitution: number;
-  size: number;
-  agility: number;
-  stamina: number;
-  luck: number;
-}): PlayerAttributes {
-  return {
-    strength: rawData.strength,
-    constitution: rawData.constitution,
-    size: rawData.size,
-    agility: rawData.agility,
-    stamina: rawData.stamina,
-    luck: rawData.luck,
-  };
-}
+// export function createPlayerAttributes(rawData: {
+//   strength: number;
+//   constitution: number;
+//   size: number;
+//   agility: number;
+//   stamina: number;
+//   luck: number;
+// }): PlayerAttributes {
+//   return {
+//     strength: rawData.strength,
+//     constitution: rawData.constitution,
+//     size: rawData.size,
+//     agility: rawData.agility,
+//     stamina: rawData.stamina,
+//     luck: rawData.luck,
+//   };
+// }
 
 /**
  * Creates a PlayerRecord object from raw data
  */
-export function createPlayerRecord(rawData: {
-  wins: number;
-  losses: number;
-  kills: number;
-}): PlayerRecord {
-  return {
-    wins: rawData.wins,
-    losses: rawData.losses,
-    kills: rawData.kills,
-  };
-}
+// export function createPlayerRecord(rawData: {
+//   wins: number;
+//   losses: number;
+//   kills: number;
+// }): PlayerRecord {
+//   return {
+//     wins: rawData.wins,
+//     losses: rawData.losses,
+//     kills: rawData.kills,
+//   };
+// }
 
 /**
  * Creates a SkinCollection object from raw data
@@ -262,76 +263,76 @@ export async function createPlayerSkin(rawSkin: {
 /**
  * Converts a RawPlayerData object to a Player object
  */
-export async function convertRawPlayerToPlayer(
-  rawPlayer: RawPlayerData,
-): Promise<Player> {
-  // Create player components
-  const name = createPlayerName(rawPlayer.firstName, rawPlayer.surname);
-  const attributes = createPlayerAttributes(rawPlayer);
-  const record = createPlayerRecord(rawPlayer);
-  const currentSkin = await createPlayerSkin(rawPlayer.currentSkin);
+// export async function convertRawPlayerToPlayer(
+//   rawPlayer: RawPlayerData,
+// ): Promise<Player> {
+//   // Create player components
+//   const name = createPlayerName(rawPlayer.firstName, rawPlayer.surname);
+//   const attributes = createPlayerAttributes(rawPlayer);
+//   const record = createPlayerRecord(rawPlayer);
+//   const currentSkin = await createPlayerSkin(rawPlayer.currentSkin);
 
-  // Assemble the complete player with fighterType
-  return {
-    id: rawPlayer.id,
-    fighterType: FighterType.Player,
-    name,
-    attributes,
-    currentSkin,
-    record,
-    isRetired: rawPlayer.isRetired || false,
-    isImmortal: rawPlayer.isImmortal || false,
-  };
-}
+//   // Assemble the complete player with fighterType
+//   return {
+//     id: rawPlayer.id,
+//     fighterType: FighterType.Player,
+//     name,
+//     attributes,
+//     currentSkin,
+//     record,
+//     isRetired: rawPlayer.isRetired || false,
+//     isImmortal: rawPlayer.isImmortal || false,
+//   };
+// }
 
 /**
  * Creates a Player object from custom data sources
  */
-export async function createCustomPlayer(
-  id: string,
-  firstName: string,
-  surname: string,
-  attributes: {
-    strength: number;
-    constitution: number;
-    size: number;
-    agility: number;
-    stamina: number;
-    luck: number;
-  },
-  skinData: {
-    collection: {
-      id: string;
-      contractAddress: string;
-      isVerified: boolean;
-      skinType: number;
-      requiredNFTAddress?: string;
-    };
-    tokenId: number;
-    metadataURI: string;
-    weapon?: number;
-    armor?: number;
-    stance?: number;
-  },
-  record?: {
-    wins: number;
-    losses: number;
-    kills: number;
-  },
-  isRetired = false,
-  isImmortal = false,
-): Promise<Player> {
-  // Call createCustomFighter with Player type and convert the result
-  return createCustomFighter(
-    id,
-    FighterType.Player,
-    { firstName, surname },
-    attributes,
-    skinData,
-    record,
-    { isRetired, isImmortal },
-  ) as Promise<Player>;
-}
+// export async function createCustomPlayer(
+//   id: string,
+//   firstName: string,
+//   surname: string,
+//   attributes: {
+//     strength: number;
+//     constitution: number;
+//     size: number;
+//     agility: number;
+//     stamina: number;
+//     luck: number;
+//   },
+//   skinData: {
+//     collection: {
+//       id: string;
+//       contractAddress: string;
+//       isVerified: boolean;
+//       skinType: number;
+//       requiredNFTAddress?: string;
+//     };
+//     tokenId: number;
+//     metadataURI: string;
+//     weapon?: number;
+//     armor?: number;
+//     stance?: number;
+//   },
+//   record?: {
+//     wins: number;
+//     losses: number;
+//     kills: number;
+//   },
+//   isRetired = false,
+//   isImmortal = false,
+// ): Promise<Player> {
+//   // Call createCustomFighter with Player type and convert the result
+//   return createCustomFighter(
+//     id,
+//     FighterType.Player,
+//     { firstName, surname },
+//     attributes,
+//     skinData,
+//     record,
+//     { isRetired, isImmortal },
+//   ) as Promise<Player>;
+// }
 
 /**
  * Fetches fighters by their IDs from the subgraph

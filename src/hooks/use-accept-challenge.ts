@@ -6,7 +6,7 @@ import { useWallets } from "@privy-io/react-auth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { encodeFunctionData } from "viem";
-import type { Character, Player } from "@/types/player.types";
+import type { Character } from "@/types/player.types";
 import type { Challenge } from "./use-challenges";
 // This is a placeholder - replace with your actual contract address
 const DUEL_GAME_CONTRACT_ADDRESS = process.env

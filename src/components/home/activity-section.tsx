@@ -309,8 +309,8 @@ function ActiveChallenges({
                   </h4>
                   <p className="text-sm text-stone-300">
                     {isChallenger
-                      ? `You challenged Player ${challenge.defenderId}`
-                      : `Player ${challenge.challengerId} challenged you`}
+                      ? `You challenged Fighter ${challenge.defenderId}`
+                      : `Fighter ${challenge.challengerId} challenged you`}
                   </p>
                 </div>
               </div>

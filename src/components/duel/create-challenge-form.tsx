@@ -7,10 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
 import { Loader2, Search, User } from "lucide-react";
-import type { Character, Player } from "@/types/player.types";
+import type { Character } from "@/types/player.types";
 import { useCreateChallenge } from "@/hooks/use-create-challenge";
 import { SelectChallengerModal } from "@/components/dialogs/select-challenger-modal";
 import Image from "next/image";
+import type { Fighter } from "@/types/fighter-types";
 
 interface CreateChallengeFormProps {
   character: Character;
@@ -25,7 +26,7 @@ export function CreateChallengeForm({
 }: CreateChallengeFormProps) {
   const [defenderId, setDefenderId] = useState<string>("");
   const [wagerAmount, setWagerAmount] = useState<string>("0.01");
-  const [selectedChallenger, setSelectedChallenger] = useState<Player | null>(
+  const [selectedChallenger, setSelectedChallenger] = useState<Fighter | null>(
     null,
   );
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -60,7 +61,7 @@ export function CreateChallengeForm({
   };
 
   // Handle selecting a challenger from the modal
-  const handleSelectChallenger = (player: Player) => {
+  const handleSelectChallenger = (player: Fighter) => {
     setSelectedChallenger(player);
     setDefenderId(player.id);
   };

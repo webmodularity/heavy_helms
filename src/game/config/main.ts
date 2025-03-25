@@ -3,11 +3,12 @@ import { EventBus } from "../EventBus";
 import { Boot } from "../scenes/Boot";
 import { FightScene } from "../scenes/FightScene";
 import { Preloader } from "../scenes/Preloader";
-
+import type { Fighter } from "@/types/fighter-types";
 // Game configuration interface
 interface GameConfig {
   player1Id?: string;
   player2Id?: string;
+  player1?: Fighter;
 }
 
 //  Find out more information about the Game Config at:
@@ -54,6 +55,10 @@ const StartGame = (parent: string, gameConfig?: GameConfig) => {
 
   if (gameConfig?.player2Id) {
     EventBus.emit("set-player2-id", gameConfig.player2Id);
+  }
+
+  if (gameConfig?.player1) {
+    EventBus.emit("set-player1", gameConfig.player1);
   }
 
   return new Game({ ...config, parent });

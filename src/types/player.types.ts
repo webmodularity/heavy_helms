@@ -73,4 +73,4 @@ export interface PlayerLoadout {
 }
 
 // The Character type is just an alias for Player
-export type Character = Player;
+export type Character = Fighter;
