@@ -28,12 +28,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import {
   Select,
   SelectContent,
   SelectItem,
@@ -44,6 +38,7 @@ import { YellowButton } from "@/components/ui/yellow-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Search, ArrowUpDown, Filter } from "lucide-react";
+import { useOwnPlayers } from "@/hooks/use-own-players";
 
 // Define enums to string mappings for display
 const WeaponTypeMap: Record<WeaponType, string> = {
@@ -78,7 +73,9 @@ export function PlayerSelectionTable({
   onSelectPlayer,
   currentPlayerId,
 }: PlayerSelectionTableProps) {
-  const { players, isLoading, error } = useActivePlayers();
+  const { players: allPlayers, isLoading, error } = useActivePlayers();
+  const { players: ownPlayers, isLoading: isOwnPlayersLoading } =
+    useOwnPlayers();
 
   const [sorting, setSorting] = useState<SortingState>([
     { id: "name", desc: false },
@@ -92,19 +89,26 @@ export function PlayerSelectionTable({
 
   // Update filtered players only when players or currentPlayerId changes
   useEffect(() => {
-    if (!players) {
+    if (isOwnPlayersLoading || isLoading) {
       setFilteredPlayers([]);
       return;
     }
 
+    if (!allPlayers) {
+      setFilteredPlayers([]);
+      return;
+    }
+    // Filter out own players
+    const ownPlayerIds = ownPlayers?.map((player) => player.id);
+
     if (currentPlayerId) {
       setFilteredPlayers(
-        players.filter((player) => player.id !== currentPlayerId),
+        allPlayers.filter((player) => !ownPlayerIds?.includes(player.id)),
       );
     } else {
-      setFilteredPlayers(players);
+      setFilteredPlayers(allPlayers);
     }
-  }, [players, currentPlayerId]);
+  }, [allPlayers, currentPlayerId, isLoading, isOwnPlayersLoading, ownPlayers]);
 
   // Define columns for the table
   const columns: ColumnDef<Player>[] = [

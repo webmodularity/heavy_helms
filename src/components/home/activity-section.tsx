@@ -262,7 +262,10 @@ function ActiveChallenges({
   const handleCancelChallenge = async (challenge: Challenge) => {
     setProcessingChallengeId(challenge.id);
     try {
-      await cancelChallenge(challenge.id);
+      await cancelChallenge({
+        challengeId: challenge.id,
+        characterId: selectedCharacter.id,
+      });
     } finally {
       setProcessingChallengeId(null);
     }
