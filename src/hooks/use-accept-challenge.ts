@@ -6,10 +6,11 @@ import { useWallets } from "@privy-io/react-auth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { encodeFunctionData } from "viem";
-import type { Character } from "@/types/player.types";
-
+import type { Character, Player } from "@/types/player.types";
+import type { Challenge } from "./use-challenges";
 // This is a placeholder - replace with your actual contract address
-const DUEL_GAME_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_DUEL_GAME_CONTRACT_ADDRESS as `0x${string}`;
+const DUEL_GAME_CONTRACT_ADDRESS = process.env
+  .NEXT_PUBLIC_DUEL_GAME_CONTRACT_ADDRESS as `0x${string}`;
 
 interface AcceptChallengeParams {
   character: Character;
@@ -19,6 +20,8 @@ interface AcceptChallengeParams {
 
 interface AcceptChallengeResult {
   txHash: string;
+  challengeId: bigint;
+  characterId: string;
 }
 
 export function useAcceptChallenge() {
@@ -26,7 +29,7 @@ export function useAcceptChallenge() {
   const { wallets } = useWallets();
   const { isWrongNetwork, switchToBaseSepolia } = useWallet();
   const queryClient = useQueryClient();
-  
+
   // Find embedded wallet
   const embeddedWallet = wallets?.find(
     (wallet) => wallet.connectorType === "embedded",
@@ -34,7 +37,11 @@ export function useAcceptChallenge() {
 
   // Create a mutation for accepting a challenge
   const mutation = useMutation({
-    mutationFn: async ({ character, challengeId, wagerAmount }: AcceptChallengeParams): Promise<AcceptChallengeResult> => {
+    mutationFn: async ({
+      character,
+      challengeId,
+      wagerAmount,
+    }: AcceptChallengeParams): Promise<AcceptChallengeResult> => {
       if (!authenticated) {
         throw new Error("Authentication required");
       }
@@ -84,10 +91,10 @@ export function useAcceptChallenge() {
         hash: hash as `0x${string}`,
       });
 
-      return { txHash: hash as string };
+      return { txHash: hash as string, challengeId, characterId: character.id };
     },
 
-    onSuccess: async ({ txHash }) => {
+    onSuccess: async ({ txHash, challengeId, characterId }) => {
       toast.success("Challenge accepted", {
         description:
           "You've accepted the challenge! Prepare for battle as the duel begins.",
@@ -104,6 +111,17 @@ export function useAcceptChallenge() {
         queryClient.invalidateQueries({
           queryKey: ["active-challenges", embeddedWallet.address],
         });
+
+        // queryClient.invalidateQueries({
+        //   queryKey: ["fighter-challenges", characterId],
+        // });
+
+        queryClient.setQueryData(
+          ["fighter-challenges", characterId],
+          (oldData: Challenge[]) => [
+            ...oldData.filter((challenge) => challenge.id !== challengeId),
+          ],
+        );
       }
     },
 
@@ -135,4 +153,4 @@ export function useAcceptChallenge() {
     txHash: mutation.data?.txHash || null,
     error: mutation.error,
   };
-} 
+}
