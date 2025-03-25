@@ -13,7 +13,7 @@ export const viemClient = createPublicClient({
 });
 
 export const SUBGRAPH_URL =
-  "https://subgraph.satsuma-prod.com/5d543e96d159/viabull-labs/heavy-helms-subgraph/version/v0.4.1/api";
+  "https://subgraph.satsuma-prod.com/5d543e96d159/viabull-labs/heavy-helms-subgraph/version/v0.4.3/api";
 
 // Contract addresses
 export const PLAYER_CONTRACT_ADDRESS = process.env

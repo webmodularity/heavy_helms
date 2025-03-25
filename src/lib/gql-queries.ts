@@ -171,3 +171,87 @@ export const GET_FIGHTERS_BY_IDS = gql`
   }
   ${FIGHTER_COMPLETE_FRAGMENT}
 `;
+
+// Challenge fragments
+export const CHALLENGE_BASE_FRAGMENT = gql`
+  fragment ChallengeBaseFields on DuelChallenge {
+    id
+    wagerAmount
+    state
+    createdAt
+    challengerOwner
+    defenderOwner
+  }
+`;
+
+export const CHALLENGE_FIGHTER_FRAGMENT = gql`
+  fragment ChallengeFighterFields on Fighter {
+    id
+    fighterType
+    firstName
+    surname
+    fullName
+  }
+`;
+
+export const CHALLENGE_COMPLETE_FRAGMENT = gql`
+  fragment ChallengeCompleteFields on DuelChallenge {
+    ...ChallengeBaseFields
+    challenger {
+      ...ChallengeFighterFields
+    }
+    defender {
+      ...ChallengeFighterFields
+    }
+  }
+  ${CHALLENGE_BASE_FRAGMENT}
+  ${CHALLENGE_FIGHTER_FRAGMENT}
+`;
+
+// Query to get a user's challenges
+export const GET_USER_CHALLENGES = gql`
+  query GetUserChallenges($userAddress: String!) {
+    sentChallenges: duelChallenges(
+      where: {
+        state: OPEN,
+        challengerOwner: $userAddress
+      }
+    ) {
+      ...ChallengeCompleteFields
+    }
+    
+    receivedChallenges: duelChallenges(
+      where: {
+        state: OPEN,
+        defenderOwner: $userAddress
+      }
+    ) {
+      ...ChallengeCompleteFields
+    }
+  }
+  ${CHALLENGE_COMPLETE_FRAGMENT}
+`;
+
+// Add this new query to your gql-queries.ts file
+export const GET_FIGHTER_CHALLENGES = gql`
+  query GetFighterChallenges($fighterId: ID!) {
+    sentChallenges: duelChallenges(
+      where: {
+        state: OPEN,
+        challenger_: { id: $fighterId }
+      }
+    ) {
+      ...ChallengeCompleteFields
+    }
+    
+    receivedChallenges: duelChallenges(
+      where: {
+        state: OPEN,
+        defender_: { id: $fighterId }
+      }
+    ) {
+      ...ChallengeCompleteFields
+    }
+  }
+  ${CHALLENGE_COMPLETE_FRAGMENT}
+`;

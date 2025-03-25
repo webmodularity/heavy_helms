@@ -38,7 +38,7 @@ export function CreateChallengeForm({
   const isValidWager =
     wagerAmount.trim() !== "" &&
     !Number.isNaN(Number.parseFloat(wagerAmount)) &&
-    Number.parseFloat(wagerAmount) > 0;
+    Number.parseFloat(wagerAmount) >= 0;
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {

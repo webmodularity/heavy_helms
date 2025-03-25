@@ -1,17 +1,44 @@
-import { viemClient } from "@/config";
-import { DuelGameABI } from "@/game/abi/DuelGameABI.abi";
+import { SUBGRAPH_URL } from "@/config";
 import { useWallet } from "@/hooks/use-wallet";
 import { usePrivy } from "@privy-io/react-auth";
 import { useWallets } from "@privy-io/react-auth";
 import { useQuery } from "@tanstack/react-query";
+import { request } from "graphql-request";
+import { GET_USER_CHALLENGES, GET_FIGHTER_CHALLENGES } from "@/lib/gql-queries";
 import { toast } from "sonner";
-import { formatEther } from "viem";
 
-// This is a placeholder - replace with your actual contract address
-const DUEL_GAME_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_DUEL_GAME_CONTRACT_ADDRESS as `0x${string}`;
+// GraphQL response type
+interface SubgraphChallenge {
+  id: string;
+  wagerAmount: string;
+  state: string;
+  createdAt: string;
+  challengerOwner: string;
+  defenderOwner: string;
+  challenger: {
+    id: string;
+    fighterType: string;
+    firstName?: string;
+    surname?: string;
+    fullName?: string;
+  };
+  defender: {
+    id: string;
+    fighterType: string;
+    firstName?: string;
+    surname?: string;
+    fullName?: string;
+  };
+}
 
+interface GraphQLResponse {
+  sentChallenges: SubgraphChallenge[];
+  receivedChallenges: SubgraphChallenge[];
+}
+
+// Keep the existing Challenge interface
 export interface Challenge {
-  id: bigint;
+  id: string;
   challengerId: number;
   defenderId: number;
   wagerAmount: bigint;
@@ -31,120 +58,153 @@ export interface Challenge {
       tokenId: number;
     };
   };
+  // Add new fields
+  challengerName?: string;
+  defenderName?: string;
+  isSentByMe?: boolean;
 }
 
-export interface RawChallenge {
-    0: number;
-    1: number;
-    2: bigint;
-    3: bigint;
-    4: {
-        playerId: number;
-        skin: {
-            skinIndex: number;
-            skinTokenId: number;
-        };
-    };
-    5: {
-        playerId: number;
-        skin: {
-            skinIndex: number;
-            tokenId: number;
-        };
-    };
-    6: boolean;
-    7: bigint;
-}
-
-export function useChallenges() {
+export function useChallenges(fighterId?: string) {
   const { authenticated } = usePrivy();
   const { wallets } = useWallets();
   const { isWrongNetwork, switchToBaseSepolia } = useWallet();
-  
+
   // Find embedded wallet
   const embeddedWallet = wallets?.find(
     (wallet) => wallet.connectorType === "embedded",
   );
-  
-  const walletAddress = embeddedWallet?.address as `0x${string}` | undefined;
+
+  const walletAddress = embeddedWallet?.address?.toLowerCase();
 
   // Fetch active challenges
-  const { 
-    data: challenges, 
-    isLoading, 
-    error, 
-    refetch 
+  const {
+    data: challenges,
+    isLoading,
+    error,
+    refetch,
   } = useQuery({
-    queryKey: ["active-challenges", walletAddress],
+    // Query key includes fighterId if provided
+    queryKey: fighterId
+      ? ["fighter-challenges", fighterId]
+      : ["active-challenges", walletAddress],
     queryFn: async () => {
-      if (!authenticated || !walletAddress) {
+      // Don't fetch if not authenticated
+      if (!authenticated) {
+        return [];
+      }
+
+      // Ensure we have either a fighter ID or wallet address
+      if (!fighterId && !walletAddress) {
         return [];
       }
 
       try {
-        // First get challenge IDs
-        const challengeIds = await viemClient.readContract({
-          address: DUEL_GAME_CONTRACT_ADDRESS,
-          abi: DuelGameABI,
-          functionName: 'getUserActiveChallenges',
-          args: [walletAddress],
-        }) as bigint[];
+        let data: GraphQLResponse;
 
-        console.log('challengeIds', challengeIds)
-        if (!challengeIds || challengeIds.length === 0) {
-          return [];
+        // Use fighter-specific query if fighterId is provided
+        if (fighterId) {
+          data = await request<GraphQLResponse>(
+            SUBGRAPH_URL,
+            GET_FIGHTER_CHALLENGES,
+            { fighterId },
+          );
+        } else {
+          // Otherwise fall back to wallet-level query
+          data = await request<GraphQLResponse>(
+            SUBGRAPH_URL,
+            GET_USER_CHALLENGES,
+            { userAddress: walletAddress },
+          );
         }
 
-        // Then fetch details for each challenge
-        const challengesData = await Promise.all(
-          challengeIds.map(async (id) => {
-            const challengeData = await viemClient.readContract({
-              address: DUEL_GAME_CONTRACT_ADDRESS,
-              abi: DuelGameABI,
-              functionName: 'challenges',
-              args: [id],
-            });
-            
-            // Format the challenge data
-            // Note: This assumes the 'challenges' function returns data in the order
-            // defined in the ABI which matches our Challenge interface
-            
+        // Process sent challenges
+        const sentChallenges = (data.sentChallenges || []).map((challenge) => {
+          const challengerName =
+            challenge.challenger.fullName ||
+            `${challenge.challenger.firstName || ""} ${challenge.challenger.surname || ""}`.trim() ||
+            `Fighter #${challenge.challenger.id}`;
+
+          const defenderName =
+            challenge.defender.fullName ||
+            `${challenge.defender.firstName || ""} ${challenge.defender.surname || ""}`.trim() ||
+            `Fighter #${challenge.defender.id}`;
+
+          return {
+            id: challenge.id,
+            challengerId: Number(challenge.challenger.id),
+            defenderId: Number(challenge.defender.id),
+            wagerAmount: BigInt(challenge.wagerAmount),
+            createdBlock: BigInt(challenge.createdAt),
+            fulfilled: challenge.state !== "OPEN",
+            challengerLoadout: {
+              playerId: Number(challenge.challenger.id),
+              skin: {
+                skinIndex: 0,
+                skinTokenId: 0,
+              },
+            },
+            defenderLoadout: {
+              playerId: Number(challenge.defender.id),
+              skin: {
+                skinIndex: 0,
+                tokenId: 0,
+              },
+            },
+            challengerName,
+            defenderName,
+            isSentByMe: true,
+          };
+        });
+
+        // Process received challenges with the same structure
+        const receivedChallenges = (data.receivedChallenges || []).map(
+          (challenge) => {
+            const challengerName =
+              challenge.challenger.fullName ||
+              `${challenge.challenger.firstName || ""} ${challenge.challenger.surname || ""}`.trim() ||
+              `Fighter #${challenge.challenger.id}`;
+
+            const defenderName =
+              challenge.defender.fullName ||
+              `${challenge.defender.firstName || ""} ${challenge.defender.surname || ""}`.trim() ||
+              `Fighter #${challenge.defender.id}`;
+
             return {
-              id,
-              // Map the returned array to our object structure
-              ...(challengeData as unknown as RawChallenge)
+              id: challenge.id,
+              challengerId: Number(challenge.challenger.id),
+              defenderId: Number(challenge.defender.id),
+              wagerAmount: BigInt(challenge.wagerAmount),
+              createdBlock: BigInt(challenge.createdAt),
+              fulfilled: challenge.state !== "OPEN",
+              challengerLoadout: {
+                playerId: Number(challenge.challenger.id),
+                skin: {
+                  skinIndex: 0,
+                  skinTokenId: 0,
+                },
+              },
+              defenderLoadout: {
+                playerId: Number(challenge.defender.id),
+                skin: {
+                  skinIndex: 0,
+                  tokenId: 0,
+                },
+              },
+              challengerName,
+              defenderName,
+              isSentByMe: false,
             };
-          })
+          },
         );
 
-        return challengesData.map((challenge) => ({
-          id: challenge.id,
-          challengerId: challenge[0],
-          defenderId: challenge[1],
-          wagerAmount: challenge[2],
-          createdBlock: challenge[3],
-          fulfilled: challenge[6],
-          challengerLoadout: {
-            playerId: challenge[4].playerId,
-            skin: {
-              skinIndex: challenge[4].skin.skinIndex,
-              skinTokenId: challenge[4].skin.skinTokenId,
-            },
-          },
-          defenderLoadout: {
-            playerId: challenge[5].playerId,
-            skin: {
-              skinIndex: challenge[5].skin.skinIndex,
-              tokenId: challenge[5].skin.tokenId,
-            },
-          },
-        }));
+        // Combine both types of challenges
+        return [...sentChallenges, ...receivedChallenges];
       } catch (error) {
-        console.error('Error fetching challenges:', error);
+        console.error("Error fetching challenges from subgraph:", error);
         throw error;
       }
     },
-    enabled: !!walletAddress,
+    enabled: authenticated && (!!fighterId || !!walletAddress),
     staleTime: 5 * 60 * 1000, // 5 minutes stale time as requested
   });
 

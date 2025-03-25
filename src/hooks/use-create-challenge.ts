@@ -9,7 +9,8 @@ import { encodeFunctionData, parseEther, type TransactionRequest } from "viem";
 import type { Character } from "@/types/player.types";
 
 // This is a placeholder - replace with your actual contract address
-const DUEL_GAME_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_DUEL_GAME_CONTRACT_ADDRESS as `0x${string}`;
+const DUEL_GAME_CONTRACT_ADDRESS = process.env
+  .NEXT_PUBLIC_DUEL_GAME_CONTRACT_ADDRESS as `0x${string}`;
 
 interface CreateChallengeParams {
   character: Character;
@@ -27,7 +28,7 @@ export function useCreateChallenge() {
   const { wallets } = useWallets();
   const { isWrongNetwork, switchToBaseSepolia } = useWallet();
   const queryClient = useQueryClient();
-  
+
   // Find embedded wallet
   const embeddedWallet = wallets?.find(
     (wallet) => wallet.connectorType === "embedded",
@@ -35,7 +36,11 @@ export function useCreateChallenge() {
 
   // Create a mutation for challenge creation
   const mutation = useMutation({
-    mutationFn: async ({ character, defenderId, wagerAmount }: CreateChallengeParams): Promise<CreateChallengeResult> => {
+    mutationFn: async ({
+      character,
+      defenderId,
+      wagerAmount,
+    }: CreateChallengeParams): Promise<CreateChallengeResult> => {
       if (!authenticated) {
         throw new Error("Authentication required");
       }
@@ -50,7 +55,7 @@ export function useCreateChallenge() {
 
       // Convert wager amount to wei
       const wagerValue = parseEther(wagerAmount);
-      console.log("character", character)
+      console.log("character", character);
       // Create the loadout from the selected character
       const challengerLoadout = {
         playerId: Number(character.id),
@@ -59,9 +64,9 @@ export function useCreateChallenge() {
           skinTokenId: character.currentSkin.tokenId,
         },
       };
-      console.log("challengerLoadout", challengerLoadout)
-      console.log("defenderId", defenderId)
-      console.log("typeof defenderId", typeof defenderId)
+      console.log("challengerLoadout", challengerLoadout);
+      console.log("defenderId", defenderId);
+      console.log("typeof defenderId", typeof defenderId);
       // Encode function data for the contract call
       const data = encodeFunctionData({
         abi: DuelGameABI,
@@ -76,7 +81,7 @@ export function useCreateChallenge() {
       const transactionRequest: TransactionRequest = {
         to: DUEL_GAME_CONTRACT_ADDRESS,
         data,
-        value: wagerValue,
+        value: wagerValue + parseEther("0.0002"),
       };
 
       // Send transaction using the provider
@@ -85,7 +90,7 @@ export function useCreateChallenge() {
         params: [transactionRequest],
       });
 
-      console.log("hash", hash)
+      console.log("hash", hash);
 
       // Wait for transaction to be mined
       await viemClient.waitForTransactionReceipt({
@@ -143,4 +148,4 @@ export function useCreateChallenge() {
     txHash: mutation.data?.txHash || null,
     error: mutation.error,
   };
-} 
+}

@@ -169,7 +169,7 @@ function RecentBattles() {
 function ActiveChallenges({
   selectedCharacter,
 }: { selectedCharacter: Character | null }) {
-  const { challenges, isLoading, error } = useChallenges();
+  const { challenges, isLoading, error } = useChallenges(selectedCharacter?.id);
   const { cancelChallenge, isCancellingChallenge } = useCancelChallenge();
   const { acceptChallenge, isAcceptingChallenge } = useAcceptChallenge();
   const [expandedChallenge, setExpandedChallenge] = useState<bigint | null>(
@@ -238,8 +238,6 @@ function ActiveChallenges({
       </div>
     );
   }
-
-  // const characterChallenges = challenges
 
   const handleAcceptChallenge = async (challenge: Challenge) => {
     if (!selectedCharacter) {
