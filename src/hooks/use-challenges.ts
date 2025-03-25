@@ -38,7 +38,7 @@ interface GraphQLResponse {
 
 // Keep the existing Challenge interface
 export interface Challenge {
-  id: string;
+  id: bigint;
   challengerId: number;
   defenderId: number;
   wagerAmount: bigint;
@@ -130,7 +130,7 @@ export function useChallenges(fighterId?: string) {
             `Fighter #${challenge.defender.id}`;
 
           return {
-            id: challenge.id,
+            id: BigInt(challenge.id),
             challengerId: Number(challenge.challenger.id),
             defenderId: Number(challenge.defender.id),
             wagerAmount: BigInt(challenge.wagerAmount),
@@ -170,7 +170,7 @@ export function useChallenges(fighterId?: string) {
               `Fighter #${challenge.defender.id}`;
 
             return {
-              id: challenge.id,
+              id: BigInt(challenge.id),
               challengerId: Number(challenge.challenger.id),
               defenderId: Number(challenge.defender.id),
               wagerAmount: BigInt(challenge.wagerAmount),
