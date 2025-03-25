@@ -4,31 +4,11 @@ export const DuelGameABI = [
     inputs: [
       { name: "_gameEngine", type: "address", internalType: "address" },
       { name: "_playerContract", type: "address", internalType: "address" },
-      {
-        name: "_defaultPlayerContract",
-        type: "address",
-        internalType: "address",
-      },
-      { name: "_monsterContract", type: "address", internalType: "address" },
       { name: "operator", type: "address", internalType: "address" },
     ],
     stateMutability: "nonpayable",
   },
   { type: "receive", stateMutability: "payable" },
-  {
-    type: "function",
-    name: "BLOCKS_UNTIL_EXPIRE",
-    inputs: [],
-    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "BLOCKS_UNTIL_WITHDRAW",
-    inputs: [],
-    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
-    stateMutability: "view",
-  },
   {
     type: "function",
     name: "acceptChallenge",
@@ -54,6 +34,20 @@ export const DuelGameABI = [
     ],
     outputs: [],
     stateMutability: "payable",
+  },
+  {
+    type: "function",
+    name: "blocksUntilExpire",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "blocksUntilWithdraw",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
   },
   {
     type: "function",
@@ -112,16 +106,11 @@ export const DuelGameABI = [
           },
         ],
       },
-      { name: "fulfilled", type: "bool", internalType: "bool" },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "defaultPlayerContract",
-    inputs: [],
-    outputs: [
-      { name: "", type: "address", internalType: "contract IDefaultPlayer" },
+      {
+        name: "state",
+        type: "uint8",
+        internalType: "enum DuelGame.ChallengeState",
+      },
     ],
     stateMutability: "view",
   },
@@ -149,20 +138,6 @@ export const DuelGameABI = [
     outputs: [
       { name: "", type: "address", internalType: "contract IGameEngine" },
     ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "getUserActiveChallenges",
-    inputs: [{ name: "user", type: "address", internalType: "address" }],
-    outputs: [{ name: "", type: "uint256[]", internalType: "uint256[]" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "hasPendingRequest",
-    inputs: [{ name: "", type: "uint256", internalType: "uint256" }],
-    outputs: [{ name: "", type: "bool", internalType: "bool" }],
     stateMutability: "view",
   },
   {
@@ -201,6 +176,27 @@ export const DuelGameABI = [
   },
   {
     type: "function",
+    name: "isChallengeCompleted",
+    inputs: [{ name: "challengeId", type: "uint256", internalType: "uint256" }],
+    outputs: [{ name: "", type: "bool", internalType: "bool" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "isChallengeExpired",
+    inputs: [{ name: "challengeId", type: "uint256", internalType: "uint256" }],
+    outputs: [{ name: "", type: "bool", internalType: "bool" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "isChallengePending",
+    inputs: [{ name: "challengeId", type: "uint256", internalType: "uint256" }],
+    outputs: [{ name: "", type: "bool", internalType: "bool" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "isGameEnabled",
     inputs: [],
     outputs: [{ name: "", type: "bool", internalType: "bool" }],
@@ -225,13 +221,6 @@ export const DuelGameABI = [
     name: "minWagerAmount",
     inputs: [],
     outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "monsterContract",
-    inputs: [],
-    outputs: [{ name: "", type: "address", internalType: "contract IMonster" }],
     stateMutability: "view",
   },
   {
@@ -278,10 +267,15 @@ export const DuelGameABI = [
   },
   {
     type: "function",
-    name: "setDefaultPlayerContract",
-    inputs: [
-      { name: "_newContract", type: "address", internalType: "address" },
-    ],
+    name: "setBlocksUntilExpire",
+    inputs: [{ name: "newValue", type: "uint256", internalType: "uint256" }],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "setBlocksUntilWithdraw",
+    inputs: [{ name: "newValue", type: "uint256", internalType: "uint256" }],
     outputs: [],
     stateMutability: "nonpayable",
   },
@@ -317,15 +311,6 @@ export const DuelGameABI = [
   },
   {
     type: "function",
-    name: "setMonsterContract",
-    inputs: [
-      { name: "_newContract", type: "address", internalType: "address" },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
     name: "setOperator",
     inputs: [{ name: "newOperator", type: "address", internalType: "address" }],
     outputs: [],
@@ -351,6 +336,13 @@ export const DuelGameABI = [
   },
   {
     type: "function",
+    name: "setWagersEnabled",
+    inputs: [{ name: "enabled", type: "bool", internalType: "bool" }],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
     name: "totalFeesCollected",
     inputs: [],
     outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
@@ -365,19 +357,16 @@ export const DuelGameABI = [
   },
   {
     type: "function",
-    name: "userChallenges",
-    inputs: [
-      { name: "", type: "address", internalType: "address" },
-      { name: "", type: "uint256", internalType: "uint256" },
-    ],
-    outputs: [{ name: "", type: "bool", internalType: "bool" }],
+    name: "wagerFeePercentage",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     stateMutability: "view",
   },
   {
     type: "function",
-    name: "wagerFeePercentage",
+    name: "wagersEnabled",
     inputs: [],
-    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    outputs: [{ name: "", type: "bool", internalType: "bool" }],
     stateMutability: "view",
   },
   {
@@ -386,6 +375,44 @@ export const DuelGameABI = [
     inputs: [],
     outputs: [],
     stateMutability: "nonpayable",
+  },
+  {
+    type: "event",
+    name: "BlocksUntilExpireUpdated",
+    inputs: [
+      {
+        name: "oldValue",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+      {
+        name: "newValue",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "BlocksUntilWithdrawUpdated",
+    inputs: [
+      {
+        name: "oldValue",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+      {
+        name: "newValue",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
   },
   {
     type: "event",
@@ -458,19 +485,6 @@ export const DuelGameABI = [
   },
   {
     type: "event",
-    name: "ChallengeExpired",
-    inputs: [
-      {
-        name: "challengeId",
-        type: "uint256",
-        indexed: true,
-        internalType: "uint256",
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: "event",
     name: "ChallengeForfeited",
     inputs: [
       {
@@ -521,25 +535,6 @@ export const DuelGameABI = [
   },
   {
     type: "event",
-    name: "DefaultPlayerContractUpdated",
-    inputs: [
-      {
-        name: "oldContract",
-        type: "address",
-        indexed: true,
-        internalType: "address",
-      },
-      {
-        name: "newContract",
-        type: "address",
-        indexed: true,
-        internalType: "address",
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: "event",
     name: "DuelComplete",
     inputs: [
       {
@@ -555,7 +550,7 @@ export const DuelGameABI = [
         internalType: "uint32",
       },
       {
-        name: "randomSeed",
+        name: "randomness",
         type: "uint256",
         indexed: false,
         internalType: "uint256",
@@ -643,25 +638,6 @@ export const DuelGameABI = [
   },
   {
     type: "event",
-    name: "MonsterContractUpdated",
-    inputs: [
-      {
-        name: "oldContract",
-        type: "address",
-        indexed: true,
-        internalType: "address",
-      },
-      {
-        name: "newContract",
-        type: "address",
-        indexed: true,
-        internalType: "address",
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: "event",
     name: "OwnershipTransferred",
     inputs: [
       { name: "user", type: "address", indexed: true, internalType: "address" },
@@ -723,6 +699,14 @@ export const DuelGameABI = [
         indexed: false,
         internalType: "uint256",
       },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "WagersEnabledUpdated",
+    inputs: [
+      { name: "enabled", type: "bool", indexed: false, internalType: "bool" },
     ],
     anonymous: false,
   },
