@@ -11,7 +11,7 @@ import type {
   DecodedCombatResult,
   SceneData,
 } from "@/types/game.types";
-import type { Player } from "@/types/player.types";
+import type { Fighter } from "@/types/fighter-types";
 
 interface TextStyles {
   mainText: Phaser.GameObjects.Text;
@@ -21,8 +21,8 @@ interface TextStyles {
 
 export class FightScene extends Scene {
   // Scene data
-  private player1: Player;
-  private player2: Player;
+  private player1: Fighter;
+  private player2: Fighter;
   private network = "mainnet";
   private blockNumber = "0";
   private txId = "Practice";
@@ -181,14 +181,14 @@ export class FightScene extends Scene {
     // 2. Player Setup
     const groundY = 600;
     this.player1Sprite = this.physics.add
-      .sprite(125, groundY - 40, `player${this.player1.id}-spritesheet`)
+      .sprite(125, groundY - 40, `fighter${this.player1.id}-spritesheet`)
       .setFlipX(false)
       .setOrigin(0.5, 1)
       .setDisplaySize(300, 300)
       .setDepth(5);
 
     this.player2Sprite = this.physics.add
-      .sprite(835, groundY - 40, `player${this.player2.id}-spritesheet`)
+      .sprite(835, groundY - 40, `fighter${this.player2.id}-spritesheet`)
       .setFlipX(true)
       .setOrigin(0.5, 1)
       .setDisplaySize(300, 300)
@@ -591,11 +591,11 @@ export class FightScene extends Scene {
   }
 
   private createPlayerAnimations(
-    player: Player,
+    player: Fighter,
     sprite: Phaser.Physics.Arcade.Sprite,
     isPlayer2 = false,
   ) {
-    const textureKey = `player${player.id}-spritesheet`;
+    const textureKey = `fighter${player.id}-spritesheet`;
     const texture = this.textures.get(textureKey);
     if (!texture) return;
 
@@ -673,7 +673,7 @@ export class FightScene extends Scene {
   }
 
   private createAnimationForAction(
-    player: Player,
+    player: Fighter,
     textureKey: string,
     allFrames: string[],
     actionType: keyof typeof player.currentSkin.spritesheet.fps,

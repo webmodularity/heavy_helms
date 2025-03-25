@@ -58,30 +58,13 @@ export const DefaultPlayerABI = [
   },
   {
     type: "function",
-    name: "getCurrentSkin",
-    inputs: [{ name: "playerId", type: "uint32", internalType: "uint32" }],
-    outputs: [
+    name: "createDefaultPlayer",
+    inputs: [
+      { name: "playerId", type: "uint32", internalType: "uint32" },
       {
-        name: "",
+        name: "stats",
         type: "tuple",
-        internalType: "struct Fighter.SkinInfo",
-        components: [
-          { name: "skinIndex", type: "uint32", internalType: "uint32" },
-          { name: "skinTokenId", type: "uint16", internalType: "uint16" },
-        ],
-      },
-    ],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "getDefaultPlayer",
-    inputs: [{ name: "playerId", type: "uint32", internalType: "uint32" }],
-    outputs: [
-      {
-        name: "",
-        type: "tuple",
-        internalType: "struct IDefaultPlayer.DefaultPlayerStats",
+        internalType: "struct IPlayer.PlayerStats",
         components: [
           {
             name: "attributes",
@@ -105,8 +88,107 @@ export const DefaultPlayerABI = [
               { name: "skinTokenId", type: "uint16", internalType: "uint16" },
             ],
           },
-          { name: "firstNameIndex", type: "uint16", internalType: "uint16" },
-          { name: "surnameIndex", type: "uint16", internalType: "uint16" },
+          {
+            name: "name",
+            type: "tuple",
+            internalType: "struct IPlayer.PlayerName",
+            components: [
+              {
+                name: "firstNameIndex",
+                type: "uint16",
+                internalType: "uint16",
+              },
+              { name: "surnameIndex", type: "uint16", internalType: "uint16" },
+            ],
+          },
+          {
+            name: "record",
+            type: "tuple",
+            internalType: "struct Fighter.Record",
+            components: [
+              { name: "wins", type: "uint16", internalType: "uint16" },
+              { name: "losses", type: "uint16", internalType: "uint16" },
+              { name: "kills", type: "uint16", internalType: "uint16" },
+            ],
+          },
+        ],
+      },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "getCurrentSkin",
+    inputs: [{ name: "playerId", type: "uint32", internalType: "uint32" }],
+    outputs: [
+      {
+        name: "",
+        type: "tuple",
+        internalType: "struct Fighter.SkinInfo",
+        components: [
+          { name: "skinIndex", type: "uint32", internalType: "uint32" },
+          { name: "skinTokenId", type: "uint16", internalType: "uint16" },
+        ],
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getDefaultPlayer",
+    inputs: [{ name: "playerId", type: "uint32", internalType: "uint32" }],
+    outputs: [
+      {
+        name: "",
+        type: "tuple",
+        internalType: "struct IPlayer.PlayerStats",
+        components: [
+          {
+            name: "attributes",
+            type: "tuple",
+            internalType: "struct Fighter.Attributes",
+            components: [
+              { name: "strength", type: "uint8", internalType: "uint8" },
+              { name: "constitution", type: "uint8", internalType: "uint8" },
+              { name: "size", type: "uint8", internalType: "uint8" },
+              { name: "agility", type: "uint8", internalType: "uint8" },
+              { name: "stamina", type: "uint8", internalType: "uint8" },
+              { name: "luck", type: "uint8", internalType: "uint8" },
+            ],
+          },
+          {
+            name: "skin",
+            type: "tuple",
+            internalType: "struct Fighter.SkinInfo",
+            components: [
+              { name: "skinIndex", type: "uint32", internalType: "uint32" },
+              { name: "skinTokenId", type: "uint16", internalType: "uint16" },
+            ],
+          },
+          {
+            name: "name",
+            type: "tuple",
+            internalType: "struct IPlayer.PlayerName",
+            components: [
+              {
+                name: "firstNameIndex",
+                type: "uint16",
+                internalType: "uint16",
+              },
+              { name: "surnameIndex", type: "uint16", internalType: "uint16" },
+            ],
+          },
+          {
+            name: "record",
+            type: "tuple",
+            internalType: "struct Fighter.Record",
+            components: [
+              { name: "wins", type: "uint16", internalType: "uint16" },
+              { name: "losses", type: "uint16", internalType: "uint16" },
+              { name: "kills", type: "uint16", internalType: "uint16" },
+            ],
+          },
         ],
       },
     ],
@@ -172,46 +254,6 @@ export const DefaultPlayerABI = [
   },
   {
     type: "function",
-    name: "setDefaultPlayer",
-    inputs: [
-      { name: "playerId", type: "uint32", internalType: "uint32" },
-      {
-        name: "stats",
-        type: "tuple",
-        internalType: "struct IDefaultPlayer.DefaultPlayerStats",
-        components: [
-          {
-            name: "attributes",
-            type: "tuple",
-            internalType: "struct Fighter.Attributes",
-            components: [
-              { name: "strength", type: "uint8", internalType: "uint8" },
-              { name: "constitution", type: "uint8", internalType: "uint8" },
-              { name: "size", type: "uint8", internalType: "uint8" },
-              { name: "agility", type: "uint8", internalType: "uint8" },
-              { name: "stamina", type: "uint8", internalType: "uint8" },
-              { name: "luck", type: "uint8", internalType: "uint8" },
-            ],
-          },
-          {
-            name: "skin",
-            type: "tuple",
-            internalType: "struct Fighter.SkinInfo",
-            components: [
-              { name: "skinIndex", type: "uint32", internalType: "uint32" },
-              { name: "skinTokenId", type: "uint16", internalType: "uint16" },
-            ],
-          },
-          { name: "firstNameIndex", type: "uint16", internalType: "uint16" },
-          { name: "surnameIndex", type: "uint16", internalType: "uint16" },
-        ],
-      },
-    ],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
     name: "skinRegistry",
     inputs: [],
     outputs: [
@@ -238,7 +280,7 @@ export const DefaultPlayerABI = [
       {
         name: "newStats",
         type: "tuple",
-        internalType: "struct IDefaultPlayer.DefaultPlayerStats",
+        internalType: "struct IPlayer.PlayerStats",
         components: [
           {
             name: "attributes",
@@ -262,13 +304,100 @@ export const DefaultPlayerABI = [
               { name: "skinTokenId", type: "uint16", internalType: "uint16" },
             ],
           },
-          { name: "firstNameIndex", type: "uint16", internalType: "uint16" },
-          { name: "surnameIndex", type: "uint16", internalType: "uint16" },
+          {
+            name: "name",
+            type: "tuple",
+            internalType: "struct IPlayer.PlayerName",
+            components: [
+              {
+                name: "firstNameIndex",
+                type: "uint16",
+                internalType: "uint16",
+              },
+              { name: "surnameIndex", type: "uint16", internalType: "uint16" },
+            ],
+          },
+          {
+            name: "record",
+            type: "tuple",
+            internalType: "struct Fighter.Record",
+            components: [
+              { name: "wins", type: "uint16", internalType: "uint16" },
+              { name: "losses", type: "uint16", internalType: "uint16" },
+              { name: "kills", type: "uint16", internalType: "uint16" },
+            ],
+          },
         ],
       },
     ],
     outputs: [],
     stateMutability: "nonpayable",
+  },
+  {
+    type: "event",
+    name: "DefaultPlayerCreated",
+    inputs: [
+      {
+        name: "playerId",
+        type: "uint32",
+        indexed: true,
+        internalType: "uint32",
+      },
+      {
+        name: "stats",
+        type: "tuple",
+        indexed: false,
+        internalType: "struct IPlayer.PlayerStats",
+        components: [
+          {
+            name: "attributes",
+            type: "tuple",
+            internalType: "struct Fighter.Attributes",
+            components: [
+              { name: "strength", type: "uint8", internalType: "uint8" },
+              { name: "constitution", type: "uint8", internalType: "uint8" },
+              { name: "size", type: "uint8", internalType: "uint8" },
+              { name: "agility", type: "uint8", internalType: "uint8" },
+              { name: "stamina", type: "uint8", internalType: "uint8" },
+              { name: "luck", type: "uint8", internalType: "uint8" },
+            ],
+          },
+          {
+            name: "skin",
+            type: "tuple",
+            internalType: "struct Fighter.SkinInfo",
+            components: [
+              { name: "skinIndex", type: "uint32", internalType: "uint32" },
+              { name: "skinTokenId", type: "uint16", internalType: "uint16" },
+            ],
+          },
+          {
+            name: "name",
+            type: "tuple",
+            internalType: "struct IPlayer.PlayerName",
+            components: [
+              {
+                name: "firstNameIndex",
+                type: "uint16",
+                internalType: "uint16",
+              },
+              { name: "surnameIndex", type: "uint16", internalType: "uint16" },
+            ],
+          },
+          {
+            name: "record",
+            type: "tuple",
+            internalType: "struct Fighter.Record",
+            components: [
+              { name: "wins", type: "uint16", internalType: "uint16" },
+              { name: "losses", type: "uint16", internalType: "uint16" },
+              { name: "kills", type: "uint16", internalType: "uint16" },
+            ],
+          },
+        ],
+      },
+    ],
+    anonymous: false,
   },
   {
     type: "event",
@@ -284,7 +413,7 @@ export const DefaultPlayerABI = [
         name: "stats",
         type: "tuple",
         indexed: false,
-        internalType: "struct IDefaultPlayer.DefaultPlayerStats",
+        internalType: "struct IPlayer.PlayerStats",
         components: [
           {
             name: "attributes",
@@ -308,8 +437,29 @@ export const DefaultPlayerABI = [
               { name: "skinTokenId", type: "uint16", internalType: "uint16" },
             ],
           },
-          { name: "firstNameIndex", type: "uint16", internalType: "uint16" },
-          { name: "surnameIndex", type: "uint16", internalType: "uint16" },
+          {
+            name: "name",
+            type: "tuple",
+            internalType: "struct IPlayer.PlayerName",
+            components: [
+              {
+                name: "firstNameIndex",
+                type: "uint16",
+                internalType: "uint16",
+              },
+              { name: "surnameIndex", type: "uint16", internalType: "uint16" },
+            ],
+          },
+          {
+            name: "record",
+            type: "tuple",
+            internalType: "struct Fighter.Record",
+            components: [
+              { name: "wins", type: "uint16", internalType: "uint16" },
+              { name: "losses", type: "uint16", internalType: "uint16" },
+              { name: "kills", type: "uint16", internalType: "uint16" },
+            ],
+          },
         ],
       },
     ],
@@ -330,6 +480,11 @@ export const DefaultPlayerABI = [
     anonymous: false,
   },
   { type: "error", name: "BadZeroAddress", inputs: [] },
+  {
+    type: "error",
+    name: "DefaultPlayerExists",
+    inputs: [{ name: "playerId", type: "uint32", internalType: "uint32" }],
+  },
   { type: "error", name: "InvalidDefaultPlayerRange", inputs: [] },
   {
     type: "error",

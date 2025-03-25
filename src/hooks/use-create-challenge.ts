@@ -5,11 +5,19 @@ import { usePrivy } from "@privy-io/react-auth";
 import { useWallets } from "@privy-io/react-auth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { encodeFunctionData, parseEther, type TransactionRequest } from "viem";
+import {
+  type Address,
+  decodeEventLog,
+  encodeFunctionData,
+  formatEther,
+  parseEther,
+  type TransactionRequest,
+} from "viem";
 import type { Character } from "@/types/player.types";
 
 // This is a placeholder - replace with your actual contract address
-const DUEL_GAME_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_DUEL_GAME_CONTRACT_ADDRESS as `0x${string}`;
+const DUEL_GAME_CONTRACT_ADDRESS = process.env
+  .NEXT_PUBLIC_DUEL_GAME_CONTRACT_ADDRESS as `0x${string}`;
 
 interface CreateChallengeParams {
   character: Character;
@@ -19,7 +27,19 @@ interface CreateChallengeParams {
 
 interface CreateChallengeResult {
   txHash: string;
-  challengeId?: bigint;
+  createdChallenge: ChallengeCreatedEvent["args"];
+  challengerId?: string;
+}
+
+interface ChallengeCreatedEvent {
+  event: string;
+  args: {
+    challengeId: bigint;
+    challengerId: number;
+    defenderId: number;
+    wagerAmount: bigint;
+    createdAtBlock: bigint;
+  };
 }
 
 export function useCreateChallenge() {
@@ -27,7 +47,7 @@ export function useCreateChallenge() {
   const { wallets } = useWallets();
   const { isWrongNetwork, switchToBaseSepolia } = useWallet();
   const queryClient = useQueryClient();
-  
+
   // Find embedded wallet
   const embeddedWallet = wallets?.find(
     (wallet) => wallet.connectorType === "embedded",
@@ -35,7 +55,11 @@ export function useCreateChallenge() {
 
   // Create a mutation for challenge creation
   const mutation = useMutation({
-    mutationFn: async ({ character, defenderId, wagerAmount }: CreateChallengeParams): Promise<CreateChallengeResult> => {
+    mutationFn: async ({
+      character,
+      defenderId,
+      wagerAmount,
+    }: CreateChallengeParams): Promise<CreateChallengeResult> => {
       if (!authenticated) {
         throw new Error("Authentication required");
       }
@@ -50,7 +74,7 @@ export function useCreateChallenge() {
 
       // Convert wager amount to wei
       const wagerValue = parseEther(wagerAmount);
-      console.log("character", character)
+      console.log("character", character);
       // Create the loadout from the selected character
       const challengerLoadout = {
         playerId: Number(character.id),
@@ -59,9 +83,9 @@ export function useCreateChallenge() {
           skinTokenId: character.currentSkin.tokenId,
         },
       };
-      console.log("challengerLoadout", challengerLoadout)
-      console.log("defenderId", defenderId)
-      console.log("typeof defenderId", typeof defenderId)
+      console.log("challengerLoadout", challengerLoadout);
+      console.log("defenderId", defenderId);
+      console.log("typeof defenderId", typeof defenderId);
       // Encode function data for the contract call
       const data = encodeFunctionData({
         abi: DuelGameABI,
@@ -76,7 +100,7 @@ export function useCreateChallenge() {
       const transactionRequest: TransactionRequest = {
         to: DUEL_GAME_CONTRACT_ADDRESS,
         data,
-        value: wagerValue,
+        value: wagerValue + parseEther("0.0002"),
       };
 
       // Send transaction using the provider
@@ -85,17 +109,32 @@ export function useCreateChallenge() {
         params: [transactionRequest],
       });
 
-      console.log("hash", hash)
+      console.log("hash", hash);
 
       // Wait for transaction to be mined
-      await viemClient.waitForTransactionReceipt({
+      const receipt = await viemClient.waitForTransactionReceipt({
         hash: hash as `0x${string}`,
       });
 
-      return { txHash: hash as string };
+      // Parse logs to find the event containing the challenge ID
+      const challengeCreatedEvent = decodeEventLog({
+        abi: DuelGameABI,
+        data: receipt.logs[0].data,
+        topics: receipt.logs[0].topics,
+      }) as unknown as ChallengeCreatedEvent;
+      console.log("challengeCreatedEvent", challengeCreatedEvent);
+
+      // Access the relevant argument from the event (adjust index as needed)
+      // const challengeId = challengeCreatedEvent.args.challengeId;
+
+      return {
+        txHash: hash as string,
+        challengerId: character.id,
+        createdChallenge: challengeCreatedEvent.args,
+      };
     },
 
-    onSuccess: async ({ txHash }) => {
+    onSuccess: async ({ txHash, challengerId, createdChallenge }) => {
       toast.success("Challenge created successfully", {
         description:
           "Your challenge has been created and is now waiting for acceptance.",
@@ -112,6 +151,29 @@ export function useCreateChallenge() {
         queryClient.invalidateQueries({
           queryKey: ["active-challenges", embeddedWallet.address],
         });
+
+        // Note: instead of just invalidating the fighter-challenges query, we should manually insert the new challenge into the cache (as subgraph is slow to index new data)
+        // queryClient.invalidateQueries({
+        //   queryKey: ["fighter-challenges", challengerId],
+        // });
+
+        queryClient.setQueryData(
+          ["fighter-challenges", challengerId],
+          // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+          (oldData: any) => {
+            return [
+              ...oldData,
+              {
+                id: createdChallenge.challengeId,
+                challengerId: Number(createdChallenge.challengerId),
+                defenderId: Number(createdChallenge.defenderId),
+                wagerAmount: createdChallenge.wagerAmount,
+                createdBlock: createdChallenge.createdAtBlock,
+                fulfilled: false,
+              },
+            ];
+          },
+        );
       }
     },
 
@@ -143,4 +205,4 @@ export function useCreateChallenge() {
     txHash: mutation.data?.txHash || null,
     error: mutation.error,
   };
-} 
+}

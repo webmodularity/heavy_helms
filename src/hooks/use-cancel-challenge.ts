@@ -6,12 +6,21 @@ import { useWallets } from "@privy-io/react-auth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { encodeFunctionData } from "viem";
+import type { Challenge } from "./use-challenges";
 
 // This is a placeholder - replace with your actual contract address
-const DUEL_GAME_CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_DUEL_GAME_CONTRACT_ADDRESS as `0x${string}`;
+const DUEL_GAME_CONTRACT_ADDRESS = process.env
+  .NEXT_PUBLIC_DUEL_GAME_CONTRACT_ADDRESS as `0x${string}`;
 
 interface CancelChallengeResult {
   txHash: string;
+  challengeId: bigint;
+  characterId: string;
+}
+
+interface CancelChallengeParams {
+  challengeId: bigint;
+  characterId: string;
 }
 
 export function useCancelChallenge() {
@@ -19,7 +28,7 @@ export function useCancelChallenge() {
   const { wallets } = useWallets();
   const { isWrongNetwork, switchToBaseSepolia } = useWallet();
   const queryClient = useQueryClient();
-  
+
   // Find embedded wallet
   const embeddedWallet = wallets?.find(
     (wallet) => wallet.connectorType === "embedded",
@@ -27,7 +36,10 @@ export function useCancelChallenge() {
 
   // Create a mutation for cancelling a challenge
   const mutation = useMutation({
-    mutationFn: async (challengeId: bigint): Promise<CancelChallengeResult> => {
+    mutationFn: async ({
+      challengeId,
+      characterId,
+    }: CancelChallengeParams): Promise<CancelChallengeResult> => {
       if (!authenticated) {
         throw new Error("Authentication required");
       }
@@ -67,10 +79,10 @@ export function useCancelChallenge() {
         hash: hash as `0x${string}`,
       });
 
-      return { txHash: hash as string };
+      return { txHash: hash as string, challengeId, characterId };
     },
 
-    onSuccess: async ({ txHash }) => {
+    onSuccess: async ({ txHash, challengeId, characterId }) => {
       toast.success("Challenge cancelled", {
         description:
           "Your challenge has been successfully cancelled. Any wager amount will be returned to your wallet.",
@@ -83,10 +95,20 @@ export function useCancelChallenge() {
       });
 
       // Invalidate active challenges query to refresh the list
+      // if (embeddedWallet?.address) {
+      //   queryClient.invalidateQueries({
+      //     queryKey: ["active-challenges", embeddedWallet.address],
+      //   });
+      // }
       if (embeddedWallet?.address) {
-        queryClient.invalidateQueries({
-          queryKey: ["active-challenges", embeddedWallet.address],
-        });
+        // queryClient.invalidateQueries({
+        //   queryKey: ["fighter-challenges", embeddedWallet.address],
+        // });
+        queryClient.setQueryData(
+          ["fighter-challenges", characterId],
+          (oldData: Challenge[]) =>
+            oldData.filter((challenge) => challenge.id !== challengeId),
+        );
       }
     },
 
@@ -101,7 +123,7 @@ export function useCancelChallenge() {
     },
   });
 
-  const cancelChallenge = async (challengeId: bigint) => {
+  const cancelChallenge = async (params: CancelChallengeParams) => {
     if (!authenticated) {
       toast.error("Authentication required", {
         description: "Please connect your wallet to cancel a challenge.",
@@ -109,7 +131,7 @@ export function useCancelChallenge() {
       return;
     }
 
-    mutation.mutate(challengeId);
+    mutation.mutate(params);
   };
 
   return {
@@ -118,4 +140,4 @@ export function useCancelChallenge() {
     txHash: mutation.data?.txHash || null,
     error: mutation.error,
   };
-} 
+}

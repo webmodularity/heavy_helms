@@ -169,7 +169,7 @@ function RecentBattles() {
 function ActiveChallenges({
   selectedCharacter,
 }: { selectedCharacter: Character | null }) {
-  const { challenges, isLoading, error } = useChallenges();
+  const { challenges, isLoading, error } = useChallenges(selectedCharacter?.id);
   const { cancelChallenge, isCancellingChallenge } = useCancelChallenge();
   const { acceptChallenge, isAcceptingChallenge } = useAcceptChallenge();
   const [expandedChallenge, setExpandedChallenge] = useState<bigint | null>(
@@ -239,8 +239,6 @@ function ActiveChallenges({
     );
   }
 
-  // const characterChallenges = challenges
-
   const handleAcceptChallenge = async (challenge: Challenge) => {
     if (!selectedCharacter) {
       toast.error("No character selected", {
@@ -264,7 +262,10 @@ function ActiveChallenges({
   const handleCancelChallenge = async (challenge: Challenge) => {
     setProcessingChallengeId(challenge.id);
     try {
-      await cancelChallenge(challenge.id);
+      await cancelChallenge({
+        challengeId: challenge.id,
+        characterId: selectedCharacter.id,
+      });
     } finally {
       setProcessingChallengeId(null);
     }

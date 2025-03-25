@@ -3,7 +3,6 @@ export { PracticeGameABI } from "./PracticeGameABI";
 export { DuelGameABI } from "./DuelGameABI.abi";
 export { GameEngineABI } from "./GameEngineABI.abi";
 export { SkinRegistryABI } from "./SkinRegistryABI.abi";
-export { PlayerNameRegistryABI } from "./PlayerNameRegistryABI.abi";
 export { ERC721ABI } from "./ERC721ABI.abi";
 export { DefaultPlayerSkinNFTABI } from "./DefaultPlayerSkinNFT.abi";
 export { MonsterABI } from "./MonsterABI.abi";
