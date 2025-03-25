@@ -1,7 +1,10 @@
 import { viemClient } from "@/config";
 import { Scene } from "phaser";
 import { EventBus } from "../EventBus";
-import { fetchAndConvertPlayers } from "../../lib/player-api";
+import {
+  fetchAndConvertPlayers,
+  fetchAndConvertFighters,
+} from "../../lib/player-api";
 import type {
   Player,
   PlayerLoadout,
@@ -17,6 +20,8 @@ import type {
   RawCombatAction,
   SceneData,
 } from "@/types/game.types";
+import type { Fighter, FighterType } from "@/types/fighter-types";
+import type { Monster } from "@/types/monster.types";
 
 export class Preloader extends Scene {
   // URL parameters
@@ -27,8 +32,8 @@ export class Preloader extends Scene {
   private player2Id?: string;
 
   // Player data
-  private player1: Player;
-  private player2: Player;
+  private player1: Fighter;
+  private player2: Fighter;
   // Game data
   private decodedCombatBytes: DecodedCombatResult;
   private gameEngineAddress: Address;
@@ -202,8 +207,8 @@ export class Preloader extends Scene {
       });
 
       // Practice Mode - load players
-      this.events.emit("status-update", "Loading player data...");
-      await this.loadPlayersByPlayerIds(this.player1Id, this.player2Id);
+      this.events.emit("status-update", "Loading fighter data...");
+      await this.loadFightersByIds(this.player1Id, this.player2Id);
 
       // Enforce that both players were loaded successfully
       if (!this.player1 || !this.player2) {
@@ -212,8 +217,8 @@ export class Preloader extends Scene {
       }
 
       // Load player spritesheets
-      this.loadPlayerSpritesheet(this.player1);
-      this.loadPlayerSpritesheet(this.player2);
+      this.loadFighterSpritesheet(this.player1);
+      this.loadFighterSpritesheet(this.player2);
 
       // Get block number
       await this.fetchBlockNumber();
@@ -260,8 +265,8 @@ export class Preloader extends Scene {
 
   private async loadPlayerStates() {
     try {
-      // Create FighterStats objects for both players
-      const player1FighterStats = {
+      // Create FighterStats objects for both fighters
+      const fighter1Stats = {
         weapon: this.player1.currentSkin.weapon,
         armor: this.player1.currentSkin.armor,
         stance: this.player1.currentSkin.stance,
@@ -275,7 +280,7 @@ export class Preloader extends Scene {
         },
       };
 
-      const player2FighterStats = {
+      const fighter2Stats = {
         weapon: this.player2.currentSkin.weapon,
         armor: this.player2.currentSkin.armor,
         stance: this.player2.currentSkin.stance,
@@ -289,20 +294,20 @@ export class Preloader extends Scene {
         },
       };
 
-      // Make multicall to get calculated stats for both players
+      // Make multicall to get calculated stats for both fighters
       const results = await viemClient.multicall({
         contracts: [
           {
             address: this.gameEngineAddress,
             abi: GameEngineABI,
             functionName: "calculateStats",
-            args: [player1FighterStats],
+            args: [fighter1Stats],
           },
           {
             address: this.gameEngineAddress,
             abi: GameEngineABI,
             functionName: "calculateStats",
-            args: [player2FighterStats],
+            args: [fighter2Stats],
           },
         ],
       });
@@ -360,19 +365,18 @@ export class Preloader extends Scene {
         currentEndurance: this.player2.calculatedStats.maxEndurance,
       };
     } catch (error) {
-      console.error("Error loading player states:", error);
+      console.error("Error loading fighter states:", error);
       throw error;
     }
   }
 
-  private loadPlayerSpritesheet(player: Player) {
-    this.load.atlas(
-      `player${player.id}-spritesheet`,
-      player.currentSkin.spritesheet.image,
-      {
-        frames: player.currentSkin.spritesheet.frames,
-      },
-    );
+  private loadFighterSpritesheet(fighter: Fighter) {
+    // Keep using player prefix for backward compatibility
+    const spritesheetKey = `player${fighter.id}-spritesheet`;
+
+    this.load.atlas(spritesheetKey, fighter.currentSkin.spritesheet.image, {
+      frames: fighter.currentSkin.spritesheet.frames,
+    });
   }
 
   private startFightScene() {
@@ -470,26 +474,26 @@ export class Preloader extends Scene {
   //   }
   // }
 
-  async loadPlayersByPlayerIds(player1Id: string, player2Id: string) {
+  async loadFightersByIds(fighter1Id: string, fighter2Id: string) {
     try {
-      const playerIds: string[] = [player1Id, player2Id];
-      const players: Player[] = await fetchAndConvertPlayers(playerIds);
+      const fighterIds: string[] = [fighter1Id, fighter2Id];
+      const fighters: Fighter[] = await fetchAndConvertFighters(fighterIds);
 
-      // Check if we got valid player data
-      if (!players || players.length < 2 || !players[0] || !players[1]) {
-        console.error("Invalid player data returned:", players);
-        throw new Error("Invalid player data returned from API");
+      // Check if we got valid fighter data
+      if (!fighters || fighters.length < 2 || !fighters[0] || !fighters[1]) {
+        console.error("Invalid fighter data returned:", fighters);
+        throw new Error("Invalid fighter data returned from API");
       }
 
-      // Ensure players are assigned correctly based on their IDs
+      // Ensure fighters are assigned correctly based on their IDs
       // instead of the order they come back from the API
-      this.player1 = players.find((p) => p.id === player1Id) || players[0];
-      this.player2 = players.find((p) => p.id === player2Id) || players[1];
+      this.player1 = fighters.find((f) => f.id === fighter1Id) || fighters[0];
+      this.player2 = fighters.find((f) => f.id === fighter2Id) || fighters[1];
 
-      return players;
+      return fighters;
     } catch (error) {
-      console.error("FATAL ERROR: Failed to load player data:", error);
-      throw new Error("FATAL: Cannot load players");
+      console.error("FATAL ERROR: Failed to load fighter data:", error);
+      throw new Error("FATAL: Cannot load fighters");
     }
   }
 

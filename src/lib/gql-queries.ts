@@ -1,4 +1,4 @@
-import { gql } from 'graphql-request';
+import { gql } from "graphql-request";
 
 export const PLAYER_DATA_FRAGMENT = gql`
   fragment PlayerDataFields on Player {
@@ -82,4 +82,92 @@ export const GET_ACTIVE_PLAYERS_QUERY = gql`
     }
   }
   ${PLAYER_DATA_FRAGMENT}
+`;
+
+// Base Fighter fragment for shared properties across all fighter types
+export const FIGHTER_BASE_FRAGMENT = gql`
+  fragment FighterBaseFields on Fighter {
+    id
+    fighterId
+    fighterType
+    isRetired
+    
+    # Common attributes
+    strength
+    constitution
+    size
+    agility
+    stamina
+    luck
+    
+    # Name fields
+    firstName
+    surname
+    fullName
+    
+    # Skin information
+    currentSkin {
+      collection {
+        id
+        contractAddress
+        isVerified
+        skinType
+        requiredNFTAddress
+      }
+      tokenId
+      metadataURI
+      weapon
+      armor
+      stance
+    }
+    
+    # Record fields
+    wins
+    losses
+    kills
+  }
+`;
+
+// Fragment for Player-specific fields
+export const PLAYER_SPECIFIC_FRAGMENT = gql`
+  fragment PlayerSpecificFields on Player {
+    isImmortal
+    owner {
+      address
+    }
+  }
+`;
+
+// Fragment for Monster-specific fields
+export const MONSTER_SPECIFIC_FRAGMENT = gql`
+  fragment MonsterSpecificFields on Monster {
+    tier
+  }
+`;
+
+// Complete Fighter fragment with type-specific fields
+export const FIGHTER_COMPLETE_FRAGMENT = gql`
+  fragment FighterCompleteFields on Fighter {
+    ...FighterBaseFields
+    ... on Player {
+      ...PlayerSpecificFields
+    }
+    ... on Monster {
+      ...MonsterSpecificFields
+    }
+    # DefaultPlayer has no additional fields beyond the base
+  }
+  ${FIGHTER_BASE_FRAGMENT}
+  ${PLAYER_SPECIFIC_FRAGMENT}
+  ${MONSTER_SPECIFIC_FRAGMENT}
+`;
+
+// Query to get fighters by IDs
+export const GET_FIGHTERS_BY_IDS = gql`
+  query GetFightersByIds($fighterIds: [ID!]!) {
+    fighters(where: { id_in: $fighterIds }) {
+      ...FighterCompleteFields
+    }
+  }
+  ${FIGHTER_COMPLETE_FRAGMENT}
 `;

@@ -1,24 +1,41 @@
 import type { Skin, SkinInfo } from "./skin.types";
+import type {
+  Fighter,
+  FighterType,
+  FighterName,
+  FighterAttributes,
+  FighterRecord,
+  FighterCalculatedStats,
+  FighterState,
+} from "./fighter-types";
 
-export interface Player {
-  id: string;
+// Player-specific name type
+export interface PlayerName extends FighterName {
+  firstName: string;
+  surname: string;
+}
+
+// Player extends Fighter with player-specific fields
+export interface Player extends Fighter {
+  fighterType: FighterType.Player;
   name: PlayerName;
-  attributes: PlayerAttributes;
-  currentSkin: Skin;
-  record: PlayerRecord;
-  calculatedStats?: CalculatedStats;
-  currentState?: PlayerState;
-  isRetired: boolean;
   isImmortal: boolean;
+  owner?: { address: string };
 }
 
-export type Character = Player;
-
-export interface PlayerLoadout {
-  playerId: number;
-  skin: SkinInfo;
+// DefaultPlayer extends Fighter with no additional fields
+export interface DefaultPlayer extends Fighter {
+  fighterType: FighterType.DefaultPlayer;
+  name: PlayerName;
 }
 
+// For backward compatibility - providing aliases to fighter types
+export type PlayerAttributes = FighterAttributes;
+export type PlayerRecord = FighterRecord;
+export type CalculatedStats = FighterCalculatedStats;
+export type PlayerState = FighterState;
+
+// Raw player data from GraphQL
 export interface RawPlayerData {
   id: string;
   firstName: string;
@@ -50,43 +67,10 @@ export interface RawPlayerData {
   isImmortal: boolean;
 }
 
-export interface PlayerAttributes {
-  strength: number;
-  constitution: number;
-  size: number;
-  agility: number;
-  stamina: number;
-  luck: number;
+export interface PlayerLoadout {
+  playerId: number;
+  skin: SkinInfo;
 }
 
-export interface PlayerName {
-  firstName: string;
-  surname: string;
-  fullName?: string; // Derived field, could be computed
-}
-
-export interface PlayerRecord {
-  wins: number;
-  losses: number;
-  kills: number;
-}
-
-export interface CalculatedStats {
-  maxHealth: number;
-  maxEndurance: number;
-  damageModifier: number;
-  hitChance: number;
-  blockChance: number;
-  dodgeChance: number;
-  critChance: number;
-  initiative: number;
-  counterChance: number;
-  critMultiplier: number;
-  parryChance: number;
-  baseSurvivalRate: number;
-}
-
-export interface PlayerState {
-  currentHealth: number;
-  currentEndurance: number;
-}
+// The Character type is just an alias for Player
+export type Character = Player;
