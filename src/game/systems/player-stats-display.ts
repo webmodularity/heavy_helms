@@ -1,4 +1,3 @@
-import type { Player } from "@/types/player.types";
 import type { GameObjects, Scene } from "phaser";
 import {
   getWeaponDisplayName,
@@ -10,6 +9,7 @@ import type {
   ArmorType,
   StanceType,
 } from "@/types/equipment.types";
+import type { Fighter } from "@/types/fighter-types";
 
 interface DisplayStyles {
   container: {
@@ -70,7 +70,7 @@ export class PlayerStatsDisplay {
   private updateDelay = 1200;
 
   // Player reference
-  private player: Player | null = null;
+  private player: Fighter | null = null;
 
   constructor(scene: Scene, x: number, y: number, isRightSide = false) {
     this.scene = scene;
@@ -152,7 +152,7 @@ export class PlayerStatsDisplay {
     this.container.setDepth(10);
   }
 
-  public updateWithDelay(player: Player): void {
+  public updateWithDelay(player: Fighter): void {
     // Store player reference immediately
     this.player = player;
 
@@ -173,7 +173,7 @@ export class PlayerStatsDisplay {
     });
   }
 
-  public update(player: Player): void {
+  public update(player: Fighter): void {
     // Store player reference
     this.player = player;
 
@@ -246,7 +246,7 @@ export class PlayerStatsDisplay {
     }
   }
 
-  private fullUpdate(player: Player): void {
+  private fullUpdate(player: Fighter): void {
     // Clear existing elements
     if (this.textElements.length > 0) {
       for (const element of this.textElements) {

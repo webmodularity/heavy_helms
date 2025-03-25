@@ -41,6 +41,7 @@ export interface Fighter {
   calculatedStats?: FighterCalculatedStats;
   currentState?: FighterState;
   isRetired: boolean;
+  isImmortal: boolean;
 }
 
 // Calculated stats interface for all fighters

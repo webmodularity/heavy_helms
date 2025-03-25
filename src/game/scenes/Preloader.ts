@@ -1,16 +1,9 @@
 import { viemClient } from "@/config";
 import { Scene } from "phaser";
 import { EventBus } from "../EventBus";
-import {
-  fetchAndConvertPlayers,
-  fetchAndConvertFighters,
-} from "../../lib/player-api";
-import type {
-  Player,
-  PlayerLoadout,
-  CalculatedStats,
-} from "@/types/player.types";
-import { DuelGameABI, GameEngineABI, PracticeGameABI } from "../abi";
+import { fetchAndConvertFighters } from "../../lib/player-api";
+import type { PlayerLoadout } from "@/types/player.types";
+import { GameEngineABI, PracticeGameABI } from "../abi";
 import type { Address } from "viem";
 import { getEnumKeyByValue } from "../utils/enum-utils";
 import { CombatResultType, WinCondition } from "@/types/game.types";
@@ -20,8 +13,7 @@ import type {
   RawCombatAction,
   SceneData,
 } from "@/types/game.types";
-import type { Fighter, FighterType } from "@/types/fighter-types";
-import type { Monster } from "@/types/monster.types";
+import type { Fighter } from "@/types/fighter-types";
 
 export class Preloader extends Scene {
   // URL parameters
@@ -372,7 +364,7 @@ export class Preloader extends Scene {
 
   private loadFighterSpritesheet(fighter: Fighter) {
     // Keep using player prefix for backward compatibility
-    const spritesheetKey = `player${fighter.id}-spritesheet`;
+    const spritesheetKey = `fighter${fighter.id}-spritesheet`;
 
     this.load.atlas(spritesheetKey, fighter.currentSkin.spritesheet.image, {
       frames: fighter.currentSkin.spritesheet.frames,

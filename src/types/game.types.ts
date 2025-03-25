@@ -1,8 +1,8 @@
-import type { Player } from "./player.types";
-import type { Address } from "viem";
+import type { Fighter } from "./fighter-types";
+
 export interface SceneData {
-  player1: Player;
-  player2: Player;
+  player1: Fighter;
+  player2: Fighter;
   network: string;
   blockNumber: string;
   txId: string;

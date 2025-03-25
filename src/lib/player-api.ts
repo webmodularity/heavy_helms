@@ -445,6 +445,7 @@ export async function convertRawFighterToFighter(
     currentSkin,
     record,
     isRetired: rawFighter.isRetired || false,
+    isImmortal: false,
   };
 
   // Add type-specific properties based on fighterType
@@ -579,6 +580,7 @@ export async function createCustomFighter(
     currentSkin,
     record: fighterRecord,
     isRetired: additionalProps?.isRetired || false,
+    isImmortal: false,
   };
 
   // Add type-specific properties based on fighterType

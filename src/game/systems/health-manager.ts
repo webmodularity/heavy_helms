@@ -1,4 +1,4 @@
-import type { Player } from "@/types/player.types";
+import type { Fighter } from "@/types/fighter-types";
 import type { Scene } from "phaser";
 import * as WebFont from "webfontloader";
 
@@ -38,14 +38,14 @@ interface Tweens {
 
 export class HealthManager {
   private scene: Scene;
-  private player1: Player;
-  private player2: Player;
+  private player1: Fighter;
+  private player2: Fighter;
   private barConfig: BarConfig;
   private p1Bars: PlayerBars | null;
   private p2Bars: PlayerBars | null;
   private tweens: Tweens;
 
-  constructor(scene: Scene, player1: Player, player2: Player) {
+  constructor(scene: Scene, player1: Fighter, player2: Fighter) {
     this.scene = scene;
     this.player1 = player1;
     this.player2 = player2;
