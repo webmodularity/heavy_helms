@@ -1,7 +1,11 @@
 import { viemClient } from "@/config";
 import { Scene } from "phaser";
 import { EventBus } from "../EventBus";
-import { fetchAndConvertFighters } from "../../lib/player-api";
+import {
+  fetchAndConvertFighters,
+  buildRawFighterFromDecodedData,
+  convertRawFighterToFighter,
+} from "../../lib/player-api";
 import type { PlayerLoadout } from "@/types/player.types";
 import { GameEngineABI, PracticeGameABI } from "../abi";
 import type { Address } from "viem";
@@ -16,6 +20,8 @@ import type {
 import type { Fighter } from "@/types/fighter-types";
 import { fetchRawCombatResultByTx } from "@/lib/combat-api";
 import type { RawCombatResult } from "@/types/game.types";
+import { PlayerABI } from "../abi";
+import type { RawDecodedPlayerData } from "@/types/player.types";
 
 export class Preloader extends Scene {
   // URL parameters
@@ -188,26 +194,43 @@ export class Preloader extends Scene {
       if (this.txId) {
         // Combat Results Mode
         this.events.emit("status-update", "Loading combat results...");
-        const combatResult = await this.loadFromCombatResults(this.txId);
+        await this.loadFromCombatResults(this.txId);
+      } else {
+        // Practice Mode
+        if (!this.player1Id || !this.player2Id) {
+          console.error("FATAL ERROR: Missing player IDs");
+          throw new Error("FATAL: Both player IDs are required");
+        }
 
-        // TODO: Once you teach how to build player data from snapshots
-        // this.player1 = buildPlayerFromSnapshot(combatResult.player1Data);
-        // this.player2 = buildPlayerFromSnapshot(combatResult.player2Data);
+        // Practice Mode - load players
+        this.events.emit("status-update", "Loading fighter data...");
+        await this.loadFightersByIds(this.player1Id, this.player2Id);
+        // Get block number
+        await this.fetchBlockNumber();
 
-        // For now, throw error until snapshot handling is implemented
-        throw new Error("Combat results mode not yet implemented");
+        const player1Loadout: PlayerLoadout = {
+          playerId: Number(this.player1.id),
+          skin: {
+            skinIndex: Number(this.player1.currentSkin.collection.id),
+            skinTokenId: Number(this.player1.currentSkin.tokenId),
+          },
+        };
+        const player2Loadout: PlayerLoadout = {
+          playerId: Number(this.player2.id),
+          skin: {
+            skinIndex: Number(this.player2.currentSkin.collection.id),
+            skinTokenId: Number(this.player2.currentSkin.tokenId),
+          },
+        };
+
+        // Get combat bytes
+        this.decodedCombatBytes = await this.loadCombatBytesPracticeMode(
+          player1Loadout,
+          player2Loadout,
+        );
       }
 
-      // Practice Mode - ensure we have player IDs
-      if (!this.player1Id || !this.player2Id) {
-        console.error("FATAL ERROR: Missing player IDs");
-        throw new Error("FATAL: Both player IDs are required");
-      }
-
-      // Practice Mode - load players
-      this.events.emit("status-update", "Loading fighter data...");
-      await this.loadFightersByIds(this.player1Id, this.player2Id);
-
+      // Shared between both modes
       // Enforce that both players were loaded successfully
       if (!this.player1 || !this.player2) {
         console.error("FATAL ERROR: Failed to load player data");
@@ -218,31 +241,6 @@ export class Preloader extends Scene {
       this.loadFighterSpritesheet(this.player1);
       this.loadFighterSpritesheet(this.player2);
 
-      // Get block number
-      await this.fetchBlockNumber();
-
-      const player1Loadout: PlayerLoadout = {
-        playerId: Number(this.player1.id),
-        skin: {
-          skinIndex: Number(this.player1.currentSkin.collection.id),
-          skinTokenId: Number(this.player1.currentSkin.tokenId),
-        },
-      };
-      const player2Loadout: PlayerLoadout = {
-        playerId: Number(this.player2.id),
-        skin: {
-          skinIndex: Number(this.player2.currentSkin.collection.id),
-          skinTokenId: Number(this.player2.currentSkin.tokenId),
-        },
-      };
-
-      // Get combat bytes
-      this.decodedCombatBytes = await this.loadCombatBytesPracticeMode(
-        player1Loadout,
-        player2Loadout,
-      );
-
-      // Shared between both modes
       // Load CalculatedStats + Initial PlayerState
       await this.loadPlayerStates();
 
@@ -549,29 +547,118 @@ export class Preloader extends Scene {
     return result;
   }
 
-  async loadFromCombatResults(txId: string): Promise<RawCombatResult> {
+  async loadFromCombatResults(txId: string) {
     try {
       // Fetch combat results from dedicated API layer with new method name
       const combatResult = await fetchRawCombatResultByTx(txId);
-
-      // TODO need to use player contract to batch decode this player data
+      console.log("combatResult", combatResult);
+      // Decode the player data
+      const decodedPlayerData = await this.decodeCombatPlayerData(
+        combatResult.player1Data,
+        combatResult.player2Data,
+      );
+      // Decode the combat bytes
       this.decodedCombatBytes = await this.decodeCombatBytes(
         combatResult.packedResults as `0x${string}`,
         this.gameEngineAddress,
-        combatResult.player1Data.playerId,
-        combatResult.player2Data.playerId,
+        Number(decodedPlayerData.player1.id),
+        Number(decodedPlayerData.player2.id),
       );
 
       // Store block timestamp
       this.blockNumber = combatResult.blockTimestamp;
 
-      // Store the encoded player data for later decoding
-      // this.player1SnapshotData = combatResult.player1Data;
-      // this.player2SnapshotData = combatResult.player2Data;
-
-      return combatResult;
+      // Build players from decoded player data
+      const rawFighter1Data = await buildRawFighterFromDecodedData(
+        decodedPlayerData.player1,
+      );
+      const rawFighter2Data = await buildRawFighterFromDecodedData(
+        decodedPlayerData.player2,
+      );
+      this.player1 = await convertRawFighterToFighter(rawFighter1Data);
+      this.player2 = await convertRawFighterToFighter(rawFighter2Data);
     } catch (error) {
       console.error("Error loading combat results:", error);
+      throw error;
+    }
+  }
+
+  async decodeCombatPlayerData(
+    player1Data: string,
+    player2Data: string,
+  ): Promise<{
+    player1: RawDecodedPlayerData;
+    player2: RawDecodedPlayerData;
+  }> {
+    try {
+      // Check if we have valid data
+      if (!player1Data || !player2Data) {
+        throw new Error("Missing player data");
+      }
+
+      // Ensure data is in the correct bytes32 format
+      const formatHexData = (data: string): `0x${string}` => {
+        // If it doesn't start with 0x, add it
+        const hexData = data.startsWith("0x") ? data : `0x${data}`;
+        // Ensure it's the correct length for bytes32 (0x + 64 hex chars)
+        if (hexData.length !== 66) {
+          console.warn(
+            `Data length is ${hexData.length}, expected 66 chars for bytes32`,
+          );
+        }
+        return hexData as `0x${string}`;
+      };
+
+      // Get player contract address
+      const playerContractAddress = process.env
+        .NEXT_PUBLIC_PLAYER_CONTRACT_ADDRESS as Address;
+
+      // Make multicall to decode both players' data
+      const results = await viemClient.multicall({
+        contracts: [
+          {
+            address: playerContractAddress,
+            abi: PlayerABI,
+            functionName: "decodePlayerData",
+            args: [formatHexData(player1Data)],
+          },
+          {
+            address: playerContractAddress,
+            abi: PlayerABI,
+            functionName: "decodePlayerData",
+            args: [formatHexData(player2Data)],
+          },
+        ],
+      });
+
+      // Check for errors
+      if (results[0].status === "failure") {
+        throw results[0].error;
+      }
+      if (results[1].status === "failure") {
+        throw results[1].error;
+      }
+
+      // Extract results and properly type them
+      const [player1Id, player1Stats] = results[0].result;
+      const [player2Id, player2Stats] = results[1].result;
+
+      // Create typed objects that exactly match the RawDecodedPlayerData interface
+      const rawPlayer1Data: RawDecodedPlayerData = {
+        id: Number(player1Id),
+        stats: player1Stats,
+      };
+
+      const rawPlayer2Data: RawDecodedPlayerData = {
+        id: Number(player2Id),
+        stats: player2Stats,
+      };
+      return {
+        player1: rawPlayer1Data,
+        player2: rawPlayer2Data,
+      };
+    } catch (error) {
+      console.error("Error decoding player data:", error);
       throw error;
     }
   }
