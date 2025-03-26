@@ -255,3 +255,16 @@ export const GET_FIGHTER_CHALLENGES = gql`
   }
   ${CHALLENGE_COMPLETE_FRAGMENT}
 `;
+
+export const GET_COMBAT_RESULT = gql`
+  query GetCombatResult($txHash: ID!) {
+    combatResult(id: $txHash) {
+      id
+      player1Data
+      player2Data
+      winningPlayerId
+      packedResults
+      blockTimestamp
+    }
+  }
+`;

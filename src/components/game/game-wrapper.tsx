@@ -17,9 +17,10 @@ const PhaserGame = dynamic(() => import("@/game/PhaserGame"), {
 interface GameWrapperProps {
   player1Id?: string;
   player2Id?: string;
+  txId?: string;
 }
 
-export function GameWrapper({ player1Id, player2Id }: GameWrapperProps) {
+export function GameWrapper({ player1Id, player2Id, txId }: GameWrapperProps) {
   const [isClient, setIsClient] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
