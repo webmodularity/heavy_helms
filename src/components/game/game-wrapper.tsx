@@ -16,14 +16,14 @@ const PhaserGame = dynamic(() => import("@/game/PhaserGame"), {
 });
 
 interface GameWrapperProps {
-  player1Id?: string;
-  player2Id?: string;
+  // player1Id?: string;
+  // player2Id?: string;
   player1?: Fighter;
 }
 
 export function GameWrapper({
-  player1Id,
-  player2Id,
+  // player1Id,
+  // player2Id,
   player1,
 }: GameWrapperProps) {
   const [isClient, setIsClient] = useState(false);
@@ -67,7 +67,7 @@ export function GameWrapper({
       //   ref={containerRef}
       className="relative flex items-center justify-center w-[320px] h-[180px] md:w-[960px] md:h-[540px] "
     >
-      <PhaserGame player1Id={player1Id} player2Id={player2Id} player1={player1} />
+      <PhaserGame player1={player1} />
 
       {/* Game Controls Overlay */}
       <div className="absolute md:bottom-0 -bottom-10 right-0 p-1 md:p-2 flex md:gap-2 gap-1 bg-stone-900/70 backdrop-blur-sm rounded-tl-md z-10">

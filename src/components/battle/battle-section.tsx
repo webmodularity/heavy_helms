@@ -107,9 +107,7 @@ function BattleCard({
         // Show challenge form instead of navigating
         setShowChallengeForm(true);
       } else {
-        router.push(
-          `${battleType.route}?player1Id=${selectedCharacter.id}&player2Id=2`,
-        );
+        router.push(`${battleType.route}?player1Id=${selectedCharacter.id}`);
       }
     }
   };
@@ -117,12 +115,12 @@ function BattleCard({
   const handleChallengeSuccess = () => {
     // Close the form and potentially show a success message or redirect
     setShowChallengeForm(false);
-    
+
     // Scroll to the challenges tab in the Activity Section
     const activitySection = document.getElementById("activity-section");
     if (activitySection) {
       activitySection.scrollIntoView({ behavior: "smooth" });
-      
+
       // Set the active tab to "challenges"
       const event = new CustomEvent("activateChallengesTab");
       document.dispatchEvent(event);
@@ -141,7 +139,7 @@ function BattleCard({
           transition: { duration: 0.7, delay: animationDelay },
         }}
       >
-        <CreateChallengeForm 
+        <CreateChallengeForm
           character={selectedCharacter}
           onSuccess={handleChallengeSuccess}
           onCancel={() => setShowChallengeForm(false)}

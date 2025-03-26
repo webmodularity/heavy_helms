@@ -1,4 +1,4 @@
-import { viemClient } from "@/config";
+import { SUBGRAPH_URL, viemClient } from "@/config";
 import { Scene } from "phaser";
 import { EventBus } from "../EventBus";
 import { fetchAndConvertFighters } from "../../lib/player-api";
@@ -14,6 +14,8 @@ import type {
   SceneData,
 } from "@/types/game.types";
 import type { Fighter } from "@/types/fighter-types";
+import request from "graphql-request";
+import { GET_ALL_ACTIVE_PLAYER_IDS_QUERY } from "@/lib/gql-queries";
 
 export class Preloader extends Scene {
   // URL parameters
@@ -54,17 +56,17 @@ export class Preloader extends Scene {
     // Only set player IDs if no txId (practice mode) and if provided in URL
     if (!this.txId) {
       const p1Id = params.get("player1Id");
-      const p2Id = params.get("player2Id");
+      // const p2Id = params.get("player2Id");
 
       // Only set player IDs if both are valid numbers
       if (
         p1Id &&
-        p2Id &&
-        !Number.isNaN(Number(p1Id)) &&
-        !Number.isNaN(Number(p2Id))
+        // p2Id &&
+        !Number.isNaN(Number(p1Id))
+        // !Number.isNaN(Number(p2Id))
       ) {
         this.player1Id = p1Id;
-        this.player2Id = p2Id;
+        // this.player2Id = p2Id;
       }
 
       // Listen for player IDs from EventBus (from React)
@@ -186,9 +188,9 @@ export class Preloader extends Scene {
       }
 
       // Enforce that we have both player IDs
-      if (!this.player1Id || !this.player2Id) {
-        console.error("FATAL ERROR: Missing player IDs");
-        throw new Error("FATAL: Both player IDs are required");
+      if (!this.player1Id) {
+        console.error("FATAL ERROR: Missing player ID");
+        throw new Error("FATAL: Player ID is required");
       }
 
       this.gameEngineAddress = await viemClient.readContract({
@@ -200,7 +202,8 @@ export class Preloader extends Scene {
 
       // Practice Mode - load players
       this.events.emit("status-update", "Loading fighter data...");
-      await this.loadFightersByIds(this.player1Id, this.player2Id);
+      const randomOpponentId = await this.getRandomOpponentId();
+      await this.loadOpponentById(randomOpponentId);
 
       // Enforce that both players were loaded successfully
       if (!this.player1 || !this.player2) {
@@ -466,10 +469,29 @@ export class Preloader extends Scene {
   //   }
   // }
 
-  async loadFightersByIds(fighter1Id: string, fighter2Id: string) {
+  async getRandomOpponentId() {
+    const allActivePlayerIds = await request<{
+      players: { id: string }[];
+      defaultPlayers: { id: string }[];
+      monsters: { id: string }[];
+    }>(SUBGRAPH_URL, GET_ALL_ACTIVE_PLAYER_IDS_QUERY);
+
+    const allPlayerIds = [
+      ...allActivePlayerIds.players.map((player) => player.id),
+      ...allActivePlayerIds.defaultPlayers.map((player) => player.id),
+      ...allActivePlayerIds.monsters.map((player) => player.id),
+    ];
+
+    const randomIndex = Math.floor(Math.random() * allPlayerIds.length);
+    const randomId = allPlayerIds[randomIndex];
+    console.log("Random ID:", randomId);
+    return randomId;
+  }
+
+  async loadOpponentById(opponentId: string) {
     try {
-      // const fighterIds: string[] = [fighter1Id, fighter2Id];
-      const fighters: Fighter[] = await fetchAndConvertFighters([fighter2Id]);
+      // Note: We already have player1 from the registry
+      const fighters: Fighter[] = await fetchAndConvertFighters([opponentId]);
 
       // Check if we got valid fighter data
       if (!fighters) {
@@ -479,7 +501,6 @@ export class Preloader extends Scene {
 
       // Ensure fighters are assigned correctly based on their IDs
       // instead of the order they come back from the API
-      // this.player1 = fighters.find((f) => f.id === fighter1Id) || fighters[0];
       this.player1 = this.game.registry.get("player1");
       this.player2 = fighters[0];
 

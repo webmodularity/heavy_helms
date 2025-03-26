@@ -62,8 +62,6 @@ export const GET_VERIFIED_SKIN_COLLECTIONS = gql`
   }
 `;
 
-
-
 // Base Fighter fragment for shared properties across all fighter types
 export const FIGHTER_BASE_FRAGMENT = gql`
   fragment FighterBaseFields on Fighter {
@@ -219,6 +217,36 @@ export const GET_ACTIVE_PLAYERS_QUERY = gql`
     }
   }
   ${FIGHTER_BASE_FRAGMENT}
+`;
+
+export const GET_ACTIVE_IDS_QUERY = gql`
+  query GetActiveIds {
+    players(where: { isRetired: false }, first: 1000) {
+      id
+    }
+  }
+`;
+
+export const GET_ALL_ACTIVE_PLAYER_IDS_QUERY = gql`
+  query GetAllActivePlayerIds {
+    players(where: { isRetired: false }, first: 1000) {
+      id
+    }
+    defaultPlayers(where: { isRetired: false }, first: 1000) {
+      id
+    }
+    monsters(where: { isRetired: false }, first: 1000) {
+      id
+    }
+  }
+`;
+
+export const GET_ACTIVE_DEFAULT_PLAYER_IDS_QUERY = gql`
+  query GetActiveDefaultPlayerIds {
+    defaultPlayers(where: { isRetired: false }, first: 1000) {
+      id
+    }
+  }
 `;
 
 // Add this new query to your gql-queries.ts file
