@@ -181,6 +181,10 @@ export class Preloader extends Scene {
 
   private async onLoadComplete() {
     try {
+      // Use cached version for now
+      this.gameEngineAddress = process.env
+        .NEXT_PUBLIC_GAME_ENGINE_CONTRACT_ADDRESS as Address;
+
       if (this.txId) {
         // Combat Results Mode
         this.events.emit("status-update", "Loading combat results...");
@@ -199,14 +203,6 @@ export class Preloader extends Scene {
         console.error("FATAL ERROR: Missing player IDs");
         throw new Error("FATAL: Both player IDs are required");
       }
-
-      // Get game engine address
-      this.gameEngineAddress = await viemClient.readContract({
-        address: process.env
-          .NEXT_PUBLIC_PRACTICE_GAME_CONTRACT_ADDRESS as Address,
-        abi: PracticeGameABI,
-        functionName: "gameEngine",
-      });
 
       // Practice Mode - load players
       this.events.emit("status-update", "Loading fighter data...");
@@ -558,6 +554,7 @@ export class Preloader extends Scene {
       // Fetch combat results from dedicated API layer with new method name
       const combatResult = await fetchRawCombatResultByTx(txId);
 
+      // TODO need to use player contract to batch decode this player data
       this.decodedCombatBytes = await this.decodeCombatBytes(
         combatResult.packedResults as `0x${string}`,
         this.gameEngineAddress,
@@ -569,8 +566,8 @@ export class Preloader extends Scene {
       this.blockNumber = combatResult.blockTimestamp;
 
       // Store the encoded player data for later decoding
-      this.player1SnapshotData = combatResult.player1Data;
-      this.player2SnapshotData = combatResult.player2Data;
+      // this.player1SnapshotData = combatResult.player1Data;
+      // this.player2SnapshotData = combatResult.player2Data;
 
       return combatResult;
     } catch (error) {
