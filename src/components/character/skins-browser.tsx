@@ -26,7 +26,7 @@ export interface SkinWithMetadataURI {
     registryId: string;
     contractAddress: string;
     skinType: SkinType;
-    requiredNFTAddress?: string;
+    requiredNFTAddress?: string | null;
     isVerified: boolean;
   };
   imageURL?: string;

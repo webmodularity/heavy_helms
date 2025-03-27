@@ -35,7 +35,6 @@ function PracticeGame() {
   const player1Id = searchParams.get("player1Id") ?? undefined;
   // biome-ignore lint/style/noNonNullAssertion: <explanation>
   const { data: player1 } = usePlayerById(player1Id!);
-  console.log("player1", player1);
   // const player2Id = searchParams.get("player2Id") ?? undefined;
   const router = useRouter();
 
