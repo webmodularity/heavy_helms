@@ -1,6 +1,6 @@
 // src/components/home/authenticated-view.tsx
 "use client";
-import type { Character } from "@/types/player.types";
+import type { Player } from "@/types/player.types";
 import { motion } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
@@ -11,7 +11,7 @@ import { WarriorSelection } from "../character/warrior-selection";
 import { ActivitySection } from "./activity-section";
 
 export function AuthenticatedView() {
-  const [selectedCharacter, setSelectedCharacter] = useState<Character | null>(
+  const [selectedCharacter, setSelectedCharacter] = useState<Player | null>(
     null,
   );
 
@@ -27,7 +27,7 @@ export function AuthenticatedView() {
   }, [inView]);
 
   // Function to select a character
-  const handleSelectCharacter = (character: Character) => {
+  const handleSelectCharacter = (character: Player) => {
     setSelectedCharacter(character);
 
     // Add a small delay to allow the UI to update before scrolling

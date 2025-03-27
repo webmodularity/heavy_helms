@@ -65,7 +65,7 @@ export function WarriorSelection({
               {players?.map((character, index) => (
                 <CharacterCard
                   key={character.id}
-                  character={character}
+                  character={character as Player}
                   index={index}
                   isSelected={selectedCharacter?.id === character.id}
                   onSelect={() => onSelectCharacter(character as Player)}

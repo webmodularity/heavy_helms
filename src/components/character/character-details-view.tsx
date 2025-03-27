@@ -79,10 +79,10 @@ export function CharacterDetailsView({
       <AttributesSection character={character as Player} />
 
       {/* Equipment Section */}
-      <EquipmentSection character={character} />
+      <EquipmentSection character={character as Player} />
 
       {/* Skins Browser Section */}
-      {!character.isRetired && <SkinsBrowser character={character} />}
+      {!character.isRetired && <SkinsBrowser character={character as Player} />}
 
       {/* Action Buttons */}
       <motion.div
