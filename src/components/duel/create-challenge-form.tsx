@@ -7,14 +7,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { motion } from "framer-motion";
 import { Loader2, Search, User } from "lucide-react";
-import type { Character } from "@/types/player.types";
+import type { Player } from "@/types/player.types";
 import { useCreateChallenge } from "@/hooks/use-create-challenge";
 import { SelectChallengerModal } from "@/components/dialogs/select-challenger-modal";
 import Image from "next/image";
 import type { Fighter } from "@/types/fighter-types";
 
 interface CreateChallengeFormProps {
-  character: Character;
+  character: Player;
   onSuccess?: () => void;
   onCancel?: () => void;
 }

@@ -6,14 +6,15 @@ import { useWallets } from "@privy-io/react-auth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { encodeFunctionData } from "viem";
-import type { Character } from "@/types/player.types";
+import type { Player } from "@/types/player.types";
 import type { Challenge } from "./use-challenges";
+import { useRouter } from "next/navigation";
 // This is a placeholder - replace with your actual contract address
 const DUEL_GAME_CONTRACT_ADDRESS = process.env
   .NEXT_PUBLIC_DUEL_GAME_CONTRACT_ADDRESS as `0x${string}`;
 
 interface AcceptChallengeParams {
-  character: Character;
+  character: Player;
   challengeId: bigint;
   wagerAmount: bigint;
 }
@@ -29,7 +30,7 @@ export function useAcceptChallenge() {
   const { wallets } = useWallets();
   const { isWrongNetwork, switchToBaseSepolia } = useWallet();
   const queryClient = useQueryClient();
-
+  const router = useRouter();
   // Find embedded wallet
   const embeddedWallet = wallets?.find(
     (wallet) => wallet.connectorType === "embedded",
@@ -105,6 +106,8 @@ export function useAcceptChallenge() {
         },
         duration: 5000,
       });
+
+      // router.push(`/duel?txId=${txHash}`);
 
       // Invalidate active challenges query to refresh the list
       if (embeddedWallet?.address) {

@@ -72,9 +72,6 @@ export interface PlayerLoadout {
   skin: SkinInfo;
 }
 
-// The Character type is just an alias for Player
-export type Character = Player;
-
 // Raw data structure returned from decodePlayerData on the Player contract
 export interface RawDecodedPlayerData {
   id: number;

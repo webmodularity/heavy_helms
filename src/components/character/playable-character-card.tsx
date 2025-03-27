@@ -1,7 +1,7 @@
 "use client";
 
 import { CardContainer } from "@/components/character/card-container";
-import type { Character } from "@/types/player.types";
+import type { Player } from "@/types/player.types";
 import Image from "next/image";
 import { YellowButton } from "@/components/ui/yellow-button";
 import { motion } from "framer-motion";
@@ -9,7 +9,7 @@ import { Dumbbell, Footprints, Heart } from "lucide-react";
 import { Check } from "lucide-react";
 
 interface CharacterCardProps {
-  character: Character;
+  character: Player;
   index: number;
   isSelected: boolean;
   onSelect: () => void;
@@ -17,9 +17,13 @@ interface CharacterCardProps {
   onViewDetails: () => void;
 }
 
-function AttributeBar({ label, value, icon }: { label: string; value: number; icon: React.ReactNode }) {
+function AttributeBar({
+  label,
+  value,
+  icon,
+}: { label: string; value: number; icon: React.ReactNode }) {
   const percentage = (value / 10) * 100;
-  
+
   return (
     <div className="space-y-1.5">
       <div className="flex justify-between items-center text-xs">
@@ -30,7 +34,7 @@ function AttributeBar({ label, value, icon }: { label: string; value: number; ic
         <span className="font-medium text-white">{value}</span>
       </div>
       <div className="h-1.5 w-full bg-stone-800/80 rounded-full overflow-hidden">
-        <motion.div 
+        <motion.div
           className="h-full bg-gradient-to-r from-amber-700 to-yellow-500 rounded-full"
           initial={{ width: 0 }}
           animate={{ width: `${percentage}%` }}
@@ -60,7 +64,7 @@ export function CharacterCard({
             animate={isSelected ? { opacity: 0.4 } : { opacity: 0 }}
             transition={{ duration: 0.6 }}
           />
-          
+
           <Image
             src={character.currentSkin.imageURL}
             alt={`Character ${character.name.fullName}`}
@@ -69,12 +73,12 @@ export function CharacterCard({
             className="object-cover transition-transform duration-500 group-hover:scale-105"
             priority
           />
-          
+
           {/* Character ID Badge */}
           <div className="absolute top-3 left-3 bg-black/70 backdrop-blur-sm px-2 py-1 rounded text-xs font-mono text-yellow-500 border border-yellow-500/30 z-20">
             ID: {character.id}
           </div>
-          
+
           {/* Selected Badge */}
           {isSelected && (
             <div className="absolute top-3 right-3 bg-yellow-500 text-black px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1 z-20">
@@ -89,37 +93,37 @@ export function CharacterCard({
         <h3 className="font-bold text-lg text-yellow-500 truncate">
           {character.name.fullName}
         </h3>
-        
+
         {/* Attributes */}
         <div className="space-y-2.5">
-          <AttributeBar 
-            label="Strength" 
-            value={character.attributes.strength} 
-            icon={<Dumbbell className="h-3.5 w-3.5 text-yellow-600" />} 
+          <AttributeBar
+            label="Strength"
+            value={character.attributes.strength}
+            icon={<Dumbbell className="h-3.5 w-3.5 text-yellow-600" />}
           />
-          <AttributeBar 
-            label="Agility" 
-            value={character.attributes.agility} 
-            icon={<Footprints className="h-3.5 w-3.5 text-yellow-600" />} 
+          <AttributeBar
+            label="Agility"
+            value={character.attributes.agility}
+            icon={<Footprints className="h-3.5 w-3.5 text-yellow-600" />}
           />
-          <AttributeBar 
-            label="Stamina" 
-            value={character.attributes.stamina} 
-            icon={<Heart className="h-3.5 w-3.5 text-yellow-600" />} 
+          <AttributeBar
+            label="Stamina"
+            value={character.attributes.stamina}
+            icon={<Heart className="h-3.5 w-3.5 text-yellow-600" />}
           />
         </div>
 
         {/* Action Buttons */}
         <div className="grid grid-cols-2 gap-2 pt-2">
-          <YellowButton 
+          <YellowButton
             onClick={isSelected ? onDeselect : onSelect}
             className="w-full"
             variant={isSelected ? "outline" : "default"}
           >
             {isSelected ? "Deselect" : "Select"}
           </YellowButton>
-          
-          <YellowButton 
+
+          <YellowButton
             onClick={onViewDetails}
             className="w-full"
             variant="outline"

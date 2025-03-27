@@ -13,14 +13,14 @@ import {
   parseEther,
   type TransactionRequest,
 } from "viem";
-import type { Character } from "@/types/player.types";
+import type { Player } from "@/types/player.types";
 
 // This is a placeholder - replace with your actual contract address
 const DUEL_GAME_CONTRACT_ADDRESS = process.env
   .NEXT_PUBLIC_DUEL_GAME_CONTRACT_ADDRESS as `0x${string}`;
 
 interface CreateChallengeParams {
-  character: Character;
+  character: Player;
   defenderId: number;
   wagerAmount: string;
 }
