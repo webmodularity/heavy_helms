@@ -1,7 +1,7 @@
 import { SUBGRAPH_URL } from "@/config";
 import { GET_ACTIVE_PLAYERS_QUERY } from "@/lib/gql-queries";
 import { convertRawPlayerToPlayer } from "@/lib/player-api";
-import type { Player, RawPlayerData } from "@/types/player.types";
+import type { RawPlayerData } from "@/types/player.types";
 import { useQuery } from "@tanstack/react-query";
 import request from "graphql-request";
 import { usePrivy } from "@privy-io/react-auth";

@@ -551,7 +551,7 @@ export class Preloader extends Scene {
     try {
       // Fetch combat results from dedicated API layer with new method name
       const combatResult = await fetchRawCombatResultByTx(txId);
-      console.log("combatResult", combatResult);
+
       // Decode the player data
       const decodedPlayerData = await this.decodeCombatPlayerData(
         combatResult.player1Data,

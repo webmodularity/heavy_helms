@@ -67,3 +67,26 @@ export interface RawCombatResult {
   blockTimestamp: string;
   transactionHash: string;
 }
+
+export interface Duel {
+  id: string;
+  blockNumber: string;
+  blockTimestamp: string;
+  winnerId: string;
+  challenge: {
+    challengerId: string;
+    defenderId: string;
+    challenger: {
+      id: string;
+      fullName: string;
+    };
+    defender: {
+      id: string;
+      fullName: string;
+    };
+    winner: {
+      id: string;
+      fullName: string;
+    };
+  };
+}

@@ -301,3 +301,73 @@ export const GET_SKIN_BY_INDICES = gql`
     }
   }
 `;
+
+// Query for a specific player's duels
+export const GET_PLAYER_DUELS = gql`
+  query GetPlayerDuels($limit: Int = 10, $playerId: ID!) {
+    duelCompletes(
+      first: $limit, 
+      orderBy: blockNumber, 
+      orderDirection: desc,
+      where: {
+        or: [
+          { challenge_: { challengerId: $playerId } },
+          { challenge_: { defenderId: $playerId } }
+        ]
+      }
+    ) {
+      id
+      blockNumber
+      blockTimestamp
+      winnerId
+      challenge {
+        challengerId
+        defenderId
+        challenger {
+          id
+          fullName
+        }
+        defender {
+          id
+          fullName
+        }
+        winner {
+          id
+          fullName
+        }
+      }
+    }
+  }
+`;
+
+// Query for all duels (without filtering)
+export const GET_ALL_DUELS = gql`
+  query GetAllDuels($limit: Int = 10) {
+    duelCompletes(
+      first: $limit, 
+      orderBy: blockNumber, 
+      orderDirection: desc
+    ) {
+      id
+      blockNumber
+      blockTimestamp
+      winnerId
+      challenge {
+        challengerId
+        defenderId
+        challenger {
+          id
+          fullName
+        }
+        defender {
+          id
+          fullName
+        }
+        winner {
+          id
+          fullName
+        }
+      }
+    }
+  }
+`;
