@@ -135,7 +135,7 @@ export async function createPlayerSkin(rawSkin: {
     contractAddress: string;
     isVerified: boolean;
     skinType: number;
-    requiredNFTAddress: string | null;
+    requiredNFTAddress?: string | null;
   };
   tokenId: number;
   metadataURI: string;
