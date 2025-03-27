@@ -12,8 +12,13 @@ import { HeroSection } from "./hero-section";
 import { ProfileSection } from "./profile-section";
 import { AttributesSection } from "./attributes-section";
 import { EquipmentSection } from "./equipment-section";
-import { CharacterDetailsSkeleton, CharacterError, CharacterNotFound } from "./loading-states";
+import {
+  CharacterDetailsSkeleton,
+  CharacterError,
+  CharacterNotFound,
+} from "./loading-states";
 import { SkinsBrowser } from "./skins-browser";
+import type { Player } from "@/types/player.types";
 
 interface CharacterDetailsViewProps {
   characterId: string;
@@ -65,21 +70,19 @@ export function CharacterDetailsView({
       </Button>
 
       {/* Hero Section */}
-      <HeroSection character={character} />
+      <HeroSection character={character as Player} />
 
       {/* Profile Section (Character Image + Info) */}
-      <ProfileSection character={character} />
+      <ProfileSection character={character as Player} />
 
       {/* Attributes Section */}
-      <AttributesSection character={character} />
+      <AttributesSection character={character as Player} />
 
       {/* Equipment Section */}
       <EquipmentSection character={character} />
 
       {/* Skins Browser Section */}
-      {!character.isRetired && (
-        <SkinsBrowser character={character} />
-      )}
+      {!character.isRetired && <SkinsBrowser character={character} />}
 
       {/* Action Buttons */}
       <motion.div
@@ -88,10 +91,7 @@ export function CharacterDetailsView({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.4 }}
       >
-        <Button
-          variant="destructive"
-          onClick={() => setShowConfirm(true)}
-        >
+        <Button variant="destructive" onClick={() => setShowConfirm(true)}>
           <Trash2 className="mr-1 h-4 w-4" />
           Retire Warrior
         </Button>

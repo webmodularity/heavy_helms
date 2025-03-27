@@ -1,6 +1,6 @@
 "use client";
 
-import type { Character } from "@/types/player.types";
+import type { Player } from "@/types/player.types";
 import { motion } from "framer-motion";
 import { ChevronUp } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -10,7 +10,7 @@ import { useState } from "react";
 import { CreateChallengeForm } from "@/components/duel/create-challenge-form";
 
 interface BattleSectionProps {
-  selectedCharacter: Character | null;
+  selectedCharacter: Player | null;
   hasBattleInView: boolean;
   battleSectionRef: React.RefObject<HTMLElement>;
 }
@@ -83,7 +83,7 @@ interface BattleCardProps {
     route: string;
     available: boolean;
   };
-  selectedCharacter: Character | null;
+  selectedCharacter: Player | null;
   hasBattleInView: boolean;
   animationDelay: number;
   contentDelay: number;
