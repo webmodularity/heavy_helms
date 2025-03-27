@@ -64,6 +64,9 @@ export class Preloader extends Scene {
     this.strategy = GameModeStrategyFactory.createStrategy(this);
     await this.strategy.initialize(this);
 
+    // Start the initial assets loading stage
+    this.loadingUI.startStage("initialAssets");
+
     // Set up loading events for the main assets
     this.assetManager.onLoadComplete(this.onMainAssetsComplete, this);
 
@@ -79,18 +82,36 @@ export class Preloader extends Scene {
 
   private async onMainAssetsComplete() {
     try {
-      // Load player data using the selected strategy
+      // Complete the initial assets stage
+      this.loadingUI.completeStage();
+
+      // Start the fighter data loading stage
+      this.loadingUI.startStage("fighterData");
       this.events.emit("status-update", "Loading fighter data...");
+
+      // Load player data using the selected strategy
       const { player1, player2 } = await this.strategy.loadPlayerData();
       this.player1 = player1;
       this.player2 = player2;
 
-      // Load combat data using the selected strategy
+      // Complete the fighter data stage
+      this.loadingUI.completeStage();
+
+      // Start the combat data loading stage
+      this.loadingUI.startStage("combatData");
       this.events.emit("status-update", "Loading combat data...");
+
+      // Load combat data using the selected strategy
       this.decodedCombatBytes = await this.strategy.loadCombatData();
 
-      // Load player spritesheets
+      // Complete the combat data stage
+      this.loadingUI.completeStage();
+
+      // Start the fighter assets loading stage
+      this.loadingUI.startStage("fighterAssets");
       this.events.emit("status-update", "Loading fighter assets...");
+
+      // Load player spritesheets
       this.assetManager.loadFighterAssets(this.player1, this.player2);
 
       // Remove the complete listener to avoid duplicate calls
@@ -101,8 +122,22 @@ export class Preloader extends Scene {
 
       // Add a new one-time listener for the player assets
       this.assetManager.onceLoadComplete(() => {
-        // Start the next scene
-        this.startFightScene();
+        // Complete the fighter assets stage
+        this.loadingUI.completeStage();
+
+        // Start the finalizing stage
+        this.loadingUI.startStage("finalizing");
+        this.events.emit("status-update", "Finalizing...");
+
+        // Simulate a small delay for final preparations
+        // This prevents the jarring transition if everything loads instantly
+        setTimeout(() => {
+          // Complete the finalizing stage
+          this.loadingUI.completeStage();
+
+          // Start the next scene
+          this.startFightScene();
+        }, 500);
       }, this);
     } catch (error) {
       console.error("FATAL ERROR: Failed to load game data:", error);

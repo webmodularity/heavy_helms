@@ -16,7 +16,7 @@ interface GameConfig {
 export const gameData = {
   player1Id: undefined as string | undefined,
   player2Id: undefined as string | undefined,
-  player1: undefined as Fighter | undefined
+  player1: undefined as Fighter | undefined,
 };
 
 //  Find out more information about the Game Config at:
@@ -71,13 +71,12 @@ const StartGame = (parent: string, gameConfig?: GameConfig) => {
 
   // Create the game instance
   const game = new Game({ ...config, parent });
-  
+
   // Store the initial data in the game registry for access across scenes
-  console.log("gameData", gameData);
-  game.registry.set('player1Id', gameData.player1Id);
-  game.registry.set('player2Id', gameData.player2Id);
-  game.registry.set('player1', gameData.player1);
-  
+  game.registry.set("player1Id", gameData.player1Id);
+  game.registry.set("player2Id", gameData.player2Id);
+  game.registry.set("player1", gameData.player1);
+
   return game;
 };
 
