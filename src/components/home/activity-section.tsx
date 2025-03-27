@@ -13,13 +13,13 @@ import { formatEther } from "viem";
 import { YellowButton } from "@/components/ui/yellow-button";
 import { ChevronRight } from "lucide-react";
 import { toast } from "sonner";
-import type { Character } from "@/types/player.types";
+import type { Player } from "@/types/player.types";
 import { type Challenge, useChallenges } from "@/hooks/use-challenges";
 import { useRecentDuels } from "@/hooks/use-recent-duels";
 import Link from "next/link";
 
 interface ActivitySectionProps {
-  selectedCharacter: Character | null;
+  selectedCharacter: Player | null;
 }
 
 export function ActivitySection({ selectedCharacter }: ActivitySectionProps) {
@@ -52,7 +52,7 @@ export function ActivitySection({ selectedCharacter }: ActivitySectionProps) {
 
 function BattleTabs({
   selectedCharacter,
-}: { selectedCharacter: Character | null }) {
+}: { selectedCharacter: Player | null }) {
   const [activeTab, setActiveTab] = useState("recent");
 
   // Listen for the event to activate the challenges tab
@@ -118,7 +118,7 @@ function BattleTabs({
 
 function RecentBattles({
   selectedCharacter,
-}: { selectedCharacter: Character | null }) {
+}: { selectedCharacter: Player | null }) {
   const { duels, isLoading, error } = useRecentDuels(selectedCharacter?.id);
 
   if (isLoading) {
@@ -209,7 +209,7 @@ function RecentBattles({
 
 function ActiveChallenges({
   selectedCharacter,
-}: { selectedCharacter: Character | null }) {
+}: { selectedCharacter: Player | null }) {
   const { challenges, isLoading, error } = useChallenges(selectedCharacter?.id);
   const { cancelChallenge, isCancellingChallenge } = useCancelChallenge();
   const { acceptChallenge, isAcceptingChallenge } = useAcceptChallenge();
@@ -350,8 +350,8 @@ function ActiveChallenges({
                   </h4>
                   <p className="text-sm text-stone-300">
                     {isChallenger
-                      ? `You challenged Player ${challenge.defenderId}`
-                      : `Player ${challenge.challengerId} challenged you`}
+                      ? `You challenged Fighter ${challenge.defenderId}`
+                      : `Fighter ${challenge.challengerId} challenged you`}
                   </p>
                 </div>
               </div>

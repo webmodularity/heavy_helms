@@ -1,10 +1,10 @@
 import { SUBGRAPH_URL } from "@/config";
 import { GET_ACTIVE_PLAYERS_QUERY } from "@/lib/gql-queries";
-import { convertRawPlayerToPlayer } from "@/lib/player-api";
-import type { RawPlayerData } from "@/types/player.types";
+import { convertRawFighterToFighter } from "@/lib/player-api";
 import { useQuery } from "@tanstack/react-query";
 import request from "graphql-request";
 import { usePrivy } from "@privy-io/react-auth";
+import type { RawFighterData } from "@/types/fighter-types";
 
 export function useActivePlayers() {
   const { authenticated } = usePrivy();
@@ -20,9 +20,9 @@ export function useActivePlayers() {
     queryFn: async () => {
       try {
         // Fetch the active players from the GraphQL API
-        const { players } = await request<{ players: RawPlayerData[] }>(
+        const { players } = await request<{ players: RawFighterData[] }>(
           SUBGRAPH_URL,
-          GET_ACTIVE_PLAYERS_QUERY
+          GET_ACTIVE_PLAYERS_QUERY,
         );
 
         // If no players found, return empty array
@@ -32,7 +32,7 @@ export function useActivePlayers() {
 
         // Convert the raw player data to Player objects
         const convertedPlayers = await Promise.all(
-          players.map((player) => convertRawPlayerToPlayer(player))
+          players.map((player) => convertRawFighterToFighter(player)),
         );
 
         return convertedPlayers;
@@ -51,4 +51,4 @@ export function useActivePlayers() {
     error,
     refetch,
   };
-} 
+}

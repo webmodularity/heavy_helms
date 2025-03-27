@@ -48,7 +48,7 @@ function DuelGame() {
 
   return (
     <ErrorBoundary FallbackComponent={GameErrorFallback}>
-      <GameWrapper txId={txId} />
+      <GameWrapper />
     </ErrorBoundary>
   );
 }

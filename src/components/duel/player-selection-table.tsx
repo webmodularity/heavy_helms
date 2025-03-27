@@ -3,7 +3,6 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { useActivePlayers } from "@/hooks/use-active-players";
-import type { Player } from "@/types/player.types";
 import { ArmorType, StanceType, WeaponType } from "@/types/equipment.types";
 import type {
   ColumnDef,
@@ -39,6 +38,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Search, ArrowUpDown, Filter } from "lucide-react";
 import { useOwnPlayers } from "@/hooks/use-own-players";
+import type { Fighter } from "@/types/fighter-types";
 
 // Define enums to string mappings for display
 const WeaponTypeMap: Record<WeaponType, string> = {
@@ -65,7 +65,7 @@ const StanceTypeMap: Record<StanceType, string> = {
 };
 
 interface PlayerSelectionTableProps {
-  onSelectPlayer: (player: Player) => void;
+  onSelectPlayer: (player: Fighter) => void;
   currentPlayerId?: string;
 }
 
@@ -85,7 +85,7 @@ export function PlayerSelectionTable({
   const [globalFilter, setGlobalFilter] = useState("");
 
   // Filter out current player
-  const [filteredPlayers, setFilteredPlayers] = useState<Player[]>([]);
+  const [filteredPlayers, setFilteredPlayers] = useState<Fighter[]>([]);
 
   // Update filtered players only when players or currentPlayerId changes
   useEffect(() => {
@@ -111,7 +111,7 @@ export function PlayerSelectionTable({
   }, [allPlayers, currentPlayerId, isLoading, isOwnPlayersLoading, ownPlayers]);
 
   // Define columns for the table
-  const columns: ColumnDef<Player>[] = [
+  const columns: ColumnDef<Fighter>[] = [
     {
       id: "avatar",
       header: "",

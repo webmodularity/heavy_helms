@@ -1,11 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { SkinType } from "@/types/skin.types";
-import type { Character } from "@/types/player.types";
 import { Check, Info, Loader, Sparkles } from "lucide-react";
 import {
   getArmorDisplayName,

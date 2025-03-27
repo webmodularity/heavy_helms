@@ -5,7 +5,7 @@ import { encodeFunctionData } from "viem";
 import { toast } from "sonner";
 import { PlayerABI } from "@/game/abi";
 import { viemClient } from "@/config";
-import type { Player } from "@/types/player.types";
+import type { Fighter } from "@/types/fighter-types";
 
 interface RetirePlayerResult {
   success: boolean;
@@ -120,7 +120,7 @@ export function useRetirePlayer(playerId: string) {
         console.log("Retiring from address:", embeddedWallet?.address);
         queryClient.setQueryData(
           ["owned-players", embeddedWallet?.address],
-          (oldData: Player[]) => {
+          (oldData: Fighter[]) => {
             console.log("Old data:", oldData);
             return oldData?.filter((player) => player.id !== playerId);
           },

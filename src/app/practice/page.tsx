@@ -2,6 +2,7 @@
 
 import { GameWrapper } from "@/components/game/game-wrapper";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { usePlayerById } from "@/hooks/use-player-by-id";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect } from "react";
 import { ErrorBoundary } from "react-error-boundary";
@@ -32,24 +33,33 @@ function GameErrorFallback() {
 function PracticeGame() {
   const searchParams = useSearchParams();
   const player1Id = searchParams.get("player1Id") ?? undefined;
-  const player2Id = searchParams.get("player2Id") ?? undefined;
+  // biome-ignore lint/style/noNonNullAssertion: <explanation>
+  const { data: player1 } = usePlayerById(player1Id!);
+  console.log("player1", player1);
+  // const player2Id = searchParams.get("player2Id") ?? undefined;
   const router = useRouter();
 
   useEffect(() => {
     // Redirect if no character ID is provided
-    if (!player1Id || !player2Id) {
+    if (!player1Id) {
       router.push("/");
       return;
     }
-  }, [player1Id, player2Id, router]);
+  }, [player1Id, router]);
 
-  if (!player1Id || !player2Id) {
+  if (!player1Id) {
     return <LoadingSpinner size="lg" text="Loading game..." />;
   }
 
   return (
     <ErrorBoundary FallbackComponent={GameErrorFallback}>
-      <GameWrapper player1Id={player1Id} player2Id={player2Id} />
+      <GameWrapper
+        // player1Id={player1Id}
+        // player2Id={player2Id}
+        // biome-ignore lint/style/noNonNullAssertion: <explanation>
+        player1={player1!}
+        // player2={player2}
+      />
     </ErrorBoundary>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import type { Character } from "@/types/player.types";
+import type { Player } from "@/types/player.types";
 import { motion } from "framer-motion";
 import {
   ArrowLeft,
@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 
 interface AttributesSectionProps {
-  character: Character;
+  character: Player;
 }
 
 export function AttributesSection({ character }: AttributesSectionProps) {

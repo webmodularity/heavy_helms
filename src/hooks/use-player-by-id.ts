@@ -1,8 +1,11 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { GET_PLAYERS_BY_IDS } from "@/lib/gql-queries";
-import { convertRawPlayerToPlayer } from "@/lib/player-api";
+import { GET_FIGHTERS_BY_IDS } from "@/lib/gql-queries";
+import {
+  convertRawFighterToFighter,
+  type FightersResponse,
+} from "@/lib/player-api";
 import request from "graphql-request";
-import type { Player, RawPlayerData } from "@/types/player.types";
+import type { Fighter } from "@/types/fighter-types";
 import { SUBGRAPH_URL } from "@/config";
 import { useWallets } from "@privy-io/react-auth";
 
@@ -24,7 +27,7 @@ export function usePlayerById(playerId: string) {
     queryKey: ["player", playerId],
     queryFn: async () => {
       // First check if the player is in the context
-      const characters = queryClient.getQueryData<Player[]>([
+      const characters = queryClient.getQueryData<Fighter[]>([
         "owned-players",
         address,
       ]);
@@ -40,19 +43,21 @@ export function usePlayerById(playerId: string) {
       // Player not found in context, fetch from API
       try {
         // Fetch the player data from the GraphQL API
-        const { players } = await request<{ players: RawPlayerData[] }>(
+        const response = await request<FightersResponse>(
           SUBGRAPH_URL,
-          GET_PLAYERS_BY_IDS,
-          { playerIds: [playerId] },
+          GET_FIGHTERS_BY_IDS,
+          { fighterIds: [playerId] },
         );
 
+        const fighters = response.fighters;
+
         // If no player found, return null
-        if (!players || players.length === 0) {
+        if (!fighters || fighters.length === 0) {
           return null;
         }
 
         // Convert the raw player data to a Player object
-        const player = await convertRawPlayerToPlayer(players[0]);
+        const player = await convertRawFighterToFighter(fighters[0]);
         console.log("Fetched player:", player);
         return player;
       } catch (error) {

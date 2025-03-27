@@ -6,7 +6,7 @@ import { fetchVerifiedSkinCollections } from "@/lib/player-api";
 import { SectionHeader } from "@/components/ui/section-header";
 
 import { SkinType } from "@/types/skin.types";
-import type { Character, PlayerAttributes } from "@/types/player.types";
+import type { Player, PlayerAttributes } from "@/types/player.types";
 import { Paintbrush } from "lucide-react";
 import { motion } from "framer-motion";
 import { SkinCard } from "./skin-card";
@@ -33,7 +33,7 @@ export interface SkinWithMetadataURI {
 }
 
 interface SkinsBrowserProps {
-  character: Character;
+  character: Player;
 }
 
 export function SkinsBrowser({ character }: SkinsBrowserProps) {

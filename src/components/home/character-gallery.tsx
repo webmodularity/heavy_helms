@@ -1,14 +1,18 @@
 // src/components/home/character-gallery.tsx
 "use client";
-import type { Character } from "@/types/player.types";
+import type { Player } from "@/types/player.types";
 import { usePrivy } from "@privy-io/react-auth";
 import { motion } from "framer-motion";
 import CharacterCard from "../CharacterCard";
 import { CTAButton as CTAButtonComponent } from "../ui/cta-button";
-import { getStanceDisplayName, getWeaponDisplayName, getArmorDisplayName } from "@/lib/equipment-utils";
+import {
+  getStanceDisplayName,
+  getWeaponDisplayName,
+  getArmorDisplayName,
+} from "@/lib/equipment-utils";
 
 interface CharacterGalleryProps {
-  characters: Character[];
+  characters?: Player[];
 }
 
 export function CharacterGallery({ characters }: CharacterGalleryProps) {
@@ -47,7 +51,7 @@ export function CharacterGallery({ characters }: CharacterGalleryProps) {
 
         {/* Character Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {characters.map((character, index) => (
+          {characters?.map((character, index) => (
             <motion.div
               key={character.name.fullName}
               initial={{ opacity: 0, y: 20 }}

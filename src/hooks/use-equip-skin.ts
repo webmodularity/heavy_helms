@@ -1,7 +1,7 @@
 import type { SkinWithMetadataURI } from "@/components/character/skins-browser";
 import { PlayerABI } from "@/game/abi/PlayerABI.abi";
 import { useWallet } from "@/hooks/use-wallet";
-import type { Character } from "@/types/player.types";
+import type { Player } from "@/types/player.types";
 import { usePrivy } from "@privy-io/react-auth";
 import { useWallets } from "@privy-io/react-auth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
@@ -104,7 +104,7 @@ export function useEquipSkin(playerId: string) {
       }
 
       // Update the player in the cache
-      queryClient.setQueryData(["player", playerId], (oldData: Character) => {
+      queryClient.setQueryData(["player", playerId], (oldData: Player) => {
         return {
           ...oldData,
           currentSkin: {
@@ -117,7 +117,7 @@ export function useEquipSkin(playerId: string) {
       // Update the player in the owned players cache
       queryClient.setQueryData(
         ["owned-players", embeddedWallet?.address],
-        (oldData: Character[]) => {
+        (oldData: Player[]) => {
           return oldData.map((player) => {
             if (player.id === playerId) {
               return { ...player, currentSkin: data.newSkin };

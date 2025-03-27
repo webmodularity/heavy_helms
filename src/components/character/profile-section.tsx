@@ -1,12 +1,12 @@
 "use client";
 
-import type { Character } from "@/types/player.types";
+import type { Player } from "@/types/player.types";
 import Image from "next/image";
 import { motion } from "framer-motion";
 import { Flag, Trophy } from "lucide-react";
 
 interface ProfileSectionProps {
-  character: Character;
+  character: Player;
 }
 
 export function ProfileSection({ character }: ProfileSectionProps) {

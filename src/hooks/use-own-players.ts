@@ -1,8 +1,8 @@
 import { useWallets } from "@privy-io/react-auth";
 import { useQuery } from "@tanstack/react-query";
 import {
-  fetchPlayersByOwner,
-  convertRawPlayerToPlayer,
+  fetchFightersByOwner,
+  convertRawFighterToFighter,
 } from "@/lib/player-api";
 
 export function useOwnPlayers() {
@@ -22,11 +22,10 @@ export function useOwnPlayers() {
     queryKey: ["owned-players", address],
     queryFn: async () => {
       if (!address) return [];
-      const rawPlayers = await fetchPlayersByOwner(address);
+      const rawPlayers = await fetchFightersByOwner(address);
       const playersWithMetadata = await Promise.all(
-        rawPlayers.map((rawPlayer) => convertRawPlayerToPlayer(rawPlayer)),
+        rawPlayers.map((rawPlayer) => convertRawFighterToFighter(rawPlayer)),
       );
-      console.log("Players:", playersWithMetadata);
       return playersWithMetadata;
     },
     enabled: !!address,
