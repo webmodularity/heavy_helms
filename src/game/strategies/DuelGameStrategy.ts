@@ -46,7 +46,7 @@ export class DuelGameStrategy implements GameModeStrategy {
 
   async loadPlayerData(): Promise<{ player1: Fighter; player2: Fighter }> {
     // Load combat result data to get player info
-    const { player1, player2, blockNumber } =
+    const { player1, player2, blockNumber, decodedCombatBytes } =
       await CombatService.loadCombatResultFromTx(this.txId);
 
     this.player1 = player1;
@@ -54,7 +54,8 @@ export class DuelGameStrategy implements GameModeStrategy {
     this.player1Id = player1.id;
     this.player2Id = player2.id;
     this.blockNumber = blockNumber;
-
+    // Will be used in loadCombatData
+    this.decodedCombatBytes = decodedCombatBytes;
     // Calculate player stats
     await FighterService.calculateFighterStats([this.player1, this.player2]);
 
@@ -62,12 +63,7 @@ export class DuelGameStrategy implements GameModeStrategy {
   }
 
   async loadCombatData(): Promise<DecodedCombatResult> {
-    // We already loaded combat data in loadPlayerData
-    const { decodedCombatBytes } = await CombatService.loadCombatResultFromTx(
-      this.txId,
-    );
-    this.decodedCombatBytes = decodedCombatBytes;
-
+    // TODO: We already loaded combat data in loadPlayerData
     return this.decodedCombatBytes;
   }
 

@@ -1,6 +1,7 @@
 import type { SkinWithMetadataURI } from "@/components/character/skins-browser";
 import { PlayerABI } from "@/game/abi/PlayerABI.abi";
 import { useWallet } from "@/hooks/use-wallet";
+import { createPlayerSkin } from "@/lib/player-api";
 import type { Player } from "@/types/player.types";
 import { usePrivy } from "@privy-io/react-auth";
 import { useWallets } from "@privy-io/react-auth";
@@ -12,7 +13,7 @@ interface EquipSkinResult {
   success: boolean;
   txHash?: string;
   error?: string;
-  newSkin?: SkinWithMetadataURI;
+  newSkin: SkinWithMetadataURI;
 }
 
 export function useEquipSkin(playerId: string) {
@@ -24,7 +25,7 @@ export function useEquipSkin(playerId: string) {
   const mutation = useMutation<
     EquipSkinResult,
     Error,
-    { skinIndex: number; skinTokenId: number; newSkin?: SkinWithMetadataURI }
+    { skinIndex: number; skinTokenId: number; newSkin: SkinWithMetadataURI }
   >({
     mutationFn: async ({
       skinIndex,
@@ -103,13 +104,16 @@ export function useEquipSkin(playerId: string) {
         });
       }
 
+      // We need to convert the RAW 'data.newSkin' to a Skin object (updated spritesheet/etc.)
+      const newSkin = await createPlayerSkin(data.newSkin);
+
       // Update the player in the cache
       queryClient.setQueryData(["player", playerId], (oldData: Player) => {
         return {
           ...oldData,
           currentSkin: {
             ...oldData.currentSkin,
-            ...data.newSkin,
+            ...newSkin,
           },
         };
       });
@@ -120,7 +124,7 @@ export function useEquipSkin(playerId: string) {
         (oldData: Player[]) => {
           return oldData.map((player) => {
             if (player.id === playerId) {
-              return { ...player, currentSkin: data.newSkin };
+              return { ...player, currentSkin: newSkin };
             }
             return player;
           });
@@ -153,7 +157,7 @@ export function useEquipSkin(playerId: string) {
   const equipSkin = async (
     skinIndex: number,
     skinTokenId: number,
-    newSkin?: SkinWithMetadataURI,
+    newSkin: SkinWithMetadataURI,
   ) => {
     try {
       return await mutation.mutateAsync({ skinIndex, skinTokenId, newSkin });
