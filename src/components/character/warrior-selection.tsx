@@ -1,6 +1,6 @@
 "use client";
 
-import type { Character } from "@/types/player.types";
+import type { Player } from "@/types/player.types";
 import { useRouter } from "next/navigation";
 import { useRef, useMemo } from "react";
 import { SectionHeader } from "../ui/section-header";
@@ -11,8 +11,8 @@ import { useCreateCharacter } from "@/hooks/use-create-character";
 import { useOwnPlayers } from "@/hooks/use-own-players";
 
 interface WarriorSelectionProps {
-  selectedCharacter: Character | null;
-  onSelectCharacter: (character: Character) => void;
+  selectedCharacter: Player | null;
+  onSelectCharacter: (character: Player) => void;
   onDeselectCharacter: () => void;
 }
 
@@ -26,7 +26,7 @@ export function WarriorSelection({
   const { players, isLoading } = useOwnPlayers();
   const { createCharacter, isCreatingCharacter, txHash } = useCreateCharacter();
 
-  const handleViewDetails = (character: Character) => {
+  const handleViewDetails = (character: Player) => {
     router.push(`/character/${character.id}`);
   };
 
@@ -68,9 +68,9 @@ export function WarriorSelection({
                   character={character}
                   index={index}
                   isSelected={selectedCharacter?.id === character.id}
-                  onSelect={() => onSelectCharacter(character)}
+                  onSelect={() => onSelectCharacter(character as Player)}
                   onDeselect={onDeselectCharacter}
-                  onViewDetails={() => handleViewDetails(character)}
+                  onViewDetails={() => handleViewDetails(character as Player)}
                 />
               ))}
 
