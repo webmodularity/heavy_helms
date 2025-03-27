@@ -15,6 +15,8 @@ import { ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import type { Character } from "@/types/player.types";
 import { type Challenge, useChallenges } from "@/hooks/use-challenges";
+import { useRecentDuels } from "@/hooks/use-recent-duels";
+import Link from "next/link";
 
 interface ActivitySectionProps {
   selectedCharacter: Character | null;
@@ -104,7 +106,7 @@ function BattleTabs({
       </div>
 
       <TabsContent value="recent" className="space-y-4">
-        <RecentBattles />
+        <RecentBattles selectedCharacter={selectedCharacter} />
       </TabsContent>
 
       <TabsContent value="challenges">
@@ -114,54 +116,93 @@ function BattleTabs({
   );
 }
 
-function RecentBattles() {
-  // Placeholder data - would be fetched from API/blockchain
-  const recentBattles = [
-    {
-      id: 1,
-      result: "Victory in Duel",
-      opponent: "Diego Frostcaller",
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-      warriorName: "Ross of the Glade",
-    },
-    {
-      id: 2,
-      result: "Defeat in Duel",
-      opponent: "Kate of the Ember",
-      timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000), // Yesterday
-      warriorName: "Ross of the Glade",
-    },
-    {
-      id: 3,
-      result: "Practice Complete",
-      details: "Completed 5 practice matches",
-      timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
-      warriorName: "Ross of the Glade",
-    },
-  ];
+function RecentBattles({
+  selectedCharacter,
+}: { selectedCharacter: Character | null }) {
+  const { duels, isLoading, error } = useRecentDuels(selectedCharacter?.id);
+
+  if (isLoading) {
+    return (
+      <div className="flex justify-center py-8">
+        <Loader2 className="h-8 w-8 text-yellow-500 animate-spin" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-8 text-red-400">
+        <p>Failed to load recent battles</p>
+        <p className="text-sm text-red-300 mt-2">Please try again later</p>
+      </div>
+    );
+  }
+
+  if (!selectedCharacter) {
+    return (
+      <div className="text-center py-8 text-stone-300">
+        <Swords className="h-12 w-12 mx-auto mb-4 text-yellow-600/50" />
+        <h3 className="text-lg font-medium text-yellow-500 mb-2">
+          Please select a warrior to view your recent battles
+        </h3>
+      </div>
+    );
+  }
+
+  if (!duels || duels.length === 0) {
+    return (
+      <div className="text-center py-8 text-stone-300">
+        <p>No recent battles found for this warrior</p>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
-      {recentBattles.map((battle) => (
-        <div key={battle.id} className="p-4 border-b border-stone-700/50">
-          <div className="flex justify-between mb-1">
-            <span
-              className={`font-medium ${battle.result.includes("Victory") ? "text-yellow-400" : battle.result.includes("Defeat") ? "text-red-400" : "text-blue-400"}`}
-            >
-              {battle.result}
-            </span>
-            <span className="text-stone-400 text-sm">
-              {/* {formatDistanceToNow(battle.timestamp, { addSuffix: true })} */}
-              asddsa
-            </span>
-          </div>
-          <p className="text-stone-300 text-sm">
-            {battle.opponent
-              ? `Your warrior ${battle.warriorName} ${battle.result.includes("Victory") ? "defeated" : "was defeated by"} ${battle.opponent}`
-              : battle.details}
-          </p>
-        </div>
-      ))}
+      {duels.map((duel) => {
+        // Determine if selected character is the challenger or defender
+        const isChallenger =
+          duel.challenge.challenger.id === selectedCharacter.id.toString();
+
+        // Determine if the character won
+        const isVictory =
+          duel.winnerId ===
+          (isChallenger
+            ? duel.challenge.challenger.id
+            : duel.challenge.defender.id);
+
+        // Get the name of the user's fighter and opponent
+        const userFighter = isChallenger
+          ? duel.challenge.challenger
+          : duel.challenge.defender;
+        const opponentFighter = isChallenger
+          ? duel.challenge.defender
+          : duel.challenge.challenger;
+
+        return (
+          <Link href={`/duel?txId=${duel.id}`} key={duel.id} className="block">
+            <div className="p-4 border-b border-stone-700/50 hover:bg-yellow-600/10 transition-colors">
+              <div className="flex justify-between mb-1">
+                <span
+                  className={`font-medium ${isVictory ? "text-yellow-400" : "text-red-400"}`}
+                >
+                  {isVictory ? "Victory in Duel" : "Defeat in Duel"}
+                </span>
+                <span className="text-stone-400 text-sm">
+                  {new Date(
+                    Number.parseInt(duel.blockTimestamp) * 1000,
+                  ).toLocaleDateString()}
+                </span>
+              </div>
+              <p className="text-stone-300 text-sm">
+                Your warrior {userFighter.fullName}{" "}
+                {isVictory ? "defeated" : "was defeated by"}{" "}
+                {opponentFighter.fullName}
+              </p>
+            </div>
+          </Link>
+        );
+      })}
     </div>
   );
 }

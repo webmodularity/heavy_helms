@@ -5,6 +5,8 @@ import {
   GET_OWNED_PLAYERS_QUERY,
   GET_VERIFIED_SKIN_COLLECTIONS,
   GET_FIGHTERS_BY_IDS,
+  GET_NAMES_BY_INDICES,
+  GET_SKIN_BY_INDICES,
 } from "./gql-queries";
 import type {
   RawPlayerData,
@@ -42,6 +44,8 @@ import type {
   RawFighterData,
 } from "@/types/fighter-types";
 import type { Monster } from "@/types/monster.types";
+import type { RawDecodedPlayerData } from "@/types/player.types";
+import { getFighterTypeFromPlayerId } from "@/game/utils/fighter-utils";
 
 // Define response types for GraphQL queries
 interface PlayersResponse {
@@ -123,75 +127,6 @@ export async function fetchFightersByOwner(
 // }
 
 /**
- * Creates a PlayerName object from raw data
- */
-// export function createPlayerName(
-//   firstName: string,
-//   surname: string,
-// ): PlayerName {
-//   return {
-//     firstName,
-//     surname,
-//     fullName: `${firstName} ${surname}`,
-//   };
-// }
-
-/**
- * Creates a PlayerAttributes object from raw data
- */
-// export function createPlayerAttributes(rawData: {
-//   strength: number;
-//   constitution: number;
-//   size: number;
-//   agility: number;
-//   stamina: number;
-//   luck: number;
-// }): PlayerAttributes {
-//   return {
-//     strength: rawData.strength,
-//     constitution: rawData.constitution,
-//     size: rawData.size,
-//     agility: rawData.agility,
-//     stamina: rawData.stamina,
-//     luck: rawData.luck,
-//   };
-// }
-
-/**
- * Creates a PlayerRecord object from raw data
- */
-// export function createPlayerRecord(rawData: {
-//   wins: number;
-//   losses: number;
-//   kills: number;
-// }): PlayerRecord {
-//   return {
-//     wins: rawData.wins,
-//     losses: rawData.losses,
-//     kills: rawData.kills,
-//   };
-// }
-
-/**
- * Creates a SkinCollection object from raw data
- */
-export function createSkinCollection(rawCollection: {
-  id: string;
-  contractAddress: string;
-  isVerified: boolean;
-  skinType: number;
-  requiredNFTAddress: string | null;
-}): SkinCollection {
-  return {
-    id: rawCollection.id,
-    contractAddress: rawCollection.contractAddress,
-    isVerified: rawCollection.isVerified,
-    skinType: rawCollection.skinType,
-    requiredNFTAddress: rawCollection.requiredNFTAddress || undefined,
-  };
-}
-
-/**
  * Fetches and creates a Skin object from raw data
  */
 export async function createPlayerSkin(rawSkin: {
@@ -232,7 +167,13 @@ export async function createPlayerSkin(rawSkin: {
   }
 
   return {
-    collection: createSkinCollection(rawSkin.collection),
+    collection: {
+      id: rawSkin.collection.id,
+      contractAddress: rawSkin.collection.contractAddress,
+      isVerified: rawSkin.collection.isVerified,
+      skinType: rawSkin.collection.skinType,
+      requiredNFTAddress: rawSkin.collection.requiredNFTAddress || undefined,
+    },
     tokenId: rawSkin.tokenId,
     metadataURL: metadataHttpsUrl,
     imageURL: imageUrl,
@@ -366,74 +307,42 @@ export async function fetchAndConvertFighters(
 }
 
 /**
- * Creates a FighterName object based on the fighter type
- */
-export function createFighterName(rawFighter: RawFighterData): FighterName {
-  if (rawFighter.fighterType === FighterType.Monster) {
-    // Create MonsterName
-    const monsterName: FighterName = {
-      fullName: rawFighter.firstName || "Monster",
-    };
-    return monsterName;
-  }
-
-  // Create PlayerName for Player and DefaultPlayer
-  const playerName: PlayerName = {
-    firstName: rawFighter.firstName || "Unknown",
-    surname: rawFighter.surname || "Fighter",
-    fullName:
-      rawFighter.fullName ||
-      `${rawFighter.firstName || "Unknown"} ${rawFighter.surname || "Fighter"}`,
-  };
-  return playerName;
-}
-
-/**
- * Creates a FighterAttributes object from raw data
- */
-export function createFighterAttributes(rawData: {
-  strength: number;
-  constitution: number;
-  size: number;
-  agility: number;
-  stamina: number;
-  luck: number;
-}): FighterAttributes {
-  return {
-    strength: rawData.strength,
-    constitution: rawData.constitution,
-    size: rawData.size,
-    agility: rawData.agility,
-    stamina: rawData.stamina,
-    luck: rawData.luck,
-  };
-}
-
-/**
- * Creates a FighterRecord object from raw data
- */
-export function createFighterRecord(rawData: {
-  wins: number;
-  losses: number;
-  kills: number;
-}): FighterRecord {
-  return {
-    wins: rawData.wins,
-    losses: rawData.losses,
-    kills: rawData.kills,
-  };
-}
-
-/**
  * Converts a raw fighter data object to the appropriate fighter type
  */
 export async function convertRawFighterToFighter(
   rawFighter: RawFighterData,
 ): Promise<Fighter> {
-  // Create common fighter components
-  const name = createFighterName(rawFighter);
-  const attributes = createFighterAttributes(rawFighter);
-  const record = createFighterRecord(rawFighter);
+  // Create common fighter components inline
+  let name: FighterName;
+  if (rawFighter.fighterType === FighterType.Monster) {
+    name = {
+      fullName: rawFighter.firstName || "Monster",
+    };
+  } else {
+    name = {
+      firstName: rawFighter.firstName || "Unknown",
+      surname: rawFighter.surname || "Fighter",
+      fullName:
+        rawFighter.fullName ||
+        `${rawFighter.firstName || "Unknown"} ${rawFighter.surname || "Fighter"}`,
+    } as PlayerName;
+  }
+
+  const attributes: FighterAttributes = {
+    strength: rawFighter.strength,
+    constitution: rawFighter.constitution,
+    size: rawFighter.size,
+    agility: rawFighter.agility,
+    stamina: rawFighter.stamina,
+    luck: rawFighter.luck,
+  };
+
+  const record: FighterRecord = {
+    wins: rawFighter.wins,
+    losses: rawFighter.losses,
+    kills: rawFighter.kills,
+  };
+
   const currentSkin = await createPlayerSkin(rawFighter.currentSkin);
 
   // Base fighter properties
@@ -484,133 +393,204 @@ export async function convertRawFighterToFighter(
 }
 
 /**
- * Creates a custom fighter object from provided data
- * This can be used for optimistic updates or creating fighters from blockchain data
+ * Builds a RawFighterData object from RawDecodedPlayerData by fetching
+ * necessary data from the subgraph using the indices
  */
-export async function createCustomFighter(
-  id: string,
-  fighterType: FighterType,
-  nameData: {
-    firstName?: string;
-    surname?: string;
-    creatureName?: string;
-    fullName?: string;
-  },
-  attributes: {
-    strength: number;
-    constitution: number;
-    size: number;
-    agility: number;
-    stamina: number;
-    luck: number;
-  },
-  skinData: {
-    collection: {
+export async function buildRawFighterFromDecodedData(
+  decodedData: RawDecodedPlayerData,
+): Promise<RawFighterData> {
+  // 1. Get fighter type based on ID
+  const fighterType = getFighterTypeFromPlayerId(decodedData.id.toString());
+
+  // 2. Fetch name data from subgraph using indices
+  const nameData = await fetchNamesByIndices(
+    decodedData.stats.name.firstNameIndex,
+    decodedData.stats.name.surnameIndex,
+  );
+
+  // 3. Fetch skin collection and skin data from subgraph using indices
+  const skinData = await fetchSkinByIndices(
+    decodedData.stats.skin.skinIndex,
+    decodedData.stats.skin.skinTokenId,
+  );
+
+  // 4. Construct the RawFighterData object
+  return {
+    id: decodedData.id.toString(),
+    fighterId: decodedData.id.toString(),
+    fighterType: fighterType,
+    isRetired: false, // We don't have this in decoded data, default to false
+
+    // Attributes
+    strength: decodedData.stats.attributes.strength,
+    constitution: decodedData.stats.attributes.constitution,
+    size: decodedData.stats.attributes.size,
+    agility: decodedData.stats.attributes.agility,
+    stamina: decodedData.stats.attributes.stamina,
+    luck: decodedData.stats.attributes.luck,
+
+    // Name fields
+    firstName: nameData.firstName,
+    surname: nameData.surname,
+
+    // Skin information
+    currentSkin: {
+      collection: skinData.collection,
+      tokenId: skinData.tokenId,
+      metadataURI: skinData.metadataURI,
+      weapon: skinData.weapon,
+      armor: skinData.armor,
+      stance: skinData.stance,
+    },
+
+    // Record
+    wins: decodedData.stats.record.wins,
+    losses: decodedData.stats.record.losses,
+    kills: decodedData.stats.record.kills,
+
+    // Type-specific fields will be populated based on fighter type
+    ...(fighterType === FighterType.Player && {
+      isImmortal: false, // Default value, since we don't have this in decoded data
+    }),
+    ...(fighterType === FighterType.Monster && {
+      tier: 1, // Default value, since we don't have this in decoded data
+    }),
+  };
+}
+
+/**
+ * Fetches name data from the subgraph using indices
+ */
+async function fetchNamesByIndices(
+  firstNameIndex: number,
+  surnameIndex: number,
+): Promise<{ firstName: string; surname: string }> {
+  // Define proper response type
+  interface NamesResponse {
+    firstNameResult: Array<{ id: string; value: string }>;
+    surnameResult: Array<{ id: string; value: string }>;
+  }
+
+  try {
+    const response = await request<NamesResponse>(
+      SUBGRAPH_URL,
+      GET_NAMES_BY_INDICES,
+      {
+        firstNameIndex,
+        surnameIndex,
+      },
+    );
+
+    if (!response || !response.firstNameResult || !response.surnameResult) {
+      console.error("Unexpected response structure:", response);
+      return { firstName: "Unknown", surname: "Fighter" };
+    }
+
+    return {
+      firstName:
+        response.firstNameResult.length > 0
+          ? response.firstNameResult[0].value
+          : "Unknown",
+      surname:
+        response.surnameResult.length > 0
+          ? response.surnameResult[0].value
+          : "Fighter",
+    };
+  } catch (error) {
+    console.error("Error fetching names from subgraph:", error);
+    return { firstName: "Unknown", surname: "Fighter" };
+  }
+}
+
+/**
+ * Fetches skin data from the subgraph using indices
+ */
+async function fetchSkinByIndices(
+  skinIndex: number,
+  skinTokenId: number,
+): Promise<{
+  collection: {
+    id: string;
+    contractAddress: string;
+    isVerified: boolean;
+    skinType: number;
+    requiredNFTAddress: string | null;
+  };
+  tokenId: number;
+  metadataURI: string;
+  weapon: number;
+  armor: number;
+  stance: number;
+}> {
+  // Define proper response type
+  interface SkinResponse {
+    skinCollections: Array<{
       id: string;
       contractAddress: string;
       isVerified: boolean;
       skinType: number;
-      requiredNFTAddress?: string;
-    };
-    tokenId: number;
-    metadataURI: string;
-    weapon?: number;
-    armor?: number;
-    stance?: number;
-  },
-  record?: {
-    wins: number;
-    losses: number;
-    kills: number;
-  },
-  additionalProps?: {
-    isRetired?: boolean;
-    isImmortal?: boolean; // Player only
-    owner?: { address: string }; // Player only
-    tier?: number; // Monster only
-    fighterId?: string | bigint;
-  },
-): Promise<Fighter> {
-  // Create name based on fighter type
-  let name: FighterName;
-  if (fighterType === FighterType.Monster) {
-    name = {
-      fullName: nameData.firstName || "Monster",
-    } as FighterName;
-  } else {
-    name = {
-      firstName: nameData.firstName || "Unknown",
-      surname: nameData.surname || "Fighter",
-      fullName:
-        nameData.fullName ||
-        `${nameData.firstName || "Unknown"} ${nameData.surname || "Fighter"}`,
-    } as PlayerName;
+      requiredNFTAddress: string | null;
+      skins: Array<{
+        id: string;
+        tokenId: number;
+        metadataURI: string;
+        weapon: number;
+        armor: number;
+        stance: number;
+      }>;
+    }>;
   }
 
-  // Create other common components
-  const fighterAttributes = createFighterAttributes(attributes);
-  const fighterRecord = record
-    ? createFighterRecord(record)
-    : { wins: 0, losses: 0, kills: 0 };
+  try {
+    // Pass parameters with the correct names that match the GraphQL query
+    const response = await request<SkinResponse>(
+      SUBGRAPH_URL,
+      GET_SKIN_BY_INDICES,
+      {
+        registryId: skinIndex, // Changed from skinIndex to registryId
+        tokenId: skinTokenId, // This one already matches
+      },
+    );
 
-  // Convert the skin data to match the expected format for createPlayerSkin
-  const rawSkin = {
-    collection: {
-      id: skinData.collection.id,
-      contractAddress: skinData.collection.contractAddress,
-      isVerified: skinData.collection.isVerified,
-      skinType: skinData.collection.skinType,
-      requiredNFTAddress: skinData.collection.requiredNFTAddress || null,
-    },
-    tokenId: skinData.tokenId,
-    metadataURI: skinData.metadataURI,
-    weapon: skinData.weapon || 0,
-    armor: skinData.armor || 0,
-    stance: skinData.stance || 1,
-  };
+    const collection = response.skinCollections[0];
+    const skin = collection?.skins[0];
 
-  const currentSkin = await createPlayerSkin(rawSkin);
+    if (!collection || !skin) {
+      throw new Error(
+        `Skin not found: registryId ${skinIndex}, token ${skinTokenId}`,
+      );
+    }
 
-  // Base fighter object
-  const baseFighter: Fighter = {
-    id,
-    fighterId: additionalProps?.fighterId || id,
-    fighterType,
-    name,
-    attributes: fighterAttributes,
-    currentSkin,
-    record: fighterRecord,
-    isRetired: additionalProps?.isRetired || false,
-    isImmortal: false,
-  };
-
-  // Add type-specific properties based on fighterType
-  switch (fighterType) {
-    case FighterType.Player:
-      return {
-        ...baseFighter,
-        fighterType: FighterType.Player,
-        name: name as PlayerName,
-        isImmortal: additionalProps?.isImmortal || false,
-        owner: additionalProps?.owner,
-      } as Player;
-
-    case FighterType.DefaultPlayer:
-      return {
-        ...baseFighter,
-        fighterType: FighterType.DefaultPlayer,
-        name: name as PlayerName,
-      } as DefaultPlayer;
-
-    case FighterType.Monster:
-      return {
-        ...baseFighter,
-        fighterType: FighterType.Monster,
-        name: name as FighterName,
-        tier: additionalProps?.tier || 1,
-      } as Monster;
-
-    default:
-      return baseFighter;
+    return {
+      collection: {
+        id: collection.id,
+        contractAddress: collection.contractAddress,
+        isVerified: collection.isVerified,
+        skinType: collection.skinType,
+        requiredNFTAddress: collection.requiredNFTAddress,
+      },
+      tokenId: skin.tokenId,
+      metadataURI: skin.metadataURI,
+      weapon: skin.weapon,
+      armor: skin.armor,
+      stance: skin.stance,
+    };
+  } catch (error) {
+    console.error("Error fetching skin from subgraph:", error);
+    // Return default skin data in case of error
+    return {
+      collection: {
+        id: "0",
+        contractAddress: "0x0",
+        isVerified: false,
+        skinType: 0,
+        requiredNFTAddress: null,
+      },
+      tokenId: skinTokenId,
+      metadataURI: "",
+      weapon: 0,
+      armor: 0,
+      stance: 1,
+    };
   }
 }

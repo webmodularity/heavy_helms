@@ -1,7 +1,11 @@
 import { SUBGRAPH_URL, viemClient } from "@/config";
 import { Scene } from "phaser";
 import { EventBus } from "../EventBus";
-import { fetchAndConvertFighters } from "../../lib/player-api";
+import {
+  fetchAndConvertFighters,
+  buildRawFighterFromDecodedData,
+  convertRawFighterToFighter,
+} from "../../lib/player-api";
 import type { PlayerLoadout } from "@/types/player.types";
 import { GameEngineABI, PracticeGameABI } from "../abi";
 import type { Address } from "viem";
@@ -16,6 +20,10 @@ import type {
 import type { Fighter } from "@/types/fighter-types";
 import request from "graphql-request";
 import { GET_ALL_ACTIVE_PLAYER_IDS_QUERY } from "@/lib/gql-queries";
+import { fetchRawCombatResultByTx } from "@/lib/combat-api";
+import type { RawCombatResult } from "@/types/game.types";
+import { PlayerABI } from "../abi";
+import type { RawDecodedPlayerData } from "@/types/player.types";
 
 export class Preloader extends Scene {
   // URL parameters
@@ -52,6 +60,7 @@ export class Preloader extends Scene {
       "mainnet";
 
     this.blockNumber = params.get("blockNumber") || "123456";
+    
 
     // Only set player IDs if no txId (practice mode) and if provided in URL
     if (!this.txId) {
@@ -80,7 +89,8 @@ export class Preloader extends Scene {
       //   },
       // );
     }
-
+    // console.log("this.game", this.game);
+    // this.player1Id = this.game.registry.get("player1Id");
     // Set up the loading UI
     this.createLoadingUI();
   }
@@ -181,12 +191,50 @@ export class Preloader extends Scene {
 
   private async onLoadComplete() {
     try {
-      // Disable duel mode for now
-      if (this.txId) {
-        console.error("Duel mode is currently disabled");
-        throw new Error("Duel mode is currently disabled");
-      }
+      // Use cached version for now
+      this.gameEngineAddress = process.env
+        .NEXT_PUBLIC_GAME_ENGINE_CONTRACT_ADDRESS as Address;
 
+      if (this.txId) {
+        // Combat Results Mode
+        this.events.emit("status-update", "Loading combat results...");
+        console.log("tx id", this.txId);
+        await this.loadFromCombatResults(this.txId);
+      } else {
+        // Practice Mode
+        if (!this.player1Id) {
+          console.error("FATAL ERROR: Missing player IDs");
+          throw new Error("FATAL: Both player IDs are required");
+        }
+
+        // Practice Mode - load players
+        this.events.emit("status-update", "Loading fighter data...");
+        await this.loadOpponentById(this.player1Id);
+        // Get block number
+        await this.fetchBlockNumber();
+
+        const player1Loadout: PlayerLoadout = {
+          playerId: Number(this.player1.id),
+          skin: {
+            skinIndex: Number(this.player1.currentSkin.collection.id),
+            skinTokenId: Number(this.player1.currentSkin.tokenId),
+          },
+        };
+        const player2Loadout: PlayerLoadout = {
+          playerId: Number(this.player2.id),
+          skin: {
+            skinIndex: Number(this.player2.currentSkin.collection.id),
+            skinTokenId: Number(this.player2.currentSkin.tokenId),
+          },
+        };
+
+        // Get combat bytes
+        this.decodedCombatBytes = await this.loadCombatBytesPracticeMode(
+          player1Loadout,
+          player2Loadout,
+        );
+      }
+      console.log("this.decodedCombatBytes", this.decodedCombatBytes);
       // Enforce that we have both player IDs
       if (!this.player1Id) {
         console.error("FATAL ERROR: Missing player ID");
@@ -200,10 +248,12 @@ export class Preloader extends Scene {
         functionName: "gameEngine",
       });
 
-      // Practice Mode - load players
-      this.events.emit("status-update", "Loading fighter data...");
-      const randomOpponentId = await this.getRandomOpponentId();
-      await this.loadOpponentById(randomOpponentId);
+      // Practice Mode - load oppponent
+      if (!this.txId) {
+        this.events.emit("status-update", "Loading fighter data...");
+        const randomOpponentId = await this.getRandomOpponentId();
+        await this.loadOpponentById(randomOpponentId);
+      }
 
       // Enforce that both players were loaded successfully
       if (!this.player1 || !this.player2) {
@@ -215,31 +265,6 @@ export class Preloader extends Scene {
       this.loadFighterSpritesheet(this.player1);
       this.loadFighterSpritesheet(this.player2);
 
-      // Get block number
-      await this.fetchBlockNumber();
-
-      const player1Loadout: PlayerLoadout = {
-        playerId: Number(this.player1.id),
-        skin: {
-          skinIndex: Number(this.player1.currentSkin.collection.id),
-          skinTokenId: Number(this.player1.currentSkin.tokenId),
-        },
-      };
-      const player2Loadout: PlayerLoadout = {
-        playerId: Number(this.player2.id),
-        skin: {
-          skinIndex: Number(this.player2.currentSkin.collection.id),
-          skinTokenId: Number(this.player2.currentSkin.tokenId),
-        },
-      };
-
-      // Get combat bytes
-      this.decodedCombatBytes = await this.loadCombatBytesPracticeMode(
-        player1Loadout,
-        player2Loadout,
-      );
-
-      // Shared between game modes
       // Load CalculatedStats + Initial PlayerState
       await this.loadPlayerStates();
 
@@ -566,6 +591,7 @@ export class Preloader extends Scene {
     player1Id: number,
     player2Id: number,
   ): Promise<DecodedCombatResult> {
+    console.log({ combatBytes, gameEngineAddress, player1Id, player2Id });
     // TODO: The decoding should be done locally in the future
     const decodedCombat = await viemClient.readContract({
       address: gameEngineAddress,
@@ -605,118 +631,125 @@ export class Preloader extends Scene {
     return result;
   }
 
-  // async loadCombatBytesDuelMode(
-  //   txId: string,
-  //   network: string,
-  // ): Promise<DecodedCombatResult> {
-  //   try {
-  //     // Get transaction receipt
-  //     const receipt = await viemClient.getTransactionReceipt({
-  //       hash: txId as `0x${string}`,
-  //     });
+  async loadFromCombatResults(txId: string) {
+    try {
+      // Fetch combat results from dedicated API layer with new method name
+      const combatResult = await fetchRawCombatResultByTx(txId);
+      console.log("combat result", combatResult);
+      // Decode the player data
+      const decodedPlayerData = await this.decodeCombatPlayerData(
+        combatResult.player1Data,
+        combatResult.player2Data,
+      );
+      console.log("decoded player data", decodedPlayerData);
+      // Decode the combat bytes
+      this.decodedCombatBytes = await this.decodeCombatBytes(
+        combatResult.packedResults as `0x${string}`,
+        this.gameEngineAddress,
+        Number(decodedPlayerData.player1.id),
+        Number(decodedPlayerData.player2.id),
+      );
+      this.player1Id = String(decodedPlayerData.player1.id);
+      this.player2Id = String(decodedPlayerData.player2.id);
+      console.log("decoded combat bytes", this.decodedCombatBytes);
+      // Store block timestamp
+      this.blockNumber = combatResult.blockTimestamp;
+      console.log("block number", this.blockNumber);
+      // Build players from decoded player data
+      const rawFighter1Data = await buildRawFighterFromDecodedData(
+        decodedPlayerData.player1,
+      );
+      console.log("raw fighter 1 data", rawFighter1Data);
+      const rawFighter2Data = await buildRawFighterFromDecodedData(
+        decodedPlayerData.player2,
+      );
+      console.log("raw fighter 2 data", rawFighter2Data);
+      this.player1 = await convertRawFighterToFighter(rawFighter1Data);
+      console.log("player 1", this.player1);
+      this.player2 = await convertRawFighterToFighter(rawFighter2Data);
+    } catch (error) {
+      console.error("Error loading combat results:", error);
+      throw error;
+    }
+  }
 
-  //     // Parse the combat result event logs using DuelGameABI
-  //     const parsedLogs = parseEventLogs({
-  //       abi: DuelGameABI,
-  //       eventName: "CombatResult",
-  //       logs: receipt.logs,
-  //     });
+  async decodeCombatPlayerData(
+    player1Data: string,
+    player2Data: string,
+  ): Promise<{
+    player1: RawDecodedPlayerData;
+    player2: RawDecodedPlayerData;
+  }> {
+    try {
+      // Check if we have valid data
+      if (!player1Data || !player2Data) {
+        throw new Error("Missing player data");
+      }
 
-  //     if (!parsedLogs || parsedLogs.length === 0) {
-  //       throw new Error("Combat result log not found");
-  //     }
+      // Ensure data is in the correct bytes32 format
+      const formatHexData = (data: string): `0x${string}` => {
+        // If it doesn't start with 0x, add it
+        const hexData = data.startsWith("0x") ? data : `0x${data}`;
+        // Ensure it's the correct length for bytes32 (0x + 64 hex chars)
+        if (hexData.length !== 66) {
+          console.warn(
+            `Data length is ${hexData.length}, expected 66 chars for bytes32`,
+          );
+        }
+        return hexData as `0x${string}`;
+      };
 
-  //     const combatLog = parsedLogs[0];
+      // Get player contract address
+      const playerContractAddress = process.env
+        .NEXT_PUBLIC_PLAYER_CONTRACT_ADDRESS as Address;
 
-  //     const player1Data = combatLog.args.player1Data;
-  //     const player2Data = combatLog.args.player2Data;
-  //     const winningPlayerId = combatLog.args.winningPlayerId;
-  //     const packedResults = combatLog.args.packedResults;
+      // Make multicall to decode both players' data
+      const results = await viemClient.multicall({
+        contracts: [
+          {
+            address: playerContractAddress,
+            abi: PlayerABI,
+            functionName: "decodePlayerData",
+            args: [formatHexData(player1Data)],
+          },
+          {
+            address: playerContractAddress,
+            abi: PlayerABI,
+            functionName: "decodePlayerData",
+            args: [formatHexData(player2Data)],
+          },
+        ],
+      });
 
-  //     // Get player contract to decode player data
-  //     const gameContractAddress = process.env
-  //       .NEXT_PUBLIC_DUEL_GAME_CONTRACT_ADDRESS as Address;
-  //     const playerContractAddress = await viemClient.readContract({
-  //       address: gameContractAddress,
-  //       abi: DuelGameABI,
-  //       functionName: "playerContract",
-  //     });
+      // Check for errors
+      if (results[0].status === "failure") {
+        throw results[0].error;
+      }
+      if (results[1].status === "failure") {
+        throw results[1].error;
+      }
 
-  //     // Decode player data from indexed parameters
-  //     const [player1Id, player1Stats] = await viemClient.readContract({
-  //       address: playerContractAddress,
-  //       abi: PlayerABI,
-  //       functionName: "decodePlayerData",
-  //       args: [player1Data],
-  //     });
-  //     const [player2Id, player2Stats] = await viemClient.readContract({
-  //       address: playerContractAddress,
-  //       abi: PlayerABI,
-  //       functionName: "decodePlayerData",
-  //       args: [player2Data],
-  //     });
+      // Extract results and properly type them
+      const [player1Id, player1Stats] = results[0].result;
+      const [player2Id, player2Stats] = results[1].result;
 
-  //     // Get game engine address
-  //     const gameEngineAddress = await viemClient.readContract({
-  //       address: gameContractAddress,
-  //       abi: DuelGameABI,
-  //       functionName: "gameEngine",
-  //     });
+      // Create typed objects that exactly match the RawDecodedPlayerData interface
+      const rawPlayer1Data: RawDecodedPlayerData = {
+        id: Number(player1Id),
+        stats: player1Stats,
+      };
 
-  //     // Decode combat bytes
-  //     const decodedCombat = await viemClient.readContract({
-  //       address: gameEngineAddress,
-  //       abi: GameEngineABI,
-  //       functionName: "decodeCombatLog",
-  //       args: [packedResults],
-  //     });
-
-  //     // Extract actions array - skip gameEngineVersion which is at index 1
-  //     const actions = decodedCombat[3] as CombatAction[];
-
-  //     // Map the actions with proper enum conversion
-  //     const mappedActions = actions.map((action) => {
-  //       return {
-  //         p1Result: getEnumKeyByValue(
-  //           CombatResultType as unknown as Record<string, number>,
-  //           Number(action.p1Result),
-  //         ),
-  //         p1Damage: Number(action.p1Damage),
-  //         p1StaminaLost: Number(action.p1StaminaLost),
-  //         p2Result: getEnumKeyByValue(
-  //           CombatResultType as unknown as Record<string, number>,
-  //           Number(action.p2Result),
-  //         ),
-  //         p2Damage: Number(action.p2Damage),
-  //         p2StaminaLost: Number(action.p2StaminaLost),
-  //       };
-  //     });
-
-  //     const result: DuelResult = {
-  //       winner: winningPlayerId,
-  //       condition: getEnumKeyByValue(
-  //         WinCondition as unknown as Record<string, number>,
-  //         Number(decodedCombat[2]),
-  //       ) as keyof typeof WinCondition,
-  //       actions: mappedActions as MappedCombatAction[],
-  //       player1Id: Number(player1Id),
-  //       player2Id: Number(player2Id),
-  //       player1Stats,
-  //       player2Stats,
-  //       winningPlayerId,
-  //       blockNumber: receipt.blockNumber.toString(),
-  //       gameEngineVersion: Number(decodedCombat[1]),
-  //     };
-
-  //     // Verify the result has the expected structure
-  //     if (!result.actions || result.actions.length === 0) {
-  //       throw new Error("No actions in processed result");
-  //     }
-
-  //     return result;
-  //   } catch (error) {
-  //     console.error("Error loading duel data:", error);
-  //     throw error;
-  //   }
-  // }
+      const rawPlayer2Data: RawDecodedPlayerData = {
+        id: Number(player2Id),
+        stats: player2Stats,
+      };
+      return {
+        player1: rawPlayer1Data,
+        player2: rawPlayer2Data,
+      };
+    } catch (error) {
+      console.error("Error decoding player data:", error);
+      throw error;
+    }
+  }
 }

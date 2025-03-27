@@ -19,13 +19,10 @@ interface GameWrapperProps {
   // player1Id?: string;
   // player2Id?: string;
   player1?: Fighter;
+  // txId?: string;
 }
 
-export function GameWrapper({
-  // player1Id,
-  // player2Id,
-  player1,
-}: GameWrapperProps) {
+export function GameWrapper({ player1 }: GameWrapperProps) {
   const [isClient, setIsClient] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isMuted, setIsMuted] = useState(false);

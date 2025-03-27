@@ -33,7 +33,6 @@ export class FightScene extends Scene {
   private player2Sprite: Phaser.Physics.Arcade.Sprite;
   private countdownText?: Phaser.GameObjects.Text;
   private networkText?: Phaser.GameObjects.Text;
-  private txIdText?: Phaser.GameObjects.Text;
   private backgroundMusic?: Phaser.Sound.BaseSound;
 
   // Scene managers
@@ -227,12 +226,12 @@ export class FightScene extends Scene {
       }
     });
 
-    // Add network and block number text in the bottom left (single line)
+    // Replace both text elements with a single combined text element
     this.networkText = this.add
       .text(
         5,
         this.cameras.main.height - 5,
-        `Network: ${this.network} | Block#: ${this.blockNumber} | GameEngine: v${Math.floor((this.decodedCombatBytes.gameEngineVersion || 0) / 100)}.${(this.decodedCombatBytes?.gameEngineVersion || 0) % 100}`,
+        `Network: ${this.network} | Block#: ${this.blockNumber} | GameEngine: v${Math.floor((this.decodedCombatBytes.gameEngineVersion || 0) / 100)}.${(this.decodedCombatBytes?.gameEngineVersion || 0) % 100} | Transaction: ${this.txId}`,
         {
           fontFamily: "Arial",
           fontSize: "10px",
@@ -241,22 +240,6 @@ export class FightScene extends Scene {
         },
       )
       .setOrigin(0, 1)
-      .setDepth(100);
-
-    // Add transaction ID text in the bottom right
-    this.txIdText = this.add
-      .text(
-        this.cameras.main.width - 5,
-        this.cameras.main.height - 5,
-        `Transaction: ${this.txId}`,
-        {
-          fontFamily: "Arial",
-          fontSize: "10px",
-          color: "#cccccc",
-          align: "right",
-        },
-      )
-      .setOrigin(1, 1)
       .setDepth(100);
 
     // Create player stats displays immediately but don't show them yet

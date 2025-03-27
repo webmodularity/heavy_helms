@@ -285,3 +285,119 @@ export const GET_OWNED_PLAYERS_QUERY = gql`
   }
   ${FIGHTER_COMPLETE_FRAGMENT}
 `;
+
+export const GET_COMBAT_RESULT = gql`
+  query GetCombatResult($txHash: ID!) {
+    combatResult(id: $txHash) {
+      id
+      player1Data
+      player2Data
+      winningPlayerId
+      packedResults
+      blockTimestamp
+    }
+  }
+`;
+
+// Query to fetch names by their indices
+export const GET_NAMES_BY_INDICES = gql`
+  query GetNamesByIndices($firstNameIndex: Int!, $surnameIndex: Int!) {
+    firstNameResult: names(where: {index: $firstNameIndex, nameType: 0}) {
+      value
+    }
+    surnameResult: names(where: {index: $surnameIndex, nameType: 2}) {
+      value
+    }
+  }
+`;
+
+// Query to fetch skin collection and skin data
+export const GET_SKIN_BY_INDICES = gql`
+  query GetSkinByIndices($registryId: BigInt!, $tokenId: Int!) {
+    skinCollections(where: {registryId: $registryId}) {
+      id
+      contractAddress
+      isVerified
+      skinType
+      requiredNFTAddress
+      skins(where: {tokenId: $tokenId}) {
+        id
+        tokenId
+        metadataURI
+        weapon
+        armor
+        stance
+      }
+    }
+  }
+`;
+
+// Query for a specific player's duels
+export const GET_PLAYER_DUELS = gql`
+  query GetPlayerDuels($limit: Int = 10, $playerId: ID!) {
+    duelCompletes(
+      first: $limit, 
+      orderBy: blockNumber, 
+      orderDirection: desc,
+      where: {
+        or: [
+          { challenge_: { challengerId: $playerId } },
+          { challenge_: { defenderId: $playerId } }
+        ]
+      }
+    ) {
+      id
+      blockNumber
+      blockTimestamp
+      winnerId
+      challenge {
+        challengerId
+        defenderId
+        challenger {
+          id
+          fullName
+        }
+        defender {
+          id
+          fullName
+        }
+        winner {
+          id
+          fullName
+        }
+      }
+    }
+  }
+`;
+
+// Query for all duels (without filtering)
+export const GET_ALL_DUELS = gql`
+  query GetAllDuels($limit: Int = 10) {
+    duelCompletes(
+      first: $limit, 
+      orderBy: blockNumber, 
+      orderDirection: desc
+    ) {
+      id
+      blockNumber
+      blockTimestamp
+      winnerId
+      challenge {
+        challengerId
+        defenderId
+        challenger {
+          id
+          fullName
+        }
+        defender {
+          id
+          fullName
+        }
+        winner {
+          id
+          fullName
+        }
+      }
+    }
+  }
+`;

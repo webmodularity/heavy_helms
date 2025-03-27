@@ -73,6 +73,7 @@ const StartGame = (parent: string, gameConfig?: GameConfig) => {
   const game = new Game({ ...config, parent });
   
   // Store the initial data in the game registry for access across scenes
+  console.log("gameData", gameData);
   game.registry.set('player1Id', gameData.player1Id);
   game.registry.set('player2Id', gameData.player2Id);
   game.registry.set('player1', gameData.player1);
