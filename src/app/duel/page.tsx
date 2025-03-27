@@ -2,7 +2,6 @@
 
 import { GameWrapper } from "@/components/game/game-wrapper";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
-import { usePlayerById } from "@/hooks/use-player-by-id";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect } from "react";
 import { ErrorBoundary } from "react-error-boundary";
@@ -29,42 +28,32 @@ function GameErrorFallback() {
   );
 }
 
-// Create a separate client component that uses useSearchParams
-function PracticeGame() {
+// Component that uses txId from URL
+function DuelGame() {
   const searchParams = useSearchParams();
-  const player1Id = searchParams.get("player1Id") ?? undefined;
-  // biome-ignore lint/style/noNonNullAssertion: <explanation>
-  const { data: player1 } = usePlayerById(player1Id!);
-  console.log("player1", player1);
-  // const player2Id = searchParams.get("player2Id") ?? undefined;
+  const txId = searchParams.get("txId") ?? undefined;
   const router = useRouter();
 
   useEffect(() => {
-    // Redirect if no character ID is provided
-    if (!player1Id) {
+    // Redirect if no transaction ID is provided
+    if (!txId) {
       router.push("/");
       return;
     }
-  }, [player1Id, router]);
+  }, [txId, router]);
 
-  if (!player1Id) {
+  if (!txId) {
     return <LoadingSpinner size="lg" text="Loading game..." />;
   }
 
   return (
     <ErrorBoundary FallbackComponent={GameErrorFallback}>
-      <GameWrapper
-        // player1Id={player1Id}
-        // player2Id={player2Id}
-        // biome-ignore lint/style/noNonNullAssertion: <explanation>
-        player1={player1!}
-        // player2={player2}
-      />
+      <GameWrapper />
     </ErrorBoundary>
   );
 }
 
-export default function PracticePage() {
+export default function DuelPage() {
   return (
     <div className="min-h-screen flex flex-col bg-stone-9000">
       <main className="p-4 flex flex-col">
@@ -74,7 +63,7 @@ export default function PracticePage() {
             <Suspense
               fallback={<LoadingSpinner size="lg" text="Loading game..." />}
             >
-              <PracticeGame />
+              <DuelGame />
             </Suspense>
           </div>
         </div>

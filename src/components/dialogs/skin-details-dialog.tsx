@@ -8,7 +8,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { SkinType } from "@/types/skin.types";
-import type { Character, PlayerAttributes } from "@/types/player.types";
+import type { Player, PlayerAttributes } from "@/types/player.types";
 import { Check, Loader, Sparkles } from "lucide-react";
 import Image from "next/image";
 import {
@@ -42,7 +42,7 @@ interface SkinDetailsDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   skin: SkinWithMetadataURI;
-  character: Character;
+  character: Player;
   isCurrentSkin: boolean;
   onEquip: () => void;
   isEquipping: boolean;

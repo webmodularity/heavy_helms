@@ -10,11 +10,12 @@ import {
 import { PlayerSelectionTable } from "@/components/duel/player-selection-table";
 import type { Player } from "@/types/player.types";
 import { useEffect } from "react";
+import type { Fighter } from "@/types/fighter-types";
 
 interface SelectChallengerModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSelectPlayer: (player: Player) => void;
+  onSelectPlayer: (player: Fighter) => void;
   currentPlayerId?: string;
 }
 
@@ -25,7 +26,7 @@ export function SelectChallengerModal({
   currentPlayerId,
 }: SelectChallengerModalProps) {
   // Handle player selection
-  const handleSelectPlayer = (player: Player) => {
+  const handleSelectPlayer = (player: Fighter) => {
     onSelectPlayer(player);
     onClose();
   };

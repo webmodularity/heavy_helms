@@ -56,3 +56,37 @@ export interface RawCombatAction {
   p2Damage: number;
   p2StaminaLost: number;
 }
+
+// Raw combat result from subgraph (before decoding)
+export interface RawCombatResult {
+  id: string;
+  player1Data: string; // Encoded bytes data
+  player2Data: string; // Encoded bytes data
+  winningPlayerId: string;
+  packedResults: string; // Encoded combat log
+  blockTimestamp: string;
+  transactionHash: string;
+}
+
+export interface Duel {
+  id: string;
+  blockNumber: string;
+  blockTimestamp: string;
+  winnerId: string;
+  challenge: {
+    challengerId: string;
+    defenderId: string;
+    challenger: {
+      id: string;
+      fullName: string;
+    };
+    defender: {
+      id: string;
+      fullName: string;
+    };
+    winner: {
+      id: string;
+      fullName: string;
+    };
+  };
+}

@@ -1,14 +1,14 @@
-import type { Character } from "@/types/player.types";
-import { motion } from "framer-motion";
-import { Flame, Shield, Swords } from "lucide-react";
 import {
   getArmorDisplayName,
   getStanceDisplayName,
   getWeaponDisplayName,
 } from "@/lib/equipment-utils";
+import type { Player } from "@/types/player.types";
+import { motion } from "framer-motion";
+import { Flame, Shield, Swords } from "lucide-react";
 
 interface EquipmentSectionProps {
-  character: Character;
+  character: Player;
 }
 
 export function EquipmentSection({ character }: EquipmentSectionProps) {

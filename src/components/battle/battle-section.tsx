@@ -1,6 +1,6 @@
 "use client";
 
-import type { Character } from "@/types/player.types";
+import type { Player } from "@/types/player.types";
 import { motion } from "framer-motion";
 import { ChevronUp } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -10,7 +10,7 @@ import { useState } from "react";
 import { CreateChallengeForm } from "@/components/duel/create-challenge-form";
 
 interface BattleSectionProps {
-  selectedCharacter: Character | null;
+  selectedCharacter: Player | null;
   hasBattleInView: boolean;
   battleSectionRef: React.RefObject<HTMLElement>;
 }
@@ -83,7 +83,7 @@ interface BattleCardProps {
     route: string;
     available: boolean;
   };
-  selectedCharacter: Character | null;
+  selectedCharacter: Player | null;
   hasBattleInView: boolean;
   animationDelay: number;
   contentDelay: number;
@@ -107,9 +107,7 @@ function BattleCard({
         // Show challenge form instead of navigating
         setShowChallengeForm(true);
       } else {
-        router.push(
-          `${battleType.route}?player1Id=${selectedCharacter.id}&player2Id=2`,
-        );
+        router.push(`${battleType.route}?player1Id=${selectedCharacter.id}`);
       }
     }
   };
@@ -117,12 +115,12 @@ function BattleCard({
   const handleChallengeSuccess = () => {
     // Close the form and potentially show a success message or redirect
     setShowChallengeForm(false);
-    
+
     // Scroll to the challenges tab in the Activity Section
     const activitySection = document.getElementById("activity-section");
     if (activitySection) {
       activitySection.scrollIntoView({ behavior: "smooth" });
-      
+
       // Set the active tab to "challenges"
       const event = new CustomEvent("activateChallengesTab");
       document.dispatchEvent(event);
@@ -141,7 +139,7 @@ function BattleCard({
           transition: { duration: 0.7, delay: animationDelay },
         }}
       >
-        <CreateChallengeForm 
+        <CreateChallengeForm
           character={selectedCharacter}
           onSuccess={handleChallengeSuccess}
           onCancel={() => setShowChallengeForm(false)}

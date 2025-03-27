@@ -1,9 +1,9 @@
 import { SectionHeader } from "@/components/ui/section-header";
 import { motion } from "framer-motion";
-import type { Character } from "@/types/player.types";
+import type { Player } from "@/types/player.types";
 
 interface HeroSectionProps {
-  character: Character;
+  character: Player;
 }
 
 export function HeroSection({ character }: HeroSectionProps) {
