@@ -1,6 +1,5 @@
 import { Scene } from "phaser";
 import { EventBus } from "../EventBus";
-import type { Address } from "viem";
 import type { DecodedCombatResult } from "@/types/game.types";
 import type { Fighter } from "@/types/fighter-types";
 import { GameModeStrategyFactory } from "../strategies/GameModeStrategyFactory";
@@ -9,22 +8,11 @@ import { AssetManager } from "../services/AssetManager";
 import { LoadingUI } from "../ui/LoadingUI";
 
 export class Preloader extends Scene {
-  // URL parameters
-  private txId?: string;
-  private network: string;
-  private blockNumber: string;
-  private player1Id?: string;
-  private player2Id?: string;
-
   // Player data
   private player1: Fighter;
   private player2: Fighter;
   // Game data
   private decodedCombatBytes: DecodedCombatResult;
-  private gameEngineAddress: Address;
-
-  // Loading state
-  private loadingBar?: Phaser.GameObjects.Graphics;
 
   // Game mode strategy
   private strategy: GameModeStrategy;
