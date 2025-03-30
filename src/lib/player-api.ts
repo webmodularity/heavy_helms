@@ -461,7 +461,7 @@ export async function buildRawFighterFromDecodedData(
 /**
  * Fetches name data from the subgraph using indices
  */
-async function fetchNamesByIndices(
+export async function fetchNamesByIndices(
   firstNameIndex: number,
   surnameIndex: number,
 ): Promise<{ firstName: string; surname: string }> {
