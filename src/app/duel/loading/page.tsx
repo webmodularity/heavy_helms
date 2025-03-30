@@ -39,7 +39,7 @@ export default function DuelLoadingPage() {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 bg-gradient-to-b from-black via-gray-900 to-black flex flex-col items-center justify-center overflow-hidden"
+      className="fixed inset-0 bg-gradient-to-b from-black via-gray-900 to-black flex flex-col items-center justify-center overflow-hidden z-50"
     >
       {/* Gradient Background */}
       <div className="absolute inset-0 z-0">
