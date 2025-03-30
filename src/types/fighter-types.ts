@@ -57,6 +57,7 @@ export interface FighterCalculatedStats {
   counterChance: number;
   critMultiplier: number;
   parryChance: number;
+  riposteChance: number;
   baseSurvivalRate: number;
 }
 

@@ -121,6 +121,7 @@ export class FighterService {
             critChance: Number(stats.critChance),
             initiative: Number(stats.initiative),
             counterChance: Number(stats.counterChance),
+            riposteChance: Number(stats.riposteChance),
             critMultiplier: Number(stats.critMultiplier),
             parryChance: Number(stats.parryChance),
             baseSurvivalRate: Number(stats.baseSurvivalRate),
@@ -173,6 +174,7 @@ interface FighterStats {
   critChance: bigint;
   initiative: bigint;
   counterChance: bigint;
+  riposteChance: bigint;
   critMultiplier: bigint;
   parryChance: bigint;
   baseSurvivalRate: bigint;
