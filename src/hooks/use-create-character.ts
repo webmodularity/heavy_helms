@@ -169,7 +169,7 @@ export function useCreateCharacter() {
             currentSkin: {
               collection: {
                 id: "0",
-                contractAddress: '0xf2577e75861cc4e960a8f192cbb5a22d549d7487',
+                contractAddress: process.env.NEXT_PUBLIC_DEFAULT_SKIN_CONTRACT_ADDRESS as `0x${string}`,
                 isVerified: true,
                 skinType: SkinType.DefaultPlayer,
                 requiredNFTAddress: null,
