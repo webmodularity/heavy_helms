@@ -4,7 +4,8 @@ import { useDuelActions, useDuelLoadingState } from "@/stores/duel-store";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
-import { Spinner } from "@/components/ui/spinner";
+import { motion } from "framer-motion";
+import { ArrowLeft, Swords } from "lucide-react";
 
 export default function DuelLoadingPage() {
   const { isListening, isTimeout, duelTxHash } = useDuelLoadingState();
@@ -34,53 +35,346 @@ export default function DuelLoadingPage() {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen p-4">
-      <div className="bg-black/10 backdrop-blur-sm p-8 rounded-lg shadow-lg max-w-lg w-full">
-        <h1 className="text-2xl font-bold text-center mb-4">
-          {isNavigating ? "Duel Complete!" : "Preparing for Battle"}
-        </h1>
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 bg-gradient-to-b from-black via-gray-900 to-black flex flex-col items-center justify-center overflow-hidden"
+    >
+      {/* Gradient Background */}
+      <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 bg-gradient-radial from-gray-900 via-black to-black opacity-80" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-yellow-900/10 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black via-transparent to-black" />
 
+        {/* Animated "stars" effect */}
+        <div className="absolute inset-0 overflow-hidden">
+          {[...Array(20)].map((_, i) => (
+            <motion.div
+              // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+              key={i}
+              className="absolute h-1 w-1 bg-yellow-500/30 rounded-full"
+              style={{
+                top: `${Math.random() * 100}%`,
+                left: `${Math.random() * 100}%`,
+              }}
+              animate={{
+                opacity: [0.1, 0.5, 0.1],
+                scale: [1, 1.5, 1],
+              }}
+              transition={{
+                duration: Math.random() * 3 + 2,
+                repeat: Number.POSITIVE_INFINITY,
+                delay: Math.random() * 5,
+              }}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* Pulsing Circle */}
+      <motion.div
+        className="absolute z-10"
+        initial={{ opacity: 0.5, scale: 0.8 }}
+        animate={{
+          opacity: [0.3, 0.8, 0.3],
+          scale: [0.8, 1.2, 0.8],
+        }}
+        transition={{
+          duration: 3,
+          repeat: Number.POSITIVE_INFINITY,
+          ease: "easeInOut",
+        }}
+      >
+        <div className="w-96 h-96 rounded-full border-4 border-yellow-500/20 blur-sm" />
+      </motion.div>
+
+      {/* Central Content */}
+      <motion.div
+        className="z-20 text-center px-4 sm:px-6 max-w-2xl"
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.3 }}
+      >
         {isTimeout ? (
-          <div className="text-center">
-            <p className="mb-4">
-              The duel is taking longer than expected to process. This could be
-              due to network congestion.
-            </p>
-            <p className="mb-6">
-              You can wait longer or check back later. The duel will still be
-              processed by the blockchain.
-            </p>
-            <Button onClick={handleCancel} variant="outline" className="mr-4">
-              Return to Challenges
-            </Button>
-            <Button onClick={() => window.location.reload()}>Refresh</Button>
-          </div>
+          <TimeoutContent onReturn={handleCancel} />
         ) : isNavigating ? (
-          <div className="text-center">
-            <Spinner size="lg" className="mx-auto mb-4" />
-            <p className="mb-4">
-              Duel completed! Preparing the visualization...
-            </p>
-            <p className="mb-4">
-              You'll be redirected in a few seconds.
-            </p>
-          </div>
+          <CompletedContent />
         ) : (
-          <div className="text-center">
-            <Spinner size="lg" className="mx-auto mb-4" />
-            <p className="mb-4">
-              Your challenge has been accepted! We're waiting for the blockchain
-              to process the duel.
-            </p>
-            <p className="mb-4">
-              This usually takes less than a minute, but may take longer during
-              periods of network congestion.
-            </p>
-            <Button onClick={handleCancel} variant="outline">
-              Cancel
-            </Button>
-          </div>
+          <LoadingContent onCancel={handleCancel} />
         )}
+      </motion.div>
+    </motion.div>
+  );
+}
+
+// Loading State Component
+function LoadingContent({ onCancel }: { onCancel: () => void }) {
+  return (
+    <>
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ delay: 0.5 }}
+        className="mb-8 flex justify-center"
+      >
+        <BattleAnimatedIcon />
+      </motion.div>
+
+      <motion.h1
+        className="text-3xl md:text-4xl font-bold text-white mb-4"
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.6 }}
+      >
+        Preparing for Battle
+      </motion.h1>
+
+      <motion.p
+        className="text-gray-300 mb-4 text-lg"
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.7 }}
+      >
+        Your challenge has been accepted! We're waiting for the blockchain to
+        process the duel.
+      </motion.p>
+
+      <motion.p
+        className="text-gray-400 mb-8"
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.8 }}
+      >
+        This usually takes less than a minute, but may take longer during
+        periods of network congestion.
+      </motion.p>
+
+      <motion.div
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.9 }}
+      >
+        <Button
+          onClick={onCancel}
+          variant="outline"
+          className="bg-transparent hover:bg-yellow-500/20 text-yellow-500 border-yellow-500/30 hover:border-yellow-500/50"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Return to Challenges
+        </Button>
+      </motion.div>
+    </>
+  );
+}
+
+// Completion State Component
+function CompletedContent() {
+  return (
+    <>
+      <motion.div
+        initial={{ scale: 0.9, rotate: 0, opacity: 0 }}
+        animate={{ scale: 1, rotate: 360, opacity: 1 }}
+        transition={{
+          duration: 0.8,
+          delay: 0.5,
+          ease: "easeOut",
+        }}
+        className="mb-8 flex justify-center"
+      >
+        <div className="h-20 w-20 relative">
+          <motion.div
+            className="absolute inset-0 rounded-full bg-yellow-500/20 backdrop-blur-sm"
+            animate={{
+              scale: [1, 1.2, 1],
+              opacity: [1, 0.8, 1],
+            }}
+            transition={{
+              duration: 2,
+              repeat: Number.POSITIVE_INFINITY,
+              ease: "easeInOut",
+            }}
+          />
+          <Swords className="h-12 w-12 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-yellow-500" />
+        </div>
+      </motion.div>
+
+      <motion.h1
+        className="text-3xl md:text-4xl font-bold text-white mb-4"
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.6 }}
+      >
+        Duel Complete!
+      </motion.h1>
+
+      <motion.div
+        className="space-y-4"
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.7 }}
+      >
+        <p className="text-gray-300 text-lg">Preparing the visualization...</p>
+        <AnimatedDots />
+        <p className="text-gray-400">You'll be redirected in a few seconds.</p>
+      </motion.div>
+    </>
+  );
+}
+
+// Timeout State Component
+function TimeoutContent({ onReturn }: { onReturn: () => void }) {
+  return (
+    <>
+      <motion.div
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ delay: 0.5 }}
+        className="mb-8 flex justify-center"
+      >
+        <div className="h-20 w-20 relative">
+          <div className="absolute inset-0 rounded-full bg-orange-500/20 backdrop-blur-sm" />
+          {/* biome-ignore lint/a11y/noSvgWithoutTitle: <explanation> */}
+          <svg
+            className="h-12 w-12 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-orange-500"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+        </div>
+      </motion.div>
+
+      <motion.h1
+        className="text-3xl md:text-4xl font-bold text-white mb-4"
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.6 }}
+      >
+        Taking Longer Than Expected
+      </motion.h1>
+
+      <motion.p
+        className="text-gray-300 mb-4 text-lg"
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.7 }}
+      >
+        The duel is taking longer than expected to process. This could be due to
+        network congestion.
+      </motion.p>
+
+      <motion.p
+        className="text-gray-400 mb-8"
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.8 }}
+      >
+        You can wait longer or check back later. The duel will still be
+        processed by the blockchain.
+      </motion.p>
+
+      <motion.div
+        className="flex flex-col sm:flex-row gap-4 justify-center"
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.9 }}
+      >
+        <Button
+          onClick={onReturn}
+          variant="outline"
+          className="bg-transparent hover:bg-yellow-500/20 text-yellow-500 border-yellow-500/30 hover:border-yellow-500/50"
+        >
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Return to Challenges
+        </Button>
+
+        <Button
+          onClick={() => window.location.reload()}
+          className="bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-500 border border-yellow-500/30"
+        >
+          Try Again
+        </Button>
+      </motion.div>
+    </>
+  );
+}
+
+// Animated dots for "loading" indication
+function AnimatedDots() {
+  return (
+    <div className="flex justify-center space-x-2">
+      {[0, 1, 2].map((dot) => (
+        <motion.div
+          key={dot}
+          className="h-2 w-2 bg-yellow-500 rounded-full"
+          initial={{ opacity: 0.3 }}
+          animate={{ opacity: [0.3, 1, 0.3] }}
+          transition={{
+            duration: 1.5,
+            repeat: Number.POSITIVE_INFINITY,
+            delay: dot * 0.3,
+            ease: "easeInOut",
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+// Battle icon animation
+function BattleAnimatedIcon() {
+  return (
+    <div className="relative h-24 w-24">
+      {/* Pulsing background */}
+      <motion.div
+        className="absolute inset-0 rounded-full bg-yellow-500/10"
+        animate={{
+          scale: [1, 1.2, 1],
+          opacity: [0.5, 0.3, 0.5],
+        }}
+        transition={{
+          duration: 2,
+          repeat: Number.POSITIVE_INFINITY,
+          ease: "easeInOut",
+        }}
+      />
+
+      {/* Middle circle */}
+      <motion.div
+        className="absolute inset-2 rounded-full bg-yellow-500/20 backdrop-blur-sm"
+        animate={{
+          rotate: [0, 360],
+        }}
+        transition={{
+          duration: 20,
+          repeat: Number.POSITIVE_INFINITY,
+          ease: "linear",
+        }}
+      >
+        {/* Create some decorative dots */}
+        {[0, 60, 120, 180, 240, 300].map((angle) => (
+          <motion.div
+            key={angle}
+            className="absolute h-1.5 w-1.5 rounded-full bg-yellow-500/80"
+            style={{
+              top: "calc(50% - 3px)",
+              left: "calc(50% - 3px)",
+              transform: `rotate(${angle}deg) translateX(34px)`,
+            }}
+          />
+        ))}
+      </motion.div>
+
+      {/* Center element */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <Swords className="h-8 w-8 text-yellow-500 z-10" />
       </div>
     </div>
   );

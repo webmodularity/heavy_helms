@@ -121,10 +121,7 @@ export function useAcceptChallenge() {
           duration: 4000,
         });
         
-        // Add a 5-second delay before navigating
-        setTimeout(() => {
           router.push(`/duel?txId=${duelTxHash}`);
-        }, 5000);
       });
       
       // Start a 60-second timeout
