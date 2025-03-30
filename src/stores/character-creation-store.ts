@@ -82,7 +82,7 @@ const useCharacterCreationStore = create<CharacterCreationState>((set, get) => (
             } = matchingLog.args;
             
             // Convert playerId to string
-            const playerIdFromEvent = playerIdRaw.toString();
+            const playerIdFromEvent = playerIdRaw?.toString() ?? null;
             
             // Create event data object
             const eventData: CharacterCreationEventData = {
@@ -111,7 +111,7 @@ const useCharacterCreationStore = create<CharacterCreationState>((set, get) => (
             }
             
             // Call the callback if provided
-            if (onCharacterCreated) onCharacterCreated(playerIdFromEvent, eventData)
+            if (onCharacterCreated) onCharacterCreated(playerIdFromEvent || "", eventData)
           }
         },
       })
