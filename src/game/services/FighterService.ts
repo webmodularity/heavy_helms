@@ -91,7 +91,7 @@ export class FighterService {
         ],
       }));
 
-      // Execute multicall
+      // @ts-ignore - Complex type instantiation that cannot be resolved
       const results = await viemClient.multicall({ contracts });
 
       // Process results
