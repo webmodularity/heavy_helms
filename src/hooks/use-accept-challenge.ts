@@ -9,6 +9,8 @@ import { encodeFunctionData } from "viem";
 import type { Player } from "@/types/player.types";
 import type { Challenge } from "./use-challenges";
 import { useRouter } from "next/navigation";
+import { useDuelActions } from "@/stores/duel-store";
+
 // This is a placeholder - replace with your actual contract address
 const DUEL_GAME_CONTRACT_ADDRESS = process.env
   .NEXT_PUBLIC_DUEL_GAME_CONTRACT_ADDRESS as `0x${string}`;
@@ -31,6 +33,10 @@ export function useAcceptChallenge() {
   const { isWrongNetwork, switchToBaseSepolia } = useWallet();
   const queryClient = useQueryClient();
   const router = useRouter();
+  
+  // Get only the actions we need - we no longer need selectors here
+  const { startListening, markAsTimedOut, setListenerTimeout } = useDuelActions();
+  
   // Find embedded wallet
   const embeddedWallet = wallets?.find(
     (wallet) => wallet.connectorType === "embedded",
@@ -98,7 +104,7 @@ export function useAcceptChallenge() {
     onSuccess: async ({ txHash, challengeId, characterId }) => {
       toast.success("Challenge accepted", {
         description:
-          "You've accepted the challenge! Prepare for battle as the duel begins.",
+          "You've accepted the challenge! Preparing for battle as the duel begins.",
         action: {
           label: "View on BaseScan",
           onClick: () =>
@@ -107,17 +113,32 @@ export function useAcceptChallenge() {
         duration: 5000,
       });
 
-      // router.push(`/duel?txId=${txHash}`);
+      // Start listening for DuelComplete event
+      // We pass a callback with a 5-second delay before navigation
+      startListening(challengeId, (duelTxHash) => {
+        toast.success("Duel complete!", {
+          description: "Preparing the duel visualization...",
+          duration: 4000,
+        });
+        
+          router.push(`/duel?txId=${duelTxHash}`);
+      });
+      
+      // Start a 60-second timeout
+      const timeoutId = window.setTimeout(() => {
+        markAsTimedOut();
+        toast.error("Duel processing timeout", {
+          description: "The duel is taking longer than expected to process. You can check back later.",
+        });
+      }, 60000); // 1 minute timeout
+      
+      setListenerTimeout(timeoutId);
 
       // Invalidate active challenges query to refresh the list
       if (embeddedWallet?.address) {
         queryClient.invalidateQueries({
           queryKey: ["active-challenges", embeddedWallet.address],
         });
-
-        // queryClient.invalidateQueries({
-        //   queryKey: ["fighter-challenges", characterId],
-        // });
 
         queryClient.setQueryData(
           ["fighter-challenges", characterId],
@@ -126,6 +147,9 @@ export function useAcceptChallenge() {
           ],
         );
       }
+      
+      // Navigate to the loading screen
+      router.push("/duel/loading");
     },
 
     onError: (error) => {
