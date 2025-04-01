@@ -6,7 +6,7 @@ import { SkinInfo, SkinType } from "@/types/skin.types";
 import { useQuery } from "@tanstack/react-query";
 import { meetsEquipmentRequirements } from "@/lib/equipment-utils";
 import type { ArmorType, WeaponType } from "@/types/equipment.types";
-
+import { useWallet } from "./use-wallet";
 interface ValidationResult {
   isValid: boolean;
   error?: string;
@@ -18,7 +18,7 @@ export function useValidateSkinOwnership(
   skinType: SkinType,
   enabled = true,
 ) {
-  const { wallets } = useWallets();
+  const { primaryWallet } = useWallet();
 
   return useQuery({
     queryKey: ["skinOwnershipValidation", skinIndex, skinTokenId, skinType],
@@ -28,11 +28,7 @@ export function useValidateSkinOwnership(
         return { isValid: true };
       }
 
-      const embeddedWallet = wallets?.find(
-        (wallet) => wallet.connectorType === "embedded",
-      );
-
-      if (!embeddedWallet?.address) {
+      if (!primaryWallet?.address) {
         throw new Error("Wallet not connected");
       }
 
@@ -49,7 +45,7 @@ export function useValidateSkinOwnership(
               skinIndex, // Must match the exact name in the ABI
               skinTokenId, // Must match the exact name in the ABI
             },
-            embeddedWallet.address as `0x${string}`,
+            primaryWallet.address as `0x${string}`,
           ],
         });
 

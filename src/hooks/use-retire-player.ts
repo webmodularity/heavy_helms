@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { PlayerABI } from "@/game/abi";
 import { viemClient } from "@/config";
 import type { Fighter } from "@/types/fighter-types";
-
+import { useWallet } from "./use-wallet";
 interface RetirePlayerResult {
   success: boolean;
   txHash?: string;
@@ -20,7 +20,7 @@ interface RetirePlayerResult {
  */
 export function useRetirePlayer(playerId: string) {
   const { user, authenticated } = usePrivy();
-  const { wallets } = useWallets();
+  const { primaryWallet } = useWallet();
   const queryClient = useQueryClient();
 
   const mutation = useMutation<RetirePlayerResult, Error, void>({
@@ -29,13 +29,8 @@ export function useRetirePlayer(playerId: string) {
         throw new Error("Authentication required");
       }
 
-      // Find embedded wallet
-      const embeddedWallet = wallets.find(
-        (wallet) => wallet.connectorType === "embedded",
-      );
-
-      if (!embeddedWallet) {
-        throw new Error("No embedded wallet found");
+      if (!primaryWallet) {
+        throw new Error("No wallet found");
       }
 
       // Contract address from environment
@@ -54,7 +49,7 @@ export function useRetirePlayer(playerId: string) {
       });
 
       // Get provider for the embedded wallet
-      const provider = await embeddedWallet.getEthereumProvider();
+      const provider = await primaryWallet.getEthereumProvider();
 
       if (!provider) {
         throw new Error("Failed to get Ethereum provider");
@@ -64,7 +59,7 @@ export function useRetirePlayer(playerId: string) {
       const transactionRequest = {
         to: playerContractAddress,
         data,
-        from: embeddedWallet.address,
+        from: primaryWallet.address,
       };
 
       // Send transaction using the provider
@@ -88,10 +83,6 @@ export function useRetirePlayer(playerId: string) {
     },
 
     onSuccess: async (data) => {
-      // Find embedded wallet
-      const embeddedWallet = wallets.find(
-        (wallet) => wallet.connectorType === "embedded",
-      );
       if (data.txHash) {
         toast.success("Retirement request submitted", {
           description:
@@ -112,14 +103,9 @@ export function useRetirePlayer(playerId: string) {
           queryKey: ["player", playerId],
         });
 
-        // if (embeddedWallet?.address) {
-        //   await queryClient.invalidateQueries({
-        //     queryKey: ["owned-players", embeddedWallet.address],
-        //   });
-        // }
-        console.log("Retiring from address:", embeddedWallet?.address);
+        console.log("Retiring from address:", primaryWallet?.address);
         queryClient.setQueryData(
-          ["owned-players", embeddedWallet?.address],
+          ["owned-players", primaryWallet?.address],
           (oldData: Fighter[]) => {
             console.log("Old data:", oldData);
             return oldData?.filter((player) => player.id !== playerId);

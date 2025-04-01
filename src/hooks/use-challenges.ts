@@ -68,13 +68,7 @@ export function useChallenges(fighterId?: string) {
   const { authenticated } = usePrivy();
   const { wallets } = useWallets();
   const { isWrongNetwork, switchToBaseSepolia } = useWallet();
-
-  // Find embedded wallet
-  const embeddedWallet = wallets?.find(
-    (wallet) => wallet.connectorType === "embedded",
-  );
-
-  const walletAddress = embeddedWallet?.address?.toLowerCase();
+  const { primaryWallet } = useWallet();
 
   // Fetch active challenges
   const {
@@ -86,7 +80,7 @@ export function useChallenges(fighterId?: string) {
     // Query key includes fighterId if provided
     queryKey: fighterId
       ? ["fighter-challenges", fighterId]
-      : ["active-challenges", walletAddress],
+      : ["active-challenges", primaryWallet?.address],
     queryFn: async () => {
       // Don't fetch if not authenticated
       if (!authenticated) {
@@ -94,7 +88,7 @@ export function useChallenges(fighterId?: string) {
       }
 
       // Ensure we have either a fighter ID or wallet address
-      if (!fighterId && !walletAddress) {
+      if (!fighterId && !primaryWallet?.address) {
         return [];
       }
 
@@ -113,7 +107,7 @@ export function useChallenges(fighterId?: string) {
           data = await request<GraphQLResponse>(
             SUBGRAPH_URL,
             GET_USER_CHALLENGES,
-            { userAddress: walletAddress },
+            { userAddress: primaryWallet?.address },
           );
         }
 
@@ -204,7 +198,7 @@ export function useChallenges(fighterId?: string) {
         throw error;
       }
     },
-    enabled: authenticated && (!!fighterId || !!walletAddress),
+    enabled: authenticated && (!!fighterId || !!primaryWallet?.address),
     staleTime: 5 * 60 * 1000, // 5 minutes stale time as requested
   });
 

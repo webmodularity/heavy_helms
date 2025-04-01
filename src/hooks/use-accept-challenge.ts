@@ -33,14 +33,10 @@ export function useAcceptChallenge() {
   const { isWrongNetwork, switchToBaseSepolia } = useWallet();
   const queryClient = useQueryClient();
   const router = useRouter();
-  
+  const { primaryWallet } = useWallet();
   // Get only the actions we need - we no longer need selectors here
-  const { startListening, markAsTimedOut, setListenerTimeout } = useDuelActions();
-  
-  // Find embedded wallet
-  const embeddedWallet = wallets?.find(
-    (wallet) => wallet.connectorType === "embedded",
-  );
+  const { startListening, markAsTimedOut, setListenerTimeout } =
+    useDuelActions();
 
   // Create a mutation for accepting a challenge
   const mutation = useMutation({
@@ -57,8 +53,8 @@ export function useAcceptChallenge() {
         await switchToBaseSepolia();
       }
 
-      if (!embeddedWallet) {
-        throw new Error("No embedded wallet found");
+      if (!primaryWallet) {
+        throw new Error("No wallet found");
       }
 
       // Create the defender loadout from the selected character
@@ -78,7 +74,7 @@ export function useAcceptChallenge() {
       });
 
       // Get provider for the embedded wallet
-      const provider = await embeddedWallet.getEthereumProvider();
+      const provider = await primaryWallet.getEthereumProvider();
 
       // Create transaction request
       const transactionRequest = {
@@ -120,24 +116,25 @@ export function useAcceptChallenge() {
           description: "Preparing the duel visualization...",
           duration: 4000,
         });
-        
-          router.push(`/duel?txId=${duelTxHash}`);
+
+        router.push(`/duel?txId=${duelTxHash}`);
       });
-      
+
       // Start a 60-second timeout
       const timeoutId = window.setTimeout(() => {
         markAsTimedOut();
         toast.error("Duel processing timeout", {
-          description: "The duel is taking longer than expected to process. You can check back later.",
+          description:
+            "The duel is taking longer than expected to process. You can check back later.",
         });
       }, 60000); // 1 minute timeout
-      
+
       setListenerTimeout(timeoutId);
 
       // Invalidate active challenges query to refresh the list
-      if (embeddedWallet?.address) {
+      if (primaryWallet?.address) {
         queryClient.invalidateQueries({
-          queryKey: ["active-challenges", embeddedWallet.address],
+          queryKey: ["active-challenges", primaryWallet.address],
         });
 
         queryClient.setQueryData(
@@ -147,7 +144,7 @@ export function useAcceptChallenge() {
           ],
         );
       }
-      
+
       // Navigate to the loading screen
       router.push("/duel/loading");
     },

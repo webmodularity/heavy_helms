@@ -4,13 +4,13 @@ import {
   fetchFightersByOwner,
   convertRawFighterToFighter,
 } from "@/lib/player-api";
+import { useWallet } from "./use-wallet";
 
 export function useOwnPlayers() {
   // Get the connected wallet address
-  const { wallets } = useWallets();
-  const address = wallets?.find(
-    (wallet) => wallet.connectorType === "embedded",
-  )?.address;
+  const { primaryWallet } = useWallet();
+
+  const address = primaryWallet?.address;
 
   // Query the subgraph
   const {

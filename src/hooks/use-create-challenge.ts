@@ -47,11 +47,8 @@ export function useCreateChallenge() {
   const { wallets } = useWallets();
   const { isWrongNetwork, switchToBaseSepolia } = useWallet();
   const queryClient = useQueryClient();
-
-  // Find embedded wallet
-  const embeddedWallet = wallets?.find(
-    (wallet) => wallet.connectorType === "embedded",
-  );
+  const { primaryWallet } = useWallet();
+  // Create a mutation for challenge creation
 
   // Create a mutation for challenge creation
   const mutation = useMutation({
@@ -68,8 +65,8 @@ export function useCreateChallenge() {
         await switchToBaseSepolia();
       }
 
-      if (!embeddedWallet) {
-        throw new Error("No embedded wallet found");
+      if (!primaryWallet) {
+        throw new Error("No wallet found");
       }
 
       // Convert wager amount to wei
@@ -94,7 +91,7 @@ export function useCreateChallenge() {
       });
 
       // Get provider for the embedded wallet
-      const provider = await embeddedWallet.getEthereumProvider();
+      const provider = await primaryWallet.getEthereumProvider();
 
       // Create transaction request
       const transactionRequest: TransactionRequest = {
@@ -147,12 +144,12 @@ export function useCreateChallenge() {
       });
 
       // Invalidate active challenges query to refresh the list
-      if (embeddedWallet?.address) {
+      if (primaryWallet?.address) {
         queryClient.invalidateQueries({
-          queryKey: ["active-challenges", embeddedWallet.address],
+          queryKey: ["active-challenges", primaryWallet.address],
         });
 
-        // Note: instead of just invalidating the fighter-challenges query, we should manually insert the new challenge into the cache (as subgraph is slow to index new data)
+        // Note: instead of just invali     ating the fighter-challenges query, we should manually insert the new challenge into the cache (as subgraph is slow to index new data)
         // queryClient.invalidateQueries({
         //   queryKey: ["fighter-challenges", challengerId],
         // });

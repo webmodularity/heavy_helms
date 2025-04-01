@@ -21,7 +21,7 @@ export function useEquipSkin(playerId: string) {
   const { wallets } = useWallets();
   const { isWrongNetwork, switchToBaseSepolia } = useWallet();
   const queryClient = useQueryClient();
-
+  const { primaryWallet } = useWallet();
   const mutation = useMutation<
     EquipSkinResult,
     Error,
@@ -40,12 +40,7 @@ export function useEquipSkin(playerId: string) {
         await switchToBaseSepolia();
       }
 
-      // Find embedded wallet
-      const embeddedWallet = wallets?.find(
-        (wallet) => wallet.connectorType === "embedded",
-      );
-
-      if (!embeddedWallet) {
+      if (!primaryWallet) {
         throw new Error("No embedded wallet found");
       }
 
@@ -65,13 +60,13 @@ export function useEquipSkin(playerId: string) {
       });
 
       // Get provider for the embedded wallet
-      const provider = await embeddedWallet.getEthereumProvider();
+      const provider = await primaryWallet.getEthereumProvider();
 
       // Create transaction request
       const transactionRequest = {
         to: playerContractAddress,
         data,
-        from: embeddedWallet.address,
+        from: primaryWallet.address,
       };
 
       // Send transaction using the provider
@@ -85,10 +80,6 @@ export function useEquipSkin(playerId: string) {
     },
 
     onSuccess: async (data) => {
-      // Find embedded wallet
-      const embeddedWallet = wallets?.find(
-        (wallet) => wallet.connectorType === "embedded",
-      );
       if (data.txHash) {
         toast.success("Skin equipped successfully!", {
           description:
@@ -120,7 +111,7 @@ export function useEquipSkin(playerId: string) {
 
       // Update the player in the owned players cache
       queryClient.setQueryData(
-        ["owned-players", embeddedWallet?.address],
+        ["owned-players", primaryWallet?.address],
         (oldData: Player[]) => {
           return oldData.map((player) => {
             if (player.id === playerId) {

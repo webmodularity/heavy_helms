@@ -1,6 +1,6 @@
 import { http, createPublicClient } from "viem";
-import { baseSepolia } from "viem/chains";
-
+import { baseSepolia, mainnet, sepolia } from "viem/chains";
+import { createConfig } from "@privy-io/wagmi";
 // Export the public viem client for direct blockchain interactions
 export const viemClient = createPublicClient({
   chain: baseSepolia,
@@ -9,6 +9,15 @@ export const viemClient = createPublicClient({
   ),
   batch: {
     multicall: true,
+  },
+});
+
+export const wagmiConfig = createConfig({
+  chains: [baseSepolia], // Pass your required chains as an array
+  transports: {
+    [baseSepolia.id]: http(),
+    // For each of your required chains, add an entry to `transports` with
+    // a key of the chain's `id` and a value of `http()`
   },
 });
 

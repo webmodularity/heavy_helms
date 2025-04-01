@@ -1,5 +1,10 @@
 "use client";
-import { usePrivy, useWallets } from "@privy-io/react-auth";
+import {
+  type ConnectedWallet,
+  usePrivy,
+  useWallets,
+} from "@privy-io/react-auth";
+import { useSetActiveWallet } from "@privy-io/wagmi";
 import {
   type ReactNode,
   createContext,
@@ -33,6 +38,7 @@ interface WalletContextType {
   hasWallet: boolean;
   currentChainName: string;
   switchToBaseSepolia: () => Promise<void>;
+  primaryWallet: ConnectedWallet | null;
 }
 
 export const WalletContext = createContext<WalletContextType>({
@@ -42,6 +48,7 @@ export const WalletContext = createContext<WalletContextType>({
   hasWallet: false,
   currentChainName: "Disconnected",
   switchToBaseSepolia: async () => {},
+  primaryWallet: null,
 });
 
 export function WalletProvider({ children }: { children: ReactNode }) {
@@ -49,12 +56,39 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const { wallets } = useWallets();
   const [currentChainId, setCurrentChainId] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
+  const { setActiveWallet } = useSetActiveWallet();
 
+  // const { setPrimaryAddress, setConnected } = useWalletStore(
+  //   (state) => state.actions,
+  // );
+  const [primaryWallet, setPrimaryWallet] = useState<ConnectedWallet | null>(
+    null,
+  );
+
+  console.log("wallets", wallets);
   // Get chain name or use "Unknown Network" as fallback
   const getChainName = (chainId: string | null) => {
     if (chainId === null) return "Disconnected";
     return CHAIN_NAMES[chainId] || `Unknown Network (${chainId})`;
   };
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+  useEffect(() => {
+    if (!ready || !authenticated || !wallets || wallets.length === 0) return;
+    const injectedAddress = wallets.find(
+      (wallet) => wallet.connectorType === "injected",
+    );
+    const embeddedAddress = wallets.find(
+      (wallet) => wallet.connectorType === "embedded",
+    );
+
+    const primaryAddress = injectedAddress || embeddedAddress;
+    console.log("primaryAddress", primaryAddress);
+    if (primaryAddress) {
+      setPrimaryWallet(primaryAddress);
+      setActiveWallet(primaryAddress);
+    }
+  }, [ready, authenticated, wallets, setPrimaryWallet]);
 
   // Check current chain when authenticated
   useEffect(() => {
@@ -115,6 +149,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     hasWallet,
     currentChainName,
     switchToBaseSepolia,
+    primaryWallet,
   };
 
   return (

@@ -2,7 +2,6 @@ import { viemClient } from "@/config";
 import { DuelGameABI } from "@/game/abi/DuelGameABI.abi";
 import { useWallet } from "@/hooks/use-wallet";
 import { usePrivy } from "@privy-io/react-auth";
-import { useWallets } from "@privy-io/react-auth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { encodeFunctionData } from "viem";
@@ -25,14 +24,9 @@ interface CancelChallengeParams {
 
 export function useCancelChallenge() {
   const { authenticated } = usePrivy();
-  const { wallets } = useWallets();
   const { isWrongNetwork, switchToBaseSepolia } = useWallet();
   const queryClient = useQueryClient();
-
-  // Find embedded wallet
-  const embeddedWallet = wallets?.find(
-    (wallet) => wallet.connectorType === "embedded",
-  );
+  const { primaryWallet } = useWallet();
 
   // Create a mutation for cancelling a challenge
   const mutation = useMutation({
@@ -48,8 +42,8 @@ export function useCancelChallenge() {
         await switchToBaseSepolia();
       }
 
-      if (!embeddedWallet) {
-        throw new Error("No embedded wallet found");
+      if (!primaryWallet) {
+        throw new Error("No wallet found");
       }
 
       // Encode function data for the contract call
@@ -60,7 +54,7 @@ export function useCancelChallenge() {
       });
 
       // Get provider for the embedded wallet
-      const provider = await embeddedWallet.getEthereumProvider();
+      const provider = await primaryWallet.getEthereumProvider();
 
       // Create transaction request
       const transactionRequest = {
@@ -94,16 +88,7 @@ export function useCancelChallenge() {
         duration: 5000,
       });
 
-      // Invalidate active challenges query to refresh the list
-      // if (embeddedWallet?.address) {
-      //   queryClient.invalidateQueries({
-      //     queryKey: ["active-challenges", embeddedWallet.address],
-      //   });
-      // }
-      if (embeddedWallet?.address) {
-        // queryClient.invalidateQueries({
-        //   queryKey: ["fighter-challenges", embeddedWallet.address],
-        // });
+      if (primaryWallet?.address) {
         queryClient.setQueryData(
           ["fighter-challenges", characterId],
           (oldData: Challenge[]) =>
