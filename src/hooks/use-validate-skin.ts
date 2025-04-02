@@ -1,12 +1,11 @@
-import { useWallets } from "@privy-io/react-auth";
-import { viemClient } from "@/config";
 import { SkinRegistryABI } from "@/game/abi/SkinRegistryABI.abi";
 import type { PlayerAttributes } from "@/types/player.types";
-import { SkinInfo, SkinType } from "@/types/skin.types";
+import { SkinType } from "@/types/skin.types";
 import { useQuery } from "@tanstack/react-query";
 import { meetsEquipmentRequirements } from "@/lib/equipment-utils";
 import type { ArmorType, WeaponType } from "@/types/equipment.types";
-import { useWallet } from "./use-wallet";
+import { useAccount, useReadContract } from "wagmi";
+
 interface ValidationResult {
   isValid: boolean;
   error?: string;
@@ -18,56 +17,75 @@ export function useValidateSkinOwnership(
   skinType: SkinType,
   enabled = true,
 ) {
-  const { primaryWallet } = useWallet();
+  const { address } = useAccount();
+
+  // Get skin registry contract address
+  const skinRegistryAddress = process.env
+    .NEXT_PUBLIC_SKIN_REGISTRY_CONTRACT_ADDRESS as `0x${string}`;
+
+  // Use wagmi's useReadContract for checking ownership
+  const {
+    data: validationResult,
+    isError,
+    error,
+  } = useReadContract({
+    address: skinRegistryAddress,
+    abi: SkinRegistryABI,
+    functionName: "validateSkinOwnership",
+    args: [
+      {
+        skinIndex,
+        skinTokenId,
+      },
+      address as `0x${string}`,
+    ],
+    query: {
+      enabled: enabled && skinType !== SkinType.DefaultPlayer && !!address,
+    },
+  });
 
   return useQuery({
-    queryKey: ["skinOwnershipValidation", skinIndex, skinTokenId, skinType],
+    queryKey: [
+      "skinOwnershipValidation",
+      skinIndex,
+      skinTokenId,
+      skinType,
+      address,
+    ],
     queryFn: async (): Promise<ValidationResult> => {
       // Default player skins are always valid
       if (skinType === SkinType.DefaultPlayer) {
         return { isValid: true };
       }
 
-      if (!primaryWallet?.address) {
+      if (!address) {
         throw new Error("Wallet not connected");
       }
 
-      try {
-        // Call the validateSkinOwnership function with the correct parameter structure
-        // Based on the ABI, we need an object with skinIndex and skinTokenId properties
-        await viemClient.readContract({
-          address: process.env
-            .NEXT_PUBLIC_SKIN_REGISTRY_CONTRACT_ADDRESS as `0x${string}`,
-          abi: SkinRegistryABI,
-          functionName: "validateSkinOwnership",
-          args: [
-            {
-              skinIndex, // Must match the exact name in the ABI
-              skinTokenId, // Must match the exact name in the ABI
-            },
-            primaryWallet.address as `0x${string}`,
-          ],
-        });
-
-        // If no error is thrown, the skin is valid
+      // If we have validation result from wagmi, it means validation succeeded
+      if (validationResult !== undefined) {
         return { isValid: true };
-      } catch (error) {
+      }
+
+      // If there's an error from wagmi, parse it
+      if (isError && error) {
         console.error("Error validating skin ownership:", error);
 
         // Extract user-friendly error message
         let errorMessage = "Failed to validate skin ownership";
-        if (error instanceof Error) {
-          if (error.message.includes("SkinNotOwned")) {
-            errorMessage = "You don't own this skin";
-          } else if (error.message.includes("RequiredNFTNotOwned")) {
-            errorMessage = "You don't own the required NFT for this skin";
-          } else {
-            errorMessage = "Failed to validate skin ownership";
-          }
+        const errorString = error.toString();
+
+        if (errorString.includes("SkinNotOwned")) {
+          errorMessage = "You don't own this skin";
+        } else if (errorString.includes("RequiredNFTNotOwned")) {
+          errorMessage = "You don't own the required NFT for this skin";
         }
 
         return { isValid: false, error: errorMessage };
       }
+
+      // Default case if we don't have a result yet
+      return { isValid: false, error: "Validation in progress" };
     },
     enabled, // Only run the query if enabled is true
   });
@@ -96,7 +114,7 @@ export function useValidateSkinRequirements(
       }
 
       try {
-        // First approach: Use local validation functions instead of contract call
+        // Use local validation functions instead of contract call
         const result = meetsEquipmentRequirements(
           attributes,
           weaponType,
@@ -119,30 +137,6 @@ export function useValidateSkinRequirements(
 
         // If meets requirements
         return { isValid: true };
-
-        // Second approach (fallback): Use contract call if needed
-        /* 
-        await viemClient.readContract({
-          address: process.env.NEXT_PUBLIC_SKIN_REGISTRY_ADDRESS as `0x${string}`,
-          abi: SkinRegistryABI,
-          functionName: "validateSkinRequirements",
-          args: [
-            {
-              skinIndex,
-              skinTokenId,
-            },
-            {
-              strength: attributes.strength,
-              constitution: attributes.constitution,
-              size: attributes.size,
-              agility: attributes.agility,
-              stamina: attributes.stamina,
-              luck: attributes.luck,
-            },
-            process.env.NEXT_PUBLIC_EQUIPMENT_REQUIREMENTS_ADDRESS as `0x${string}`,
-          ],
-        });
-        */
       } catch (error) {
         console.error("Error validating skin requirements:", error);
 

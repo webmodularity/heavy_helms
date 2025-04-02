@@ -4,10 +4,20 @@ import { useWallet } from "@/hooks/use-wallet";
 import { createPlayerSkin } from "@/lib/player-api";
 import type { Player } from "@/types/player.types";
 import { usePrivy } from "@privy-io/react-auth";
-import { useWallets } from "@privy-io/react-auth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { encodeFunctionData } from "viem";
+import { 
+  useAccount, 
+  useWriteContract, 
+  useWaitForTransactionReceipt 
+} from "wagmi";
+import { useState, useEffect } from "react";
+
+interface EquipSkinParams {
+  skinIndex: number;
+  skinTokenId: number;
+  newSkin: SkinWithMetadataURI;
+}
 
 interface EquipSkinResult {
   success: boolean;
@@ -18,14 +28,96 @@ interface EquipSkinResult {
 
 export function useEquipSkin(playerId: string) {
   const { authenticated } = usePrivy();
-  const { wallets } = useWallets();
   const { isWrongNetwork, switchToBaseSepolia } = useWallet();
   const queryClient = useQueryClient();
-  const { primaryWallet } = useWallet();
+  const { address } = useAccount();
+  const [pendingSkin, setPendingSkin] = useState<EquipSkinParams | null>(null);
+
+  // Get player contract address
+  const playerContractAddress = process.env
+    .NEXT_PUBLIC_PLAYER_CONTRACT_ADDRESS as `0x${string}`;
+
+  // Using wagmi's useWriteContract hook
+  const {
+    writeContractAsync,
+    data: writeData,
+    isError: isWriteError,
+    error: writeError,
+    isPending: isWritePending,
+  } = useWriteContract();
+
+  // Use useWaitForTransactionReceipt to track when the transaction is mined
+  const {
+    data: txReceipt,
+    isLoading: isWaitingForTx,
+    isSuccess: isReceiptReady,
+  } = useWaitForTransactionReceipt({
+    hash: writeData,
+  });
+
+  // Effect to handle skin equipping completion when transaction is confirmed
+  useEffect(() => {
+    async function processSkinEquipping() {
+      if (!pendingSkin || !txReceipt || !address) return;
+      
+      try {
+        // Create the player skin
+        const newSkin = await createPlayerSkin(pendingSkin.newSkin);
+        
+        // Update the player in the cache
+        queryClient.setQueryData(["player", playerId], (oldData: Player) => {
+          return {
+            ...oldData,
+            currentSkin: {
+              ...oldData.currentSkin,
+              ...newSkin,
+            },
+          };
+        });
+
+        // Update the player in the owned players cache
+        queryClient.setQueryData(
+          ["owned-players", address],
+          (oldData: Player[] = []) => {
+            return oldData.map((player) => {
+              if (player.id === playerId) {
+                return { ...player, currentSkin: newSkin };
+              }
+              return player;
+            });
+          },
+        );
+        
+        // Show success toast
+        toast.success("Skin equipped successfully!", {
+          description: "Your warrior has been updated with the new skin.",
+          action: {
+            label: "View on BaseScan",
+            onClick: () =>
+              window.open(
+                `https://sepolia.basescan.org/tx/${writeData}`,
+                "_blank",
+              ),
+          },
+        });
+        
+        // Clear the pending state
+        setPendingSkin(null);
+      } catch (error) {
+        console.error("Error processing skin equipping:", error);
+        toast.error("Error updating character", {
+          description: "Could not update your character with the new skin.",
+        });
+      }
+    }
+    
+    processSkinEquipping();
+  }, [txReceipt, pendingSkin, address, writeData, playerId, queryClient]);
+
   const mutation = useMutation<
     EquipSkinResult,
     Error,
-    { skinIndex: number; skinTokenId: number; newSkin: SkinWithMetadataURI }
+    EquipSkinParams
   >({
     mutationFn: async ({
       skinIndex,
@@ -40,87 +132,48 @@ export function useEquipSkin(playerId: string) {
         await switchToBaseSepolia();
       }
 
-      if (!primaryWallet) {
-        throw new Error("No embedded wallet found");
+      if (!address) {
+        throw new Error("No wallet address found");
       }
-
-      // Get player contract address
-      const playerContractAddress = process.env
-        .NEXT_PUBLIC_PLAYER_CONTRACT_ADDRESS as `0x${string}`;
 
       if (!playerContractAddress) {
         throw new Error("Player contract address not configured");
       }
 
-      // Prepare transaction data
-      const data = encodeFunctionData({
+      // Execute the contract write with wagmi
+      const txHash = await writeContractAsync({
+        account: address,
+        address: playerContractAddress,
         abi: PlayerABI,
         functionName: "equipSkin",
         args: [Number(playerId), skinIndex, skinTokenId],
       });
 
-      // Get provider for the embedded wallet
-      const provider = await primaryWallet.getEthereumProvider();
-
-      // Create transaction request
-      const transactionRequest = {
-        to: playerContractAddress,
-        data,
-        from: primaryWallet.address,
-      };
-
-      // Send transaction using the provider
-      const hash = await provider.request({
-        method: "eth_sendTransaction",
-        params: [transactionRequest],
-      });
-
       // Return success and transaction hash
-      return { success: true, txHash: hash as string, newSkin };
+      return { success: true, txHash, newSkin };
     },
 
-    onSuccess: async (data) => {
-      if (data.txHash) {
-        toast.success("Skin equipped successfully!", {
-          description:
-            "Your warrior will be updated with the new skin shortly.",
-          action: {
-            label: "View on BaseScan",
-            onClick: () =>
-              window.open(
-                `https://sepolia.basescan.org/tx/${data.txHash}`,
-                "_blank",
-              ),
-          },
-        });
-      }
-
-      // We need to convert the RAW 'data.newSkin' to a Skin object (updated spritesheet/etc.)
-      const newSkin = await createPlayerSkin(data.newSkin);
-
-      // Update the player in the cache
-      queryClient.setQueryData(["player", playerId], (oldData: Player) => {
-        return {
-          ...oldData,
-          currentSkin: {
-            ...oldData.currentSkin,
-            ...newSkin,
-          },
-        };
+    onSuccess: (result) => {
+      // Store the pending skin to process once transaction is confirmed
+      setPendingSkin({
+        skinIndex: result.newSkin.collection.id as unknown as number,
+        skinTokenId: result.newSkin.tokenId,
+        newSkin: result.newSkin
       });
-
-      // Update the player in the owned players cache
-      queryClient.setQueryData(
-        ["owned-players", primaryWallet?.address],
-        (oldData: Player[]) => {
-          return oldData.map((player) => {
-            if (player.id === playerId) {
-              return { ...player, currentSkin: newSkin };
-            }
-            return player;
-          });
+      
+      // Show initial success toast
+      toast.success("Equipping skin...", {
+        description: "Your transaction has been submitted to the blockchain.",
+        action: {
+          label: "View on BaseScan",
+          onClick: () =>
+            window.open(
+              `https://sepolia.basescan.org/tx/${result.txHash}`,
+              "_blank",
+            ),
         },
-      );
+        duration: 5000,
+      });
     },
 
     onError: (error) => {
@@ -158,15 +211,16 @@ export function useEquipSkin(playerId: string) {
         success: false,
         error:
           error instanceof Error ? error.message : "An unknown error occurred",
+        newSkin, // We still need to return the newSkin for type compatibility
       };
     }
   };
 
   return {
     equipSkin,
-    isEquipping: mutation.isPending,
-    equipError: mutation.error,
-    isSuccess: mutation.isSuccess,
-    txHash: mutation.data?.txHash,
+    isEquipping: mutation.isPending || isWritePending || isWaitingForTx || !!pendingSkin,
+    equipError: mutation.error || writeError,
+    isSuccess: mutation.isSuccess || isReceiptReady,
+    txHash: writeData || (mutation.data?.txHash) || null,
   };
 }

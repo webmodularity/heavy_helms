@@ -38,7 +38,6 @@ interface WalletContextType {
   hasWallet: boolean;
   currentChainName: string;
   switchToBaseSepolia: () => Promise<void>;
-  primaryWallet: ConnectedWallet | null;
 }
 
 export const WalletContext = createContext<WalletContextType>({
@@ -48,7 +47,6 @@ export const WalletContext = createContext<WalletContextType>({
   hasWallet: false,
   currentChainName: "Disconnected",
   switchToBaseSepolia: async () => {},
-  primaryWallet: null,
 });
 
 export function WalletProvider({ children }: { children: ReactNode }) {
@@ -57,13 +55,6 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const [currentChainId, setCurrentChainId] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
   const { setActiveWallet } = useSetActiveWallet();
-
-  // const { setPrimaryAddress, setConnected } = useWalletStore(
-  //   (state) => state.actions,
-  // );
-  const [primaryWallet, setPrimaryWallet] = useState<ConnectedWallet | null>(
-    null,
-  );
 
   console.log("wallets", wallets);
   // Get chain name or use "Unknown Network" as fallback
@@ -85,10 +76,9 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     const primaryAddress = injectedAddress || embeddedAddress;
     console.log("primaryAddress", primaryAddress);
     if (primaryAddress) {
-      setPrimaryWallet(primaryAddress);
       setActiveWallet(primaryAddress);
     }
-  }, [ready, authenticated, wallets, setPrimaryWallet]);
+  }, [ready, authenticated, wallets]);
 
   // Check current chain when authenticated
   useEffect(() => {
@@ -149,7 +139,6 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     hasWallet,
     currentChainName,
     switchToBaseSepolia,
-    primaryWallet,
   };
 
   return (

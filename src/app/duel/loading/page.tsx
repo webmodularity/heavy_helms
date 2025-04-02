@@ -18,9 +18,10 @@ export default function DuelLoadingPage() {
   useEffect(() => {
     if (duelTxHash && !isNavigating) {
       setIsNavigating(true);
-      // Show success UI but don't navigate - this is now handled by the callback
+
+      router.push(`/duel?txId=${duelTxHash}`);
     }
-  }, [duelTxHash, isNavigating]);
+  }, [duelTxHash, isNavigating, router]);
 
   // If we're not listening anymore and we don't have a duel txHash, go back to challenges
   useEffect(() => {

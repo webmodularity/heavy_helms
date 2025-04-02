@@ -32,7 +32,6 @@ export function useCreateCharacter() {
   const { isWrongNetwork, switchToBaseSepolia } = useWallet();
   const queryClient = useQueryClient();
   const router = useRouter();
-  const { primaryWallet } = useWallet();
   const { address } = useAccount();
   const [pendingCharacter, setPendingCharacter] =
     useState<CreateCharacterResult | null>(null);
@@ -76,7 +75,7 @@ export function useCreateCharacter() {
   useEffect(() => {
     async function processTransactionReceipt() {
       // Only proceed if we have a pending character and a receipt
-      if (!pendingCharacter || !txReceipt || !primaryWallet?.address) return;
+      if (!pendingCharacter || !txReceipt || !address) return;
 
       try {
         // Find our event in the transaction logs using viemClient
@@ -89,7 +88,7 @@ export function useCreateCharacter() {
 
         // Find our specific event in the logs
         const requestEvent = logs.find(
-          (log) => log.args.requester === primaryWallet.address,
+          (log) => log.args.requester === address,
         );
 
         if (!requestEvent || !requestEvent.args.requestId) {
@@ -119,7 +118,7 @@ export function useCreateCharacter() {
     }
 
     processTransactionReceipt();
-  }, [txReceipt, pendingCharacter, primaryWallet?.address]);
+  }, [txReceipt, pendingCharacter, address]);
 
   // Create a mutation for character creation
   const mutation = useMutation({
@@ -132,14 +131,14 @@ export function useCreateCharacter() {
         await switchToBaseSepolia();
       }
 
-      if (!primaryWallet) {
+      if (!address) {
         throw new Error("No wallet found");
       }
 
       if (!playerContractAddress) {
         throw new Error("Player contract address not configured");
       }
-
+      
       // Execute the contract write and wait for the result
       const txHash = await writeContractAsync({
         account: address,
@@ -211,7 +210,7 @@ export function useCreateCharacter() {
     // Start listening for PlayerCreationComplete event
     startListening(requestId, async (playerId, eventData) => {
       // Use the event data to create a player object directly
-      if (eventData && primaryWallet?.address) {
+      if (eventData && address) {
         // Extract player data from event
         const {
           firstNameIndex,
@@ -241,7 +240,7 @@ export function useCreateCharacter() {
           isRetired: false,
           id: playerId,
           owner: {
-            address: primaryWallet.address,
+            address,
           },
           currentSkin: {
             collection: {
@@ -262,7 +261,7 @@ export function useCreateCharacter() {
 
         // Update the React Query cache for owned players
         queryClient.setQueryData(
-          ["owned-players", primaryWallet.address],
+          ["owned-players", address],
           (oldData: Fighter[] | undefined) => {
             if (!oldData) return [newPlayer];
             return [...oldData, newPlayer];

@@ -1,16 +1,13 @@
-import { useWallets } from "@privy-io/react-auth";
 import { useQuery } from "@tanstack/react-query";
 import {
   fetchFightersByOwner,
   convertRawFighterToFighter,
 } from "@/lib/player-api";
-import { useWallet } from "./use-wallet";
+import { useAccount } from "wagmi";
 
 export function useOwnPlayers() {
   // Get the connected wallet address
-  const { primaryWallet } = useWallet();
-
-  const address = primaryWallet?.address;
+  const { address } = useAccount();
 
   // Query the subgraph
   const {

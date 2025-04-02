@@ -8,7 +8,7 @@ import request from "graphql-request";
 import type { Fighter } from "@/types/fighter-types";
 import { SUBGRAPH_URL } from "@/config";
 import { useWallet } from "./use-wallet";
-
+import { useAccount } from "wagmi";
 // Initialize GraphQL client
 
 /**
@@ -18,8 +18,7 @@ import { useWallet } from "./use-wallet";
 export function usePlayerById(playerId: string) {
   const queryClient = useQueryClient();
   // Get the connected wallet address
-  const { primaryWallet } = useWallet();
-  const address = primaryWallet?.address;
+  const { address } = useAccount();
 
   return useQuery({
     queryKey: ["player", playerId],
