@@ -6,16 +6,16 @@ import { toast } from "sonner";
 import type { Player } from "@/types/player.types";
 import type { Challenge } from "./use-challenges";
 import { useRouter } from "next/navigation";
-import { 
-  useDuelActions, 
-  useDuelChallengeId, 
-  useDuelTxHash
+import {
+  useDuelActions,
+  useDuelChallengeId,
+  useDuelTxHash,
 } from "@/stores/duel-store";
-import { 
-  useAccount, 
-  useWriteContract, 
+import {
+  useAccount,
+  useWriteContract,
   useWaitForTransactionReceipt,
-  useWatchContractEvent
+  useWatchContractEvent,
 } from "wagmi";
 import { useState, useEffect } from "react";
 
@@ -41,18 +41,19 @@ export function useAcceptChallenge() {
   const queryClient = useQueryClient();
   const router = useRouter();
   const { address } = useAccount();
-  const [pendingChallenge, setPendingChallenge] = useState<AcceptChallengeResult | null>(null);
-  
+  const [pendingChallenge, setPendingChallenge] =
+    useState<AcceptChallengeResult | null>(null);
+
   // Get duel store state and actions
-  const { 
-    startListening, 
+  const {
+    startListening,
     stopListening,
-    setDuelTxHash, 
-    markAsTimedOut, 
-    setListenerTimeout 
+    setDuelTxHash,
+    markAsTimedOut,
+    setListenerTimeout,
   } = useDuelActions();
   const watchedChallengeId = useDuelChallengeId();
-  
+
   // Using wagmi's contract hooks
   const {
     writeContractAsync,
@@ -75,7 +76,7 @@ export function useAcceptChallenge() {
   useEffect(() => {
     if (pendingChallenge && txReceipt) {
       console.log("Transaction confirmed, handling challenge acceptance");
-      
+
       // Handle the UI updates for challenge acceptance
       handleChallengeAccepted(pendingChallenge);
       setPendingChallenge(null);
@@ -104,7 +105,7 @@ export function useAcceptChallenge() {
       console.log("Submitting acceptChallenge transaction:", {
         challengeId: challengeId.toString(),
         playerId: character.id,
-        wagerAmount: wagerAmount.toString()
+        wagerAmount: wagerAmount.toString(),
       });
 
       // Create the defender loadout from the selected character
@@ -114,6 +115,7 @@ export function useAcceptChallenge() {
           skinIndex: Number(character.currentSkin.collection.id),
           skinTokenId: character.currentSkin.tokenId,
         },
+        stance: character.stance,
       };
 
       // Execute the contract write with wagmi
@@ -128,24 +130,27 @@ export function useAcceptChallenge() {
 
       console.log("Transaction submitted:", txHash);
 
-      return { 
-        txHash, 
-        challengeId, 
-        characterId: character.id 
+      return {
+        txHash,
+        challengeId,
+        characterId: character.id,
       };
     },
 
     onSuccess: (result) => {
       // Store the pending challenge to process once transaction is confirmed
       setPendingChallenge(result);
-      
+
       // Show initial success toast
       toast.success("Challenge acceptance submitted", {
         description: "Your challenge acceptance is being processed...",
         action: {
           label: "View on BaseScan",
           onClick: () =>
-            window.open(`https://sepolia.basescan.org/tx/${result.txHash}`, "_blank"),
+            window.open(
+              `https://sepolia.basescan.org/tx/${result.txHash}`,
+              "_blank",
+            ),
         },
         duration: 5000,
       });
@@ -163,7 +168,11 @@ export function useAcceptChallenge() {
   });
 
   // Function to handle successful challenge acceptance after transaction is confirmed
-  const handleChallengeAccepted = ({ txHash, challengeId, characterId }: AcceptChallengeResult) => {
+  const handleChallengeAccepted = ({
+    txHash,
+    challengeId,
+    characterId,
+  }: AcceptChallengeResult) => {
     toast.success("Challenge accepted", {
       description:
         "You've accepted the challenge! Preparing for battle as the duel begins.",
@@ -177,7 +186,7 @@ export function useAcceptChallenge() {
 
     // This now sets up the event listener in the store, not in this component
     startListening(challengeId);
-    
+
     // Set up a timeout for the duel completion
     const timeoutId = window.setTimeout(() => {
       markAsTimedOut();
@@ -186,7 +195,7 @@ export function useAcceptChallenge() {
           "The duel is taking longer than expected to process. You can check back later.",
       });
     }, 60000); // 1 minute timeout
-    
+
     setListenerTimeout(timeoutId);
 
     // Update the cache
@@ -220,8 +229,12 @@ export function useAcceptChallenge() {
 
   return {
     acceptChallenge,
-    isAcceptingChallenge: mutation.isPending || isWritePending || isWaitingForTx || !!pendingChallenge,
-    txHash: writeData || (pendingChallenge?.txHash) || null,
+    isAcceptingChallenge:
+      mutation.isPending ||
+      isWritePending ||
+      isWaitingForTx ||
+      !!pendingChallenge,
+    txHash: writeData || pendingChallenge?.txHash || null,
     error: mutation.error || writeError,
   };
 }

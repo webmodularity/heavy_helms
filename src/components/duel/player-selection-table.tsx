@@ -240,26 +240,6 @@ export function PlayerSelectionTable({
       filterFn: (row, id, value) => value.includes(row.getValue(id)),
     },
     {
-      accessorFn: (row) => row.currentSkin.stance,
-      id: "stance",
-      header: ({ column }) => (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="hover:text-yellow-400 transition-colors"
-        >
-          Stance
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      ),
-      cell: ({ row }) => (
-        <div className="text-center">
-          {StanceTypeMap[row.original.currentSkin.stance]}
-        </div>
-      ),
-      filterFn: (row, id, value) => value.includes(row.getValue(id)),
-    },
-    {
       accessorFn: (row) => row.record.wins,
       id: "wins",
       header: ({ column }) => (

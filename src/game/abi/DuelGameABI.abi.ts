@@ -29,25 +29,12 @@ export const DuelGameABI = [
               { name: "skinTokenId", type: "uint16", internalType: "uint16" },
             ],
           },
+          { name: "stance", type: "uint8", internalType: "uint8" },
         ],
       },
     ],
     outputs: [],
     stateMutability: "payable",
-  },
-  {
-    type: "function",
-    name: "blocksUntilExpire",
-    inputs: [],
-    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
-    stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "blocksUntilWithdraw",
-    inputs: [],
-    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
-    stateMutability: "view",
   },
   {
     type: "function",
@@ -72,6 +59,8 @@ export const DuelGameABI = [
       { name: "defenderId", type: "uint32", internalType: "uint32" },
       { name: "wagerAmount", type: "uint256", internalType: "uint256" },
       { name: "createdBlock", type: "uint256", internalType: "uint256" },
+      { name: "createdTimestamp", type: "uint256", internalType: "uint256" },
+      { name: "vrfRequestTimestamp", type: "uint256", internalType: "uint256" },
       {
         name: "challengerLoadout",
         type: "tuple",
@@ -87,6 +76,7 @@ export const DuelGameABI = [
               { name: "skinTokenId", type: "uint16", internalType: "uint16" },
             ],
           },
+          { name: "stance", type: "uint8", internalType: "uint8" },
         ],
       },
       {
@@ -104,6 +94,7 @@ export const DuelGameABI = [
               { name: "skinTokenId", type: "uint16", internalType: "uint16" },
             ],
           },
+          { name: "stance", type: "uint8", internalType: "uint8" },
         ],
       },
       {
@@ -159,6 +150,7 @@ export const DuelGameABI = [
               { name: "skinTokenId", type: "uint16", internalType: "uint16" },
             ],
           },
+          { name: "stance", type: "uint8", internalType: "uint8" },
         ],
       },
       { name: "defenderId", type: "uint32", internalType: "uint32" },
@@ -246,6 +238,13 @@ export const DuelGameABI = [
   },
   {
     type: "function",
+    name: "recoverTimedOutVRF",
+    inputs: [{ name: "challengeId", type: "uint256", internalType: "uint256" }],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
     name: "requestPending",
     inputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     outputs: [{ name: "", type: "bool", internalType: "bool" }],
@@ -264,20 +263,6 @@ export const DuelGameABI = [
     inputs: [{ name: "", type: "uint256", internalType: "uint256" }],
     outputs: [{ name: "", type: "bytes32", internalType: "bytes32" }],
     stateMutability: "view",
-  },
-  {
-    type: "function",
-    name: "setBlocksUntilExpire",
-    inputs: [{ name: "newValue", type: "uint256", internalType: "uint256" }],
-    outputs: [],
-    stateMutability: "nonpayable",
-  },
-  {
-    type: "function",
-    name: "setBlocksUntilWithdraw",
-    inputs: [{ name: "newValue", type: "uint256", internalType: "uint256" }],
-    outputs: [],
-    stateMutability: "nonpayable",
   },
   {
     type: "function",
@@ -327,6 +312,27 @@ export const DuelGameABI = [
   },
   {
     type: "function",
+    name: "setTimeUntilExpire",
+    inputs: [{ name: "newValue", type: "uint256", internalType: "uint256" }],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "setTimeUntilWithdraw",
+    inputs: [{ name: "newValue", type: "uint256", internalType: "uint256" }],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "setVrfRequestTimeout",
+    inputs: [{ name: "newValue", type: "uint256", internalType: "uint256" }],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
     name: "setWagerFeePercentage",
     inputs: [
       { name: "_wagerFeePercentage", type: "uint256", internalType: "uint256" },
@@ -343,6 +349,20 @@ export const DuelGameABI = [
   },
   {
     type: "function",
+    name: "timeUntilExpire",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "timeUntilWithdraw",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "totalFeesCollected",
     inputs: [],
     outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
@@ -354,6 +374,13 @@ export const DuelGameABI = [
     inputs: [{ name: "newOwner", type: "address", internalType: "address" }],
     outputs: [],
     stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "vrfRequestTimeout",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
   },
   {
     type: "function",
@@ -375,44 +402,6 @@ export const DuelGameABI = [
     inputs: [],
     outputs: [],
     stateMutability: "nonpayable",
-  },
-  {
-    type: "event",
-    name: "BlocksUntilExpireUpdated",
-    inputs: [
-      {
-        name: "oldValue",
-        type: "uint256",
-        indexed: false,
-        internalType: "uint256",
-      },
-      {
-        name: "newValue",
-        type: "uint256",
-        indexed: false,
-        internalType: "uint256",
-      },
-    ],
-    anonymous: false,
-  },
-  {
-    type: "event",
-    name: "BlocksUntilWithdrawUpdated",
-    inputs: [
-      {
-        name: "oldValue",
-        type: "uint256",
-        indexed: false,
-        internalType: "uint256",
-      },
-      {
-        name: "newValue",
-        type: "uint256",
-        indexed: false,
-        internalType: "uint256",
-      },
-    ],
-    anonymous: false,
   },
   {
     type: "event",
@@ -504,6 +493,31 @@ export const DuelGameABI = [
   },
   {
     type: "event",
+    name: "ChallengeRecovered",
+    inputs: [
+      {
+        name: "challengeId",
+        type: "uint256",
+        indexed: true,
+        internalType: "uint256",
+      },
+      {
+        name: "challengerRefund",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+      {
+        name: "defenderRefund",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
     name: "CombatResult",
     inputs: [
       {
@@ -557,6 +571,12 @@ export const DuelGameABI = [
       },
       {
         name: "winnerPayout",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+      {
+        name: "feeCollected",
         type: "uint256",
         indexed: false,
         internalType: "uint256",
@@ -680,6 +700,63 @@ export const DuelGameABI = [
         internalType: "uint256",
       },
       { name: "data", type: "bytes", indexed: false, internalType: "bytes" },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "TimeUntilExpireUpdated",
+    inputs: [
+      {
+        name: "oldValue",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+      {
+        name: "newValue",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "TimeUntilWithdrawUpdated",
+    inputs: [
+      {
+        name: "oldValue",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+      {
+        name: "newValue",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "VrfRequestTimeoutUpdated",
+    inputs: [
+      {
+        name: "oldValue",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+      {
+        name: "newValue",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
     ],
     anonymous: false,
   },

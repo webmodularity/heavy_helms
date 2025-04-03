@@ -1,11 +1,8 @@
 import { SUBGRAPH_URL } from "@/config";
-import { useWallet } from "@/hooks/use-wallet";
 import { usePrivy } from "@privy-io/react-auth";
-import { useWallets } from "@privy-io/react-auth";
 import { useQuery } from "@tanstack/react-query";
 import { request } from "graphql-request";
 import { GET_USER_CHALLENGES, GET_FIGHTER_CHALLENGES } from "@/lib/gql-queries";
-import { toast } from "sonner";
 import { useAccount } from "wagmi";
 
 // GraphQL response type
@@ -51,6 +48,7 @@ export interface Challenge {
       skinIndex: number;
       skinTokenId: number;
     };
+    stance: number;
   };
   defenderLoadout: {
     playerId: number;
@@ -58,6 +56,7 @@ export interface Challenge {
       skinIndex: number;
       tokenId: number;
     };
+    stance: number;
   };
   // Add new fields
   challengerName?: string;
@@ -135,6 +134,7 @@ export function useChallenges(fighterId?: string) {
                 skinIndex: 0,
                 skinTokenId: 0,
               },
+              stance: 0,
             },
             defenderLoadout: {
               playerId: Number(challenge.defender.id),
@@ -142,6 +142,7 @@ export function useChallenges(fighterId?: string) {
                 skinIndex: 0,
                 tokenId: 0,
               },
+              stance: 0,
             },
             challengerName,
             defenderName,
@@ -175,6 +176,7 @@ export function useChallenges(fighterId?: string) {
                   skinIndex: 0,
                   skinTokenId: 0,
                 },
+                stance: 0,
               },
               defenderLoadout: {
                 playerId: Number(challenge.defender.id),
@@ -182,6 +184,7 @@ export function useChallenges(fighterId?: string) {
                   skinIndex: 0,
                   tokenId: 0,
                 },
+                stance: 0,
               },
               challengerName,
               defenderName,
@@ -198,7 +201,7 @@ export function useChallenges(fighterId?: string) {
       }
     },
     enabled: authenticated && (!!fighterId || !!address),
-    staleTime: 5 * 60 * 1000, // 5 minutes stale time as requested
+    staleTime: 30 * 1000, // 30s stale time
   });
 
   return {

@@ -26,6 +26,7 @@ export const MonsterABI = [
               { name: "skinTokenId", type: "uint16", internalType: "uint16" },
             ],
           },
+          { name: "stance", type: "uint8", internalType: "uint8" },
         ],
       },
     ],
@@ -79,6 +80,14 @@ export const MonsterABI = [
             ],
           },
           {
+            name: "name",
+            type: "tuple",
+            internalType: "struct IMonster.MonsterName",
+            components: [
+              { name: "nameIndex", type: "uint16", internalType: "uint16" },
+            ],
+          },
+          {
             name: "skin",
             type: "tuple",
             internalType: "struct Fighter.SkinInfo",
@@ -87,14 +96,7 @@ export const MonsterABI = [
               { name: "skinTokenId", type: "uint16", internalType: "uint16" },
             ],
           },
-          {
-            name: "name",
-            type: "tuple",
-            internalType: "struct IMonster.MonsterName",
-            components: [
-              { name: "nameIndex", type: "uint16", internalType: "uint16" },
-            ],
-          },
+          { name: "stance", type: "uint8", internalType: "uint8" },
           {
             name: "record",
             type: "tuple",
@@ -134,6 +136,61 @@ export const MonsterABI = [
   },
   {
     type: "function",
+    name: "getCurrentAttributes",
+    inputs: [{ name: "monsterId", type: "uint32", internalType: "uint32" }],
+    outputs: [
+      {
+        name: "",
+        type: "tuple",
+        internalType: "struct Fighter.Attributes",
+        components: [
+          { name: "strength", type: "uint8", internalType: "uint8" },
+          { name: "constitution", type: "uint8", internalType: "uint8" },
+          { name: "size", type: "uint8", internalType: "uint8" },
+          { name: "agility", type: "uint8", internalType: "uint8" },
+          { name: "stamina", type: "uint8", internalType: "uint8" },
+          { name: "luck", type: "uint8", internalType: "uint8" },
+        ],
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getCurrentName",
+    inputs: [{ name: "monsterId", type: "uint32", internalType: "uint32" }],
+    outputs: [
+      {
+        name: "",
+        type: "tuple",
+        internalType: "struct IMonster.MonsterName",
+        components: [
+          { name: "nameIndex", type: "uint16", internalType: "uint16" },
+        ],
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getCurrentRecord",
+    inputs: [{ name: "monsterId", type: "uint32", internalType: "uint32" }],
+    outputs: [
+      {
+        name: "",
+        type: "tuple",
+        internalType: "struct Fighter.Record",
+        components: [
+          { name: "wins", type: "uint16", internalType: "uint16" },
+          { name: "losses", type: "uint16", internalType: "uint16" },
+          { name: "kills", type: "uint16", internalType: "uint16" },
+        ],
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "getCurrentSkin",
     inputs: [{ name: "monsterId", type: "uint32", internalType: "uint32" }],
     outputs: [
@@ -147,6 +204,20 @@ export const MonsterABI = [
         ],
       },
     ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getCurrentStance",
+    inputs: [{ name: "monsterId", type: "uint32", internalType: "uint32" }],
+    outputs: [{ name: "", type: "uint8", internalType: "uint8" }],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getCurrentTier",
+    inputs: [{ name: "monsterId", type: "uint32", internalType: "uint32" }],
+    outputs: [{ name: "", type: "uint8", internalType: "uint8" }],
     stateMutability: "view",
   },
   {
@@ -204,6 +275,14 @@ export const MonsterABI = [
             ],
           },
           {
+            name: "name",
+            type: "tuple",
+            internalType: "struct IMonster.MonsterName",
+            components: [
+              { name: "nameIndex", type: "uint16", internalType: "uint16" },
+            ],
+          },
+          {
             name: "skin",
             type: "tuple",
             internalType: "struct Fighter.SkinInfo",
@@ -212,14 +291,7 @@ export const MonsterABI = [
               { name: "skinTokenId", type: "uint16", internalType: "uint16" },
             ],
           },
-          {
-            name: "name",
-            type: "tuple",
-            internalType: "struct IMonster.MonsterName",
-            components: [
-              { name: "nameIndex", type: "uint16", internalType: "uint16" },
-            ],
-          },
+          { name: "stance", type: "uint8", internalType: "uint8" },
           {
             name: "record",
             type: "tuple",
@@ -381,6 +453,14 @@ export const MonsterABI = [
             ],
           },
           {
+            name: "name",
+            type: "tuple",
+            internalType: "struct IMonster.MonsterName",
+            components: [
+              { name: "nameIndex", type: "uint16", internalType: "uint16" },
+            ],
+          },
+          {
             name: "skin",
             type: "tuple",
             internalType: "struct Fighter.SkinInfo",
@@ -389,14 +469,7 @@ export const MonsterABI = [
               { name: "skinTokenId", type: "uint16", internalType: "uint16" },
             ],
           },
-          {
-            name: "name",
-            type: "tuple",
-            internalType: "struct IMonster.MonsterName",
-            components: [
-              { name: "nameIndex", type: "uint16", internalType: "uint16" },
-            ],
-          },
+          { name: "stance", type: "uint8", internalType: "uint8" },
           {
             name: "record",
             type: "tuple",
@@ -468,6 +541,14 @@ export const MonsterABI = [
             ],
           },
           {
+            name: "name",
+            type: "tuple",
+            internalType: "struct IMonster.MonsterName",
+            components: [
+              { name: "nameIndex", type: "uint16", internalType: "uint16" },
+            ],
+          },
+          {
             name: "skin",
             type: "tuple",
             internalType: "struct Fighter.SkinInfo",
@@ -476,14 +557,7 @@ export const MonsterABI = [
               { name: "skinTokenId", type: "uint16", internalType: "uint16" },
             ],
           },
-          {
-            name: "name",
-            type: "tuple",
-            internalType: "struct IMonster.MonsterName",
-            components: [
-              { name: "nameIndex", type: "uint16", internalType: "uint16" },
-            ],
-          },
+          { name: "stance", type: "uint8", internalType: "uint8" },
           {
             name: "record",
             type: "tuple",
@@ -572,6 +646,14 @@ export const MonsterABI = [
             ],
           },
           {
+            name: "name",
+            type: "tuple",
+            internalType: "struct IMonster.MonsterName",
+            components: [
+              { name: "nameIndex", type: "uint16", internalType: "uint16" },
+            ],
+          },
+          {
             name: "skin",
             type: "tuple",
             internalType: "struct Fighter.SkinInfo",
@@ -580,14 +662,7 @@ export const MonsterABI = [
               { name: "skinTokenId", type: "uint16", internalType: "uint16" },
             ],
           },
-          {
-            name: "name",
-            type: "tuple",
-            internalType: "struct IMonster.MonsterName",
-            components: [
-              { name: "nameIndex", type: "uint16", internalType: "uint16" },
-            ],
-          },
+          { name: "stance", type: "uint8", internalType: "uint8" },
           {
             name: "record",
             type: "tuple",

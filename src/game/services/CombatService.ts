@@ -84,6 +84,7 @@ export class CombatService {
           skinIndex: Number(player1.currentSkin.collection.id),
           skinTokenId: Number(player1.currentSkin.tokenId),
         },
+        stance: player1.stance,
       };
 
       const player2Loadout: PlayerLoadout = {
@@ -92,6 +93,7 @@ export class CombatService {
           skinIndex: Number(player2.currentSkin.collection.id),
           skinTokenId: Number(player2.currentSkin.tokenId),
         },
+        stance: player2.stance,
       };
 
       // Generate combat bytes

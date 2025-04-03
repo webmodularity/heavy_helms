@@ -37,6 +37,7 @@ export interface Fighter {
   name: FighterName;
   attributes: FighterAttributes;
   currentSkin: Skin;
+  stance: number;
   record: FighterRecord;
   calculatedStats?: FighterCalculatedStats;
   currentState?: FighterState;
@@ -100,8 +101,8 @@ export interface RawFighterData {
     metadataURI: string;
     weapon: number;
     armor: number;
-    stance: number;
   };
+  stance: number;
 
   // Record fields
   wins: number;

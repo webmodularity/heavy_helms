@@ -6,10 +6,10 @@ import type { Player } from "@/types/player.types";
 import { usePrivy } from "@privy-io/react-auth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { 
-  useAccount, 
-  useWriteContract, 
-  useWaitForTransactionReceipt 
+import {
+  useAccount,
+  useWriteContract,
+  useWaitForTransactionReceipt,
 } from "wagmi";
 import { useState, useEffect } from "react";
 
@@ -59,11 +59,11 @@ export function useEquipSkin(playerId: string) {
   useEffect(() => {
     async function processSkinEquipping() {
       if (!pendingSkin || !txReceipt || !address) return;
-      
+
       try {
         // Create the player skin
         const newSkin = await createPlayerSkin(pendingSkin.newSkin);
-        
+
         // Update the player in the cache
         queryClient.setQueryData(["player", playerId], (oldData: Player) => {
           return {
@@ -87,7 +87,7 @@ export function useEquipSkin(playerId: string) {
             });
           },
         );
-        
+
         // Show success toast
         toast.success("Skin equipped successfully!", {
           description: "Your warrior has been updated with the new skin.",
@@ -100,7 +100,7 @@ export function useEquipSkin(playerId: string) {
               ),
           },
         });
-        
+
         // Clear the pending state
         setPendingSkin(null);
       } catch (error) {
@@ -110,15 +110,11 @@ export function useEquipSkin(playerId: string) {
         });
       }
     }
-    
+
     processSkinEquipping();
   }, [txReceipt, pendingSkin, address, writeData, playerId, queryClient]);
 
-  const mutation = useMutation<
-    EquipSkinResult,
-    Error,
-    EquipSkinParams
-  >({
+  const mutation = useMutation<EquipSkinResult, Error, EquipSkinParams>({
     mutationFn: async ({
       skinIndex,
       skinTokenId,
@@ -146,7 +142,8 @@ export function useEquipSkin(playerId: string) {
         address: playerContractAddress,
         abi: PlayerABI,
         functionName: "equipSkin",
-        args: [Number(playerId), skinIndex, skinTokenId],
+        // TODO SET THIS TO PASSED IN STANCE INSTEAD OF 1
+        args: [Number(playerId), skinIndex, skinTokenId, 1],
       });
 
       // Return success and transaction hash
@@ -158,9 +155,9 @@ export function useEquipSkin(playerId: string) {
       setPendingSkin({
         skinIndex: result.newSkin.collection.id as unknown as number,
         skinTokenId: result.newSkin.tokenId,
-        newSkin: result.newSkin
+        newSkin: result.newSkin,
       });
-      
+
       // Show initial success toast
       toast.success("Equipping skin...", {
         description: "Your transaction has been submitted to the blockchain.",
@@ -218,9 +215,10 @@ export function useEquipSkin(playerId: string) {
 
   return {
     equipSkin,
-    isEquipping: mutation.isPending || isWritePending || isWaitingForTx || !!pendingSkin,
+    isEquipping:
+      mutation.isPending || isWritePending || isWaitingForTx || !!pendingSkin,
     equipError: mutation.error || writeError,
     isSuccess: mutation.isSuccess || isReceiptReady,
-    txHash: writeData || (mutation.data?.txHash) || null,
+    txHash: writeData || mutation.data?.txHash || null,
   };
 }

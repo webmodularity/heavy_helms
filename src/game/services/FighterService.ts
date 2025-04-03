@@ -41,7 +41,7 @@ export class FighterService {
       const allPlayerIds = [
         ...allActivePlayerIds.players.map((player) => player.id),
         ...allActivePlayerIds.defaultPlayers.map((player) => player.id),
-        ...allActivePlayerIds.monsters.map((player) => player.id),
+        // ...allActivePlayerIds.monsters.map((player) => player.id),
       ];
 
       if (allPlayerIds.length === 0) {
@@ -78,7 +78,7 @@ export class FighterService {
           {
             weapon: fighter.currentSkin.weapon,
             armor: fighter.currentSkin.armor,
-            stance: fighter.currentSkin.stance,
+            stance: fighter.stance,
             attributes: {
               strength: fighter.attributes.strength,
               constitution: fighter.attributes.constitution,

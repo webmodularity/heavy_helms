@@ -81,6 +81,7 @@ export const PlayerABI = [
               { name: "skinTokenId", type: "uint16", internalType: "uint16" },
             ],
           },
+          { name: "stance", type: "uint8", internalType: "uint8" },
         ],
       },
     ],
@@ -143,15 +144,6 @@ export const PlayerABI = [
             ],
           },
           {
-            name: "skin",
-            type: "tuple",
-            internalType: "struct Fighter.SkinInfo",
-            components: [
-              { name: "skinIndex", type: "uint32", internalType: "uint32" },
-              { name: "skinTokenId", type: "uint16", internalType: "uint16" },
-            ],
-          },
-          {
             name: "name",
             type: "tuple",
             internalType: "struct IPlayer.PlayerName",
@@ -164,6 +156,16 @@ export const PlayerABI = [
               { name: "surnameIndex", type: "uint16", internalType: "uint16" },
             ],
           },
+          {
+            name: "skin",
+            type: "tuple",
+            internalType: "struct Fighter.SkinInfo",
+            components: [
+              { name: "skinIndex", type: "uint32", internalType: "uint32" },
+              { name: "skinTokenId", type: "uint16", internalType: "uint16" },
+            ],
+          },
+          { name: "stance", type: "uint8", internalType: "uint8" },
           {
             name: "record",
             type: "tuple",
@@ -203,15 +205,6 @@ export const PlayerABI = [
             ],
           },
           {
-            name: "skin",
-            type: "tuple",
-            internalType: "struct Fighter.SkinInfo",
-            components: [
-              { name: "skinIndex", type: "uint32", internalType: "uint32" },
-              { name: "skinTokenId", type: "uint16", internalType: "uint16" },
-            ],
-          },
-          {
             name: "name",
             type: "tuple",
             internalType: "struct IPlayer.PlayerName",
@@ -224,6 +217,16 @@ export const PlayerABI = [
               { name: "surnameIndex", type: "uint16", internalType: "uint16" },
             ],
           },
+          {
+            name: "skin",
+            type: "tuple",
+            internalType: "struct Fighter.SkinInfo",
+            components: [
+              { name: "skinIndex", type: "uint32", internalType: "uint32" },
+              { name: "skinTokenId", type: "uint16", internalType: "uint16" },
+            ],
+          },
+          { name: "stance", type: "uint8", internalType: "uint8" },
           {
             name: "record",
             type: "tuple",
@@ -247,6 +250,7 @@ export const PlayerABI = [
       { name: "playerId", type: "uint32", internalType: "uint32" },
       { name: "skinIndex", type: "uint32", internalType: "uint32" },
       { name: "skinTokenId", type: "uint16", internalType: "uint16" },
+      { name: "stance", type: "uint8", internalType: "uint8" },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -305,6 +309,62 @@ export const PlayerABI = [
   },
   {
     type: "function",
+    name: "getCurrentAttributes",
+    inputs: [{ name: "playerId", type: "uint32", internalType: "uint32" }],
+    outputs: [
+      {
+        name: "",
+        type: "tuple",
+        internalType: "struct Fighter.Attributes",
+        components: [
+          { name: "strength", type: "uint8", internalType: "uint8" },
+          { name: "constitution", type: "uint8", internalType: "uint8" },
+          { name: "size", type: "uint8", internalType: "uint8" },
+          { name: "agility", type: "uint8", internalType: "uint8" },
+          { name: "stamina", type: "uint8", internalType: "uint8" },
+          { name: "luck", type: "uint8", internalType: "uint8" },
+        ],
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getCurrentName",
+    inputs: [{ name: "playerId", type: "uint32", internalType: "uint32" }],
+    outputs: [
+      {
+        name: "",
+        type: "tuple",
+        internalType: "struct IPlayer.PlayerName",
+        components: [
+          { name: "firstNameIndex", type: "uint16", internalType: "uint16" },
+          { name: "surnameIndex", type: "uint16", internalType: "uint16" },
+        ],
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getCurrentRecord",
+    inputs: [{ name: "playerId", type: "uint32", internalType: "uint32" }],
+    outputs: [
+      {
+        name: "",
+        type: "tuple",
+        internalType: "struct Fighter.Record",
+        components: [
+          { name: "wins", type: "uint16", internalType: "uint16" },
+          { name: "losses", type: "uint16", internalType: "uint16" },
+          { name: "kills", type: "uint16", internalType: "uint16" },
+        ],
+      },
+    ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
     name: "getCurrentSkin",
     inputs: [{ name: "playerId", type: "uint32", internalType: "uint32" }],
     outputs: [
@@ -318,6 +378,13 @@ export const PlayerABI = [
         ],
       },
     ],
+    stateMutability: "view",
+  },
+  {
+    type: "function",
+    name: "getCurrentStance",
+    inputs: [{ name: "playerId", type: "uint32", internalType: "uint32" }],
+    outputs: [{ name: "", type: "uint8", internalType: "uint8" }],
     stateMutability: "view",
   },
   {
@@ -389,15 +456,6 @@ export const PlayerABI = [
             ],
           },
           {
-            name: "skin",
-            type: "tuple",
-            internalType: "struct Fighter.SkinInfo",
-            components: [
-              { name: "skinIndex", type: "uint32", internalType: "uint32" },
-              { name: "skinTokenId", type: "uint16", internalType: "uint16" },
-            ],
-          },
-          {
             name: "name",
             type: "tuple",
             internalType: "struct IPlayer.PlayerName",
@@ -410,6 +468,16 @@ export const PlayerABI = [
               { name: "surnameIndex", type: "uint16", internalType: "uint16" },
             ],
           },
+          {
+            name: "skin",
+            type: "tuple",
+            internalType: "struct Fighter.SkinInfo",
+            components: [
+              { name: "skinIndex", type: "uint32", internalType: "uint32" },
+              { name: "skinTokenId", type: "uint16", internalType: "uint16" },
+            ],
+          },
+          { name: "stance", type: "uint8", internalType: "uint8" },
           {
             name: "record",
             type: "tuple",
@@ -658,6 +726,23 @@ export const PlayerABI = [
   },
   {
     type: "function",
+    name: "setStance",
+    inputs: [
+      { name: "playerId", type: "uint32", internalType: "uint32" },
+      { name: "stance", type: "uint8", internalType: "uint8" },
+    ],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "setVrfRequestTimeout",
+    inputs: [{ name: "newValue", type: "uint256", internalType: "uint256" }],
+    outputs: [],
+    stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
     name: "skinRegistry",
     inputs: [],
     outputs: [
@@ -701,6 +786,13 @@ export const PlayerABI = [
     inputs: [{ name: "newOwner", type: "address", internalType: "address" }],
     outputs: [],
     stateMutability: "nonpayable",
+  },
+  {
+    type: "function",
+    name: "vrfRequestTimeout",
+    inputs: [],
+    outputs: [{ name: "", type: "uint256", internalType: "uint256" }],
+    stateMutability: "view",
   },
   {
     type: "function",
@@ -1068,6 +1160,7 @@ export const PlayerABI = [
         indexed: false,
         internalType: "uint16",
       },
+      { name: "stance", type: "uint8", indexed: false, internalType: "uint8" },
     ],
     anonymous: false,
   },
@@ -1175,6 +1268,39 @@ export const PlayerABI = [
       },
       {
         name: "newCost",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "StanceUpdated",
+    inputs: [
+      {
+        name: "playerId",
+        type: "uint32",
+        indexed: true,
+        internalType: "uint32",
+      },
+      { name: "stance", type: "uint8", indexed: false, internalType: "uint8" },
+    ],
+    anonymous: false,
+  },
+  {
+    type: "event",
+    name: "VrfRequestTimeoutUpdated",
+    inputs: [
+      {
+        name: "oldValue",
+        type: "uint256",
+        indexed: false,
+        internalType: "uint256",
+      },
+      {
+        name: "newValue",
         type: "uint256",
         indexed: false,
         internalType: "uint256",

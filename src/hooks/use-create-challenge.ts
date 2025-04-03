@@ -1,12 +1,14 @@
 import { DuelGameABI } from "@/game/abi/DuelGameABI.abi";
 import { toast } from "sonner";
-import {
-  decodeEventLog,
-  parseEther,
-} from "viem";
+import { decodeEventLog, parseEther } from "viem";
 import { waitForTransactionReceipt } from "viem/actions";
 import type { Player } from "@/types/player.types";
-import { useAccount, useWriteContract, useSwitchChain, usePublicClient } from "wagmi";
+import {
+  useAccount,
+  useWriteContract,
+  useSwitchChain,
+  usePublicClient,
+} from "wagmi";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { baseSepolia } from "wagmi/chains";
 import { viemClient } from "@/config";
@@ -43,8 +45,12 @@ export function useCreateChallenge() {
   const { switchChain } = useSwitchChain();
   const queryClient = useQueryClient();
   const publicClient = usePublicClient();
-  const { writeContractAsync, isPending: isWritePending, error: writeError } = useWriteContract();
-  
+  const {
+    writeContractAsync,
+    isPending: isWritePending,
+    error: writeError,
+  } = useWriteContract();
+
   // Create a mutation for challenge creation
   const mutation = useMutation({
     mutationFn: async ({
@@ -65,13 +71,15 @@ export function useCreateChallenge() {
         try {
           await switchChain({ chainId: baseSepolia.id });
         } catch (error) {
-          throw new Error("Failed to switch to Base Sepolia network. Please switch manually and try again.");
+          throw new Error(
+            "Failed to switch to Base Sepolia network. Please switch manually and try again.",
+          );
         }
       }
 
       // Convert wager amount to wei
       const wagerValue = parseEther(wagerAmount);
-      
+
       // Create the loadout from the selected character
       const challengerLoadout = {
         playerId: Number(character.id),
@@ -79,8 +87,8 @@ export function useCreateChallenge() {
           skinIndex: Number(character.currentSkin.collection.id),
           skinTokenId: character.currentSkin.tokenId,
         },
+        stance: character.stance,
       };
-
 
       // Use wagmi's writeContractAsync to send the transaction
       const hash = await writeContractAsync({
@@ -102,7 +110,7 @@ export function useCreateChallenge() {
         data: receipt.logs[0].data,
         topics: receipt.logs[0].topics,
       }) as unknown as ChallengeCreatedEvent;
-      
+
       console.log("challengeCreatedEvent", challengeCreatedEvent);
 
       return {

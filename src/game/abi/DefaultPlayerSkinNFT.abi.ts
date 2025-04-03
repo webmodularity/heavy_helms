@@ -50,7 +50,6 @@ export const DefaultPlayerSkinNFTABI = [
         components: [
           { name: "weapon", type: "uint8", internalType: "uint8" },
           { name: "armor", type: "uint8", internalType: "uint8" },
-          { name: "stance", type: "uint8", internalType: "uint8" },
         ],
       },
     ],
@@ -72,7 +71,6 @@ export const DefaultPlayerSkinNFTABI = [
     inputs: [
       { name: "weapon", type: "uint8", internalType: "uint8" },
       { name: "armor", type: "uint8", internalType: "uint8" },
-      { name: "stance", type: "uint8", internalType: "uint8" },
       { name: "ipfsCID", type: "string", internalType: "string" },
       { name: "desiredTokenId", type: "uint16", internalType: "uint16" },
     ],
@@ -189,7 +187,6 @@ export const DefaultPlayerSkinNFTABI = [
       { name: "tokenId", type: "uint256", internalType: "uint256" },
       { name: "weapon", type: "uint8", internalType: "uint8" },
       { name: "armor", type: "uint8", internalType: "uint8" },
-      { name: "stance", type: "uint8", internalType: "uint8" },
     ],
     outputs: [],
     stateMutability: "nonpayable",
@@ -243,13 +240,19 @@ export const DefaultPlayerSkinNFTABI = [
   },
   {
     type: "event",
-    name: "DefaultPlayerSkinMinted",
+    name: "CIDUpdated",
     inputs: [
       {
         name: "tokenId",
         type: "uint16",
         indexed: true,
         internalType: "uint16",
+      },
+      {
+        name: "newCID",
+        type: "string",
+        indexed: false,
+        internalType: "string",
       },
     ],
     anonymous: false,
@@ -280,7 +283,6 @@ export const DefaultPlayerSkinNFTABI = [
       },
       { name: "weapon", type: "uint8", indexed: false, internalType: "uint8" },
       { name: "armor", type: "uint8", indexed: false, internalType: "uint8" },
-      { name: "stance", type: "uint8", indexed: false, internalType: "uint8" },
     ],
     anonymous: false,
   },
@@ -288,16 +290,14 @@ export const DefaultPlayerSkinNFTABI = [
     type: "event",
     name: "SkinMinted",
     inputs: [
-      { name: "to", type: "address", indexed: true, internalType: "address" },
       {
         name: "tokenId",
         type: "uint16",
         indexed: true,
         internalType: "uint16",
       },
-      { name: "weapon", type: "uint8", indexed: false, internalType: "uint8" },
-      { name: "armor", type: "uint8", indexed: false, internalType: "uint8" },
-      { name: "stance", type: "uint8", indexed: false, internalType: "uint8" },
+      { name: "weapon", type: "uint8", indexed: true, internalType: "uint8" },
+      { name: "armor", type: "uint8", indexed: true, internalType: "uint8" },
     ],
     anonymous: false,
   },
@@ -315,4 +315,9 @@ export const DefaultPlayerSkinNFTABI = [
   { type: "error", name: "InvalidTokenId", inputs: [] },
   { type: "error", name: "MaxSupplyReached", inputs: [] },
   { type: "error", name: "TokenDoesNotExist", inputs: [] },
+  {
+    type: "error",
+    name: "TokenIdAlreadyExists",
+    inputs: [{ name: "tokenId", type: "uint16", internalType: "uint16" }],
+  },
 ] as const;

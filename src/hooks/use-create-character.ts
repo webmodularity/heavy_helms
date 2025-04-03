@@ -87,9 +87,7 @@ export function useCreateCharacter() {
         });
 
         // Find our specific event in the logs
-        const requestEvent = logs.find(
-          (log) => log.args.requester === address,
-        );
+        const requestEvent = logs.find((log) => log.args.requester === address);
 
         if (!requestEvent || !requestEvent.args.requestId) {
           console.error("Could not find request ID in transaction logs");
@@ -138,7 +136,7 @@ export function useCreateCharacter() {
       if (!playerContractAddress) {
         throw new Error("Player contract address not configured");
       }
-      
+
       // Execute the contract write and wait for the result
       const txHash = await writeContractAsync({
         account: address,
@@ -255,8 +253,8 @@ export function useCreateCharacter() {
             metadataURI: "",
             weapon: WeaponType.Quarterstaff,
             armor: ArmorType.Cloth,
-            stance: StanceType.Balanced,
           },
+          stance: StanceType.Balanced,
         });
 
         // Update the React Query cache for owned players
