@@ -22,7 +22,7 @@ export const wagmiConfig = createConfig({
 });
 
 export const SUBGRAPH_URL =
-  "https://subgraph.satsuma-prod.com/5d543e96d159/viabull-labs/heavy-helms-subgraph/version/v0.5.9/api";
+  "https://subgraph.satsuma-prod.com/5d543e96d159/viabull-labs/heavy-helms-subgraph/api";
 
 // Contract addresses
 export const PLAYER_CONTRACT_ADDRESS = process.env
