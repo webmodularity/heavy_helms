@@ -39,7 +39,7 @@ export function EquipmentSection({ character }: EquipmentSectionProps) {
 
         <EquipmentCard
           title="Fighting Style"
-          value={getStanceDisplayName(character.currentSkin.stance)}
+          value={getStanceDisplayName(character.stance)}
           icon={<Flame className="h-5 w-5" />}
         />
       </div>

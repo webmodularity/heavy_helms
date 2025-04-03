@@ -1,19 +1,17 @@
-import { viemClient } from "@/config";
 import { DuelGameABI } from "@/game/abi/DuelGameABI.abi";
-import { useWallet } from "@/hooks/use-wallet";
-import { usePrivy } from "@privy-io/react-auth";
-import { useWallets } from "@privy-io/react-auth";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import {
-  type Address,
-  decodeEventLog,
-  encodeFunctionData,
-  formatEther,
-  parseEther,
-  type TransactionRequest,
-} from "viem";
+import { decodeEventLog, parseEther } from "viem";
+import { waitForTransactionReceipt } from "viem/actions";
 import type { Player } from "@/types/player.types";
+import {
+  useAccount,
+  useWriteContract,
+  useSwitchChain,
+  usePublicClient,
+} from "wagmi";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { baseSepolia } from "wagmi/chains";
+import { viemClient } from "@/config";
 
 // This is a placeholder - replace with your actual contract address
 const DUEL_GAME_CONTRACT_ADDRESS = process.env
@@ -26,7 +24,7 @@ interface CreateChallengeParams {
 }
 
 interface CreateChallengeResult {
-  txHash: string;
+  txHash: `0x${string}`;
   createdChallenge: ChallengeCreatedEvent["args"];
   challengerId?: string;
 }
@@ -43,15 +41,15 @@ interface ChallengeCreatedEvent {
 }
 
 export function useCreateChallenge() {
-  const { authenticated } = usePrivy();
-  const { wallets } = useWallets();
-  const { isWrongNetwork, switchToBaseSepolia } = useWallet();
+  const { address, chainId } = useAccount();
+  const { switchChain } = useSwitchChain();
   const queryClient = useQueryClient();
-
-  // Find embedded wallet
-  const embeddedWallet = wallets?.find(
-    (wallet) => wallet.connectorType === "embedded",
-  );
+  const publicClient = usePublicClient();
+  const {
+    writeContractAsync,
+    isPending: isWritePending,
+    error: writeError,
+  } = useWriteContract();
 
   // Create a mutation for challenge creation
   const mutation = useMutation({
@@ -60,21 +58,28 @@ export function useCreateChallenge() {
       defenderId,
       wagerAmount,
     }: CreateChallengeParams): Promise<CreateChallengeResult> => {
-      if (!authenticated) {
+      if (!address) {
         throw new Error("Authentication required");
       }
 
-      if (isWrongNetwork) {
-        await switchToBaseSepolia();
+      if (!publicClient) {
+        throw new Error("No public client available");
       }
 
-      if (!embeddedWallet) {
-        throw new Error("No embedded wallet found");
+      // Check if we're on the right network (Base Sepolia)
+      if (chainId !== baseSepolia.id) {
+        try {
+          await switchChain({ chainId: baseSepolia.id });
+        } catch (error) {
+          throw new Error(
+            "Failed to switch to Base Sepolia network. Please switch manually and try again.",
+          );
+        }
       }
 
       // Convert wager amount to wei
       const wagerValue = parseEther(wagerAmount);
-      console.log("character", character);
+
       // Create the loadout from the selected character
       const challengerLoadout = {
         playerId: Number(character.id),
@@ -82,36 +87,19 @@ export function useCreateChallenge() {
           skinIndex: Number(character.currentSkin.collection.id),
           skinTokenId: character.currentSkin.tokenId,
         },
+        stance: character.stance,
       };
-      console.log("challengerLoadout", challengerLoadout);
-      console.log("defenderId", defenderId);
-      console.log("typeof defenderId", typeof defenderId);
-      // Encode function data for the contract call
-      const data = encodeFunctionData({
+
+      // Use wagmi's writeContractAsync to send the transaction
+      const hash = await writeContractAsync({
+        address: DUEL_GAME_CONTRACT_ADDRESS,
         abi: DuelGameABI,
         functionName: "initiateChallenge",
         args: [challengerLoadout, defenderId, wagerValue],
-      });
-
-      // Get provider for the embedded wallet
-      const provider = await embeddedWallet.getEthereumProvider();
-
-      // Create transaction request
-      const transactionRequest: TransactionRequest = {
-        to: DUEL_GAME_CONTRACT_ADDRESS,
-        data,
         value: wagerValue + parseEther("0.0002"),
-      };
-
-      // Send transaction using the provider
-      const hash = await provider.request({
-        method: "eth_sendTransaction",
-        params: [transactionRequest],
       });
 
-      console.log("hash", hash);
-
-      // Wait for transaction to be mined
+      // Wait for transaction receipt
       const receipt = await viemClient.waitForTransactionReceipt({
         hash: hash as `0x${string}`,
       });
@@ -122,13 +110,11 @@ export function useCreateChallenge() {
         data: receipt.logs[0].data,
         topics: receipt.logs[0].topics,
       }) as unknown as ChallengeCreatedEvent;
+
       console.log("challengeCreatedEvent", challengeCreatedEvent);
 
-      // Access the relevant argument from the event (adjust index as needed)
-      // const challengeId = challengeCreatedEvent.args.challengeId;
-
       return {
-        txHash: hash as string,
+        txHash: hash,
         challengerId: character.id,
         createdChallenge: challengeCreatedEvent.args,
       };
@@ -147,22 +133,18 @@ export function useCreateChallenge() {
       });
 
       // Invalidate active challenges query to refresh the list
-      if (embeddedWallet?.address) {
+      if (address) {
         queryClient.invalidateQueries({
-          queryKey: ["active-challenges", embeddedWallet.address],
+          queryKey: ["active-challenges", address],
         });
 
-        // Note: instead of just invalidating the fighter-challenges query, we should manually insert the new challenge into the cache (as subgraph is slow to index new data)
-        // queryClient.invalidateQueries({
-        //   queryKey: ["fighter-challenges", challengerId],
-        // });
-
+        // Update the fighter-challenges query data
         queryClient.setQueryData(
           ["fighter-challenges", challengerId],
-          // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-          (oldData: any) => {
+          (oldData: unknown = []) => {
+            const previousData = Array.isArray(oldData) ? oldData : [];
             return [
-              ...oldData,
+              ...previousData,
               {
                 id: createdChallenge.challengeId,
                 challengerId: Number(createdChallenge.challengerId),
@@ -189,7 +171,7 @@ export function useCreateChallenge() {
   });
 
   const createChallenge = async (params: CreateChallengeParams) => {
-    if (!authenticated) {
+    if (!address) {
       toast.error("Authentication required", {
         description: "Please connect your wallet to create a challenge.",
       });
@@ -201,8 +183,8 @@ export function useCreateChallenge() {
 
   return {
     createChallenge,
-    isCreatingChallenge: mutation.isPending,
+    isCreatingChallenge: mutation.isPending || isWritePending,
     txHash: mutation.data?.txHash || null,
-    error: mutation.error,
+    error: mutation.error || writeError,
   };
 }

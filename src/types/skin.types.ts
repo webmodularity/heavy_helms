@@ -1,4 +1,4 @@
-import type { WeaponType, ArmorType, StanceType } from "./equipment.types";
+import type { WeaponType, ArmorType } from "./equipment.types";
 
 export interface Skin {
   collection: SkinCollection;
@@ -8,7 +8,6 @@ export interface Skin {
   spritesheet: Spritesheet;
   weapon: WeaponType;
   armor: ArmorType;
-  stance: StanceType;
 }
 
 export interface SkinInfo {
@@ -24,11 +23,13 @@ export interface SkinCollection {
   requiredNFTAddress?: string;
 }
 
-export interface SkinResponse extends Omit<Skin, "metadataURL" | "collection" | "spritesheet"> {
+export interface SkinResponse
+  extends Omit<Skin, "metadataURL" | "collection" | "spritesheet"> {
   id: string;
-  metadataURI:string
+  metadataURI: string;
 }
-export interface VerifiedSkinCollectionResponse extends Omit<SkinCollection, "isVerified"> {
+export interface VerifiedSkinCollectionResponse
+  extends Omit<SkinCollection, "isVerified"> {
   skins: Array<SkinResponse>;
   registryId: string;
 }

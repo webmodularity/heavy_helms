@@ -7,8 +7,8 @@ import {
 import request from "graphql-request";
 import type { Fighter } from "@/types/fighter-types";
 import { SUBGRAPH_URL } from "@/config";
-import { useWallets } from "@privy-io/react-auth";
-
+import { useWallet } from "./use-wallet";
+import { useAccount } from "wagmi";
 // Initialize GraphQL client
 
 /**
@@ -18,10 +18,7 @@ import { useWallets } from "@privy-io/react-auth";
 export function usePlayerById(playerId: string) {
   const queryClient = useQueryClient();
   // Get the connected wallet address
-  const { wallets } = useWallets();
-  const address = wallets?.find(
-    (wallet) => wallet.connectorType === "embedded",
-  )?.address;
+  const { address } = useAccount();
 
   return useQuery({
     queryKey: ["player", playerId],

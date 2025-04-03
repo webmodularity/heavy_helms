@@ -6,7 +6,6 @@ import { motion } from "framer-motion";
 import CharacterCard from "../CharacterCard";
 import { CTAButton as CTAButtonComponent } from "../ui/cta-button";
 import {
-  getStanceDisplayName,
   getWeaponDisplayName,
   getArmorDisplayName,
 } from "@/lib/equipment-utils";
@@ -62,7 +61,6 @@ export function CharacterGallery({ characters }: CharacterGalleryProps) {
               <CharacterCard
                 name={character.name.fullName}
                 imageUrl={character.currentSkin.imageURL}
-                stance={getStanceDisplayName(character.currentSkin.stance)}
                 weapon={getWeaponDisplayName(character.currentSkin.weapon)}
                 armor={getArmorDisplayName(character.currentSkin.armor)}
                 strength={character.attributes.strength}

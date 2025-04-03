@@ -141,7 +141,6 @@ export async function createPlayerSkin(rawSkin: {
   metadataURI: string;
   weapon: number;
   armor: number;
-  stance: number;
 }): Promise<Skin> {
   // Convert metadataURI to HTTPS URL
   const metadataHttpsUrl = ipfsToHttps(rawSkin.metadataURI);
@@ -156,11 +155,9 @@ export async function createPlayerSkin(rawSkin: {
     if (metadata.image) {
       imageUrl = ipfsToHttps(metadata.image);
     }
-    if (metadata.image_spritesheet) {
-      spritesheetURL = ipfsToHttps(metadata.image_spritesheet);
-    }
     if (metadata.textures[0]) {
       spritesheetData = metadata.textures[0];
+      spritesheetURL = ipfsToHttps(spritesheetData.image);
     }
   } catch (error) {
     console.error("Error fetching metadata:", error);
@@ -197,7 +194,6 @@ export async function createPlayerSkin(rawSkin: {
     },
     weapon: (rawSkin.weapon || 0) as WeaponType,
     armor: (rawSkin.armor || 0) as ArmorType,
-    stance: (rawSkin.stance || 1) as StanceType,
   };
 }
 
@@ -353,6 +349,7 @@ export async function convertRawFighterToFighter(
     name,
     attributes,
     currentSkin,
+    stance: rawFighter.stance,
     record,
     isRetired: rawFighter.isRetired || false,
     isImmortal: false,
@@ -440,9 +437,9 @@ export async function buildRawFighterFromDecodedData(
       metadataURI: skinData.metadataURI,
       weapon: skinData.weapon,
       armor: skinData.armor,
-      stance: skinData.stance,
     },
 
+    stance: decodedData.stats.stance,
     // Record
     wins: decodedData.stats.record.wins,
     losses: decodedData.stats.record.losses,
@@ -520,7 +517,6 @@ async function fetchSkinByIndices(
   metadataURI: string;
   weapon: number;
   armor: number;
-  stance: number;
 }> {
   // Define proper response type
   interface SkinResponse {
@@ -536,7 +532,6 @@ async function fetchSkinByIndices(
         metadataURI: string;
         weapon: number;
         armor: number;
-        stance: number;
       }>;
     }>;
   }
@@ -573,7 +568,6 @@ async function fetchSkinByIndices(
       metadataURI: skin.metadataURI,
       weapon: skin.weapon,
       armor: skin.armor,
-      stance: skin.stance,
     };
   } catch (error) {
     console.error("Error fetching skin from subgraph:", error);
@@ -590,7 +584,6 @@ async function fetchSkinByIndices(
       metadataURI: "",
       weapon: 0,
       armor: 0,
-      stance: 1,
     };
   }
 }

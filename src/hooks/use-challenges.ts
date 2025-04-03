@@ -1,11 +1,9 @@
 import { SUBGRAPH_URL } from "@/config";
-import { useWallet } from "@/hooks/use-wallet";
 import { usePrivy } from "@privy-io/react-auth";
-import { useWallets } from "@privy-io/react-auth";
 import { useQuery } from "@tanstack/react-query";
 import { request } from "graphql-request";
 import { GET_USER_CHALLENGES, GET_FIGHTER_CHALLENGES } from "@/lib/gql-queries";
-import { toast } from "sonner";
+import { useAccount } from "wagmi";
 
 // GraphQL response type
 interface SubgraphChallenge {
@@ -50,6 +48,7 @@ export interface Challenge {
       skinIndex: number;
       skinTokenId: number;
     };
+    stance: number;
   };
   defenderLoadout: {
     playerId: number;
@@ -57,6 +56,7 @@ export interface Challenge {
       skinIndex: number;
       tokenId: number;
     };
+    stance: number;
   };
   // Add new fields
   challengerName?: string;
@@ -66,16 +66,8 @@ export interface Challenge {
 
 export function useChallenges(fighterId?: string) {
   const { authenticated } = usePrivy();
-  const { wallets } = useWallets();
-  const { isWrongNetwork, switchToBaseSepolia } = useWallet();
 
-  // Find embedded wallet
-  const embeddedWallet = wallets?.find(
-    (wallet) => wallet.connectorType === "embedded",
-  );
-
-  const walletAddress = embeddedWallet?.address?.toLowerCase();
-
+  const { address } = useAccount();
   // Fetch active challenges
   const {
     data: challenges,
@@ -86,7 +78,7 @@ export function useChallenges(fighterId?: string) {
     // Query key includes fighterId if provided
     queryKey: fighterId
       ? ["fighter-challenges", fighterId]
-      : ["active-challenges", walletAddress],
+      : ["active-challenges", address],
     queryFn: async () => {
       // Don't fetch if not authenticated
       if (!authenticated) {
@@ -94,7 +86,7 @@ export function useChallenges(fighterId?: string) {
       }
 
       // Ensure we have either a fighter ID or wallet address
-      if (!fighterId && !walletAddress) {
+      if (!fighterId && !address) {
         return [];
       }
 
@@ -113,7 +105,7 @@ export function useChallenges(fighterId?: string) {
           data = await request<GraphQLResponse>(
             SUBGRAPH_URL,
             GET_USER_CHALLENGES,
-            { userAddress: walletAddress },
+            { userAddress: address },
           );
         }
 
@@ -142,6 +134,7 @@ export function useChallenges(fighterId?: string) {
                 skinIndex: 0,
                 skinTokenId: 0,
               },
+              stance: 0,
             },
             defenderLoadout: {
               playerId: Number(challenge.defender.id),
@@ -149,6 +142,7 @@ export function useChallenges(fighterId?: string) {
                 skinIndex: 0,
                 tokenId: 0,
               },
+              stance: 0,
             },
             challengerName,
             defenderName,
@@ -182,6 +176,7 @@ export function useChallenges(fighterId?: string) {
                   skinIndex: 0,
                   skinTokenId: 0,
                 },
+                stance: 0,
               },
               defenderLoadout: {
                 playerId: Number(challenge.defender.id),
@@ -189,6 +184,7 @@ export function useChallenges(fighterId?: string) {
                   skinIndex: 0,
                   tokenId: 0,
                 },
+                stance: 0,
               },
               challengerName,
               defenderName,
@@ -204,8 +200,8 @@ export function useChallenges(fighterId?: string) {
         throw error;
       }
     },
-    enabled: authenticated && (!!fighterId || !!walletAddress),
-    staleTime: 5 * 60 * 1000, // 5 minutes stale time as requested
+    enabled: authenticated && (!!fighterId || !!address),
+    staleTime: 30 * 1000, // 30s stale time
   });
 
   return {

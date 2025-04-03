@@ -20,7 +20,6 @@ export interface SkinWithMetadataURI {
   metadataURI: string;
   weapon: number;
   armor: number;
-  stance: number;
   collection: {
     id: string;
     registryId: string;

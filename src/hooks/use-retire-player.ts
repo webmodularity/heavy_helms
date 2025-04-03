@@ -1,11 +1,15 @@
 import { usePrivy } from "@privy-io/react-auth";
-import { useWallets } from "@privy-io/react-auth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { encodeFunctionData } from "viem";
 import { toast } from "sonner";
 import { PlayerABI } from "@/game/abi";
-import { viemClient } from "@/config";
 import type { Fighter } from "@/types/fighter-types";
+import { useWallet } from "./use-wallet";
+import {
+  useAccount,
+  useWriteContract,
+  useWaitForTransactionReceipt,
+} from "wagmi";
+import { useState, useEffect } from "react";
 
 interface RetirePlayerResult {
   success: boolean;
@@ -19,79 +23,107 @@ interface RetirePlayerResult {
  * @returns Object containing retirement function and state
  */
 export function useRetirePlayer(playerId: string) {
-  const { user, authenticated } = usePrivy();
-  const { wallets } = useWallets();
+  const { authenticated } = usePrivy();
+  const { isWrongNetwork, switchToBaseSepolia } = useWallet();
   const queryClient = useQueryClient();
+  const { address } = useAccount();
+  const [pendingRetirement, setPendingRetirement] = useState<boolean>(false);
+
+  // Contract address from environment
+  const playerContractAddress = process.env
+    .NEXT_PUBLIC_PLAYER_CONTRACT_ADDRESS as `0x${string}`;
+
+  // Using wagmi's useWriteContract hook
+  const {
+    writeContractAsync,
+    data: writeData,
+    isError: isWriteError,
+    error: writeError,
+    isPending: isWritePending,
+  } = useWriteContract();
+
+  // Use useWaitForTransactionReceipt to track when the transaction is mined
+  const {
+    data: txReceipt,
+    isLoading: isWaitingForTx,
+    isSuccess: isReceiptReady,
+  } = useWaitForTransactionReceipt({
+    hash: writeData,
+  });
+
+  // Effect to handle player retirement when transaction is confirmed
+  useEffect(() => {
+    async function processRetirement() {
+      if (!pendingRetirement || !txReceipt || !address) return;
+
+      try {
+        // Update the UI
+        toast.success("Warrior retired successfully!", {
+          description: "Your warrior has been retired from battle.",
+          duration: 3000,
+        });
+
+        // Invalidate specific queries
+        await queryClient.invalidateQueries({
+          queryKey: ["player", playerId],
+        });
+
+        // Update the owned-players cache to remove the retired player
+        queryClient.setQueryData(
+          ["owned-players", address],
+          (oldData: Fighter[] = []) => {
+            return oldData.filter((player) => player.id !== playerId);
+          },
+        );
+
+        // Clear the pending state
+        setPendingRetirement(false);
+      } catch (error) {
+        console.error("Error processing player retirement:", error);
+        toast.error("Error updating player list", {
+          description:
+            "Player was retired, but the UI may not reflect this change.",
+        });
+      }
+    }
+
+    processRetirement();
+  }, [txReceipt, pendingRetirement, address, playerId, queryClient]);
 
   const mutation = useMutation<RetirePlayerResult, Error, void>({
     mutationFn: async (): Promise<RetirePlayerResult> => {
-      if (!authenticated || !user) {
+      if (!authenticated) {
         throw new Error("Authentication required");
       }
 
-      // Find embedded wallet
-      const embeddedWallet = wallets.find(
-        (wallet) => wallet.connectorType === "embedded",
-      );
-
-      if (!embeddedWallet) {
-        throw new Error("No embedded wallet found");
+      if (isWrongNetwork) {
+        await switchToBaseSepolia();
       }
 
-      // Contract address from environment
-      const playerContractAddress = process.env
-        .NEXT_PUBLIC_PLAYER_CONTRACT_ADDRESS as `0x${string}`;
+      if (!address) {
+        throw new Error("No wallet address found");
+      }
 
       if (!playerContractAddress) {
         throw new Error("Player contract address not configured");
       }
 
-      // Properly encode the function call using viem
-      const data = encodeFunctionData({
+      // Execute the contract write with wagmi
+      const txHash = await writeContractAsync({
+        account: address,
+        address: playerContractAddress,
         abi: PlayerABI,
         functionName: "retireOwnPlayer",
         args: [Number(playerId)],
       });
 
-      // Get provider for the embedded wallet
-      const provider = await embeddedWallet.getEthereumProvider();
-
-      if (!provider) {
-        throw new Error("Failed to get Ethereum provider");
-      }
-
-      // Create transaction request
-      const transactionRequest = {
-        to: playerContractAddress,
-        data,
-        from: embeddedWallet.address,
-      };
-
-      // Send transaction using the provider
-      const hash = await provider.request({
-        method: "eth_sendTransaction",
-        params: [transactionRequest],
-      });
-
-      // Validate hash
-      if (!hash) {
-        throw new Error("Transaction failed - no hash returned");
-      }
-
-      // Wait for transaction to be mined
-      await viemClient.waitForTransactionReceipt({
-        hash: hash as `0x${string}`,
-      });
-
       // Return success result
-      return { success: true, txHash: hash as string };
+      return { success: true, txHash };
     },
 
     onSuccess: async (data) => {
       // Find embedded wallet
-      const embeddedWallet = wallets.find(
-        (wallet) => wallet.connectorType === "embedded",
-      );
+
       if (data.txHash) {
         toast.success("Retirement request submitted", {
           description:
@@ -117,9 +149,9 @@ export function useRetirePlayer(playerId: string) {
         //     queryKey: ["owned-players", embeddedWallet.address],
         //   });
         // }
-        console.log("Retiring from address:", embeddedWallet?.address);
+        console.log("Retiring from address:", address);
         queryClient.setQueryData(
-          ["owned-players", embeddedWallet?.address],
+          ["owned-players", address],
           (oldData: Fighter[]) => {
             console.log("Old data:", oldData);
             return oldData?.filter((player) => player.id !== playerId);
@@ -163,7 +195,7 @@ export function useRetirePlayer(playerId: string) {
    * @returns Promise that resolves when the player is retired
    */
   const retirePlayer = async (): Promise<RetirePlayerResult> => {
-    if (!authenticated || !user) {
+    if (!authenticated) {
       toast.error("Please connect your wallet", {
         description: "You need to be logged in to retire a character.",
       });
@@ -184,9 +216,13 @@ export function useRetirePlayer(playerId: string) {
 
   return {
     retirePlayer,
-    isRetiring: mutation.isPending,
-    isSuccess: mutation.isSuccess,
-    error: mutation.error,
-    txHash: mutation.data?.txHash,
+    isRetiring:
+      mutation.isPending ||
+      isWritePending ||
+      isWaitingForTx ||
+      pendingRetirement,
+    isSuccess: mutation.isSuccess || isReceiptReady,
+    error: mutation.error || writeError,
+    txHash: writeData || mutation.data?.txHash || null,
   };
 }

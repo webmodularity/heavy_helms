@@ -26,7 +26,6 @@ interface SkinWithMetadataURI {
   metadataURI: string;
   weapon: number;
   armor: number;
-  stance: number;
   collection: {
     id: string;
     registryId: string;
@@ -129,12 +128,6 @@ export function SkinDetailsDialog({
                 <p className="text-xs text-stone-400">Armor</p>
                 <p className="text-sm font-medium text-stone-200">
                   {getArmorDisplayName(skin.armor)}
-                </p>
-              </div>
-              <div className="bg-stone-800 p-3 rounded-lg">
-                <p className="text-xs text-stone-400">Stance</p>
-                <p className="text-sm font-medium text-stone-200">
-                  {getStanceDisplayName(skin.stance)}
                 </p>
               </div>
             </div>

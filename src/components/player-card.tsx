@@ -77,7 +77,7 @@ export function PlayerCard({
           <div className="flex flex-col">
             <span className="text-xs text-muted-foreground">Stance</span>
             <span className="font-medium capitalize">
-              {getStanceDisplayName(character.currentSkin.stance)}
+              {getStanceDisplayName(character.stance)}
             </span>
           </div>
         </div>

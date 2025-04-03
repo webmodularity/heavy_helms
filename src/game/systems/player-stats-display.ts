@@ -312,7 +312,7 @@ export class PlayerStatsDisplay {
     // Convert numeric values to display names using the utility functions
     const weaponValue = player.currentSkin.weapon || 0;
     const armorValue = player.currentSkin.armor || 0;
-    const stanceValue = player.currentSkin.stance || 0;
+    const stanceValue = player.stance || 0;
 
     // Use the utility functions to get display names
     const weaponDisplay = getWeaponDisplayName(weaponValue as WeaponType);

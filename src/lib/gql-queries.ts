@@ -17,8 +17,9 @@ export const PLAYER_DATA_FRAGMENT = gql`
       metadataURI
       weapon
       armor
-      stance
+  
     }
+    stance
     strength
     constitution
     size
@@ -56,7 +57,6 @@ export const GET_VERIFIED_SKIN_COLLECTIONS = gql`
       metadataURI
       weapon
       armor
-      stance
       }
     }
   }
@@ -96,8 +96,8 @@ export const FIGHTER_BASE_FRAGMENT = gql`
       metadataURI
       weapon
       armor
-      stance
     }
+    stance
     
     # Record fields
     wins
@@ -326,7 +326,6 @@ export const GET_SKIN_BY_INDICES = gql`
         metadataURI
         weapon
         armor
-        stance
       }
     }
   }

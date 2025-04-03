@@ -52,8 +52,8 @@ export interface RawPlayerData {
     metadataURI: string;
     weapon: number;
     armor: number;
-    stance: number;
   };
+  stance: number;
   strength: number;
   constitution: number;
   size: number;
@@ -70,6 +70,7 @@ export interface RawPlayerData {
 export interface PlayerLoadout {
   playerId: number;
   skin: SkinInfo;
+  stance: number;
 }
 
 // Raw data structure returned from decodePlayerData on the Player contract
@@ -92,6 +93,7 @@ export interface RawDecodedPlayerData {
       skinIndex: number;
       skinTokenId: number;
     };
+    stance: number;
     record: {
       wins: number;
       losses: number;

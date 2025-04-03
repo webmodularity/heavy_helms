@@ -20,7 +20,6 @@ interface SkinWithMetadataURI {
   metadataURI: string; // This is from the GraphQL query
   weapon: number;
   armor: number;
-  stance: number;
   collection: {
     id: string;
     registryId: string;
@@ -137,8 +136,7 @@ export function SkinCard({
             </Button>
           </div>
           <p className="text-stone-300 text-sm">
-            {getArmorDisplayName(skin.armor)} •{" "}
-            {getStanceDisplayName(skin.stance)}
+            {getArmorDisplayName(skin.armor)}
           </p>
         </div>
       </div>

@@ -5,6 +5,8 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
 import { base, baseSepolia } from "viem/chains";
 import { WalletProvider } from "./store/wallet-context";
+import { WagmiProvider } from "@privy-io/wagmi";
+import { wagmiConfig } from "./config";
 
 interface ProvidersProps {
   children: ReactNode;
@@ -14,29 +16,31 @@ const queryClient = new QueryClient();
 
 function Providers({ children }: ProvidersProps) {
   return (
-    <QueryClientProvider client={queryClient}>
-      <PrivyProvider
-        appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID || ""}
-        config={{
-          loginMethods: ["email", "wallet", "farcaster", "twitter"],
-          appearance: {
-            theme: "dark",
-            accentColor: "#f9c846",
-            // logo: "/logo.png",
-          },
-          embeddedWallets: {
-            createOnLogin: "all-users",
-          },
-          defaultChain: baseSepolia,
-          supportedChains: [base, baseSepolia],
-        }}
-      >
-        <WalletProvider>
-          {/* Initialize EventBus globally for Phaser games */}
-          {children}
-        </WalletProvider>
-      </PrivyProvider>
-    </QueryClientProvider>
+    <PrivyProvider
+      appId={process.env.NEXT_PUBLIC_PRIVY_APP_ID || ""}
+      config={{
+        loginMethods: ["email", "wallet", "farcaster", "twitter"],
+        appearance: {
+          theme: "dark",
+          accentColor: "#f9c846",
+          // logo: "/logo.png",
+        },
+        embeddedWallets: {
+          createOnLogin: "users-without-wallets",
+        },
+        defaultChain: baseSepolia,
+        supportedChains: [base, baseSepolia],
+      }}
+    >
+      <QueryClientProvider client={queryClient}>
+        <WagmiProvider config={wagmiConfig}>
+          <WalletProvider>
+            {/* Initialize EventBus globally for Phaser games */}
+            {children}
+          </WalletProvider>
+        </WagmiProvider>
+      </QueryClientProvider>
+    </PrivyProvider>
   );
 }
 

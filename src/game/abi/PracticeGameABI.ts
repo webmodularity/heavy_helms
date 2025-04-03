@@ -64,6 +64,7 @@ export const PracticeGameABI = [
               { name: "skinTokenId", type: "uint16", internalType: "uint16" },
             ],
           },
+          { name: "stance", type: "uint8", internalType: "uint8" },
         ],
       },
       {
@@ -81,6 +82,7 @@ export const PracticeGameABI = [
               { name: "skinTokenId", type: "uint16", internalType: "uint16" },
             ],
           },
+          { name: "stance", type: "uint8", internalType: "uint8" },
         ],
       },
     ],
