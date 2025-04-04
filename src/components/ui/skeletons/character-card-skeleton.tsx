@@ -9,7 +9,7 @@ interface CharacterCardSkeletonProps {
 
 export function CharacterCardSkeleton({ index }: CharacterCardSkeletonProps) {
   return (
-    <CardContainer index={index}>
+    <CardContainer index={index} isSelected={false}>
       {/* Image skeleton */}
       <Skeleton 
         className="aspect-square relative bg-gradient-to-b from-stone-800/30 to-stone-900/30" 
