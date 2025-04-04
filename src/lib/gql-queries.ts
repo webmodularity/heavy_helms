@@ -278,6 +278,9 @@ export const GET_OWNED_PLAYERS_QUERY = gql`
     owners(where: {address: $owner}) {
       address
       totalPlayers
+      playerSlots
+      nameChangeCharges
+      attributeSwapCharges
       activePlayers(where: {isRetired: false}) {
         ...FighterCompleteFields
       }
@@ -396,6 +399,76 @@ export const GET_ALL_DUELS = gql`
           id
           fullName
         }
+      }
+    }
+  }
+`;
+
+export const GET_GAME_STATS = gql`
+  query GetGameStats {
+    stats(id: "all") {      
+      # Fighter counts
+      playerCount
+      activePlayerCount
+      retiredPlayerCount
+      defaultPlayerCount
+      monsterCount
+      activeMonsterCount
+      retiredMonsterCount
+      totalFightersCount
+      
+      # Combat statistics
+      totalWins
+      totalLosses
+      totalKills
+      
+      # Duel statistics
+      totalDuels
+      totalWagerDuels
+      totalNonWagerDuels
+      openChallenges
+      completedDuels
+      cancelledDuels
+      forfeitedDuels
+      
+      # Wager statistics
+      totalWageredAmount
+      totalFeesCollected
+      totalWinnerPayouts
+      averageWagerAmount
+      
+      # Skin statistics
+      skinCollectionsCount
+      verifiedSkinCollectionsCount
+      totalSkinsCount
+      
+      # Owner statistics
+      uniqueOwnersCount
+      
+      # Timestamps
+      lastUpdated
+    }
+  }
+`;
+
+export const GET_GAME_OWNED_SKIN_COLLECTION = gql`
+  query GetGameOwnedSkinCollection($skinType: Int!) {
+    skinCollections(
+      where: { skinType: $skinType, isVerified: true }
+      first: 1
+      orderBy: registryId
+      orderDirection: asc
+    ) {
+      registryId
+      contractAddress
+      skinType
+      requiredNFTAddress
+      skins(first: 1) {
+        id
+        tokenId
+        metadataURI
+        weapon
+        armor
       }
     }
   }
