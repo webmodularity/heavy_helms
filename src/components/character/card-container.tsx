@@ -1,25 +1,29 @@
 "use client";
 
+import { motion } from "framer-motion";
+import { cn } from "@/lib/utils";
+
 interface CardContainerProps {
-  index: number;
-  isSelected?: boolean;
   children: React.ReactNode;
+  index: number;
+  isSelected: boolean;
 }
 
-export function CardContainer({ index, isSelected, children }: CardContainerProps) {
+export function CardContainer({ children, index, isSelected }: CardContainerProps) {
   return (
-    <div
-      className={`min-w-[220px] bg-gradient-to-b from-amber-900/20 to-stone-900/40 rounded-lg ${
-        isSelected
-          ? "border-2 border-yellow-500 shadow-[0_0_15px_rgba(234,179,8,0.3)] scale-[1.03]"
-          : "border border-yellow-600/30"
-      } overflow-hidden snap-start transition-all duration-300 hover:scale-[1.02] hover:border-yellow-600/50 animate-fade-in`}
-      style={{ 
-        animationDelay: `${index * 100}ms`,
-        animationFillMode: 'backwards'
-      }}
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5, delay: index * 0.1 }}
+      className={cn(
+        "rounded-lg overflow-hidden bg-stone-900/80 border border-stone-800/60",
+        "shadow-lg w-[240px] shrink-0 snap-center",
+        "transform transition-all duration-300",
+        "group isolate flex flex-col h-auto",
+        isSelected ? "ring-2 ring-yellow-500" : "hover:border-yellow-500/30"
+      )}
     >
       {children}
-    </div>
+    </motion.div>
   );
 } 

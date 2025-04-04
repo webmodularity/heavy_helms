@@ -9,10 +9,10 @@ import { NewCharacterCard } from "./new-character-card";
 import { CharacterCardSkeleton } from "../ui/skeletons/character-card-skeleton";
 import { useCreateCharacter } from "@/hooks/use-create-character";
 import { useOwnPlayers } from "@/hooks/use-own-players";
-
+import type { StanceType } from "@/types/equipment.types";
 interface WarriorSelectionProps {
   selectedCharacter: Player | null;
-  onSelectCharacter: (character: Player) => void;
+  onSelectCharacter: (character: Player, stance?: StanceType) => void;
   onDeselectCharacter: () => void;
 }
 
@@ -56,7 +56,7 @@ export function WarriorSelection({
       <div className="relative max-w-full px-4 md:px-6">
         <div
           ref={characterListRef}
-          className="flex gap-4 md:gap-5 mt-4 overflow-x-auto pb-4 pt-2 snap-x scrollbar-thin scrollbar-thumb-yellow-600/20 scrollbar-track-transparent" 
+          className="flex gap-4 md:gap-5 mt-4 overflow-x-auto pb-4 pt-2 snap-x scrollbar-thin scrollbar-thumb-yellow-600/20 scrollbar-track-transparent px-4 items-start"
         >
           {isLoading ? (
             renderSkeletons()
@@ -68,7 +68,12 @@ export function WarriorSelection({
                   character={character as Player}
                   index={index}
                   isSelected={selectedCharacter?.id === character.id}
-                  onSelect={() => onSelectCharacter(character as Player)}
+                  onSelect={(newStance) =>
+                    onSelectCharacter(
+                      character as Player,
+                      (newStance as unknown as StanceType) ?? character.stance,
+                    )
+                  }
                   onDeselect={onDeselectCharacter}
                   onViewDetails={() => handleViewDetails(character as Player)}
                 />
@@ -84,7 +89,7 @@ export function WarriorSelection({
             </>
           )}
         </div>
-        
+
         {/* Scroll Indicators - Optional enhancement */}
         <div className="hidden md:block absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-black/40 to-transparent pointer-events-none" />
       </div>
