@@ -21,6 +21,7 @@ import {
   useAccount,
 } from "wagmi";
 import { useEffect, useState } from "react";
+import { useGameOwnedSkinCollection } from "./use-game-owned-skin-collection";
 
 interface CreateCharacterResult {
   txHash: string;
@@ -242,17 +243,24 @@ export function useCreateCharacter() {
           },
           currentSkin: {
             collection: {
-              id: "0",
-              contractAddress: process.env
-                .NEXT_PUBLIC_DEFAULT_SKIN_CONTRACT_ADDRESS as `0x${string}`,
+              id: defaultPlayerSkinCollection?.registryId || "0",
+              contractAddress:
+                (defaultPlayerSkinCollection?.contractAddress as `0x${string}`) ||
+                "0x0000000000000000000000000000000000000000",
               isVerified: true,
-              skinType: SkinType.DefaultPlayer,
-              requiredNFTAddress: null,
+              skinType:
+                defaultPlayerSkinCollection?.skinType || SkinType.DefaultPlayer,
+              requiredNFTAddress:
+                defaultPlayerSkinCollection?.requiredNFTAddress ?? null,
             },
-            tokenId: 0,
-            metadataURI: "",
-            weapon: WeaponType.Quarterstaff,
-            armor: ArmorType.Cloth,
+            tokenId: defaultPlayerSkinCollection?.skins?.[0]?.tokenId || 0,
+            metadataURI:
+              defaultPlayerSkinCollection?.skins?.[0]?.metadataURI || "",
+            weapon:
+              defaultPlayerSkinCollection?.skins?.[0]?.weapon ||
+              WeaponType.Quarterstaff,
+            armor:
+              defaultPlayerSkinCollection?.skins?.[0]?.armor || ArmorType.Cloth,
           },
           stance: StanceType.Balanced,
         });
@@ -311,6 +319,9 @@ export function useCreateCharacter() {
 
     mutation.mutate();
   };
+
+  const { collection: defaultPlayerSkinCollection } =
+    useGameOwnedSkinCollection(SkinType.DefaultPlayer);
 
   return {
     createCharacter,

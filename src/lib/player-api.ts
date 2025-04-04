@@ -56,6 +56,9 @@ interface OwnersResponse {
   owners: {
     address: string;
     totalPlayers: number;
+    playerSlots: number;
+    nameChangeCharges: number;
+    attributeSwapCharges: number;
     activePlayers: RawFighterData[];
   }[];
 }
