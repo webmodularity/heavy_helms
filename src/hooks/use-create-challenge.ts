@@ -111,7 +111,6 @@ export function useCreateChallenge() {
         topics: receipt.logs[0].topics,
       }) as unknown as ChallengeCreatedEvent;
 
-      console.log("challengeCreatedEvent", challengeCreatedEvent);
 
       return {
         txHash: hash,

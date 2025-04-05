@@ -34,6 +34,7 @@ export function useRecentDuels(playerId?: string | number, limit = 10) {
       }
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchInterval: 300 * 1000, // 5m refetch interval
   });
 
   return {

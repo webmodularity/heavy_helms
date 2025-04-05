@@ -202,6 +202,7 @@ export function useChallenges(fighterId?: string) {
     },
     enabled: authenticated && (!!fighterId || !!address),
     staleTime: 30 * 1000, // 30s stale time
+    refetchInterval: 300 * 1000, // 5m refetch interval
   });
 
   return {
