@@ -97,12 +97,12 @@ function BattleTabs({
           </TabsTrigger>
         </TabsList>
 
-        <Button
+        {/* <Button
           variant="ghost"
           className="text-yellow-500 hover:text-yellow-400"
         >
           View All
-        </Button>
+        </Button> */}
       </div>
 
       <TabsContent value="recent" className="space-y-4">
@@ -119,7 +119,16 @@ function BattleTabs({
 function RecentBattles({
   selectedCharacter,
 }: { selectedCharacter: Player | null }) {
-  const { duels, isLoading, error } = useRecentDuels(selectedCharacter?.id);
+  const { duels, isLoading, error, refetch } = useRecentDuels(
+    selectedCharacter?.id,
+  );
+  const [isRefetching, setIsRefetching] = useState(false);
+
+  const handleRefetch = async () => {
+    setIsRefetching(true);
+    await refetch();
+    setIsRefetching(false);
+  };
 
   if (isLoading) {
     return (
@@ -134,6 +143,17 @@ function RecentBattles({
       <div className="text-center py-8 text-red-400">
         <p>Failed to load recent battles</p>
         <p className="text-sm text-red-300 mt-2">Please try again later</p>
+        <Button
+          onClick={handleRefetch}
+          className="mt-4"
+          size="sm"
+          variant="default"
+        >
+          <Loader2
+            className={`mr-2 h-4 w-4 ${isRefetching ? "animate-spin" : ""}`}
+          />
+          Refresh
+        </Button>
       </div>
     );
   }
@@ -153,12 +173,42 @@ function RecentBattles({
     return (
       <div className="text-center py-8 text-stone-300">
         <p>No recent battles found for this warrior</p>
+        <YellowButton
+          onClick={handleRefetch}
+          className="mt-4"
+          size="sm"
+          variant="default"
+        >
+          <Loader2
+            className={`mr-2 h-4 w-4 ${isRefetching ? "animate-spin" : ""}`}
+          />
+          Refresh
+        </YellowButton>
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
+      <div className="flex justify-end mb-2">
+        <YellowButton
+          onClick={handleRefetch}
+          size="sm"
+          variant="default"
+          disabled={isRefetching}
+        >
+          {isRefetching ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Refreshing...
+            </>
+          ) : (
+            <>
+              <Loader2 className="mr-2 h-4 w-4" /> Refresh
+            </>
+          )}
+        </YellowButton>
+      </div>
+
       {duels.map((duel) => {
         // Determine if selected character is the challenger or defender
         const isChallenger =
@@ -210,7 +260,9 @@ function RecentBattles({
 function ActiveChallenges({
   selectedCharacter,
 }: { selectedCharacter: Player | null }) {
-  const { challenges, isLoading, error } = useChallenges(selectedCharacter?.id);
+  const { challenges, isLoading, error, refetch } = useChallenges(
+    selectedCharacter?.id,
+  );
   const { cancelChallenge, isCancellingChallenge } = useCancelChallenge();
   const { acceptChallenge, isAcceptingChallenge } = useAcceptChallenge();
   const [expandedChallenge, setExpandedChallenge] = useState<bigint | null>(
@@ -219,6 +271,13 @@ function ActiveChallenges({
   const [processingChallengeId, setProcessingChallengeId] = useState<
     bigint | null
   >(null);
+  const [isRefetching, setIsRefetching] = useState(false);
+
+  const handleRefetch = async () => {
+    setIsRefetching(true);
+    await refetch();
+    setIsRefetching(false);
+  };
 
   if (isLoading) {
     return (
@@ -233,6 +292,17 @@ function ActiveChallenges({
       <div className="text-center py-8 text-red-400">
         <p>Failed to load challenges</p>
         <p className="text-sm text-red-300 mt-2">Please try again later</p>
+        <YellowButton
+          variant="default"
+          onClick={handleRefetch}
+          className="mt-4"
+          size="sm"
+        >
+          <Loader2
+            className={`mr-2 h-4 w-4 ${isRefetching ? "animate-spin" : ""}`}
+          />
+          Refresh
+        </YellowButton>
       </div>
     );
   }
@@ -254,6 +324,17 @@ function ActiveChallenges({
           You don't have any active challenges at the moment. Start a duel by
           selecting a warrior and choosing "Duel Mode" from the battle options.
         </p>
+        <YellowButton
+          onClick={handleRefetch}
+          className="mt-4"
+          size="sm"
+          variant="default"
+        >
+          <Loader2
+            className={`mr-2 h-4 w-4 ${isRefetching ? "animate-spin" : ""}`}
+          />
+          Refresh
+        </YellowButton>
       </div>
     );
   }
@@ -276,6 +357,17 @@ function ActiveChallenges({
         <h3 className="text-lg font-medium text-yellow-500 mb-2">
           This warrior has no active challenges
         </h3>
+        <YellowButton
+          onClick={handleRefetch}
+          className="mt-4"
+          size="sm"
+          variant="default"
+        >
+          <Loader2
+            className={`mr-2 h-4 w-4 ${isRefetching ? "animate-spin" : ""}`}
+          />
+          Refresh
+        </YellowButton>
       </div>
     );
   }
@@ -314,6 +406,25 @@ function ActiveChallenges({
 
   return (
     <div className="space-y-4">
+      <div className="flex justify-end mb-2">
+        <YellowButton
+          onClick={handleRefetch}
+          size="sm"
+          variant="default"
+          disabled={isRefetching}
+        >
+          {isRefetching ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Refreshing...
+            </>
+          ) : (
+            <>
+              <Loader2 className="mr-2 h-4 w-4" /> Refresh
+            </>
+          )}
+        </YellowButton>
+      </div>
+
       {characterChallenges.map((challenge) => {
         console.log("challenge", challenge);
         const isExpanded = expandedChallenge === challenge.id;
