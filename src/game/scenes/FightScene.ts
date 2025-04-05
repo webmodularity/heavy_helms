@@ -941,44 +941,6 @@ export class FightScene extends Scene {
     const defenseText = defenseType.toString().toUpperCase();
     const attacker = isPlayer2 ? this.player1Sprite : this.player2Sprite;
 
-    // Handle exhaustion first
-    if (defenseText === "EXHAUSTED") {
-      this.damageNumbers.show(
-        defender.x,
-        defender.y - 200,
-        "Exhausted!",
-        "exhausted",
-        1.2,
-      );
-      this.animator.playAnimation(defender, "idle", isPlayer2);
-
-      // Set player endurance to 0
-      if (isPlayer2) {
-        if (this.player2.currentState) {
-          this.player2.currentState.currentEndurance = 0;
-        }
-
-        // Update health bars
-        this.healthManager.updateBars();
-
-        // Update player stats display with delay
-        this.refreshPlayerStats(true);
-      } else {
-        if (this.player1.currentState) {
-          this.player1.currentState.currentEndurance = 0;
-        }
-
-        // Update health bars
-        this.healthManager.updateBars();
-
-        // Update player stats display with delay
-        this.refreshPlayerStats(true);
-      }
-
-      this.completeSequence(isLastAction);
-      return;
-    }
-
     switch (defenseText) {
       case "MISS":
       case "DODGE":
