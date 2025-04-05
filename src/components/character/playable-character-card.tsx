@@ -4,15 +4,17 @@ import { CardContainer } from "@/components/character/card-container";
 import type { Player } from "@/types/player.types";
 import Image from "next/image";
 import { YellowButton } from "@/components/ui/yellow-button";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { Dumbbell, Footprints, Heart } from "lucide-react";
 import { Check } from "lucide-react";
+import { StanceSelector } from "./stance-selector";
+import type { StanceType } from "@/types/equipment.types";
 
 interface CharacterCardProps {
   character: Player;
   index: number;
   isSelected: boolean;
-  onSelect: () => void;
+  onSelect: (newStance?: StanceType) => void;
   onDeselect: () => void;
   onViewDetails: () => void;
 }
@@ -116,7 +118,7 @@ export function CharacterCard({
         {/* Action Buttons */}
         <div className="grid grid-cols-2 gap-2 pt-2">
           <YellowButton
-            onClick={isSelected ? onDeselect : onSelect}
+            onClick={isSelected ? onDeselect : () => onSelect()}
             className="w-full"
             variant={isSelected ? "outline" : "default"}
           >
@@ -131,6 +133,30 @@ export function CharacterCard({
             Details
           </YellowButton>
         </div>
+
+        {/* Add AnimatePresence for the stance selector */}
+        <AnimatePresence>
+          {isSelected && (
+            <motion.div
+              initial={{ opacity: 0, height: 0, marginTop: 0 }}
+              animate={{ opacity: 1, height: "auto", marginTop: 16 }}
+              exit={{ opacity: 0, height: 0, marginTop: 0 }}
+              transition={{
+                duration: 0.3,
+                ease: "easeInOut",
+              }}
+              className="overflow-hidden"
+            >
+              <StanceSelector
+                character={character}
+                currentStance={character.stance as StanceType}
+                onStanceChange={(newStance) =>
+                  onSelect(newStance as unknown as StanceType)
+                }
+              />
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </CardContainer>
   );

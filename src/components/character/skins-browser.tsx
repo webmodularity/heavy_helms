@@ -13,7 +13,7 @@ import { SkinCard } from "./skin-card";
 import { SkinTypeFilter } from "./skin-type-filter";
 import { SkinDetailsDialog } from "../dialogs/skin-details-dialog";
 import { useEquipSkin } from "@/hooks/use-equip-skin";
-
+import type { StanceType } from "@/types/equipment.types";
 export interface SkinWithMetadataURI {
   id: string;
   tokenId: number;
@@ -99,7 +99,7 @@ export function SkinsBrowser({ character }: SkinsBrowserProps) {
   };
 
   // Handle equipping the skin from the dialog
-  const handleEquipSkin = async () => {
+  const handleEquipSkin = async (stance: StanceType) => {
     if (!selectedSkinForDetails) return;
 
     const isCurrentSkin =
@@ -113,6 +113,7 @@ export function SkinsBrowser({ character }: SkinsBrowserProps) {
       Number.parseInt(selectedSkinForDetails.collection.registryId, 10),
       selectedSkinForDetails.tokenId,
       selectedSkinForDetails,
+      stance,
     );
 
     // Close the dialog after equipping

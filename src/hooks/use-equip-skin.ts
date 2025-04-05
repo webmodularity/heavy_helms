@@ -12,11 +12,13 @@ import {
   useWaitForTransactionReceipt,
 } from "wagmi";
 import { useState, useEffect } from "react";
+import type { StanceType } from "@/types/equipment.types";
 
 interface EquipSkinParams {
   skinIndex: number;
   skinTokenId: number;
   newSkin: SkinWithMetadataURI;
+  stance: StanceType;
 }
 
 interface EquipSkinResult {
@@ -24,6 +26,7 @@ interface EquipSkinResult {
   txHash?: string;
   error?: string;
   newSkin: SkinWithMetadataURI;
+  stance: StanceType;
 }
 
 export function useEquipSkin(playerId: string) {
@@ -119,6 +122,7 @@ export function useEquipSkin(playerId: string) {
       skinIndex,
       skinTokenId,
       newSkin,
+      stance,
     }): Promise<EquipSkinResult> => {
       if (!authenticated) {
         throw new Error("Wallet not connected");
@@ -143,11 +147,11 @@ export function useEquipSkin(playerId: string) {
         abi: PlayerABI,
         functionName: "equipSkin",
         // TODO SET THIS TO PASSED IN STANCE INSTEAD OF 1
-        args: [Number(playerId), skinIndex, skinTokenId, 1],
+        args: [Number(playerId), skinIndex, skinTokenId, stance],
       });
 
       // Return success and transaction hash
-      return { success: true, txHash, newSkin };
+      return { success: true, txHash, newSkin, stance };
     },
 
     onSuccess: (result) => {
@@ -156,6 +160,7 @@ export function useEquipSkin(playerId: string) {
         skinIndex: result.newSkin.collection.id as unknown as number,
         skinTokenId: result.newSkin.tokenId,
         newSkin: result.newSkin,
+        stance: 1,
       });
 
       // Show initial success toast
@@ -199,9 +204,15 @@ export function useEquipSkin(playerId: string) {
     skinIndex: number,
     skinTokenId: number,
     newSkin: SkinWithMetadataURI,
+    stance: StanceType,
   ) => {
     try {
-      return await mutation.mutateAsync({ skinIndex, skinTokenId, newSkin });
+      return await mutation.mutateAsync({
+        skinIndex,
+        skinTokenId,
+        newSkin,
+        stance,
+      });
     } catch (error) {
       // Error is already handled in onError callback
       return {

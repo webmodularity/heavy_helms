@@ -9,7 +9,7 @@ import { useInView } from "react-intersection-observer";
 import { BattleSection } from "../battle/battle-section";
 import { WarriorSelection } from "../character/warrior-selection";
 import { ActivitySection } from "./activity-section";
-
+import type { StanceType } from "@/types/equipment.types";
 export function AuthenticatedView() {
   const [selectedCharacter, setSelectedCharacter] = useState<Player | null>(
     null,
@@ -27,13 +27,13 @@ export function AuthenticatedView() {
   }, [inView]);
 
   // Function to select a character
-  const handleSelectCharacter = (character: Player) => {
-    setSelectedCharacter(character);
-
-    // Add a small delay to allow the UI to update before scrolling
-    setTimeout(() => {
-      scrollToBattleSection();
-    }, 300);
+  const handleSelectCharacter = (character: Player, stance?: StanceType) => {
+    setSelectedCharacter({ ...character, stance: stance ?? character.stance });
+    
+    // // Add a small delay to allow the UI to update before scrolling
+    // setTimeout(() => {
+    //   scrollToBattleSection();
+    // }, 300);
   };
 
   // Function to deselect a character

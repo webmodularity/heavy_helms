@@ -18,7 +18,9 @@ import {
 } from "@/lib/equipment-utils";
 import { useValidateSkin } from "@/hooks/use-validate-skin";
 import { usePlayerById } from "@/hooks/use-player-by-id";
-
+import { StanceSelector } from "../character/stance-selector";
+import type { StanceType } from "@/types/equipment.types";
+import { useState } from "react";
 // Define a more specific type for the skin from the GraphQL query
 interface SkinWithMetadataURI {
   id: string;
@@ -43,7 +45,7 @@ interface SkinDetailsDialogProps {
   skin: SkinWithMetadataURI;
   character: Player;
   isCurrentSkin: boolean;
-  onEquip: () => void;
+  onEquip: (stance: StanceType) => void;
   isEquipping: boolean;
 }
 
@@ -69,6 +71,7 @@ export function SkinDetailsDialog({
     skin.weapon,
     skin.armor,
   );
+  const [stance, setStance] = useState<StanceType>(character.stance);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -146,12 +149,17 @@ export function SkinDetailsDialog({
               </p>
             </div>
           </div>
+          <StanceSelector
+            character={character}
+            currentStance={character.stance}
+            onStanceChange={(newStance) => setStance(newStance)}
+          />
 
           {/* Action Button */}
           {!isCurrentSkin && (
             <Button
               className="w-full bg-yellow-600 hover:bg-yellow-700 text-stone-100"
-              onClick={onEquip}
+              onClick={() => onEquip(stance)}
               disabled={isEquipping || !isValid || isValidating}
             >
               {isEquipping ? (
