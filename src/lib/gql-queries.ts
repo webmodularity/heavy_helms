@@ -169,6 +169,11 @@ export const CHALLENGE_FIGHTER_FRAGMENT = gql`
     firstName
     surname
     fullName
+    currentSkin {
+      weapon
+      armor
+    }
+    stance
   }
 `;
 

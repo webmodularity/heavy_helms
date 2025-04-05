@@ -4,9 +4,12 @@ import { useQuery } from "@tanstack/react-query";
 import { request } from "graphql-request";
 import { GET_USER_CHALLENGES, GET_FIGHTER_CHALLENGES } from "@/lib/gql-queries";
 import { useAccount } from "wagmi";
+import type { StanceType } from "@/types/equipment.types";
+import type { ArmorType } from "@/types/equipment.types";
+import type { WeaponType } from "@/types/equipment.types";
 
 // GraphQL response type
-interface SubgraphChallenge {
+export interface SubgraphChallenge {
   id: string;
   wagerAmount: string;
   state: string;
@@ -19,6 +22,11 @@ interface SubgraphChallenge {
     firstName?: string;
     surname?: string;
     fullName?: string;
+    currentSkin: {
+      weapon: WeaponType;
+      armor: ArmorType;
+    };
+    stance: StanceType;
   };
   defender: {
     id: string;
@@ -26,6 +34,11 @@ interface SubgraphChallenge {
     firstName?: string;
     surname?: string;
     fullName?: string;
+    currentSkin: {
+      weapon: WeaponType;
+      armor: ArmorType;
+    };
+    stance: StanceType;
   };
 }
 
@@ -44,24 +57,19 @@ export interface Challenge {
   fulfilled: boolean;
   challengerLoadout: {
     playerId: number;
-    skin: {
-      skinIndex: number;
-      skinTokenId: number;
-    };
-    stance: number;
+    armor: ArmorType;
+    weapon: WeaponType;
+    stance: StanceType;
   };
   defenderLoadout: {
     playerId: number;
-    skin: {
-      skinIndex: number;
-      tokenId: number;
-    };
-    stance: number;
+    armor: ArmorType;
+    weapon: WeaponType;
+    stance: StanceType;
   };
-  // Add new fields
-  challengerName?: string;
-  defenderName?: string;
-  isSentByMe?: boolean;
+  challengerName: string;
+  defenderName: string;
+  isSentByMe: boolean;
 }
 
 export function useChallenges(fighterId?: string) {
@@ -130,19 +138,15 @@ export function useChallenges(fighterId?: string) {
             fulfilled: challenge.state !== "OPEN",
             challengerLoadout: {
               playerId: Number(challenge.challenger.id),
-              skin: {
-                skinIndex: 0,
-                skinTokenId: 0,
-              },
-              stance: 0,
+              armor: challenge.challenger.currentSkin.armor,
+              weapon: challenge.challenger.currentSkin.weapon,
+              stance: challenge.challenger.stance,
             },
             defenderLoadout: {
               playerId: Number(challenge.defender.id),
-              skin: {
-                skinIndex: 0,
-                tokenId: 0,
-              },
-              stance: 0,
+              armor: challenge.defender.currentSkin.armor,
+              weapon: challenge.defender.currentSkin.weapon,
+              stance: challenge.defender.stance,
             },
             challengerName,
             defenderName,
@@ -172,19 +176,15 @@ export function useChallenges(fighterId?: string) {
               fulfilled: challenge.state !== "OPEN",
               challengerLoadout: {
                 playerId: Number(challenge.challenger.id),
-                skin: {
-                  skinIndex: 0,
-                  skinTokenId: 0,
-                },
-                stance: 0,
+                weapon: challenge.challenger.currentSkin.weapon,
+                armor: challenge.challenger.currentSkin.armor,
+                stance: challenge.challenger.stance,
               },
               defenderLoadout: {
                 playerId: Number(challenge.defender.id),
-                skin: {
-                  skinIndex: 0,
-                  tokenId: 0,
-                },
-                stance: 0,
+                weapon: challenge.defender.currentSkin.weapon,
+                armor: challenge.defender.currentSkin.armor,
+                stance: challenge.defender.stance,
               },
               challengerName,
               defenderName,

@@ -17,6 +17,7 @@ import type { Player } from "@/types/player.types";
 import { type Challenge, useChallenges } from "@/hooks/use-challenges";
 import { useRecentDuels } from "@/hooks/use-recent-duels";
 import Link from "next/link";
+import { ChallengeCard } from "@/components/home/challenge-card";
 
 interface ActivitySectionProps {
   selectedCharacter: Player | null;
@@ -342,7 +343,7 @@ function ActiveChallenges({
   if (!selectedCharacter) {
     return (
       <div className="text-center py-8 text-stone-300">
-        <Swords className="h-12 w-12 mx-auto mb-4 text-yellow-600/50" />
+        <Shield className="h-12 w-12 mx-auto mb-4 text-yellow-600/50" />
         <h3 className="text-lg font-medium text-yellow-500 mb-2">
           Please select a warrior to view your active challenges
         </h3>
@@ -425,128 +426,22 @@ function ActiveChallenges({
         </YellowButton>
       </div>
 
-      {characterChallenges.map((challenge) => {
-        const isExpanded = expandedChallenge === challenge.id;
-        const isChallenger =
-          challenge.challengerId ===
-          (selectedCharacter?.id ? Number(selectedCharacter.id) : -1);
-        const canAccept = !isChallenger && selectedCharacter !== null;
-        const canCancel = isChallenger;
-        const isProcessing = processingChallengeId === challenge.id;
-
-        return (
-          <motion.div
-            key={challenge.id.toString()}
-            className="border border-yellow-600/20 rounded-lg overflow-hidden bg-gradient-to-r from-amber-900/10 to-transparent"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-          >
-            {/* Challenge Summary - Always Visible */}
-            {/* biome-ignore lint/a11y/useKeyWithClickEvents: <explanation> */}
-            <div
-              className="p-4 flex justify-between items-center cursor-pointer"
-              onClick={() =>
-                setExpandedChallenge(isExpanded ? null : challenge.id)
-              }
-            >
-              <div className="flex items-center space-x-3">
-                <div className="bg-yellow-600/20 p-2 rounded-full">
-                  <Shield className="h-5 w-5 text-yellow-500" />
-                </div>
-                <div>
-                  <h4 className="font-medium text-yellow-400">
-                    {isChallenger ? "Your Challenge" : "Challenge to Defend"}
-                  </h4>
-                  <p className="text-sm text-stone-300">
-                    {isChallenger
-                      ? `You challenged Fighter ${challenge.defenderId}`
-                      : `Fighter ${challenge.challengerId} challenged you`}
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center">
-                <span className="text-yellow-500 font-medium mr-3">
-                  {formatEther(challenge.wagerAmount)} ETH
-                </span>
-                <ChevronRight
-                  className={`h-5 w-5 text-yellow-500 transition-transform ${isExpanded ? "rotate-90" : ""}`}
-                />
-              </div>
-            </div>
-
-            {/* Expanded Challenge Details */}
-            {isExpanded && (
-              <div className="border-t border-yellow-600/10 p-4 bg-stone-900/30">
-                <div className="grid grid-cols-2 gap-y-2 text-sm mb-4">
-                  <span className="text-stone-400">Challenge ID:</span>
-                  <span className="text-stone-200 font-mono">
-                    {challenge.id.toString()}
-                  </span>
-
-                  <span className="text-stone-400">Created At:</span>
-                  <span className="text-stone-200">
-                    Block #{challenge.createdBlock.toString()}
-                  </span>
-
-                  <span className="text-stone-400">Status:</span>
-                  <span className="text-stone-200">
-                    {challenge.fulfilled ? (
-                      <span className="text-yellow-500">Completed</span>
-                    ) : (
-                      <span className="text-green-500">Active</span>
-                    )}
-                  </span>
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-2 mt-4">
-                  {canAccept && (
-                    <YellowButton
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleAcceptChallenge(challenge);
-                      }}
-                      className="w-full sm:w-auto"
-                      disabled={isProcessing || isAcceptingChallenge}
-                    >
-                      {isProcessing && isAcceptingChallenge ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
-                          Accepting...
-                        </>
-                      ) : (
-                        "Accept Challenge"
-                      )}
-                    </YellowButton>
-                  )}
-
-                  {canCancel && (
-                    <YellowButton
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleCancelChallenge(challenge);
-                      }}
-                      className="w-full sm:w-auto"
-                      variant="outline"
-                      disabled={isProcessing || isCancellingChallenge}
-                    >
-                      {isProcessing && isCancellingChallenge ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
-                          Cancelling...
-                        </>
-                      ) : (
-                        "Cancel Challenge"
-                      )}
-                    </YellowButton>
-                  )}
-                </div>
-              </div>
-            )}
-          </motion.div>
-        );
-      })}
+      {characterChallenges.map((challenge) => (
+        <ChallengeCard
+          key={challenge.id.toString()}
+          challenge={challenge}
+          selectedCharacter={selectedCharacter}
+          isProcessing={processingChallengeId === challenge.id}
+          isCancellingChallenge={isCancellingChallenge}
+          isAcceptingChallenge={isAcceptingChallenge}
+          onAccept={handleAcceptChallenge}
+          onCancel={handleCancelChallenge}
+          isExpanded={expandedChallenge === challenge.id}
+          onToggleExpand={() => 
+            setExpandedChallenge(expandedChallenge === challenge.id ? null : challenge.id)
+          }
+        />
+      ))}
     </div>
   );
 }
