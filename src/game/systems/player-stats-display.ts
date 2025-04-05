@@ -1,6 +1,6 @@
 import type { GameObjects, Scene } from "phaser";
 import {
-  getWeaponDisplayName,
+  getAbbreviatedWeaponName,
   getArmorDisplayName,
   getStanceDisplayName,
 } from "@/lib/equipment-utils";
@@ -315,7 +315,7 @@ export class PlayerStatsDisplay {
     const stanceValue = player.stance || 0;
 
     // Use the utility functions to get display names
-    const weaponDisplay = getWeaponDisplayName(weaponValue as WeaponType);
+    const weaponDisplay = getAbbreviatedWeaponName(weaponValue as WeaponType);
     const armorDisplay = getArmorDisplayName(armorValue as ArmorType);
     const stanceDisplay = getStanceDisplayName(stanceValue as StanceType);
 

@@ -144,23 +144,6 @@ export class FighterService {
       throw error;
     }
   }
-
-  /**
-   * Get abbreviated weapon name for display
-   */
-  static getAbbreviatedWeaponName(weapon: string): string {
-    const abbreviations: Record<string, string> = {
-      Quarterstaff: "Quarterstaff",
-      Greatsword: "Greatsword",
-      ShortSword: "S.Sword",
-      BattleAxe: "B.Axe",
-      Warhammer: "W.Hammer",
-      SwordAndShield: "Sword",
-      MaceAndShield: "Mace",
-      RapierAndShield: "Rapier",
-    };
-    return abbreviations[weapon] || weapon;
-  }
 }
 
 // Add this interface at the top of the file

@@ -33,36 +33,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { YellowButton } from "@/components/ui/yellow-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Loader2, Search, ArrowUpDown, Filter } from "lucide-react";
 import { useOwnPlayers } from "@/hooks/use-own-players";
 import type { Fighter } from "@/types/fighter-types";
-
-// Define enums to string mappings for display
-const WeaponTypeMap: Record<WeaponType, string> = {
-  [WeaponType.SwordAndShield]: "Sword & Shield",
-  [WeaponType.MaceAndShield]: "Mace & Shield",
-  [WeaponType.RapierAndShield]: "Rapier & Shield",
-  [WeaponType.Greatsword]: "Greatsword",
-  [WeaponType.Battleaxe]: "Battleaxe",
-  [WeaponType.Quarterstaff]: "Quarterstaff",
-  [WeaponType.Spear]: "Spear",
-};
-
-const ArmorTypeMap: Record<ArmorType, string> = {
-  [ArmorType.Cloth]: "Cloth",
-  [ArmorType.Leather]: "Leather",
-  [ArmorType.Chain]: "Chain",
-  [ArmorType.Plate]: "Plate",
-};
-
-const StanceTypeMap: Record<StanceType, string> = {
-  [StanceType.Defensive]: "Defensive",
-  [StanceType.Balanced]: "Balanced",
-  [StanceType.Offensive]: "Offensive",
-};
+import {
+  getWeaponDisplayName,
+  getArmorDisplayName,
+} from "@/lib/equipment-utils";
 
 interface PlayerSelectionTableProps {
   onSelectPlayer: (player: Fighter) => void;
@@ -214,7 +193,7 @@ export function PlayerSelectionTable({
       ),
       cell: ({ row }) => (
         <div className="text-center">
-          {WeaponTypeMap[row.original.currentSkin.weapon]}
+          {getWeaponDisplayName(row.original.currentSkin.weapon)}
         </div>
       ),
       filterFn: (row, id, value) => value.includes(row.getValue(id)),
@@ -234,7 +213,7 @@ export function PlayerSelectionTable({
       ),
       cell: ({ row }) => (
         <div className="text-center">
-          {ArmorTypeMap[row.original.currentSkin.armor]}
+          {getArmorDisplayName(row.original.currentSkin.armor)}
         </div>
       ),
       filterFn: (row, id, value) => value.includes(row.getValue(id)),
@@ -396,7 +375,7 @@ export function PlayerSelectionTable({
             </SelectTrigger>
             <SelectContent className="bg-stone-900 border-yellow-600/20 text-stone-200">
               <SelectItem value="all">All Weapons</SelectItem>
-              {Object.entries(WeaponTypeMap).map(([value, label]) => (
+              {Object.entries(WeaponType).map(([value, label]) => (
                 <SelectItem key={value} value={value}>
                   {label}
                 </SelectItem>
@@ -420,7 +399,7 @@ export function PlayerSelectionTable({
             </SelectTrigger>
             <SelectContent className="bg-stone-900 border-yellow-600/20 text-stone-200">
               <SelectItem value="all">All Armor</SelectItem>
-              {Object.entries(ArmorTypeMap).map(([value, label]) => (
+              {Object.entries(ArmorType).map(([value, label]) => (
                 <SelectItem key={value} value={value}>
                   {label}
                 </SelectItem>
@@ -444,7 +423,7 @@ export function PlayerSelectionTable({
             </SelectTrigger>
             <SelectContent className="bg-stone-900 border-yellow-600/20 text-stone-200">
               <SelectItem value="all">All Stances</SelectItem>
-              {Object.entries(StanceTypeMap).map(([value, label]) => (
+              {Object.entries(StanceType).map(([value, label]) => (
                 <SelectItem key={value} value={value}>
                   {label}
                 </SelectItem>

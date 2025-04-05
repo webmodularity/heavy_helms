@@ -2,13 +2,33 @@ import type { PlayerAttributes } from "@/types/player.types";
 import { WeaponType, ArmorType, StanceType } from "../types/equipment.types";
 
 export const WEAPON_DISPLAY_NAMES: Record<WeaponType, string> = {
-  [WeaponType.SwordAndShield]: "Sword + Shield",
-  [WeaponType.MaceAndShield]: "Mace + Shield",
-  [WeaponType.RapierAndShield]: "Rapier + Shield",
+  [WeaponType.ArmingSwordKite]: "Sword + Kite Shield",
+  [WeaponType.MaceTower]: "Mace + Tower Shield",
+  [WeaponType.RapierBuckler]: "Rapier + Buckler",
   [WeaponType.Greatsword]: "Greatsword",
   [WeaponType.Battleaxe]: "Battleaxe",
   [WeaponType.Quarterstaff]: "Quarterstaff",
   [WeaponType.Spear]: "Spear",
+  [WeaponType.ShortswordBuckler]: "Shortsword + Buckler",
+  [WeaponType.ShortswordTower]: "Shortsword + Tower Shield",
+  [WeaponType.Daggers]: "Daggers",
+  [WeaponType.RapierDagger]: "Rapier + Dagger",
+  [WeaponType.ScimitarBuckler]: "Scimitar + Buckler",
+  [WeaponType.AxeKite]: "Axe + Kite Shield",
+  [WeaponType.AxeTower]: "Axe + Tower Shield",
+  [WeaponType.Scimitars]: "Scimitars",
+  [WeaponType.FlailBuckler]: "Flail + Buckler",
+  [WeaponType.MaceKite]: "Mace + Kite Shield",
+  [WeaponType.ClubTower]: "Club + Tower Shield",
+  [WeaponType.Clubs]: "Clubs",
+  [WeaponType.ArmingSwordShortsword]: "Sword + Shortsword",
+  [WeaponType.ScimitarDagger]: "Scimitar + Dagger",
+  [WeaponType.ArmingSwordClub]: "Sword + Club",
+  [WeaponType.AxeMace]: "Axe + Mace",
+  [WeaponType.FlailDagger]: "Flail + Dagger",
+  [WeaponType.MaceShortsword]: "Mace + Shortsword",
+  [WeaponType.Maul]: "Maul",
+  [WeaponType.Trident]: "Trident",
 };
 
 export function getWeaponDisplayName(weapon: WeaponType): string {
@@ -36,41 +56,71 @@ export function getStanceDisplayName(stance: StanceType): string {
   return STANCE_DISPLAY_NAMES[stance] || "Balanced";
 }
 
-// export function getSkinTypeDisplayName(skinType: SkinType): string {
-//   return SKIN_TYPE_DISPLAY_NAMES[skinType] || "Unknown Skin Type";
-// }
+export const WEAPON_ABBREVIATED_NAMES: Record<WeaponType, string> = {
+  [WeaponType.ArmingSwordKite]: "Sword + Kite",
+  [WeaponType.MaceTower]: "Mace + Tower",
+  [WeaponType.RapierBuckler]: "Rapier + Buckler",
+  [WeaponType.Greatsword]: "Greatsword",
+  [WeaponType.Battleaxe]: "Battleaxe",
+  [WeaponType.Quarterstaff]: "Quarterstaff",
+  [WeaponType.Spear]: "Spear",
+  [WeaponType.ShortswordBuckler]: "S.Sword + Buckler",
+  [WeaponType.ShortswordTower]: "S.Sword + Tower",
+  [WeaponType.Daggers]: "Daggers",
+  [WeaponType.RapierDagger]: "Rapier + Dagger",
+  [WeaponType.ScimitarBuckler]: "Scimitar + Buckler",
+  [WeaponType.AxeKite]: "Axe + Kite",
+  [WeaponType.AxeTower]: "Axe + Tower",
+  [WeaponType.Scimitars]: "Scimitars",
+  [WeaponType.FlailBuckler]: "Flail + Buckler",
+  [WeaponType.MaceKite]: "Mace + Kite",
+  [WeaponType.ClubTower]: "Club + Tower",
+  [WeaponType.Clubs]: "Clubs",
+  [WeaponType.ArmingSwordShortsword]: "Sword + S.Sword",
+  [WeaponType.ScimitarDagger]: "Scimitar + Dagger",
+  [WeaponType.ArmingSwordClub]: "Sword + Club",
+  [WeaponType.AxeMace]: "Axe + Mace",
+  [WeaponType.FlailDagger]: "Flail + Dagger",
+  [WeaponType.MaceShortsword]: "Mace + S.Sword",
+  [WeaponType.Maul]: "Maul",
+  [WeaponType.Trident]: "Trident",
+};
+
+export function getAbbreviatedWeaponName(weapon: WeaponType): string {
+  return WEAPON_ABBREVIATED_NAMES[weapon] || `Weapon #${weapon}`;
+}
 
 // EQUIPMENT REQUIREMENTS FROM CONTRACT
 // For each weapon type
 
-export function getSwordAndShieldReqs(): PlayerAttributes {
+export function getArmingSwordKiteReqs(): PlayerAttributes {
   return {
-    strength: 10,
+    strength: 12,
     constitution: 0,
-    size: 0,
-    agility: 6,
-    stamina: 0,
+    size: 5,
+    agility: 0,
+    stamina: 5,
     luck: 0,
   };
 }
 
-export function getMaceAndShieldReqs(): PlayerAttributes {
+export function getMaceTowerReqs(): PlayerAttributes {
   return {
     strength: 12,
     constitution: 0,
-    size: 0,
+    size: 12,
     agility: 0,
     stamina: 8,
     luck: 0,
   };
 }
 
-export function getRapierAndShieldReqs(): PlayerAttributes {
+export function getRapierBucklerReqs(): PlayerAttributes {
   return {
-    strength: 6,
+    strength: 0,
     constitution: 0,
     size: 0,
-    agility: 12,
+    agility: 14,
     stamina: 0,
     luck: 0,
   };
@@ -78,10 +128,10 @@ export function getRapierAndShieldReqs(): PlayerAttributes {
 
 export function getGreatswordReqs(): PlayerAttributes {
   return {
-    strength: 12,
+    strength: 14,
     constitution: 0,
     size: 10,
-    agility: 8,
+    agility: 0,
     stamina: 0,
     luck: 0,
   };
@@ -89,7 +139,7 @@ export function getGreatswordReqs(): PlayerAttributes {
 
 export function getBattleaxeReqs(): PlayerAttributes {
   return {
-    strength: 15,
+    strength: 16,
     constitution: 0,
     size: 12,
     agility: 0,
@@ -111,9 +161,229 @@ export function getQuarterstaffReqs(): PlayerAttributes {
 
 export function getSpearReqs(): PlayerAttributes {
   return {
+    strength: 6,
+    constitution: 0,
+    size: 12,
+    agility: 10,
+    stamina: 0,
+    luck: 0,
+  };
+}
+
+export function getShortswordBucklerReqs(): PlayerAttributes {
+  return {
+    strength: 0,
+    constitution: 0,
+    size: 0,
+    agility: 0,
+    stamina: 0,
+    luck: 0,
+  };
+}
+
+export function getShortswordTowerReqs(): PlayerAttributes {
+  return {
+    strength: 6,
+    constitution: 0,
+    size: 12,
+    agility: 0,
+    stamina: 8,
+    luck: 0,
+  };
+}
+
+export function getDualDaggersReqs(): PlayerAttributes {
+  return {
+    strength: 0,
+    constitution: 0,
+    size: 0,
+    agility: 8,
+    stamina: 0,
+    luck: 0,
+  };
+}
+
+export function getRapierDaggerReqs(): PlayerAttributes {
+  return {
+    strength: 0,
+    constitution: 0,
+    size: 0,
+    agility: 16,
+    stamina: 0,
+    luck: 0,
+  };
+}
+
+export function getScimitarBucklerReqs(): PlayerAttributes {
+  return {
     strength: 8,
     constitution: 0,
-    size: 8,
+    size: 0,
+    agility: 8,
+    stamina: 0,
+    luck: 0,
+  };
+}
+
+export function getAxeKiteReqs(): PlayerAttributes {
+  return {
+    strength: 10,
+    constitution: 0,
+    size: 5,
+    agility: 0,
+    stamina: 5,
+    luck: 0,
+  };
+}
+
+export function getAxeTowerReqs(): PlayerAttributes {
+  return {
+    strength: 12,
+    constitution: 0,
+    size: 12,
+    agility: 0,
+    stamina: 8,
+    luck: 0,
+  };
+}
+
+export function getDualScimitarsReqs(): PlayerAttributes {
+  return {
+    strength: 8,
+    constitution: 0,
+    size: 0,
+    agility: 14,
+    stamina: 0,
+    luck: 0,
+  };
+}
+
+export function getFlailBucklerReqs(): PlayerAttributes {
+  return {
+    strength: 10,
+    constitution: 0,
+    size: 0,
+    agility: 10,
+    stamina: 0,
+    luck: 0,
+  };
+}
+
+export function getMaceKiteReqs(): PlayerAttributes {
+  return {
+    strength: 10,
+    constitution: 0,
+    size: 5,
+    agility: 0,
+    stamina: 5,
+    luck: 0,
+  };
+}
+
+export function getClubTowerReqs(): PlayerAttributes {
+  return {
+    strength: 8,
+    constitution: 0,
+    size: 12,
+    agility: 0,
+    stamina: 8,
+    luck: 0,
+  };
+}
+
+export function getDualClubsReqs(): PlayerAttributes {
+  return {
+    strength: 0,
+    constitution: 0,
+    size: 0,
+    agility: 0,
+    stamina: 0,
+    luck: 0,
+  };
+}
+
+export function getArmingSwordShortswordReqs(): PlayerAttributes {
+  return {
+    strength: 14,
+    constitution: 0,
+    size: 0,
+    agility: 12,
+    stamina: 0,
+    luck: 0,
+  };
+}
+
+export function getScimitarDaggerReqs(): PlayerAttributes {
+  return {
+    strength: 8,
+    constitution: 0,
+    size: 0,
+    agility: 16,
+    stamina: 0,
+    luck: 0,
+  };
+}
+
+export function getArmingSwordClubReqs(): PlayerAttributes {
+  return {
+    strength: 14,
+    constitution: 0,
+    size: 0,
+    agility: 8,
+    stamina: 0,
+    luck: 0,
+  };
+}
+
+export function getAxeMaceReqs(): PlayerAttributes {
+  return {
+    strength: 16,
+    constitution: 0,
+    size: 0,
+    agility: 8,
+    stamina: 0,
+    luck: 0,
+  };
+}
+
+export function getFlailDaggerReqs(): PlayerAttributes {
+  return {
+    strength: 12,
+    constitution: 0,
+    size: 0,
+    agility: 14,
+    stamina: 0,
+    luck: 0,
+  };
+}
+
+export function getMaceShortswordReqs(): PlayerAttributes {
+  return {
+    strength: 14,
+    constitution: 0,
+    size: 0,
+    agility: 10,
+    stamina: 0,
+    luck: 0,
+  };
+}
+
+export function getMaulReqs(): PlayerAttributes {
+  return {
+    strength: 18,
+    constitution: 0,
+    size: 12,
+    agility: 0,
+    stamina: 0,
+    luck: 0,
+  };
+}
+
+export function getTridentReqs(): PlayerAttributes {
+  return {
+    strength: 12,
+    constitution: 0,
+    size: 12,
     agility: 10,
     stamina: 0,
     luck: 0,
@@ -146,22 +416,22 @@ export function getLeatherReqs(): PlayerAttributes {
 
 export function getChainReqs(): PlayerAttributes {
   return {
-    strength: 10,
-    constitution: 10,
+    strength: 8,
+    constitution: 6,
     size: 0,
     agility: 0,
-    stamina: 0,
+    stamina: 6,
     luck: 0,
   };
 }
 
 export function getPlateReqs(): PlayerAttributes {
   return {
-    strength: 12,
-    constitution: 12,
+    strength: 10,
+    constitution: 8,
     size: 0,
     agility: 0,
-    stamina: 0,
+    stamina: 8,
     luck: 0,
   };
 }
@@ -169,12 +439,12 @@ export function getPlateReqs(): PlayerAttributes {
 // Function to get weapon requirements based on weapon type
 export function getWeaponRequirements(weapon: WeaponType): PlayerAttributes {
   switch (weapon) {
-    case WeaponType.SwordAndShield:
-      return getSwordAndShieldReqs();
-    case WeaponType.MaceAndShield:
-      return getMaceAndShieldReqs();
-    case WeaponType.RapierAndShield:
-      return getRapierAndShieldReqs();
+    case WeaponType.ArmingSwordKite:
+      return getArmingSwordKiteReqs();
+    case WeaponType.MaceTower:
+      return getMaceTowerReqs();
+    case WeaponType.RapierBuckler:
+      return getRapierBucklerReqs();
     case WeaponType.Greatsword:
       return getGreatswordReqs();
     case WeaponType.Battleaxe:
@@ -183,6 +453,46 @@ export function getWeaponRequirements(weapon: WeaponType): PlayerAttributes {
       return getQuarterstaffReqs();
     case WeaponType.Spear:
       return getSpearReqs();
+    case WeaponType.ShortswordBuckler:
+      return getShortswordBucklerReqs();
+    case WeaponType.ShortswordTower:
+      return getShortswordTowerReqs();
+    case WeaponType.Daggers:
+      return getDualDaggersReqs();
+    case WeaponType.RapierDagger:
+      return getRapierDaggerReqs();
+    case WeaponType.ScimitarBuckler:
+      return getScimitarBucklerReqs();
+    case WeaponType.AxeKite:
+      return getAxeKiteReqs();
+    case WeaponType.AxeTower:
+      return getAxeTowerReqs();
+    case WeaponType.Scimitars:
+      return getDualScimitarsReqs();
+    case WeaponType.FlailBuckler:
+      return getFlailBucklerReqs();
+    case WeaponType.MaceKite:
+      return getMaceKiteReqs();
+    case WeaponType.ClubTower:
+      return getClubTowerReqs();
+    case WeaponType.Clubs:
+      return getDualClubsReqs();
+    case WeaponType.ArmingSwordShortsword:
+      return getArmingSwordShortswordReqs();
+    case WeaponType.ScimitarDagger:
+      return getScimitarDaggerReqs();
+    case WeaponType.ArmingSwordClub:
+      return getArmingSwordClubReqs();
+    case WeaponType.AxeMace:
+      return getAxeMaceReqs();
+    case WeaponType.FlailDagger:
+      return getFlailDaggerReqs();
+    case WeaponType.MaceShortsword:
+      return getMaceShortswordReqs();
+    case WeaponType.Maul:
+      return getMaulReqs();
+    case WeaponType.Trident:
+      return getTridentReqs();
     default:
       throw new Error(`Invalid weapon type: ${weapon}`);
   }
