@@ -19,13 +19,16 @@ interface CreateChallengeFormProps {
   onCancel?: () => void;
 }
 
+const MIN_WAGER_AMOUNT = 0.001;
+const MAX_WAGER_AMOUNT = 100;
+
 export function CreateChallengeForm({
   character,
   onSuccess,
   onCancel,
 }: CreateChallengeFormProps) {
   const [defenderId, setDefenderId] = useState<string>("");
-  const [wagerAmount, setWagerAmount] = useState<string>("0.01");
+  const [wagerAmount, setWagerAmount] = useState<string>("0.001");
   const [selectedChallenger, setSelectedChallenger] = useState<Fighter | null>(
     null,
   );
@@ -39,7 +42,8 @@ export function CreateChallengeForm({
   const isValidWager =
     wagerAmount.trim() !== "" &&
     !Number.isNaN(Number.parseFloat(wagerAmount)) &&
-    Number.parseFloat(wagerAmount) >= 0;
+    Number.parseFloat(wagerAmount) >= MIN_WAGER_AMOUNT &&
+    Number.parseFloat(wagerAmount) <= MAX_WAGER_AMOUNT;
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
@@ -153,9 +157,33 @@ export function CreateChallengeForm({
           </Label>
           <Input
             id="wagerAmount"
-            type="text"
+            type="number"
+            min={MIN_WAGER_AMOUNT}
+            max={MAX_WAGER_AMOUNT}
+            step="0.001"
             value={wagerAmount}
-            onChange={(e) => setWagerAmount(e.target.value)}
+            onChange={(e) => {
+              const value = e.target.value;
+              // Allow empty input during typing
+              if (value === "") {
+                setWagerAmount("");
+                return;
+              }
+              
+              const numericValue = Number.parseFloat(value);
+              // Only update state if value is a valid number within range
+              if (!Number.isNaN(numericValue) && 
+                  numericValue >= MIN_WAGER_AMOUNT && 
+                  numericValue <= MAX_WAGER_AMOUNT) {
+                setWagerAmount(value);
+              }
+            }}
+            onBlur={() => {
+              // If empty or invalid when focus leaves, reset to minimum
+              if (wagerAmount === "" || Number.isNaN(Number.parseFloat(wagerAmount))) {
+                setWagerAmount(MIN_WAGER_AMOUNT.toString());
+              }
+            }}
             className="bg-stone-900/50 border-yellow-600/20 focus:border-yellow-500 text-stone-200"
             placeholder="Enter wager amount in ETH"
           />
