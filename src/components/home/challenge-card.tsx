@@ -70,7 +70,6 @@ export function ChallengeCard({
       bgColor: "bg-orange-500/20",
     },
   };
-  console.log("CHALLENGE WHEN INITIATING", challenge);
 
   const challengerStance = challenge.challengerLoadout.stance;
   const defenderStance = challenge.defenderLoadout.stance;
