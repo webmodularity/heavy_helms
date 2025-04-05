@@ -1,7 +1,6 @@
 import { DuelGameABI } from "@/game/abi/DuelGameABI.abi";
 import { toast } from "sonner";
 import { decodeEventLog, parseEther } from "viem";
-import { waitForTransactionReceipt } from "viem/actions";
 import type { Player } from "@/types/player.types";
 import {
   useAccount,
@@ -11,7 +10,10 @@ import {
 } from "wagmi";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { baseSepolia } from "wagmi/chains";
-import { viemClient } from "@/config";
+import { SUBGRAPH_URL, viemClient } from "@/config";
+import request from "graphql-request";
+import { GET_FIGHTERS_BY_IDS } from "@/lib/gql-queries";
+import type { Challenge } from "./use-challenges";
 
 // This is a placeholder - replace with your actual contract address
 const DUEL_GAME_CONTRACT_ADDRESS = process.env
@@ -27,6 +29,7 @@ interface CreateChallengeResult {
   txHash: `0x${string}`;
   createdChallenge: ChallengeCreatedEvent["args"];
   challengerId?: string;
+  challenger: Player;
 }
 
 interface ChallengeCreatedEvent {
@@ -45,6 +48,7 @@ export function useCreateChallenge() {
   const { switchChain } = useSwitchChain();
   const queryClient = useQueryClient();
   const publicClient = usePublicClient();
+
   const {
     writeContractAsync,
     isPending: isWritePending,
@@ -111,15 +115,20 @@ export function useCreateChallenge() {
         topics: receipt.logs[0].topics,
       }) as unknown as ChallengeCreatedEvent;
 
-
       return {
         txHash: hash,
+        challenger: character,
         challengerId: character.id,
         createdChallenge: challengeCreatedEvent.args,
       };
     },
 
-    onSuccess: async ({ txHash, challengerId, createdChallenge }) => {
+    onSuccess: async ({
+      txHash,
+      challengerId,
+      createdChallenge,
+      challenger,
+    }) => {
       toast.success("Challenge created successfully", {
         description:
           "Your challenge has been created and is now waiting for acceptance.",
@@ -137,19 +146,42 @@ export function useCreateChallenge() {
           queryKey: ["active-challenges", address],
         });
 
-        // Update the fighter-challenges query data
-        queryClient.setQueryData(
+        const defenders = await request<{ fighters: Player[] }>(
+          SUBGRAPH_URL,
+          GET_FIGHTERS_BY_IDS,
+          {
+            fighterIds: [createdChallenge.defenderId],
+          },
+        );
+        const defender = defenders.fighters[0];
+
+        queryClient.setQueryData<Challenge[]>(
           ["fighter-challenges", challengerId],
-          (oldData: unknown = []) => {
+          (oldData: Challenge[] = []) => {
             const previousData = Array.isArray(oldData) ? oldData : [];
             return [
               ...previousData,
               {
-                id: createdChallenge.challengeId,
+                id: BigInt(createdChallenge.challengeId),
                 challengerId: Number(createdChallenge.challengerId),
                 defenderId: Number(createdChallenge.defenderId),
-                wagerAmount: createdChallenge.wagerAmount,
-                createdBlock: createdChallenge.createdAtBlock,
+                wagerAmount: BigInt(createdChallenge.wagerAmount),
+                createdBlock: BigInt(createdChallenge.createdAtBlock),
+                challengerLoadout: {
+                  playerId: Number(createdChallenge.challengerId),
+                  weapon: challenger?.currentSkin.weapon,
+                  armor: challenger?.currentSkin.armor,
+                  stance: challenger?.stance,
+                },
+                defenderLoadout: {
+                  playerId: Number(createdChallenge.defenderId),
+                  weapon: defender?.currentSkin.weapon,
+                  armor: defender?.currentSkin.armor,
+                  stance: defender?.stance,
+                },
+                challengerName: challenger?.name.fullName,
+                defenderName: defender?.fullName || "",
+                isSentByMe: false,
                 fulfilled: false,
               },
             ];

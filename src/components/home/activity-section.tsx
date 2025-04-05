@@ -8,7 +8,7 @@ import { useCancelChallenge } from "@/hooks/use-cancel-challenge";
 import { useAcceptChallenge } from "@/hooks/use-accept-challenge";
 import { usePrivy } from "@privy-io/react-auth";
 import { Loader2, Shield, Swords } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { formatEther } from "viem";
 import { YellowButton } from "@/components/ui/yellow-button";
 import { ChevronRight } from "lucide-react";
@@ -55,6 +55,18 @@ function BattleTabs({
   selectedCharacter,
 }: { selectedCharacter: Player | null }) {
   const [activeTab, setActiveTab] = useState("recent");
+  const { challenges } = useChallenges(selectedCharacter?.id);
+
+  // Filter challenges for the selected character
+  const activeCharacterChallenges = useMemo(() => {
+    if (!selectedCharacter) return [];
+    return challenges.filter(
+      (c) =>
+        !c.fulfilled &&
+        (c.challengerId.toString() === selectedCharacter.id.toString() ||
+          c.defenderId.toString() === selectedCharacter.id.toString()),
+    );
+  }, [challenges, selectedCharacter]);
 
   // Listen for the event to activate the challenges tab
   useEffect(() => {
@@ -92,9 +104,14 @@ function BattleTabs({
           </TabsTrigger>
           <TabsTrigger
             value="challenges"
-            className="data-[state=active]:bg-yellow-600/20 data-[state=active]:text-yellow-400"
+            className="data-[state=active]:bg-yellow-600/20 data-[state=active]:text-yellow-400 relative"
           >
             Active Challenges
+            {activeCharacterChallenges.length > 0 && (
+              <span className="absolute -top-2 -right-2 bg-yellow-500 text-black text-xs font-bold rounded-full min-w-5 h-5 px-1.5 flex items-center justify-center">
+                {activeCharacterChallenges.length}
+              </span>
+            )}
           </TabsTrigger>
         </TabsList>
 
@@ -120,10 +137,18 @@ function BattleTabs({
 function RecentBattles({
   selectedCharacter,
 }: { selectedCharacter: Player | null }) {
-  const { duels, isLoading, error, refetch } = useRecentDuels(
-    selectedCharacter?.id,
-  );
+  const {
+    duels,
+    isLoading,
+    error,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useRecentDuels(selectedCharacter?.id);
   const [isRefetching, setIsRefetching] = useState(false);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const handleRefetch = async () => {
     setIsRefetching(true);
@@ -131,7 +156,35 @@ function RecentBattles({
     setIsRefetching(false);
   };
 
-  if (isLoading) {
+  useEffect(() => {
+    // Disconnect previous observer if it exists
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+    }
+
+    // Create a new IntersectionObserver
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && hasNextPage && !isFetchingNextPage) {
+          void fetchNextPage();
+        }
+      },
+      { rootMargin: "200px" }, // Load more before user reaches the bottom
+    );
+
+    // Observe the load more element
+    if (loadMoreRef.current) {
+      observerRef.current.observe(loadMoreRef.current);
+    }
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+  if (isLoading && duels.length === 0) {
     return (
       <div className="flex justify-center py-8">
         <Loader2 className="h-8 w-8 text-yellow-500 animate-spin" />
@@ -170,7 +223,7 @@ function RecentBattles({
     );
   }
 
-  if (!duels || duels.length === 0) {
+  if (duels.length === 0) {
     return (
       <div className="text-center py-8 text-stone-300">
         <p>No recent battles found for this warrior</p>
@@ -211,18 +264,14 @@ function RecentBattles({
       </div>
 
       {duels.map((duel) => {
-        // Determine if selected character is the challenger or defender
+        // Existing duel card rendering code...
         const isChallenger =
           duel.challenge.challenger.id === selectedCharacter.id.toString();
-
-        // Determine if the character won
         const isVictory =
           duel.winnerId ===
           (isChallenger
             ? duel.challenge.challenger.id
             : duel.challenge.defender.id);
-
-        // Get the name of the user's fighter and opponent
         const userFighter = isChallenger
           ? duel.challenge.challenger
           : duel.challenge.defender;
@@ -254,6 +303,17 @@ function RecentBattles({
           </Link>
         );
       })}
+
+      {/* Loading more indicator */}
+      <div ref={loadMoreRef} className="py-4 flex justify-center">
+        {isFetchingNextPage ? (
+          <Loader2 className="h-6 w-6 text-yellow-500 animate-spin" />
+        ) : hasNextPage ? (
+          <span className="text-sm text-stone-400">Scroll for more</span>
+        ) : duels.length > 0 ? (
+          <span className="text-sm text-stone-400">End of battle history</span>
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -437,8 +497,10 @@ function ActiveChallenges({
           onAccept={handleAcceptChallenge}
           onCancel={handleCancelChallenge}
           isExpanded={expandedChallenge === challenge.id}
-          onToggleExpand={() => 
-            setExpandedChallenge(expandedChallenge === challenge.id ? null : challenge.id)
+          onToggleExpand={() =>
+            setExpandedChallenge(
+              expandedChallenge === challenge.id ? null : challenge.id,
+            )
           }
         />
       ))}

@@ -341,9 +341,10 @@ export const GET_SKIN_BY_INDICES = gql`
 
 // Query for a specific player's duels
 export const GET_PLAYER_DUELS = gql`
-  query GetPlayerDuels($limit: Int = 10, $playerId: ID!) {
+  query GetPlayerDuels($limit: Int = 10, $skip: Int!, $playerId: ID!) {
     duelCompletes(
-      first: $limit, 
+      first: $limit,
+      skip: $skip,
       orderBy: blockNumber, 
       orderDirection: desc,
       where: {
