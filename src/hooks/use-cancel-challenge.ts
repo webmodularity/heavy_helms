@@ -1,7 +1,11 @@
 import { DuelGameABI } from "@/game/abi/DuelGameABI.abi";
 import { useWallet } from "@/hooks/use-wallet";
 import { usePrivy } from "@privy-io/react-auth";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  type InfiniteData,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   useAccount,
@@ -75,10 +79,20 @@ export function useCancelChallenge() {
       // Update the cache to remove the cancelled challenge
       queryClient.setQueryData(
         ["active-challenges", address, pendingCancel.characterId],
-        (oldData: Challenge[] = []) =>
-          oldData.filter(
-            (challenge) => challenge.id !== pendingCancel.challengeId,
-          ),
+        (oldData: InfiniteData<Challenge[]> | undefined) => {
+          if (!oldData) return oldData;
+          const lastPageIndex = oldData.pages.length - 1;
+          const lastPage = oldData.pages[lastPageIndex];
+          return {
+            ...oldData,
+            pages: [
+              ...oldData.pages.slice(0, lastPageIndex),
+              lastPage.filter(
+                (challenge) => challenge.id !== pendingCancel.challengeId,
+              ),
+            ],
+          };
+        },
       );
 
       // Clear the pending state

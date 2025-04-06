@@ -80,7 +80,6 @@ export interface Challenge {
 export function useChallenges(fighterId: string, pageSize = 9) {
   const { authenticated } = usePrivy();
   const { address } = useAccount();
-  console.log("type of fighterId", typeof fighterId);
   const {
     data,
     isLoading,

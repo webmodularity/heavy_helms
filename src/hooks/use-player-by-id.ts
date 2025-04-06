@@ -30,12 +30,8 @@ export function usePlayerById(playerId: string) {
       ]);
 
       if (characters && characters.length > 0) {
-        console.log("Characters in context:", characters);
-        console.log("Player ID:", playerId);
-        console.log("type of playerId", typeof playerId);
         const foundCharacter = characters.find((char) => char.id === playerId);
         if (foundCharacter) {
-          console.log("Found character in context:", foundCharacter);
           return foundCharacter;
         }
       }

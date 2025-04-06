@@ -158,7 +158,7 @@ export function useCreateChallenge() {
           },
         );
         const defender = defenders.fighters[0];
-        console.log("type of challengerId", typeof challengerId);
+
         queryClient.setQueryData(
           ["active-challenges", address, challengerId],
           (oldData: InfiniteData<Challenge[]> | undefined) => {
