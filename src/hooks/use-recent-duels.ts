@@ -47,7 +47,7 @@ export function useRecentDuels(playerId: string | number, pageSize = 10) {
 
   // Flatten pages of data
   const duels = data?.pages.flat() || [];
-  console.log("duels", duels);
+
   return {
     duels,
     isLoading,
