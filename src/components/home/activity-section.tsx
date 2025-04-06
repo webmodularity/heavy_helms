@@ -8,7 +8,7 @@ import { useCancelChallenge } from "@/hooks/use-cancel-challenge";
 import { useAcceptChallenge } from "@/hooks/use-accept-challenge";
 import { usePrivy } from "@privy-io/react-auth";
 import { Loader2, Shield, Swords } from "lucide-react";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { formatEther } from "viem";
 import { YellowButton } from "@/components/ui/yellow-button";
 import { ChevronRight } from "lucide-react";
@@ -17,6 +17,7 @@ import type { Player } from "@/types/player.types";
 import { type Challenge, useChallenges } from "@/hooks/use-challenges";
 import { useRecentDuels } from "@/hooks/use-recent-duels";
 import Link from "next/link";
+import { ChallengeCard } from "@/components/home/challenge-card";
 
 interface ActivitySectionProps {
   selectedCharacter: Player | null;
@@ -54,6 +55,18 @@ function BattleTabs({
   selectedCharacter,
 }: { selectedCharacter: Player | null }) {
   const [activeTab, setActiveTab] = useState("recent");
+  const { challenges } = useChallenges(selectedCharacter?.id || "");
+
+  // Filter challenges for the selected character
+  const activeCharacterChallenges = useMemo(() => {
+    if (!selectedCharacter) return [];
+    return challenges.filter(
+      (c) =>
+        !c.fulfilled &&
+        (c.challengerId.toString() === selectedCharacter.id.toString() ||
+          c.defenderId.toString() === selectedCharacter.id.toString()),
+    );
+  }, [challenges, selectedCharacter]);
 
   // Listen for the event to activate the challenges tab
   useEffect(() => {
@@ -91,18 +104,23 @@ function BattleTabs({
           </TabsTrigger>
           <TabsTrigger
             value="challenges"
-            className="data-[state=active]:bg-yellow-600/20 data-[state=active]:text-yellow-400"
+            className="data-[state=active]:bg-yellow-600/20 data-[state=active]:text-yellow-400 relative"
           >
             Active Challenges
+            {activeCharacterChallenges.length > 0 && (
+              <span className="absolute -top-2 -right-2 bg-yellow-500 text-black text-xs font-bold rounded-full min-w-5 h-5 px-1.5 flex items-center justify-center">
+                {activeCharacterChallenges.length}
+              </span>
+            )}
           </TabsTrigger>
         </TabsList>
 
-        <Button
+        {/* <Button
           variant="ghost"
           className="text-yellow-500 hover:text-yellow-400"
         >
           View All
-        </Button>
+        </Button> */}
       </div>
 
       <TabsContent value="recent" className="space-y-4">
@@ -119,9 +137,54 @@ function BattleTabs({
 function RecentBattles({
   selectedCharacter,
 }: { selectedCharacter: Player | null }) {
-  const { duels, isLoading, error } = useRecentDuels(selectedCharacter?.id);
+  const {
+    duels,
+    isLoading,
+    error,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useRecentDuels(selectedCharacter?.id || "");
+  const [isRefetching, setIsRefetching] = useState(false);
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  if (isLoading) {
+  const handleRefetch = async () => {
+    setIsRefetching(true);
+    await refetch();
+    setIsRefetching(false);
+  };
+
+  useEffect(() => {
+    // Disconnect previous observer if it exists
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+    }
+
+    // Create a new IntersectionObserver
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && hasNextPage && !isFetchingNextPage) {
+          void fetchNextPage();
+        }
+      },
+      { rootMargin: "200px" }, // Load more before user reaches the bottom
+    );
+
+    // Observe the load more element
+    if (loadMoreRef.current) {
+      observerRef.current.observe(loadMoreRef.current);
+    }
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+  if (isLoading && duels.length === 0) {
     return (
       <div className="flex justify-center py-8">
         <Loader2 className="h-8 w-8 text-yellow-500 animate-spin" />
@@ -134,6 +197,17 @@ function RecentBattles({
       <div className="text-center py-8 text-red-400">
         <p>Failed to load recent battles</p>
         <p className="text-sm text-red-300 mt-2">Please try again later</p>
+        <Button
+          onClick={handleRefetch}
+          className="mt-4"
+          size="sm"
+          variant="default"
+        >
+          <Loader2
+            className={`mr-2 h-4 w-4 ${isRefetching ? "animate-spin" : ""}`}
+          />
+          Refresh
+        </Button>
       </div>
     );
   }
@@ -149,29 +223,55 @@ function RecentBattles({
     );
   }
 
-  if (!duels || duels.length === 0) {
+  if (duels.length === 0) {
     return (
       <div className="text-center py-8 text-stone-300">
         <p>No recent battles found for this warrior</p>
+        <YellowButton
+          onClick={handleRefetch}
+          className="mt-4"
+          size="sm"
+          variant="default"
+        >
+          <Loader2
+            className={`mr-2 h-4 w-4 ${isRefetching ? "animate-spin" : ""}`}
+          />
+          Refresh
+        </YellowButton>
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
+      <div className="flex justify-end mb-2">
+        <YellowButton
+          onClick={handleRefetch}
+          size="sm"
+          variant="default"
+          disabled={isRefetching}
+        >
+          {isRefetching ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Refreshing...
+            </>
+          ) : (
+            <>
+              <Loader2 className="mr-2 h-4 w-4" /> Refresh
+            </>
+          )}
+        </YellowButton>
+      </div>
+
       {duels.map((duel) => {
-        // Determine if selected character is the challenger or defender
+        // Existing duel card rendering code...
         const isChallenger =
           duel.challenge.challenger.id === selectedCharacter.id.toString();
-
-        // Determine if the character won
         const isVictory =
           duel.winnerId ===
           (isChallenger
             ? duel.challenge.challenger.id
             : duel.challenge.defender.id);
-
-        // Get the name of the user's fighter and opponent
         const userFighter = isChallenger
           ? duel.challenge.challenger
           : duel.challenge.defender;
@@ -193,6 +293,16 @@ function RecentBattles({
                     Number.parseInt(duel.blockTimestamp) * 1000,
                   ).toLocaleDateString()}
                 </span>
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center">
+                    <span className="text-yellow-500 font-medium mr-3">
+                      {formatEther(BigInt(duel.challenge.wagerAmount))} ETH
+                    </span>
+                    <ChevronRight
+                      className={"h-5 w-5 text-yellow-500 transition-transform"}
+                    />
+                  </div>
+                </div>
               </div>
               <p className="text-stone-300 text-sm">
                 Your warrior {userFighter.fullName}{" "}
@@ -203,6 +313,17 @@ function RecentBattles({
           </Link>
         );
       })}
+
+      {/* Loading more indicator */}
+      <div ref={loadMoreRef} className="py-4 flex justify-center">
+        {isFetchingNextPage ? (
+          <Loader2 className="h-6 w-6 text-yellow-500 animate-spin" />
+        ) : hasNextPage ? (
+          <span className="text-sm text-stone-400">Scroll for more</span>
+        ) : duels.length > 0 ? (
+          <span className="text-sm text-stone-400">End of battle history</span>
+        ) : null}
+      </div>
     </div>
   );
 }
@@ -210,7 +331,16 @@ function RecentBattles({
 function ActiveChallenges({
   selectedCharacter,
 }: { selectedCharacter: Player | null }) {
-  const { challenges, isLoading, error } = useChallenges(selectedCharacter?.id);
+  const {
+    challenges,
+    isLoading,
+    error,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useChallenges(selectedCharacter?.id || "");
+
   const { cancelChallenge, isCancellingChallenge } = useCancelChallenge();
   const { acceptChallenge, isAcceptingChallenge } = useAcceptChallenge();
   const [expandedChallenge, setExpandedChallenge] = useState<bigint | null>(
@@ -219,8 +349,54 @@ function ActiveChallenges({
   const [processingChallengeId, setProcessingChallengeId] = useState<
     bigint | null
   >(null);
+  const [isRefetching, setIsRefetching] = useState(false);
 
-  if (isLoading) {
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+
+  const handleRefetch = async () => {
+    setIsRefetching(true);
+    await refetch();
+    setIsRefetching(false);
+  };
+
+  // Filter challenges for the current character
+  const characterChallenges = challenges.filter(
+    (challenge) =>
+      challenge.challengerId.toString() === selectedCharacter?.id?.toString() ||
+      challenge.defenderId.toString() === selectedCharacter?.id?.toString(),
+  );
+
+  // Set up infinite scroll
+  useEffect(() => {
+    // Disconnect previous observer if it exists
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+    }
+
+    // Create a new IntersectionObserver
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && hasNextPage && !isFetchingNextPage) {
+          void fetchNextPage();
+        }
+      },
+      { rootMargin: "200px" }, // Load more before user reaches the bottom
+    );
+
+    // Observe the load more element
+    if (loadMoreRef.current) {
+      observerRef.current.observe(loadMoreRef.current);
+    }
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+  if (isLoading && characterChallenges.length === 0) {
     return (
       <div className="flex justify-center py-8">
         <Loader2 className="h-8 w-8 text-yellow-500 animate-spin" />
@@ -233,27 +409,17 @@ function ActiveChallenges({
       <div className="text-center py-8 text-red-400">
         <p>Failed to load challenges</p>
         <p className="text-sm text-red-300 mt-2">Please try again later</p>
-      </div>
-    );
-  }
-
-  const characterChallenges = challenges.filter(
-    (challenge) =>
-      challenge.challengerId.toString() === selectedCharacter?.id?.toString() ||
-      challenge.defenderId.toString() === selectedCharacter?.id?.toString(),
-  );
-
-  if (!challenges || challenges.length === 0) {
-    return (
-      <div className="text-center py-8 text-stone-300">
-        <Swords className="h-12 w-12 mx-auto mb-4 text-yellow-600/50" />
-        <h3 className="text-lg font-medium text-yellow-500 mb-2">
-          No Active Challenges
-        </h3>
-        <p className="text-sm max-w-md mx-auto">
-          You don't have any active challenges at the moment. Start a duel by
-          selecting a warrior and choosing "Duel Mode" from the battle options.
-        </p>
+        <YellowButton
+          variant="default"
+          onClick={handleRefetch}
+          className="mt-4"
+          size="sm"
+        >
+          <Loader2
+            className={`mr-2 h-4 w-4 ${isRefetching ? "animate-spin" : ""}`}
+          />
+          Refresh
+        </YellowButton>
       </div>
     );
   }
@@ -261,7 +427,7 @@ function ActiveChallenges({
   if (!selectedCharacter) {
     return (
       <div className="text-center py-8 text-stone-300">
-        <Swords className="h-12 w-12 mx-auto mb-4 text-yellow-600/50" />
+        <Shield className="h-12 w-12 mx-auto mb-4 text-yellow-600/50" />
         <h3 className="text-lg font-medium text-yellow-500 mb-2">
           Please select a warrior to view your active challenges
         </h3>
@@ -276,6 +442,17 @@ function ActiveChallenges({
         <h3 className="text-lg font-medium text-yellow-500 mb-2">
           This warrior has no active challenges
         </h3>
+        <YellowButton
+          onClick={handleRefetch}
+          className="mt-4"
+          size="sm"
+          variant="default"
+        >
+          <Loader2
+            className={`mr-2 h-4 w-4 ${isRefetching ? "animate-spin" : ""}`}
+          />
+          Refresh
+        </YellowButton>
       </div>
     );
   }
@@ -314,129 +491,54 @@ function ActiveChallenges({
 
   return (
     <div className="space-y-4">
-      {characterChallenges.map((challenge) => {
-        console.log("challenge", challenge);
-        const isExpanded = expandedChallenge === challenge.id;
-        const isChallenger =
-          challenge.challengerId ===
-          (selectedCharacter?.id ? Number(selectedCharacter.id) : -1);
-        const canAccept = !isChallenger && selectedCharacter !== null;
-        const canCancel = isChallenger;
-        const isProcessing = processingChallengeId === challenge.id;
+      <div className="flex justify-end mb-2">
+        <YellowButton
+          onClick={handleRefetch}
+          size="sm"
+          variant="default"
+          disabled={isRefetching}
+        >
+          {isRefetching ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Refreshing...
+            </>
+          ) : (
+            <>
+              <Loader2 className="mr-2 h-4 w-4" /> Refresh
+            </>
+          )}
+        </YellowButton>
+      </div>
 
-        return (
-          <motion.div
-            key={challenge.id.toString()}
-            className="border border-yellow-600/20 rounded-lg overflow-hidden bg-gradient-to-r from-amber-900/10 to-transparent"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-          >
-            {/* Challenge Summary - Always Visible */}
-            {/* biome-ignore lint/a11y/useKeyWithClickEvents: <explanation> */}
-            <div
-              className="p-4 flex justify-between items-center cursor-pointer"
-              onClick={() =>
-                setExpandedChallenge(isExpanded ? null : challenge.id)
-              }
-            >
-              <div className="flex items-center space-x-3">
-                <div className="bg-yellow-600/20 p-2 rounded-full">
-                  <Shield className="h-5 w-5 text-yellow-500" />
-                </div>
-                <div>
-                  <h4 className="font-medium text-yellow-400">
-                    {isChallenger ? "Your Challenge" : "Challenge to Defend"}
-                  </h4>
-                  <p className="text-sm text-stone-300">
-                    {isChallenger
-                      ? `You challenged Fighter ${challenge.defenderId}`
-                      : `Fighter ${challenge.challengerId} challenged you`}
-                  </p>
-                </div>
-              </div>
+      {characterChallenges.map((challenge) => (
+        <ChallengeCard
+          key={challenge.id.toString()}
+          challenge={challenge}
+          selectedCharacter={selectedCharacter}
+          isProcessing={processingChallengeId === challenge.id}
+          isCancellingChallenge={isCancellingChallenge}
+          isAcceptingChallenge={isAcceptingChallenge}
+          onAccept={handleAcceptChallenge}
+          onCancel={handleCancelChallenge}
+          isExpanded={expandedChallenge === challenge.id}
+          onToggleExpand={() =>
+            setExpandedChallenge(
+              expandedChallenge === challenge.id ? null : challenge.id,
+            )
+          }
+        />
+      ))}
 
-              <div className="flex items-center">
-                <span className="text-yellow-500 font-medium mr-3">
-                  {formatEther(challenge.wagerAmount)} ETH
-                </span>
-                <ChevronRight
-                  className={`h-5 w-5 text-yellow-500 transition-transform ${isExpanded ? "rotate-90" : ""}`}
-                />
-              </div>
-            </div>
-
-            {/* Expanded Challenge Details */}
-            {isExpanded && (
-              <div className="border-t border-yellow-600/10 p-4 bg-stone-900/30">
-                <div className="grid grid-cols-2 gap-y-2 text-sm mb-4">
-                  <span className="text-stone-400">Challenge ID:</span>
-                  <span className="text-stone-200 font-mono">
-                    {challenge.id.toString()}
-                  </span>
-
-                  <span className="text-stone-400">Created At:</span>
-                  <span className="text-stone-200">
-                    Block #{challenge.createdBlock.toString()}
-                  </span>
-
-                  <span className="text-stone-400">Status:</span>
-                  <span className="text-stone-200">
-                    {challenge.fulfilled ? (
-                      <span className="text-yellow-500">Completed</span>
-                    ) : (
-                      <span className="text-green-500">Active</span>
-                    )}
-                  </span>
-                </div>
-
-                <div className="flex flex-col sm:flex-row gap-2 mt-4">
-                  {canAccept && (
-                    <YellowButton
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleAcceptChallenge(challenge);
-                      }}
-                      className="w-full sm:w-auto"
-                      disabled={isProcessing || isAcceptingChallenge}
-                    >
-                      {isProcessing && isAcceptingChallenge ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
-                          Accepting...
-                        </>
-                      ) : (
-                        "Accept Challenge"
-                      )}
-                    </YellowButton>
-                  )}
-
-                  {canCancel && (
-                    <YellowButton
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleCancelChallenge(challenge);
-                      }}
-                      className="w-full sm:w-auto"
-                      variant="outline"
-                      disabled={isProcessing || isCancellingChallenge}
-                    >
-                      {isProcessing && isCancellingChallenge ? (
-                        <>
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />{" "}
-                          Cancelling...
-                        </>
-                      ) : (
-                        "Cancel Challenge"
-                      )}
-                    </YellowButton>
-                  )}
-                </div>
-              </div>
-            )}
-          </motion.div>
-        );
-      })}
+      {/* Loading more indicator */}
+      <div ref={loadMoreRef} className="py-4 flex justify-center">
+        {isFetchingNextPage ? (
+          <Loader2 className="h-6 w-6 text-yellow-500 animate-spin" />
+        ) : hasNextPage ? (
+          <span className="text-sm text-stone-400">Scroll for more</span>
+        ) : characterChallenges.length > 0 ? (
+          <span className="text-sm text-stone-400">End of challenges</span>
+        ) : null}
+      </div>
     </div>
   );
 }

@@ -1,7 +1,6 @@
 import { DuelGameABI } from "@/game/abi/DuelGameABI.abi";
 import { toast } from "sonner";
 import { decodeEventLog, parseEther } from "viem";
-import { waitForTransactionReceipt } from "viem/actions";
 import type { Player } from "@/types/player.types";
 import {
   useAccount,
@@ -9,9 +8,16 @@ import {
   useSwitchChain,
   usePublicClient,
 } from "wagmi";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  type InfiniteData,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { baseSepolia } from "wagmi/chains";
-import { viemClient } from "@/config";
+import { SUBGRAPH_URL, viemClient } from "@/config";
+import request from "graphql-request";
+import { GET_FIGHTERS_BY_IDS } from "@/lib/gql-queries";
+import type { Challenge } from "./use-challenges";
 
 // This is a placeholder - replace with your actual contract address
 const DUEL_GAME_CONTRACT_ADDRESS = process.env
@@ -27,6 +33,7 @@ interface CreateChallengeResult {
   txHash: `0x${string}`;
   createdChallenge: ChallengeCreatedEvent["args"];
   challengerId?: string;
+  challenger: Player;
 }
 
 interface ChallengeCreatedEvent {
@@ -45,6 +52,7 @@ export function useCreateChallenge() {
   const { switchChain } = useSwitchChain();
   const queryClient = useQueryClient();
   const publicClient = usePublicClient();
+
   const {
     writeContractAsync,
     isPending: isWritePending,
@@ -111,16 +119,20 @@ export function useCreateChallenge() {
         topics: receipt.logs[0].topics,
       }) as unknown as ChallengeCreatedEvent;
 
-      console.log("challengeCreatedEvent", challengeCreatedEvent);
-
       return {
         txHash: hash,
+        challenger: character,
         challengerId: character.id,
         createdChallenge: challengeCreatedEvent.args,
       };
     },
 
-    onSuccess: async ({ txHash, challengerId, createdChallenge }) => {
+    onSuccess: async ({
+      txHash,
+      challengerId,
+      createdChallenge,
+      challenger,
+    }) => {
       toast.success("Challenge created successfully", {
         description:
           "Your challenge has been created and is now waiting for acceptance.",
@@ -132,28 +144,81 @@ export function useCreateChallenge() {
         duration: 5000,
       });
 
-      // Invalidate active challenges query to refresh the list
       if (address) {
-        queryClient.invalidateQueries({
-          queryKey: ["active-challenges", address],
-        });
+        const defenders = await request<{ fighters: Player[] }>(
+          SUBGRAPH_URL,
+          GET_FIGHTERS_BY_IDS,
+          {
+            fighterIds: [createdChallenge.defenderId],
+          },
+        );
+        const defender = defenders.fighters[0];
 
-        // Update the fighter-challenges query data
         queryClient.setQueryData(
-          ["fighter-challenges", challengerId],
-          (oldData: unknown = []) => {
-            const previousData = Array.isArray(oldData) ? oldData : [];
-            return [
-              ...previousData,
-              {
-                id: createdChallenge.challengeId,
-                challengerId: Number(createdChallenge.challengerId),
-                defenderId: Number(createdChallenge.defenderId),
-                wagerAmount: createdChallenge.wagerAmount,
-                createdBlock: createdChallenge.createdAtBlock,
-                fulfilled: false,
-              },
-            ];
+          ["active-challenges", address, challengerId],
+          (oldData: InfiniteData<Challenge[]> | undefined) => {
+            if (!oldData) return oldData;
+            const lastPage = oldData.pages[oldData.pages.length - 1];
+            const lastPageIndex = oldData.pages.length - 1;
+            return {
+              ...oldData,
+              pages: [
+                ...oldData.pages.slice(0, lastPageIndex),
+                [
+                  {
+                    id: BigInt(createdChallenge.challengeId),
+                    challengerId: Number(createdChallenge.challengerId),
+                    defenderId: Number(createdChallenge.defenderId),
+                    wagerAmount: BigInt(createdChallenge.wagerAmount),
+                    createdBlock: BigInt(createdChallenge.createdAtBlock),
+                    challengerLoadout: {
+                      playerId: Number(createdChallenge.challengerId),
+                      weapon: challenger?.currentSkin.weapon,
+                      armor: challenger?.currentSkin.armor,
+                      stance: challenger?.stance,
+                    },
+                    defenderLoadout: {
+                      playerId: Number(createdChallenge.defenderId),
+                      weapon: defender?.currentSkin.weapon,
+                      armor: defender?.currentSkin.armor,
+                      stance: defender?.stance,
+                    },
+                    challengerName: challenger?.name.fullName,
+                    defenderName: defender?.fullName || "",
+                    isSentByMe: false,
+                    fulfilled: false,
+                  },
+                  ...lastPage,
+                ],
+              ],
+            };
+            // };
+            // return [
+            //   ...previousData,
+            //   {
+            //     id: BigInt(createdChallenge.challengeId),
+            //     challengerId: Number(createdChallenge.challengerId),
+            //     defenderId: Number(createdChallenge.defenderId),
+            //     wagerAmount: BigInt(createdChallenge.wagerAmount),
+            //     createdBlock: BigInt(createdChallenge.createdAtBlock),
+            //     challengerLoadout: {
+            //       playerId: Number(createdChallenge.challengerId),
+            //       weapon: challenger?.currentSkin.weapon,
+            //       armor: challenger?.currentSkin.armor,
+            //       stance: challenger?.stance,
+            //     },
+            //     defenderLoadout: {
+            //       playerId: Number(createdChallenge.defenderId),
+            //       weapon: defender?.currentSkin.weapon,
+            //       armor: defender?.currentSkin.armor,
+            //       stance: defender?.stance,
+            //     },
+            //     challengerName: challenger?.name.fullName,
+            //     defenderName: defender?.fullName || "",
+            //     isSentByMe: false,
+            //     fulfilled: false,
+            //   },
+            // ];
           },
         );
       }

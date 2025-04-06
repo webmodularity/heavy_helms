@@ -169,6 +169,11 @@ export const CHALLENGE_FIGHTER_FRAGMENT = gql`
     firstName
     surname
     fullName
+    currentSkin {
+      weapon
+      armor
+    }
+    stance
   }
 `;
 
@@ -336,9 +341,10 @@ export const GET_SKIN_BY_INDICES = gql`
 
 // Query for a specific player's duels
 export const GET_PLAYER_DUELS = gql`
-  query GetPlayerDuels($limit: Int = 10, $playerId: ID!) {
+  query GetPlayerDuels($limit: Int = 10, $skip: Int!, $playerId: ID!) {
     duelCompletes(
-      first: $limit, 
+      first: $limit,
+      skip: $skip,
       orderBy: blockNumber, 
       orderDirection: desc,
       where: {
@@ -353,6 +359,7 @@ export const GET_PLAYER_DUELS = gql`
       blockTimestamp
       winnerId
       challenge {
+        wagerAmount
         challengerId
         defenderId
         challenger {
@@ -385,6 +392,7 @@ export const GET_ALL_DUELS = gql`
       blockTimestamp
       winnerId
       challenge {
+        wagerAmount
         challengerId
         defenderId
         challenger {
@@ -472,4 +480,66 @@ export const GET_GAME_OWNED_SKIN_COLLECTION = gql`
       }
     }
   }
+`;
+
+export const GET_FIGHTER_CHALLENGES_PAGINATED = `
+  query GetFighterChallenges($fighterId: ID!, $limit: Int!, $skip: Int!) {
+    sentChallenges: duelChallenges(
+      orderBy: createdAt,
+      orderDirection: desc,
+      first: $limit,
+      skip: $skip,
+      where: {
+        state: OPEN,
+        challenger_: { id: $fighterId }
+      }
+    ) {
+      ...ChallengeCompleteFields
+    }
+    
+    receivedChallenges: duelChallenges(
+      orderBy: createdAt,
+      orderDirection: desc,
+      first: $limit,
+      skip: $skip,
+      where: {
+        state: OPEN,
+        defender_: { id: $fighterId }
+      }
+    ) {
+      ...ChallengeCompleteFields
+    }
+  }
+  ${CHALLENGE_COMPLETE_FRAGMENT}
+`;
+
+export const GET_USER_CHALLENGES_PAGINATED = `
+  query GetUserChallenges($userAddress: String!, $limit: Int!, $skip: Int!) {
+    sentChallenges: duelChallenges(
+      orderBy: createdAt,
+      orderDirection: desc,
+      first: $limit,
+      skip: $skip,
+      where: {
+        state: OPEN,
+        challengerOwner: $userAddress
+      }
+    ) {
+      ...ChallengeCompleteFields
+    }
+    
+    receivedChallenges: duelChallenges(
+      orderBy: createdAt,
+      orderDirection: desc,
+      first: $limit,
+      skip: $skip,
+      where: {
+        state: OPEN,
+        defenderOwner: $userAddress
+      }
+    ) {
+      ...ChallengeCompleteFields
+    }
+  }
+  ${CHALLENGE_COMPLETE_FRAGMENT}
 `;

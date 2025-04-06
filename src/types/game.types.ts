@@ -74,6 +74,7 @@ export interface Duel {
   blockTimestamp: string;
   winnerId: string;
   challenge: {
+    wagerAmount: string;
     challengerId: string;
     defenderId: string;
     challenger: {

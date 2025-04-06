@@ -35,6 +35,7 @@ export interface Fighter {
   fighterId?: string | bigint;
   fighterType: FighterType;
   name: FighterName;
+  fullName?: string;
   attributes: FighterAttributes;
   currentSkin: Skin;
   stance: number;

@@ -1,31 +1,31 @@
 import { SUBGRAPH_URL } from "@/config";
-import { GET_PLAYER_DUELS, GET_ALL_DUELS } from "@/lib/gql-queries";
-import { useQuery } from "@tanstack/react-query";
-import request from "graphql-request";
+import { GET_ALL_DUELS, GET_PLAYER_DUELS } from "@/lib/gql-queries";
 import type { Duel } from "@/types/game.types";
+import { useInfiniteQuery } from "@tanstack/react-query";
+import request from "graphql-request";
 
-export function useRecentDuels(playerId?: string | number, limit = 10) {
+export function useRecentDuels(playerId: string | number, pageSize = 10) {
   const {
-    data: duels,
+    data,
     isLoading,
     error,
     refetch,
-  } = useQuery({
-    queryKey: ["recent-duels", playerId, limit],
-    queryFn: async () => {
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery({
+    queryKey: ["recent-duels", playerId, pageSize],
+    enabled: !!playerId,
+    queryFn: async ({ pageParam = 0 }) => {
       try {
-        if (playerId) {
-          const response = await request<{ duelCompletes: Duel[] }>(
-            SUBGRAPH_URL,
-            GET_PLAYER_DUELS,
-            { limit, playerId: playerId.toString() },
-          );
-          return response.duelCompletes || [];
-        }
         const response = await request<{ duelCompletes: Duel[] }>(
           SUBGRAPH_URL,
-          GET_ALL_DUELS,
-          { limit },
+          GET_PLAYER_DUELS,
+          {
+            limit: pageSize,
+            skip: pageParam,
+            playerId: playerId.toString(),
+          },
         );
         return response.duelCompletes || [];
       } catch (error) {
@@ -33,13 +33,28 @@ export function useRecentDuels(playerId?: string | number, limit = 10) {
         throw error;
       }
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) => {
+      // If we got fewer items than requested, we've reached the end
+      if (lastPage.length < pageSize) return undefined;
+
+      // Otherwise, calculate the next offset
+      return allPages.length * pageSize;
+    },
+    staleTime: 300 * 1000, // 5m
+    refetchInterval: 300 * 1000, // 5m
   });
 
+  // Flatten pages of data
+  const duels = data?.pages.flat() || [];
+
   return {
-    duels: duels || [],
+    duels,
     isLoading,
     error,
     refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
   };
 }

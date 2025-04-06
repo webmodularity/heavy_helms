@@ -1,7 +1,11 @@
 import { DuelGameABI } from "@/game/abi/DuelGameABI.abi";
 import { useWallet } from "@/hooks/use-wallet";
 import { usePrivy } from "@privy-io/react-auth";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  type InfiniteData,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { Player } from "@/types/player.types";
 import type { Challenge } from "./use-challenges";
@@ -200,15 +204,21 @@ export function useAcceptChallenge() {
 
     // Update the cache
     if (address) {
-      queryClient.invalidateQueries({
-        queryKey: ["active-challenges", address],
-      });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["active-challenges", address, characterId],
+      // });
 
       queryClient.setQueryData(
-        ["fighter-challenges", characterId],
-        (oldData: Challenge[] = []) => [
-          ...oldData.filter((challenge) => challenge.id !== challengeId),
-        ],
+        ["active-challenges", address, characterId],
+        (oldData: InfiniteData<Challenge[]> | undefined) => {
+          if (!oldData) return oldData;
+          return {
+            ...oldData,
+            pages: oldData.pages.map((page) =>
+              page.filter((challenge) => challenge.id !== challengeId),
+            ),
+          };
+        },
       );
     }
 

@@ -56,7 +56,6 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   const [checking, setChecking] = useState(false);
   const { setActiveWallet } = useSetActiveWallet();
 
-  console.log("wallets", wallets);
   // Get chain name or use "Unknown Network" as fallback
   const getChainName = (chainId: string | null) => {
     if (chainId === null) return "Disconnected";
