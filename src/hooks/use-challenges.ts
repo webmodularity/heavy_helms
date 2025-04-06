@@ -77,7 +77,7 @@ export interface Challenge {
   isSentByMe: boolean;
 }
 
-export function useChallenges(fighterId: string, pageSize = 9) {
+export function useChallenges(fighterId: string, pageSize = 10) {
   const { authenticated } = usePrivy();
   const { address } = useAccount();
   const {
