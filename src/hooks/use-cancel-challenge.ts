@@ -74,7 +74,7 @@ export function useCancelChallenge() {
 
       // Update the cache to remove the cancelled challenge
       queryClient.setQueryData(
-        ["fighter-challenges", pendingCancel.characterId],
+        ["active-challenges", address, pendingCancel.characterId],
         (oldData: Challenge[] = []) =>
           oldData.filter(
             (challenge) => challenge.id !== pendingCancel.challengeId,

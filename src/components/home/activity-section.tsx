@@ -321,9 +321,16 @@ function RecentBattles({
 function ActiveChallenges({
   selectedCharacter,
 }: { selectedCharacter: Player | null }) {
-  const { challenges, isLoading, error, refetch } = useChallenges(
-    selectedCharacter?.id,
-  );
+  const {
+    challenges,
+    isLoading,
+    error,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useChallenges(selectedCharacter?.id);
+
   const { cancelChallenge, isCancellingChallenge } = useCancelChallenge();
   const { acceptChallenge, isAcceptingChallenge } = useAcceptChallenge();
   const [expandedChallenge, setExpandedChallenge] = useState<bigint | null>(
@@ -334,13 +341,52 @@ function ActiveChallenges({
   >(null);
   const [isRefetching, setIsRefetching] = useState(false);
 
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+
   const handleRefetch = async () => {
     setIsRefetching(true);
     await refetch();
     setIsRefetching(false);
   };
 
-  if (isLoading) {
+  // Filter challenges for the current character
+  const characterChallenges = challenges.filter(
+    (challenge) =>
+      challenge.challengerId.toString() === selectedCharacter?.id?.toString() ||
+      challenge.defenderId.toString() === selectedCharacter?.id?.toString(),
+  );
+
+  // Set up infinite scroll
+  useEffect(() => {
+    // Disconnect previous observer if it exists
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+    }
+
+    // Create a new IntersectionObserver
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && hasNextPage && !isFetchingNextPage) {
+          void fetchNextPage();
+        }
+      },
+      { rootMargin: "200px" }, // Load more before user reaches the bottom
+    );
+
+    // Observe the load more element
+    if (loadMoreRef.current) {
+      observerRef.current.observe(loadMoreRef.current);
+    }
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+  if (isLoading && characterChallenges.length === 0) {
     return (
       <div className="flex justify-center py-8">
         <Loader2 className="h-8 w-8 text-yellow-500 animate-spin" />
@@ -358,38 +404,6 @@ function ActiveChallenges({
           onClick={handleRefetch}
           className="mt-4"
           size="sm"
-        >
-          <Loader2
-            className={`mr-2 h-4 w-4 ${isRefetching ? "animate-spin" : ""}`}
-          />
-          Refresh
-        </YellowButton>
-      </div>
-    );
-  }
-
-  const characterChallenges = challenges.filter(
-    (challenge) =>
-      challenge.challengerId.toString() === selectedCharacter?.id?.toString() ||
-      challenge.defenderId.toString() === selectedCharacter?.id?.toString(),
-  );
-
-  if (!challenges || challenges.length === 0) {
-    return (
-      <div className="text-center py-8 text-stone-300">
-        <Swords className="h-12 w-12 mx-auto mb-4 text-yellow-600/50" />
-        <h3 className="text-lg font-medium text-yellow-500 mb-2">
-          No Active Challenges
-        </h3>
-        <p className="text-sm max-w-md mx-auto">
-          You don't have any active challenges at the moment. Start a duel by
-          selecting a warrior and choosing "Duel Mode" from the battle options.
-        </p>
-        <YellowButton
-          onClick={handleRefetch}
-          className="mt-4"
-          size="sm"
-          variant="default"
         >
           <Loader2
             className={`mr-2 h-4 w-4 ${isRefetching ? "animate-spin" : ""}`}
@@ -504,6 +518,17 @@ function ActiveChallenges({
           }
         />
       ))}
+
+      {/* Loading more indicator */}
+      <div ref={loadMoreRef} className="py-4 flex justify-center">
+        {isFetchingNextPage ? (
+          <Loader2 className="h-6 w-6 text-yellow-500 animate-spin" />
+        ) : hasNextPage ? (
+          <span className="text-sm text-stone-400">Scroll for more</span>
+        ) : characterChallenges.length > 0 ? (
+          <span className="text-sm text-stone-400">End of challenges</span>
+        ) : null}
+      </div>
     </div>
   );
 }

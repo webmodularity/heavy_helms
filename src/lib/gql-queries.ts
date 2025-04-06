@@ -479,3 +479,65 @@ export const GET_GAME_OWNED_SKIN_COLLECTION = gql`
     }
   }
 `;
+
+export const GET_FIGHTER_CHALLENGES_PAGINATED = `
+  query GetFighterChallenges($fighterId: ID!, $limit: Int!, $skip: Int!) {
+    sentChallenges: duelChallenges(
+      orderBy: createdAt,
+      orderDirection: desc,
+      first: $limit,
+      skip: $skip,
+      where: {
+        state: OPEN,
+        challenger_: { id: $fighterId }
+      }
+    ) {
+      ...ChallengeCompleteFields
+    }
+    
+    receivedChallenges: duelChallenges(
+      orderBy: createdAt,
+      orderDirection: desc,
+      first: $limit,
+      skip: $skip,
+      where: {
+        state: OPEN,
+        defender_: { id: $fighterId }
+      }
+    ) {
+      ...ChallengeCompleteFields
+    }
+  }
+  ${CHALLENGE_COMPLETE_FRAGMENT}
+`;
+
+export const GET_USER_CHALLENGES_PAGINATED = `
+  query GetUserChallenges($userAddress: String!, $limit: Int!, $skip: Int!) {
+    sentChallenges: duelChallenges(
+      orderBy: createdAt,
+      orderDirection: desc,
+      first: $limit,
+      skip: $skip,
+      where: {
+        state: OPEN,
+        challengerOwner: $userAddress
+      }
+    ) {
+      ...ChallengeCompleteFields
+    }
+    
+    receivedChallenges: duelChallenges(
+      orderBy: createdAt,
+      orderDirection: desc,
+      first: $limit,
+      skip: $skip,
+      where: {
+        state: OPEN,
+        defenderOwner: $userAddress
+      }
+    ) {
+      ...ChallengeCompleteFields
+    }
+  }
+  ${CHALLENGE_COMPLETE_FRAGMENT}
+`;

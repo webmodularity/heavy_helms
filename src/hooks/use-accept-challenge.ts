@@ -200,12 +200,12 @@ export function useAcceptChallenge() {
 
     // Update the cache
     if (address) {
-      queryClient.invalidateQueries({
-        queryKey: ["active-challenges", address],
-      });
+      // queryClient.invalidateQueries({
+      //   queryKey: ["active-challenges", address, characterId],
+      // });
 
       queryClient.setQueryData(
-        ["fighter-challenges", characterId],
+        ["active-challenges", address, characterId],
         (oldData: Challenge[] = []) => [
           ...oldData.filter((challenge) => challenge.id !== challengeId),
         ],

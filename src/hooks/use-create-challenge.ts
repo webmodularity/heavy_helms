@@ -8,7 +8,11 @@ import {
   useSwitchChain,
   usePublicClient,
 } from "wagmi";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  type InfiniteData,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { baseSepolia } from "wagmi/chains";
 import { SUBGRAPH_URL, viemClient } from "@/config";
 import request from "graphql-request";
@@ -142,9 +146,9 @@ export function useCreateChallenge() {
 
       // Invalidate active challenges query to refresh the list
       if (address) {
-        queryClient.invalidateQueries({
-          queryKey: ["active-challenges", address],
-        });
+        // queryClient.invalidateQueries({
+        //   queryKey: ["active-challenges", address, challengerId],
+        // });
 
         const defenders = await request<{ fighters: Player[] }>(
           SUBGRAPH_URL,
@@ -154,37 +158,74 @@ export function useCreateChallenge() {
           },
         );
         const defender = defenders.fighters[0];
-
-        queryClient.setQueryData<Challenge[]>(
-          ["fighter-challenges", challengerId],
-          (oldData: Challenge[] = []) => {
-            const previousData = Array.isArray(oldData) ? oldData : [];
-            return [
-              ...previousData,
-              {
-                id: BigInt(createdChallenge.challengeId),
-                challengerId: Number(createdChallenge.challengerId),
-                defenderId: Number(createdChallenge.defenderId),
-                wagerAmount: BigInt(createdChallenge.wagerAmount),
-                createdBlock: BigInt(createdChallenge.createdAtBlock),
-                challengerLoadout: {
-                  playerId: Number(createdChallenge.challengerId),
-                  weapon: challenger?.currentSkin.weapon,
-                  armor: challenger?.currentSkin.armor,
-                  stance: challenger?.stance,
-                },
-                defenderLoadout: {
-                  playerId: Number(createdChallenge.defenderId),
-                  weapon: defender?.currentSkin.weapon,
-                  armor: defender?.currentSkin.armor,
-                  stance: defender?.stance,
-                },
-                challengerName: challenger?.name.fullName,
-                defenderName: defender?.fullName || "",
-                isSentByMe: false,
-                fulfilled: false,
-              },
-            ];
+        console.log("type of challengerId", typeof challengerId);
+        queryClient.setQueryData(
+          ["active-challenges", address, challengerId],
+          (oldData: InfiniteData<Challenge[]> | undefined) => {
+            if (!oldData) return oldData;
+            const lastPage = oldData.pages[oldData.pages.length - 1];
+            const lastPageIndex = oldData.pages.length - 1;
+            // console.log("currentPage", currentPage);
+            // console.log("oldData", oldData);
+            return {
+              ...oldData,
+              pages: [
+                ...oldData.pages.slice(0, lastPageIndex),
+                [
+                  {
+                    id: BigInt(createdChallenge.challengeId),
+                    challengerId: Number(createdChallenge.challengerId),
+                    defenderId: Number(createdChallenge.defenderId),
+                    wagerAmount: BigInt(createdChallenge.wagerAmount),
+                    createdBlock: BigInt(createdChallenge.createdAtBlock),
+                    challengerLoadout: {
+                      playerId: Number(createdChallenge.challengerId),
+                      weapon: challenger?.currentSkin.weapon,
+                      armor: challenger?.currentSkin.armor,
+                      stance: challenger?.stance,
+                    },
+                    defenderLoadout: {
+                      playerId: Number(createdChallenge.defenderId),
+                      weapon: defender?.currentSkin.weapon,
+                      armor: defender?.currentSkin.armor,
+                      stance: defender?.stance,
+                    },
+                    challengerName: challenger?.name.fullName,
+                    defenderName: defender?.fullName || "",
+                    isSentByMe: false,
+                    fulfilled: false,
+                  },
+                  ...lastPage,
+                ],
+              ],
+            };
+            // };
+            // return [
+            //   ...previousData,
+            //   {
+            //     id: BigInt(createdChallenge.challengeId),
+            //     challengerId: Number(createdChallenge.challengerId),
+            //     defenderId: Number(createdChallenge.defenderId),
+            //     wagerAmount: BigInt(createdChallenge.wagerAmount),
+            //     createdBlock: BigInt(createdChallenge.createdAtBlock),
+            //     challengerLoadout: {
+            //       playerId: Number(createdChallenge.challengerId),
+            //       weapon: challenger?.currentSkin.weapon,
+            //       armor: challenger?.currentSkin.armor,
+            //       stance: challenger?.stance,
+            //     },
+            //     defenderLoadout: {
+            //       playerId: Number(createdChallenge.defenderId),
+            //       weapon: defender?.currentSkin.weapon,
+            //       armor: defender?.currentSkin.armor,
+            //       stance: defender?.stance,
+            //     },
+            //     challengerName: challenger?.name.fullName,
+            //     defenderName: defender?.fullName || "",
+            //     isSentByMe: false,
+            //     fulfilled: false,
+            //   },
+            // ];
           },
         );
       }
