@@ -1,6 +1,9 @@
 // Add this component to src/components/home/community-stats.tsx
 "use client";
 import { motion } from "framer-motion";
+import Link from "next/link";
+import { ChartBar } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export function CommunityStats() {
   // Hardcoded values for now
@@ -71,10 +74,26 @@ export function CommunityStats() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.7, delay: 0.5 }}
-            className="text-stone-200 italic"
+            className="text-stone-200 italic mb-6"
           >
             Join the ranks of warriors from across the realms
           </motion.p>
+          
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, delay: 0.6 }}
+          >
+            <Link href="/stats">
+              <Button
+                variant="outline"
+                className="group border-yellow-600/30 hover:bg-yellow-500 hover:text-stone-900 hover:border-yellow-500 text-yellow-500"
+              >
+                <ChartBar className="mr-2 h-4 w-4 transition-transform group-hover:scale-110" />
+                View Detailed Statistics
+              </Button>
+            </Link>
+          </motion.div>
         </div>
       </div>
     </section>
