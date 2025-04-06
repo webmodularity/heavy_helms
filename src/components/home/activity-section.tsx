@@ -145,7 +145,7 @@ function RecentBattles({
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useRecentDuels(selectedCharacter?.id);
+  } = useRecentDuels(selectedCharacter?.id || "");
   const [isRefetching, setIsRefetching] = useState(false);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
@@ -293,6 +293,16 @@ function RecentBattles({
                     Number.parseInt(duel.blockTimestamp) * 1000,
                   ).toLocaleDateString()}
                 </span>
+                <div className="flex items-center gap-2">
+                  <div className="flex items-center">
+                    <span className="text-yellow-500 font-medium mr-3">
+                      {formatEther(BigInt(duel.challenge.wagerAmount))} ETH
+                    </span>
+                    <ChevronRight
+                      className={"h-5 w-5 text-yellow-500 transition-transform"}
+                    />
+                  </div>
+                </div>
               </div>
               <p className="text-stone-300 text-sm">
                 Your warrior {userFighter.fullName}{" "}

@@ -4,7 +4,7 @@ import type { Duel } from "@/types/game.types";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import request from "graphql-request";
 
-export function useRecentDuels(playerId?: string | number, pageSize = 10) {
+export function useRecentDuels(playerId: string | number, pageSize = 10) {
   const {
     data,
     isLoading,
@@ -15,25 +15,17 @@ export function useRecentDuels(playerId?: string | number, pageSize = 10) {
     isFetchingNextPage,
   } = useInfiniteQuery({
     queryKey: ["recent-duels", playerId, pageSize],
+    enabled: !!playerId,
     queryFn: async ({ pageParam = 0 }) => {
       try {
-        if (playerId) {
-          const response = await request<{ duelCompletes: Duel[] }>(
-            SUBGRAPH_URL,
-            GET_PLAYER_DUELS,
-            {
-              limit: pageSize,
-              skip: pageParam,
-              playerId: playerId.toString(),
-            },
-          );
-          return response.duelCompletes || [];
-        }
-        // Similar implementation for GET_ALL_DUELS with skip/limit
         const response = await request<{ duelCompletes: Duel[] }>(
           SUBGRAPH_URL,
-          GET_ALL_DUELS,
-          { limit: pageSize, skip: pageParam },
+          GET_PLAYER_DUELS,
+          {
+            limit: pageSize,
+            skip: pageParam,
+            playerId: playerId.toString(),
+          },
         );
         return response.duelCompletes || [];
       } catch (error) {
@@ -49,13 +41,13 @@ export function useRecentDuels(playerId?: string | number, pageSize = 10) {
       // Otherwise, calculate the next offset
       return allPages.length * pageSize;
     },
-    staleTime: 5 * 60 * 1000,
-    refetchInterval: 300 * 1000,
+    staleTime: 300 * 1000, // 5m
+    refetchInterval: 300 * 1000, // 5m
   });
 
   // Flatten pages of data
   const duels = data?.pages.flat() || [];
-
+  console.log("duels", duels);
   return {
     duels,
     isLoading,

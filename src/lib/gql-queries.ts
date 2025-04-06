@@ -359,6 +359,7 @@ export const GET_PLAYER_DUELS = gql`
       blockTimestamp
       winnerId
       challenge {
+        wagerAmount
         challengerId
         defenderId
         challenger {
@@ -391,6 +392,7 @@ export const GET_ALL_DUELS = gql`
       blockTimestamp
       winnerId
       challenge {
+        wagerAmount
         challengerId
         defenderId
         challenger {
