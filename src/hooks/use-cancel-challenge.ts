@@ -81,16 +81,13 @@ export function useCancelChallenge() {
         ["active-challenges", address, pendingCancel.characterId],
         (oldData: InfiniteData<Challenge[]> | undefined) => {
           if (!oldData) return oldData;
-          const lastPageIndex = oldData.pages.length - 1;
-          const lastPage = oldData.pages[lastPageIndex];
           return {
             ...oldData,
-            pages: [
-              ...oldData.pages.slice(0, lastPageIndex),
-              lastPage.filter(
+            pages: oldData.pages.map((page) =>
+              page.filter(
                 (challenge) => challenge.id !== pendingCancel.challengeId,
               ),
-            ],
+            ),
           };
         },
       );

@@ -143,7 +143,7 @@ export function useChallenges(fighterId: string, pageSize = 9) {
       // Otherwise, calculate the next offset
       return allPages.length * pageSize;
     },
-    enabled: authenticated && (!!fighterId || !!address),
+    enabled: !!fighterId && !!address,
     staleTime: 300 * 1000, // 30s stale time
     refetchInterval: 300 * 1000, // 5m refetch interval
   });

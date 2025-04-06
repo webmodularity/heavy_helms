@@ -55,7 +55,7 @@ function BattleTabs({
   selectedCharacter,
 }: { selectedCharacter: Player | null }) {
   const [activeTab, setActiveTab] = useState("recent");
-  const { challenges } = useChallenges(selectedCharacter?.id);
+  const { challenges } = useChallenges(selectedCharacter?.id || "");
 
   // Filter challenges for the selected character
   const activeCharacterChallenges = useMemo(() => {
@@ -329,7 +329,7 @@ function ActiveChallenges({
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
-  } = useChallenges(selectedCharacter?.id);
+  } = useChallenges(selectedCharacter?.id || "");
 
   const { cancelChallenge, isCancellingChallenge } = useCancelChallenge();
   const { acceptChallenge, isAcceptingChallenge } = useAcceptChallenge();

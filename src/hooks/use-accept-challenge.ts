@@ -1,7 +1,11 @@
 import { DuelGameABI } from "@/game/abi/DuelGameABI.abi";
 import { useWallet } from "@/hooks/use-wallet";
 import { usePrivy } from "@privy-io/react-auth";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  type InfiniteData,
+  useMutation,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { toast } from "sonner";
 import type { Player } from "@/types/player.types";
 import type { Challenge } from "./use-challenges";
@@ -206,9 +210,15 @@ export function useAcceptChallenge() {
 
       queryClient.setQueryData(
         ["active-challenges", address, characterId],
-        (oldData: Challenge[] = []) => [
-          ...oldData.filter((challenge) => challenge.id !== challengeId),
-        ],
+        (oldData: InfiniteData<Challenge[]> | undefined) => {
+          if (!oldData) return oldData;
+          return {
+            ...oldData,
+            pages: oldData.pages.map((page) =>
+              page.filter((challenge) => challenge.id !== challengeId),
+            ),
+          };
+        },
       );
     }
 

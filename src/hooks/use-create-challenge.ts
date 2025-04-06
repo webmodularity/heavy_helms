@@ -144,12 +144,7 @@ export function useCreateChallenge() {
         duration: 5000,
       });
 
-      // Invalidate active challenges query to refresh the list
       if (address) {
-        // queryClient.invalidateQueries({
-        //   queryKey: ["active-challenges", address, challengerId],
-        // });
-
         const defenders = await request<{ fighters: Player[] }>(
           SUBGRAPH_URL,
           GET_FIGHTERS_BY_IDS,
@@ -165,8 +160,6 @@ export function useCreateChallenge() {
             if (!oldData) return oldData;
             const lastPage = oldData.pages[oldData.pages.length - 1];
             const lastPageIndex = oldData.pages.length - 1;
-            // console.log("currentPage", currentPage);
-            // console.log("oldData", oldData);
             return {
               ...oldData,
               pages: [
