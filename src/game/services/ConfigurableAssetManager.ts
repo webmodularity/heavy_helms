@@ -66,7 +66,7 @@ export class ConfigurableAssetManager {
 
     // Audio assets
     this.registerAssetPack("audio", {
-      audio: [{ key: "fight-music", paths: ["/audio/bkg/bg.ogg"] }],
+      audio: [{ key: "fight-music", paths: ["/audio/bkg/bg.mp3"] }],
     });
   }
 

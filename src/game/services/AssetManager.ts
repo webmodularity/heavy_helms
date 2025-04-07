@@ -48,7 +48,7 @@ export class AssetManager {
    * Load audio assets
    */
   loadAudioAssets(): void {
-    this.scene.load.audio("fight-music", "/audio/bkg/bg.ogg");
+    this.scene.load.audio("fight-music", "/audio/bkg/bg.mp3");
   }
 
   /**

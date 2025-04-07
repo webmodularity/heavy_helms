@@ -30,19 +30,19 @@ export class CombatAudioManager {
       // Attack sounds
       {
         key: "SwordAndShield-hit",
-        path: "audio/weapons/sword_and_shield_hit.ogg",
+        path: "audio/weapons/sword_and_shield_hit.mp3",
       },
       {
         key: "SwordAndShield-crit",
-        path: "audio/weapons/sword_and_shield_crit.ogg",
+        path: "audio/weapons/sword_and_shield_crit.mp3",
       },
       {
         key: "SwordAndShield-miss",
-        path: "audio/weapons/sword_and_shield_miss.ogg",
+        path: "audio/weapons/sword_and_shield_miss.mp3",
       },
       // Defense sounds
-      { key: "shield-block", path: "audio/defense/shield_block.ogg" },
-      { key: "blade-parry", path: "audio/defense/blade_parry.ogg" },
+      { key: "shield-block", path: "audio/defense/shield_block.mp3" },
+      { key: "blade-parry", path: "audio/defense/blade_parry.mp3" },
     ];
 
     // Load all sounds
