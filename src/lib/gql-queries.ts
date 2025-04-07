@@ -165,6 +165,7 @@ export const CHALLENGE_BASE_FRAGMENT = gql`
 export const CHALLENGE_FIGHTER_FRAGMENT = gql`
   fragment ChallengeFighterFields on Fighter {
     id
+    fighterId
     fighterType
     firstName
     surname
@@ -180,10 +181,10 @@ export const CHALLENGE_FIGHTER_FRAGMENT = gql`
 export const CHALLENGE_COMPLETE_FRAGMENT = gql`
   fragment ChallengeCompleteFields on DuelChallenge {
     ...ChallengeBaseFields
-    challenger {
+    challengerSnapshot {
       ...ChallengeFighterFields
     }
-    defender {
+    defenderSnapshot {
       ...ChallengeFighterFields
     }
   }
@@ -260,7 +261,7 @@ export const GET_FIGHTER_CHALLENGES = gql`
     sentChallenges: duelChallenges(
       where: {
         state: OPEN,
-        challenger_: { id: $fighterId }
+        challengerSnapshot_: { id: $fighterId }
       }
     ) {
       ...ChallengeCompleteFields
@@ -269,7 +270,7 @@ export const GET_FIGHTER_CHALLENGES = gql`
     receivedChallenges: duelChallenges(
       where: {
         state: OPEN,
-        defender_: { id: $fighterId }
+        defenderSnapshot_: { id: $fighterId }
       }
     ) {
       ...ChallengeCompleteFields
@@ -362,15 +363,11 @@ export const GET_PLAYER_DUELS = gql`
         wagerAmount
         challengerId
         defenderId
-        challenger {
+        challengerSnapshot {
           id
           fullName
         }
-        defender {
-          id
-          fullName
-        }
-        winner {
+        defenderSnapshot {
           id
           fullName
         }
@@ -491,7 +488,7 @@ export const GET_FIGHTER_CHALLENGES_PAGINATED = `
       skip: $skip,
       where: {
         state: OPEN,
-        challenger_: { id: $fighterId }
+        challengerId: $fighterId
       }
     ) {
       ...ChallengeCompleteFields
@@ -504,7 +501,7 @@ export const GET_FIGHTER_CHALLENGES_PAGINATED = `
       skip: $skip,
       where: {
         state: OPEN,
-        defender_: { id: $fighterId }
+        defenderId: $fighterId
       }
     ) {
       ...ChallengeCompleteFields

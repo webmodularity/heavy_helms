@@ -21,8 +21,8 @@ export interface SubgraphChallenge {
   createdAt: string;
   challengerOwner: string;
   defenderOwner: string;
-  challenger: {
-    id: string;
+  challengerSnapshot: {
+    fighterId: string;
     fighterType: string;
     firstName?: string;
     surname?: string;
@@ -33,8 +33,8 @@ export interface SubgraphChallenge {
     };
     stance: StanceType;
   };
-  defender: {
-    id: string;
+  defenderSnapshot: {
+    fighterId: string;
     fighterType: string;
     firstName?: string;
     surname?: string;
@@ -155,33 +155,33 @@ export function useChallenges(fighterId: string, pageSize = 10) {
   ) {
     return challenges.map((challenge) => {
       const challengerName =
-        challenge.challenger.fullName ||
-        `${challenge.challenger.firstName || ""} ${challenge.challenger.surname || ""}`.trim() ||
-        `Fighter #${challenge.challenger.id}`;
+        challenge.challengerSnapshot.fullName ||
+        `${challenge.challengerSnapshot.firstName || ""} ${challenge.challengerSnapshot.surname || ""}`.trim() ||
+        `Fighter #${challenge.challengerSnapshot.fighterId}`;
 
       const defenderName =
-        challenge.defender.fullName ||
-        `${challenge.defender.firstName || ""} ${challenge.defender.surname || ""}`.trim() ||
-        `Fighter #${challenge.defender.id}`;
+        challenge.defenderSnapshot.fullName ||
+        `${challenge.defenderSnapshot.firstName || ""} ${challenge.defenderSnapshot.surname || ""}`.trim() ||
+        `Fighter #${challenge.defenderSnapshot.fighterId}`;
 
       return {
         id: BigInt(challenge.id),
-        challengerId: Number(challenge.challenger.id),
-        defenderId: Number(challenge.defender.id),
+        challengerId: Number(challenge.challengerSnapshot.fighterId),
+        defenderId: Number(challenge.defenderSnapshot.fighterId),
         wagerAmount: BigInt(challenge.wagerAmount),
         createdBlock: BigInt(challenge.createdAt),
         fulfilled: challenge.state !== "OPEN",
         challengerLoadout: {
-          playerId: Number(challenge.challenger.id),
-          armor: challenge.challenger.currentSkin.armor,
-          weapon: challenge.challenger.currentSkin.weapon,
-          stance: challenge.challenger.stance,
+          playerId: Number(challenge.challengerSnapshot.fighterId),
+          armor: challenge.challengerSnapshot.currentSkin.armor,
+          weapon: challenge.challengerSnapshot.currentSkin.weapon,
+          stance: challenge.challengerSnapshot.stance,
         },
         defenderLoadout: {
-          playerId: Number(challenge.defender.id),
-          armor: challenge.defender.currentSkin.armor,
-          weapon: challenge.defender.currentSkin.weapon,
-          stance: challenge.defender.stance,
+          playerId: Number(challenge.defenderSnapshot.fighterId),
+          armor: challenge.defenderSnapshot.currentSkin.armor,
+          weapon: challenge.defenderSnapshot.currentSkin.weapon,
+          stance: challenge.defenderSnapshot.stance,
         },
         challengerName,
         defenderName,

@@ -34,6 +34,7 @@ interface CreateChallengeResult {
   createdChallenge: ChallengeCreatedEvent["args"];
   challengerId?: string;
   challenger: Player;
+  createdAtBlock: bigint;
 }
 
 interface ChallengeCreatedEvent {
@@ -43,7 +44,9 @@ interface ChallengeCreatedEvent {
     challengerId: number;
     defenderId: number;
     wagerAmount: bigint;
-    createdAtBlock: bigint;
+    challengerSkinIndex: number;
+    challengerSkinTokenId: number;
+    challengerStance: number;
   };
 }
 
@@ -123,6 +126,7 @@ export function useCreateChallenge() {
         txHash: hash,
         challenger: character,
         challengerId: character.id,
+        createdAtBlock: receipt.blockNumber,
         createdChallenge: challengeCreatedEvent.args,
       };
     },
@@ -132,6 +136,7 @@ export function useCreateChallenge() {
       challengerId,
       createdChallenge,
       challenger,
+      createdAtBlock,
     }) => {
       toast.success("Challenge created successfully", {
         description:
@@ -170,12 +175,12 @@ export function useCreateChallenge() {
                     challengerId: Number(createdChallenge.challengerId),
                     defenderId: Number(createdChallenge.defenderId),
                     wagerAmount: BigInt(createdChallenge.wagerAmount),
-                    createdBlock: BigInt(createdChallenge.createdAtBlock),
+                    createdBlock: BigInt(createdAtBlock),
                     challengerLoadout: {
                       playerId: Number(createdChallenge.challengerId),
-                      weapon: challenger?.currentSkin.weapon,
-                      armor: challenger?.currentSkin.armor,
-                      stance: challenger?.stance,
+                      skinIndex: createdChallenge.challengerSkinIndex,
+                      skinTokenId: createdChallenge.challengerSkinTokenId,
+                      stance: createdChallenge.challengerStance,
                     },
                     defenderLoadout: {
                       playerId: Number(createdChallenge.defenderId),

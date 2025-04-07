@@ -266,18 +266,19 @@ function RecentBattles({
       {duels.map((duel) => {
         // Existing duel card rendering code...
         const isChallenger =
-          duel.challenge.challenger.id === selectedCharacter.id.toString();
+          duel.challenge.challengerSnapshot.fighterId ===
+          selectedCharacter.id.toString();
         const isVictory =
           duel.winnerId ===
           (isChallenger
-            ? duel.challenge.challenger.id
-            : duel.challenge.defender.id);
+            ? duel.challenge.challengerSnapshot.fighterId
+            : duel.challenge.defenderSnapshot.fighterId);
         const userFighter = isChallenger
-          ? duel.challenge.challenger
-          : duel.challenge.defender;
+          ? duel.challenge.challengerSnapshot
+          : duel.challenge.defenderSnapshot;
         const opponentFighter = isChallenger
-          ? duel.challenge.defender
-          : duel.challenge.challenger;
+          ? duel.challenge.defenderSnapshot
+          : duel.challenge.challengerSnapshot;
 
         return (
           <Link href={`/duel?txId=${duel.id}`} key={duel.id} className="block">

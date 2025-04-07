@@ -77,16 +77,12 @@ export interface Duel {
     wagerAmount: string;
     challengerId: string;
     defenderId: string;
-    challenger: {
-      id: string;
+    challengerSnapshot: {
+      fighterId: string;
       fullName: string;
     };
-    defender: {
-      id: string;
-      fullName: string;
-    };
-    winner: {
-      id: string;
+    defenderSnapshot: {
+      fighterId: string;
       fullName: string;
     };
   };
