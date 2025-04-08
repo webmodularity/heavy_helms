@@ -58,17 +58,6 @@ export function CharacterDetailsView({
 
   return (
     <>
-      {/* Back Button */}
-      <Button
-        variant="ghost"
-        size="sm"
-        className="mb-6 text-yellow-500 hover:text-yellow-400 hover:bg-yellow-900/20 relative z-10"
-        onClick={() => router.push("/")}
-      >
-        <ChevronLeft className="mr-1 h-4 w-4" />
-        Back to Warriors
-      </Button>
-
       {/* Hero Section */}
       <HeroSection character={character as Player} />
 

@@ -4,14 +4,29 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { ChartBar } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useGameStats } from "@/hooks/use-game-stats";
+import { formatEther } from "viem";
 
 export function CommunityStats() {
+  const { stats: gameStats, isLoading } = useGameStats();
   // Hardcoded values for now
   const stats = [
-    { label: "Active Players", value: "3,721", icon: "👥" },
-    { label: "Battles Completed", value: "27,834", icon: "⚔️" },
-    { label: "Characters Minted", value: "12,408", icon: "🛡️" },
-    { label: "Total Wagers", value: "142 ETH", icon: "💰" },
+    {
+      label: "Active Players",
+      value: gameStats?.uniqueOwnersCount,
+      icon: "👥",
+    },
+    { label: "Duels Completed", value: gameStats?.totalDuels, icon: "⚔️" },
+    {
+      label: "Characters Minted",
+      value: gameStats?.totalFightersCount,
+      icon: "🛡️",
+    },
+    {
+      label: "Total Wagers",
+      value: formatEther(BigInt(gameStats?.totalWageredAmount || 0)),
+      icon: "💰",
+    },
   ];
 
   return (
@@ -78,7 +93,7 @@ export function CommunityStats() {
           >
             Join the ranks of warriors from across the realms
           </motion.p>
-          
+
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}

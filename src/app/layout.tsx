@@ -6,6 +6,8 @@ import type { Metadata, Viewport } from "next/types";
 import localFont from "next/font/local";
 import Image from "next/image";
 import { Toaster } from "sonner";
+import { ConditionalBackButtonWrapper } from '@/components/layout/conditional-back-button-wrapper';
+import { cn } from '@/lib/utils';
 
 // Load Bokor font from the public directory
 const bokor = localFont({
@@ -33,11 +35,11 @@ export const viewport: Viewport = {
 
 export default function RootLayout({
   children,
-}: {
+}: Readonly<{
   children: React.ReactNode;
-}) {
+}>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={`${bokor.className} min-h-screen flex flex-col`}>
         {/* Background with reduced opacity */}
         <div className="fixed inset-0 -z-1">
@@ -52,7 +54,11 @@ export default function RootLayout({
         <Providers>
           <div className="flex flex-col from-slate-900 to-indigo-900">
             <Header />
-            <main className="flex flex-col flex-1">{children}</main>
+            <main className="container mx-auto flex min-h-screen flex-col px-4 py-8 md:px-6 lg:px-8">
+              <ConditionalBackButtonWrapper>
+                {children}
+              </ConditionalBackButtonWrapper>
+            </main>
             <Toaster />
             <Footer />
           </div>

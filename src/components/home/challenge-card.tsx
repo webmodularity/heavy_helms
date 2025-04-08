@@ -77,7 +77,7 @@ export function ChallengeCard({
   const defenderWeapon = challenge.defenderLoadout.weapon;
   const challengerArmor = challenge.challengerLoadout.armor;
   const defenderArmor = challenge.defenderLoadout.armor;
-
+  console.log("CHALLENGE WHEN INITIATING", challenge);
   return (
     <motion.div
       className="border border-yellow-600/20 rounded-lg overflow-hidden bg-gradient-to-r from-amber-900/10 to-transparent"

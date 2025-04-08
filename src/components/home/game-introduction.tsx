@@ -32,7 +32,7 @@ export function GameIntroduction() {
     {
       title: "Select Your Strategy",
       description:
-        "Equip skins that determine your weapon, armor, and fighting stance. Each combination has unique strengths and weaknesses.",
+        "Equip skins that determine your weapon & armor, and choose your fighting stance. Each combination has unique strengths and weaknesses.",
       imageUrl: "/images/intro/combat.webp",
       icon: "⚔️",
     },
