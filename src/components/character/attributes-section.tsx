@@ -85,11 +85,16 @@ function AttributeCard({
 }: AttributeCardProps) {
   // Generate a dynamic color based on the attribute value
   const getValueColor = (val: number) => {
-    if (val >= 8) return "text-yellow-400";
-    if (val >= 6) return "text-green-400";
-    if (val >= 4) return "text-blue-400";
+    if (val >= 15) return "text-yellow-400";
+    if (val >= 10) return "text-green-400";
+    if (val >= 5) return "text-blue-400";
     return "text-stone-400";
   };
+
+  // Fix: Use proper attribute scale (3-21)
+  const minValue = 3;
+  const maxValue = 21;
+  const percentage = ((value - minValue) / (maxValue - minValue)) * 100;
 
   return (
     <motion.div
@@ -117,10 +122,10 @@ function AttributeCard({
         <motion.div
           className="h-full bg-gradient-to-r from-amber-700 to-yellow-500 rounded-full"
           initial={{ width: 0 }}
-          animate={{ width: `${(value / 10) * 100}%` }}
+          animate={{ width: `${percentage}%` }}
           transition={{ duration: 1, delay: 0.5 }}
         />
       </div>
     </motion.div>
   );
-} 
+}

@@ -5,7 +5,14 @@ import type { Player } from "@/types/player.types";
 import Image from "next/image";
 import { YellowButton } from "@/components/ui/yellow-button";
 import { motion, AnimatePresence } from "framer-motion";
-import { Dumbbell, Footprints, Heart } from "lucide-react";
+import {
+  Dumbbell,
+  Footprints,
+  Heart,
+  HeartPulse,
+  Ruler,
+  Dices,
+} from "lucide-react";
 import { Check } from "lucide-react";
 import { StanceSelector } from "./stance-selector";
 import type { StanceType } from "@/types/equipment.types";
@@ -24,7 +31,9 @@ function AttributeBar({
   value,
   icon,
 }: { label: string; value: number; icon: React.ReactNode }) {
-  const percentage = (value / 10) * 100;
+  const minValue = 3;
+  const maxValue = 21;
+  const percentage = ((value - minValue) / (maxValue - minValue)) * 100;
 
   return (
     <div className="space-y-1.5">
@@ -104,6 +113,16 @@ export function CharacterCard({
             icon={<Dumbbell className="h-3.5 w-3.5 text-yellow-600" />}
           />
           <AttributeBar
+            label="Constitution"
+            value={character.attributes.constitution}
+            icon={<HeartPulse className="h-3.5 w-3.5 text-yellow-600" />}
+          />
+          <AttributeBar
+            label="Size"
+            value={character.attributes.size}
+            icon={<Ruler className="h-3.5 w-3.5 text-yellow-600" />}
+          />
+          <AttributeBar
             label="Agility"
             value={character.attributes.agility}
             icon={<Footprints className="h-3.5 w-3.5 text-yellow-600" />}
@@ -112,6 +131,11 @@ export function CharacterCard({
             label="Stamina"
             value={character.attributes.stamina}
             icon={<Heart className="h-3.5 w-3.5 text-yellow-600" />}
+          />
+          <AttributeBar
+            label="Luck"
+            value={character.attributes.luck}
+            icon={<Dices className="h-3.5 w-3.5 text-yellow-600" />}
           />
         </div>
 
