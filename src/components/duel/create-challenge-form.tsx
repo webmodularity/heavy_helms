@@ -42,8 +42,9 @@ export function CreateChallengeForm({
   const isValidWager =
     wagerAmount.trim() !== "" &&
     !Number.isNaN(Number.parseFloat(wagerAmount)) &&
-    Number.parseFloat(wagerAmount) >= MIN_WAGER_AMOUNT &&
-    Number.parseFloat(wagerAmount) <= MAX_WAGER_AMOUNT;
+    (Number.parseFloat(wagerAmount) === 0 ||
+      (Number.parseFloat(wagerAmount) >= MIN_WAGER_AMOUNT &&
+        Number.parseFloat(wagerAmount) <= MAX_WAGER_AMOUNT));
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
@@ -158,7 +159,7 @@ export function CreateChallengeForm({
           <Input
             id="wagerAmount"
             type="number"
-            min={MIN_WAGER_AMOUNT}
+            min={0}
             max={MAX_WAGER_AMOUNT}
             step="0.001"
             value={wagerAmount}
@@ -169,18 +170,24 @@ export function CreateChallengeForm({
                 setWagerAmount("");
                 return;
               }
-              
+
               const numericValue = Number.parseFloat(value);
-              // Only update state if value is a valid number within range
-              if (!Number.isNaN(numericValue) && 
-                  numericValue >= MIN_WAGER_AMOUNT && 
-                  numericValue <= MAX_WAGER_AMOUNT) {
+              // Allow 0 as special case or values within range
+              if (
+                !Number.isNaN(numericValue) &&
+                (numericValue === 0 ||
+                  (numericValue >= MIN_WAGER_AMOUNT &&
+                    numericValue <= MAX_WAGER_AMOUNT))
+              ) {
                 setWagerAmount(value);
               }
             }}
             onBlur={() => {
               // If empty or invalid when focus leaves, reset to minimum
-              if (wagerAmount === "" || Number.isNaN(Number.parseFloat(wagerAmount))) {
+              if (
+                wagerAmount === "" ||
+                Number.isNaN(Number.parseFloat(wagerAmount))
+              ) {
                 setWagerAmount(MIN_WAGER_AMOUNT.toString());
               }
             }}
