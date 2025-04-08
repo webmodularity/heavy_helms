@@ -31,6 +31,7 @@
         "format:fix": "pnpm biome check --write ./src"
     },
     "dependencies": {
+        "@farcaster/frame-sdk": "^0.0.34",
         "@privy-io/react-auth": "^2.5.0",
         "@privy-io/wagmi": "^1.0.3",
         "@radix-ui/react-dialog": "^1.1.6",

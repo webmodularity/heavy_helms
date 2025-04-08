@@ -8,6 +8,7 @@ import Image from "next/image";
 import { Toaster } from "sonner";
 import { ConditionalBackButtonWrapper } from '@/components/layout/conditional-back-button-wrapper';
 import { cn } from '@/lib/utils';
+import { FarcasterReady } from '@/components/layout/farcaster-ready';
 
 // Load Bokor font from the public directory
 const bokor = localFont({
@@ -55,9 +56,11 @@ export default function RootLayout({
           <div className="flex flex-col from-slate-900 to-indigo-900">
             <Header />
             <main className="container mx-auto flex min-h-screen flex-col px-4 py-8 md:px-6 lg:px-8">
-              <ConditionalBackButtonWrapper>
-                {children}
-              </ConditionalBackButtonWrapper>
+              <FarcasterReady>
+                <ConditionalBackButtonWrapper>
+                  {children}
+                </ConditionalBackButtonWrapper>
+              </FarcasterReady>
             </main>
             <Toaster />
             <Footer />
