@@ -164,9 +164,7 @@ export function SkinsBrowser({ character }: SkinsBrowserProps) {
             <SkinCard
               key={skin.id}
               skin={skin}
-              isSelected={selectedSkinId === skin.id}
               isCurrentSkin={isCurrentSkin(skin)}
-              onSelect={() => handleSelectSkin(skin.id)}
               onViewDetails={handleViewSkinDetails}
               delay={index * 0.05}
             />

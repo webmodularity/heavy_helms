@@ -1,16 +1,14 @@
 "use client";
 
+import { useState } from "react";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
 import { SkinType } from "@/types/skin.types";
-import { Check, Info, Loader, Sparkles } from "lucide-react";
+import { Check, Loader, Sparkles, Info } from "lucide-react";
 import {
   getArmorDisplayName,
-  getStanceDisplayName,
   getWeaponDisplayName,
 } from "@/lib/equipment-utils";
-import { useEquipSkin } from "@/hooks/use-equip-skin";
 import { useSkinMetadata } from "@/hooks/use-skin-metadata";
 
 // Define a more specific type for the skin from the GraphQL query
@@ -32,21 +30,18 @@ interface SkinWithMetadataURI {
 
 interface SkinCardProps {
   skin: SkinWithMetadataURI;
-  isSelected: boolean;
   isCurrentSkin: boolean;
-  onSelect: () => void;
   onViewDetails: (skin: SkinWithMetadataURI & { imageURL?: string }) => void; // New prop for viewing details
   delay?: number;
 }
 
 export function SkinCard({
   skin,
-  isSelected,
   isCurrentSkin,
-  onSelect,
   onViewDetails,
   delay = 0,
 }: SkinCardProps) {
+  const [isInfoVisible, setIsInfoVisible] = useState(false);
   const { data, isLoading: isLoadingMetadata } = useSkinMetadata(
     skin.metadataURI,
   );
@@ -58,22 +53,34 @@ export function SkinCard({
   const isDefaultSkin = skin.collection.skinType === SkinType.DefaultPlayer;
   const isVerifiedSkin = skin.collection.skinType === SkinType.Player;
 
+  const handleInfoClick = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click when clicking info button
+    setIsInfoVisible(!isInfoVisible);
+  };
+
   return (
     <motion.div
       className={`relative aspect-square rounded-lg overflow-hidden border ${
-        isSelected
-          ? "border-yellow-500"
-          : isCurrentSkin
-            ? "border-green-500"
-            : "border-yellow-600/20"
+        isCurrentSkin ? "border-green-500" : "border-yellow-600/20"
       } group cursor-pointer`}
       whileHover={{ scale: 1.03, transition: { duration: 0.2 } }}
       whileTap={{ scale: 0.98 }}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay }}
-      onClick={onSelect}
+      onClick={() =>
+        onViewDetails({ ...skin, imageURL: imageUrl || undefined })
+      }
     >
+      {/* Info Button (visible on mobile) */}
+      <button
+        type="button"
+        className="absolute top-2 left-2 z-30 md:hidden bg-stone-900/70 text-yellow-300 rounded-full p-2 backdrop-blur-sm"
+        onClick={handleInfoClick}
+      >
+        <Info className="h-4 w-4" />
+      </button>
+
       {/* Skin Image */}
       <div className="absolute inset-0 bg-gradient-to-b from-amber-900/10 to-stone-900/40 z-0" />
 
@@ -116,24 +123,17 @@ export function SkinCard({
         </div>
       )}
 
-      {/* Skin Info Overlay (appears on hover) */}
-      <div className="absolute inset-0 bg-gradient-to-t from-stone-900/90 via-stone-900/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4 z-20">
+      {/* Skin Info Overlay (appears on hover on desktop and touch on mobile) */}
+      <div 
+        className={`absolute inset-0 bg-gradient-to-t from-stone-900/90 via-stone-900/50 to-transparent 
+          md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4 z-20
+          ${isInfoVisible ? 'opacity-100' : 'opacity-0'}`}
+      >
         <div className="space-y-1">
           <div className="flex justify-between items-center">
             <h3 className="text-white font-medium">
               {getWeaponDisplayName(skin.weapon)}
             </h3>
-            <Button
-              size="icon"
-              variant="ghost"
-              className="h-6 w-6 rounded-full bg-yellow-600/20 text-yellow-500 hover:bg-yellow-600/30 hover:text-yellow-400"
-              onClick={(e) => {
-                e.stopPropagation();
-                onViewDetails({ ...skin, imageURL: imageUrl || undefined });
-              }}
-            >
-              <Info className="h-3 w-3" />
-            </Button>
           </div>
           <p className="text-stone-300 text-sm">
             {getArmorDisplayName(skin.armor)}

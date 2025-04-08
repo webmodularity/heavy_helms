@@ -178,9 +178,9 @@ export function useCreateChallenge() {
                     createdBlock: BigInt(createdAtBlock),
                     challengerLoadout: {
                       playerId: Number(createdChallenge.challengerId),
-                      skinIndex: createdChallenge.challengerSkinIndex,
-                      skinTokenId: createdChallenge.challengerSkinTokenId,
-                      stance: createdChallenge.challengerStance,
+                      weapon: challenger?.currentSkin.weapon,
+                      armor: challenger?.currentSkin.armor,
+                      stance: challenger?.stance,
                     },
                     defenderLoadout: {
                       playerId: Number(createdChallenge.defenderId),
