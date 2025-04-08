@@ -2,7 +2,7 @@
 "use client";
 import type { Player } from "@/types/player.types";
 import { motion } from "framer-motion";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, ChartBar } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import React from "react";
 import { useInView } from "react-intersection-observer";
@@ -10,6 +10,9 @@ import { BattleSection } from "../battle/battle-section";
 import { WarriorSelection } from "../character/warrior-selection";
 import { ActivitySection } from "./activity-section";
 import type { StanceType } from "@/types/equipment.types";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+
 export function AuthenticatedView() {
   const [selectedCharacter, setSelectedCharacter] = useState<Player | null>(
     null,
@@ -29,7 +32,7 @@ export function AuthenticatedView() {
   // Function to select a character
   const handleSelectCharacter = (character: Player, stance?: StanceType) => {
     setSelectedCharacter({ ...character, stance: stance ?? character.stance });
-    
+
     // // Add a small delay to allow the UI to update before scrolling
     // setTimeout(() => {
     //   scrollToBattleSection();
