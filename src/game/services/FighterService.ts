@@ -28,9 +28,9 @@ export class FighterService {
   }
 
   /**
-   * Get a random fighter ID from the available fighters
+   * Get a random fighter ID from the available fighters, excluding a specific ID
    */
-  static async getRandomFighterId(): Promise<string> {
+  static async getRandomFighterId(excludeId?: string): Promise<string> {
     try {
       const allActivePlayerIds = await request<{
         players: { id: string }[];
@@ -38,14 +38,21 @@ export class FighterService {
         monsters: { id: string }[];
       }>(SUBGRAPH_URL, GET_ALL_ACTIVE_PLAYER_IDS_QUERY);
 
-      const allPlayerIds = [
+      let allPlayerIds = [
         ...allActivePlayerIds.players.map((player) => player.id),
         ...allActivePlayerIds.defaultPlayers.map((player) => player.id),
         // ...allActivePlayerIds.monsters.map((player) => player.id),
       ];
 
+      // Filter out the excluded ID if provided
+      if (excludeId) {
+        allPlayerIds = allPlayerIds.filter((id) => id !== excludeId);
+      }
+
       if (allPlayerIds.length === 0) {
-        throw new Error("No fighters found in the subgraph");
+        throw new Error(
+          "No eligible fighters found after excluding specified ID",
+        );
       }
 
       const randomIndex = Math.floor(Math.random() * allPlayerIds.length);

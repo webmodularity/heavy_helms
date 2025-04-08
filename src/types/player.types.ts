@@ -20,7 +20,6 @@ export interface Player extends Fighter {
   fighterType: FighterType.Player;
   name: PlayerName;
   isImmortal: boolean;
-  owner?: { address: string };
 }
 
 // DefaultPlayer extends Fighter with no additional fields

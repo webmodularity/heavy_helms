@@ -56,7 +56,9 @@ export class PracticeGameStrategy implements GameModeStrategy {
     }
 
     // Get a random opponent for player 2
-    const randomOpponentId = await FighterService.getRandomFighterId();
+    const randomOpponentId = await FighterService.getRandomFighterId(
+      this.player1.id,
+    );
     this.player2 = await FighterService.loadFighterById(randomOpponentId);
 
     // Calculate player stats
