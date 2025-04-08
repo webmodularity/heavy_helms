@@ -1,6 +1,9 @@
 "use client";
 
-import { useCharacterCreationActions, useCharacterCreationState } from "@/stores/character-creation-store";
+import {
+  useCharacterCreationActions,
+  useCharacterCreationState,
+} from "@/stores/character-creation-store";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
@@ -25,13 +28,13 @@ export default function CharacterCreationPage() {
   // If we're not listening anymore and we don't have a playerId, go back to characters
   useEffect(() => {
     if (!isListening && !playerId && !isTimeout) {
-      router.push("/characters");
+      router.push("/");
     }
   }, [isListening, playerId, router, isTimeout]);
 
   const handleCancel = () => {
     clearState();
-    router.push("/characters");
+    router.push("/");
   };
 
   return (
@@ -136,7 +139,8 @@ function LoadingContent({ onCancel }: { onCancel: () => void }) {
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.7 }}
       >
-        Your character is being forged on the blockchain. This process requires randomness to generate unique attributes.
+        Your character is being forged on the blockchain. This process requires
+        randomness to generate unique attributes.
       </motion.p>
 
       <motion.p
@@ -145,7 +149,9 @@ function LoadingContent({ onCancel }: { onCancel: () => void }) {
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.8 }}
       >
-        This usually takes less than a minute, but may take longer during periods of network congestion. Please don't navigate away from this page.
+        This usually takes less than a minute, but may take longer during
+        periods of network congestion. Please don't navigate away from this
+        page.
       </motion.p>
 
       <motion.div
@@ -212,9 +218,13 @@ function CompletedContent() {
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.7 }}
       >
-        <p className="text-gray-300 text-lg">Your character has been successfully created and is ready for battle.</p>
+        <p className="text-gray-300 text-lg">
+          Your character has been successfully created and is ready for battle.
+        </p>
         <AnimatedDots />
-        <p className="text-gray-400">You'll be redirected to your character details in a few seconds.</p>
+        <p className="text-gray-400">
+          You'll be redirected to your character details in a few seconds.
+        </p>
       </motion.div>
     </>
   );
@@ -264,7 +274,8 @@ function TimeoutContent({ onReturn }: { onReturn: () => void }) {
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.7 }}
       >
-        Your character creation is taking longer than expected to process. This could be due to network congestion.
+        Your character creation is taking longer than expected to process. This
+        could be due to network congestion.
       </motion.p>
 
       <motion.p
@@ -273,7 +284,8 @@ function TimeoutContent({ onReturn }: { onReturn: () => void }) {
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.8 }}
       >
-        You can wait longer or check back later. Your character will still be created by the blockchain process.
+        You can wait longer or check back later. Your character will still be
+        created by the blockchain process.
       </motion.p>
 
       <motion.div
@@ -374,4 +386,4 @@ function CharacterCreationIcon() {
       </div>
     </div>
   );
-} 
+}
