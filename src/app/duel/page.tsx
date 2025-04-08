@@ -5,6 +5,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect } from "react";
 import { ErrorBoundary } from "react-error-boundary";
+import { useDuelActions } from "@/stores/duel-store";
 
 // Fallback component for when the game fails to load
 function GameErrorFallback() {
@@ -33,6 +34,7 @@ function DuelGame() {
   const searchParams = useSearchParams();
   const txId = searchParams.get("txId") ?? undefined;
   const router = useRouter();
+  const { clearState } = useDuelActions();
 
   useEffect(() => {
     // Redirect if no transaction ID is provided
@@ -40,7 +42,12 @@ function DuelGame() {
       router.push("/");
       return;
     }
-  }, [txId, router]);
+
+    // Add this cleanup function - will run when component unmounts
+    return () => {
+      clearState(); // Clear duel state when leaving the page
+    };
+  }, [txId, router, clearState]);
 
   if (!txId) {
     return <LoadingSpinner size="lg" text="Loading game..." />;

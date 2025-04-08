@@ -55,6 +55,7 @@ export function useAcceptChallenge() {
     setDuelTxHash,
     markAsTimedOut,
     setListenerTimeout,
+    clearState,
   } = useDuelActions();
   const watchedChallengeId = useDuelChallengeId();
 
@@ -177,6 +178,9 @@ export function useAcceptChallenge() {
     challengeId,
     characterId,
   }: AcceptChallengeResult) => {
+    // Add this at the beginning - clear any previous state first
+    clearState();
+
     toast.success("Challenge accepted", {
       description:
         "You've accepted the challenge! Preparing for battle as the duel begins.",
@@ -188,7 +192,7 @@ export function useAcceptChallenge() {
       duration: 5000,
     });
 
-    // This now sets up the event listener in the store, not in this component
+    // Start listening for the new challenge
     startListening(challengeId);
 
     // Set up a timeout for the duel completion
