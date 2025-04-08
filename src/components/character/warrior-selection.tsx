@@ -48,7 +48,7 @@ export function WarriorSelection({
       <CharacterCardSkeleton key={key} index={index} />
     ));
   };
-
+  console.log("players", players);
   return (
     <section className="mt-8 md:mt-12">
       <SectionHeader
@@ -83,13 +83,15 @@ export function WarriorSelection({
               ))}
 
               {/* Character Creation Card */}
-              {players?.length && players?.length < MAX_PLAYERS && (
+              {players && players.length < MAX_PLAYERS ? (
                 <NewCharacterCard
                   delay={players?.length || 0}
                   onClick={createCharacter}
                   isCreating={isCreatingCharacter}
                   txHash={txHash}
                 />
+              ) : (
+                <></>
               )}
             </>
           )}

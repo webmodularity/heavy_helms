@@ -2,7 +2,6 @@
 
 import { usePathname } from "next/navigation";
 import { BackButton } from "@/components/ui/back-button";
-import React from "react";
 
 export function ConditionalBackButtonWrapper({
   children,
