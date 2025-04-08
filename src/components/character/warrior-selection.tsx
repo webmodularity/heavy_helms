@@ -16,6 +16,9 @@ interface WarriorSelectionProps {
   onDeselectCharacter: () => void;
 }
 
+// TODO: This is a temporary limit. We will remove this hardcoded value once we have the ability to buy a new player slot
+const MAX_PLAYERS = 5;
+
 export function WarriorSelection({
   selectedCharacter,
   onSelectCharacter,
@@ -80,12 +83,14 @@ export function WarriorSelection({
               ))}
 
               {/* Character Creation Card */}
-              <NewCharacterCard
-                delay={players?.length || 0}
-                onClick={createCharacter}
-                isCreating={isCreatingCharacter}
-                txHash={txHash}
-              />
+              {players?.length && players?.length < MAX_PLAYERS && (
+                <NewCharacterCard
+                  delay={players?.length || 0}
+                  onClick={createCharacter}
+                  isCreating={isCreatingCharacter}
+                  txHash={txHash}
+                />
+              )}
             </>
           )}
         </div>
