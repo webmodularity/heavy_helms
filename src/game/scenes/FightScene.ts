@@ -705,17 +705,8 @@ export class FightScene extends Scene {
   }
 
   handleSequence(action: CombatAction, isLastAction: boolean): void {
-    // Determine who's attacking in this round
-    const p1IsAttacking = this.isOffensiveAction(action.p1Result);
-    const p2IsAttacking = this.isOffensiveAction(action.p2Result);
-
-    // Handle P1 exhaustion only if P1 was attacking
-    if (
-      (action.p1Result === "EXHAUSTED" && p1IsAttacking) ||
-      (isLastAction &&
-        this.decodedCombatBytes.condition === "EXHAUSTION" &&
-        !this.decodedCombatBytes.winner)
-    ) {
+    // Handle P1 exhaustion - only check p1Result
+    if (action.p1Result === "EXHAUSTED") {
       this.damageNumbers.show(
         this.player1Sprite.x,
         this.player1Sprite.y - 200,
@@ -732,24 +723,17 @@ export class FightScene extends Scene {
 
       // Update health bars
       this.healthManager.updateBars();
-
-      // Update player stats display with delay
       this.refreshPlayerStats(true);
 
       // Add delay before completing sequence
       this.time.delayedCall(1000, () => {
-        this.completeSequence(isLastAction);
+        this.completeSequence(true); // Always treat as last action
       });
       return;
     }
 
-    // Handle P2 exhaustion only if P2 was attacking
-    if (
-      (action.p2Result === "EXHAUSTED" && p2IsAttacking) ||
-      (isLastAction &&
-        this.decodedCombatBytes.condition === "EXHAUSTION" &&
-        this.decodedCombatBytes.winner)
-    ) {
+    // Handle P2 exhaustion - only check p2Result
+    if (action.p2Result === "EXHAUSTED") {
       this.damageNumbers.show(
         this.player2Sprite.x,
         this.player2Sprite.y - 200,
@@ -766,13 +750,11 @@ export class FightScene extends Scene {
 
       // Update health bars
       this.healthManager.updateBars();
-
-      // Update player stats display with delay
       this.refreshPlayerStats(true);
 
       // Add delay before completing sequence
       this.time.delayedCall(1000, () => {
-        this.completeSequence(isLastAction);
+        this.completeSequence(true); // Always treat as last action
       });
       return;
     }
