@@ -378,9 +378,10 @@ export const GET_PLAYER_DUELS = gql`
 
 // Query for all duels (without filtering)
 export const GET_ALL_DUELS = gql`
-  query GetAllDuels($limit: Int = 10) {
+  query GetAllDuels($limit: Int = 1, $skip: Int!) {
     duelCompletes(
       first: $limit, 
+      skip: $skip,
       orderBy: blockNumber, 
       orderDirection: desc
     ) {
