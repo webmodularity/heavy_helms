@@ -705,8 +705,13 @@ export class FightScene extends Scene {
   }
 
   handleSequence(action: CombatAction, isLastAction: boolean): void {
-    // Handle P1 exhaustion - only check p1Result
-    if (action.p1Result.toString() === "EXHAUSTED") {
+    // Handle exhaustion first
+    if (
+      action.p1Result === "EXHAUSTED" ||
+      (isLastAction &&
+        this.decodedCombatBytes.condition === "EXHAUSTION" &&
+        !this.decodedCombatBytes.winner)
+    ) {
       this.damageNumbers.show(
         this.player1Sprite.x,
         this.player1Sprite.y - 200,
@@ -723,6 +728,8 @@ export class FightScene extends Scene {
 
       // Update health bars
       this.healthManager.updateBars();
+
+      // Update player stats display with delay
       this.refreshPlayerStats(true);
 
       // Add delay before completing sequence
@@ -732,8 +739,12 @@ export class FightScene extends Scene {
       return;
     }
 
-    // Handle P2 exhaustion - only check p2Result
-    if (action.p2Result.toString() === "EXHAUSTED") {
+    if (
+      action.p2Result === "EXHAUSTED" ||
+      (isLastAction &&
+        this.decodedCombatBytes.condition === "EXHAUSTION" &&
+        this.decodedCombatBytes.winner)
+    ) {
       this.damageNumbers.show(
         this.player2Sprite.x,
         this.player2Sprite.y - 200,
@@ -750,6 +761,8 @@ export class FightScene extends Scene {
 
       // Update health bars
       this.healthManager.updateBars();
+
+      // Update player stats display with delay
       this.refreshPlayerStats(true);
 
       // Add delay before completing sequence
