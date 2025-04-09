@@ -705,9 +705,13 @@ export class FightScene extends Scene {
   }
 
   handleSequence(action: CombatAction, isLastAction: boolean): void {
-    // Handle exhaustion first
+    // Determine who's attacking in this round
+    const p1IsAttacking = this.isOffensiveAction(action.p1Result);
+    const p2IsAttacking = this.isOffensiveAction(action.p2Result);
+
+    // Handle P1 exhaustion only if P1 was attacking
     if (
-      action.p1Result === "EXHAUSTED" ||
+      (action.p1Result === "EXHAUSTED" && p1IsAttacking) ||
       (isLastAction &&
         this.decodedCombatBytes.condition === "EXHAUSTION" &&
         !this.decodedCombatBytes.winner)
@@ -739,8 +743,9 @@ export class FightScene extends Scene {
       return;
     }
 
+    // Handle P2 exhaustion only if P2 was attacking
     if (
-      action.p2Result === "EXHAUSTED" ||
+      (action.p2Result === "EXHAUSTED" && p2IsAttacking) ||
       (isLastAction &&
         this.decodedCombatBytes.condition === "EXHAUSTION" &&
         this.decodedCombatBytes.winner)
@@ -840,7 +845,7 @@ export class FightScene extends Scene {
     });
 
     // Continue with animation sequence
-    if (this.isOffensiveAction(action.p2Result)) {
+    if (this.isOffensiveSuccessAction(action.p2Result)) {
       this.playAttackSequence(
         this.player2Sprite,
         this.player1Sprite,
@@ -851,7 +856,7 @@ export class FightScene extends Scene {
         isLastAction,
         action,
       );
-    } else if (this.isOffensiveAction(action.p1Result)) {
+    } else if (this.isOffensiveSuccessAction(action.p1Result)) {
       this.playAttackSequence(
         this.player1Sprite,
         this.player2Sprite,
@@ -1107,6 +1112,11 @@ export class FightScene extends Scene {
   }
 
   isOffensiveAction(result: string): boolean {
+    const resultStr = result.toString().toUpperCase();
+    return ["ATTACK", "CRIT", "MISS"].includes(resultStr);
+  }
+
+  isOffensiveSuccessAction(result: string): boolean {
     const resultStr = result.toString().toUpperCase();
     return ["ATTACK", "CRIT"].includes(resultStr);
   }

@@ -85,7 +85,7 @@ export function Footer() {
                 <div className="w-1.5 h-1.5 rounded-full bg-stone-600/50 mr-2 group-hover:bg-yellow-400 transition-colors"></div>
                 <a
                   href={
-                    "https://shapescan.xyz/address/0x4F0753e86ED2B07B61E932B9760C6A165769a07b"
+                    "https://sepolia.basescan.org/address/0x0006A67Ca3F41885f42A42799406ea848c67f33f"
                   }
                   target="_blank"
                   rel="noopener noreferrer"
@@ -112,7 +112,7 @@ export function Footer() {
                 <div className="w-1.5 h-1.5 rounded-full bg-stone-600/50 mr-2 group-hover:bg-yellow-400 transition-colors"></div>
                 <a
                   href={
-                    "https://shapescan.xyz/address/0xFDcbF9831e07DDA8d0E1fdAe4a14284eBefE2DD0"
+                    "https://sepolia.basescan.org/address/0x442e6C81eEEfA04BE198fc50572CD3332AeEeE42"
                   }
                   target="_blank"
                   rel="noopener noreferrer"
@@ -139,7 +139,7 @@ export function Footer() {
                 <div className="w-1.5 h-1.5 rounded-full bg-stone-600/50 mr-2 group-hover:bg-yellow-400 transition-colors"></div>
                 <a
                   href={
-                    "https://shapescan.xyz/address/0x0dAe7f50082450a272FB0F7bC32dC2508EB01B77"
+                    "https://sepolia.basescan.org/address/0xe8CBD0015453addb322DD97994c89DC7C17B1afF"
                   }
                   target="_blank"
                   rel="noopener noreferrer"
@@ -166,7 +166,7 @@ export function Footer() {
                 <div className="w-1.5 h-1.5 rounded-full bg-stone-600/50 mr-2 group-hover:bg-yellow-400 transition-colors"></div>
                 <a
                   href={
-                    "https://shapescan.xyz/address/0x204f58d254B57eBADeaff5B6E4a842781b69010F"
+                    "https://sepolia.basescan.org/address/0xD50f3Ac0E0AC9b1356301a153a777dF1A985E42e"
                   }
                   target="_blank"
                   rel="noopener noreferrer"
