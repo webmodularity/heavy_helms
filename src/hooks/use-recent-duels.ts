@@ -3,8 +3,11 @@ import { GET_ALL_DUELS, GET_PLAYER_DUELS } from "@/lib/gql-queries";
 import type { Duel } from "@/types/game.types";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import request from "graphql-request";
+import { useAccount } from "wagmi";
 
 export function useRecentDuels(playerId?: string | number, pageSize = 10) {
+  const { address } = useAccount();
+
   const {
     data,
     isLoading,
@@ -15,8 +18,8 @@ export function useRecentDuels(playerId?: string | number, pageSize = 10) {
     isFetchingNextPage,
   } = useInfiniteQuery({
     queryKey: playerId
-      ? ["recent-duels", playerId, pageSize]
-      : ["recent-duels", pageSize],
+      ? ["recent-duels", address, playerId, pageSize]
+      : ["recent-duels", address, pageSize],
     // enabled: !!playerId,
     queryFn: async ({ pageParam = 0 }) => {
       try {

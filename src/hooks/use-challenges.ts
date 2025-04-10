@@ -51,6 +51,7 @@ export interface SubgraphChallenge {
 interface GraphQLResponse {
   sentChallenges: SubgraphChallenge[];
   receivedChallenges: SubgraphChallenge[];
+  duelChallenges?: SubgraphChallenge[];
 }
 
 // Keep the existing Challenge interface
@@ -95,8 +96,8 @@ export function useChallenges(fighterId?: string, pageSize = 10) {
     queryKey:
       // ? ["fighter-challenges", fighterId]
       fighterId
-        ? ["active-challenges", address, fighterId]
-        : ["active-challenges"],
+        ? ["active-challenges", address, fighterId, pageSize]
+        : ["active-challenges", address, pageSize],
     queryFn: async ({ pageParam = 0 }) => {
       // Don't fetch if not authenticated
       if (!authenticated) {
@@ -138,7 +139,6 @@ export function useChallenges(fighterId?: string, pageSize = 10) {
           data.receivedChallenges || [],
           false,
         );
-        console.log("data", data);
         // Return combined challenges for this page
         return fighterId
           ? [...sentChallenges, ...receivedChallenges]
