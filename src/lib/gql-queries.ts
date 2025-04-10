@@ -255,18 +255,6 @@ export const GET_ACTIVE_DEFAULT_PLAYER_IDS_QUERY = gql`
   }
 `;
 
-export const GET_ALL_OPEN_CHALLENGES = gql`
-  query GetAllOpenChallenges($limit: Int!, $skip: Int!) {
-    duelChallenges(
-      orderBy: createdAt,
-      orderDirection: desc,
-      where: { state: OPEN }, first: $limit, skip: $skip) {
-      ...ChallengeCompleteFields
-    }
-  }
-  ${CHALLENGE_COMPLETE_FRAGMENT}
-`;
-
 // Add this new query to your gql-queries.ts file
 export const GET_FIGHTER_CHALLENGES = gql`
   query GetFighterChallenges($fighterId: ID!) {
@@ -486,6 +474,21 @@ export const GET_GAME_OWNED_SKIN_COLLECTION = gql`
       }
     }
   }
+`;
+
+export const GET_ALL_OPEN_CHALLENGES = gql`
+  query GetAllOpenChallenges($limit: Int!, $skip: Int!) {
+    duelChallenges(
+      orderBy: createdAt,
+      orderDirection: desc,
+      where: { state: OPEN },
+      first: $limit,
+      skip: $skip
+    ) {
+      ...ChallengeCompleteFields
+    }
+  }
+  ${CHALLENGE_COMPLETE_FRAGMENT}
 `;
 
 export const GET_FIGHTER_CHALLENGES_PAGINATED = `

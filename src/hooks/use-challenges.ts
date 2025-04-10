@@ -7,6 +7,7 @@ import {
   GET_FIGHTER_CHALLENGES,
   GET_FIGHTER_CHALLENGES_PAGINATED,
   GET_USER_CHALLENGES_PAGINATED,
+  GET_ALL_OPEN_CHALLENGES,
 } from "@/lib/gql-queries";
 import { useAccount } from "wagmi";
 import type { StanceType } from "@/types/equipment.types";
@@ -77,7 +78,7 @@ export interface Challenge {
   isSentByMe: boolean;
 }
 
-export function useChallenges(fighterId: string, pageSize = 10) {
+export function useChallenges(fighterId?: string, pageSize = 10) {
   const { authenticated } = usePrivy();
   const { address } = useAccount();
   const {
@@ -93,7 +94,9 @@ export function useChallenges(fighterId: string, pageSize = 10) {
 
     queryKey:
       // ? ["fighter-challenges", fighterId]
-      ["active-challenges", address, fighterId],
+      fighterId
+        ? ["active-challenges", address, fighterId]
+        : ["active-challenges"],
     queryFn: async ({ pageParam = 0 }) => {
       // Don't fetch if not authenticated
       if (!authenticated) {
@@ -109,17 +112,24 @@ export function useChallenges(fighterId: string, pageSize = 10) {
         let data: GraphQLResponse;
 
         // Use fighter-specific query if fighterId is provided
-        data = await request<GraphQLResponse>(
-          SUBGRAPH_URL,
-          GET_FIGHTER_CHALLENGES_PAGINATED,
-          {
-            fighterId,
-            limit: pageSize,
-            skip: pageParam,
-          },
-        );
-
-        // Process challenges as you do currently
+        data = fighterId
+          ? await request<GraphQLResponse>(
+              SUBGRAPH_URL,
+              GET_FIGHTER_CHALLENGES_PAGINATED,
+              {
+                fighterId,
+                limit: pageSize,
+                skip: pageParam,
+              },
+            )
+          : await request<GraphQLResponse>(
+              SUBGRAPH_URL,
+              GET_ALL_OPEN_CHALLENGES,
+              {
+                limit: pageSize,
+                skip: pageParam,
+              },
+            );
         const sentChallenges = processChallenges(
           data.sentChallenges || [],
           true,
@@ -128,9 +138,11 @@ export function useChallenges(fighterId: string, pageSize = 10) {
           data.receivedChallenges || [],
           false,
         );
-
+        console.log("data", data);
         // Return combined challenges for this page
-        return [...sentChallenges, ...receivedChallenges];
+        return fighterId
+          ? [...sentChallenges, ...receivedChallenges]
+          : [...processChallenges(data.duelChallenges || [], false)];
       } catch (error) {
         console.error("Error fetching challenges from subgraph:", error);
         throw error;
@@ -143,8 +155,7 @@ export function useChallenges(fighterId: string, pageSize = 10) {
       // Otherwise, calculate the next offset
       return allPages.length * pageSize;
     },
-    enabled: !!fighterId && !!address,
-    staleTime: 300 * 1000, // 30s stale time
+    // enabled: !!fighterId && !!address,
     refetchInterval: 300 * 1000, // 5m refetch interval
   });
 
