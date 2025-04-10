@@ -255,8 +255,19 @@ export class FightScene extends Scene {
     this.player1Stats.update(this.player1);
     this.player2Stats.update(this.player2);
 
-    // Inform any listeners that the scene is ready
-    EventBus.emit("current-scene-ready", this);
+    // Add the mute event listener
+    this.game.events.on("set-mute", this.handleMuteToggle, this);
+
+    // Ensure listener is removed when FightScene shuts down
+    this.events.on(Phaser.Scenes.Events.SHUTDOWN, () => {
+      // Check if game.events still exists before trying to remove listener
+      if (this.game.events) {
+        this.game.events.off("set-mute", this.handleMuteToggle, this);
+      }
+    });
+
+    // Emit current-scene-ready
+    this.game.events.emit("current-scene-ready", this);
   }
 
   // Game State Management
@@ -1283,6 +1294,14 @@ export class FightScene extends Scene {
 
       // Update health/stamina bars immediately
       this.healthManager.updateBars();
+    }
+  }
+
+  private handleMuteToggle(muteState: boolean): void {
+    if (this.sound) {
+      this.sound.mute = muteState;
+    } else {
+      console.warn("Sound manager not available in FightScene?");
     }
   }
 }

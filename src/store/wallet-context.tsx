@@ -73,7 +73,6 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     );
 
     const primaryAddress = injectedAddress || embeddedAddress;
-    console.log("primaryAddress", primaryAddress);
     if (primaryAddress) {
       setActiveWallet(primaryAddress);
     }
@@ -127,7 +126,6 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   // Calculate derived state
   const isWrongNetwork =
     currentChainId !== null && currentChainId !== "eip155:84532";
-  console.log({ currentChainId, baseSepoliaId: baseSepolia.id });
   const hasWallet = Boolean(wallets && wallets.length > 0);
   const currentChainName = getChainName(currentChainId);
 

@@ -1,8 +1,9 @@
 "use client";
 
-import { forwardRef, useEffect, useLayoutEffect, useRef } from "react";
-import StartGame, { gameData } from "./config/main";
+import { useEffect, useLayoutEffect, useRef } from "react";
+import StartGame from "./config/main";
 import type { Fighter } from "@/types/fighter-types";
+import type Phaser from "phaser";
 
 export interface IRefPhaserGame {
   game: Phaser.Game | null;
@@ -14,26 +15,34 @@ interface IProps {
   player1Id?: string;
   player2Id?: string;
   player1?: Fighter;
+  onGameReady?: (gameInstance: Phaser.Game) => void;
 }
 
-const PhaserGame = forwardRef<IRefPhaserGame, IProps>(function PhaserGame(
-  { currentActiveScene, player1Id, player2Id, player1 },
-  ref,
-) {
+const PhaserGame = ({
+  currentActiveScene,
+  player1Id,
+  player2Id,
+  player1,
+  onGameReady,
+}: IProps) => {
   const game = useRef<Phaser.Game | null>(null);
 
   useLayoutEffect(() => {
+    let gameInstance: Phaser.Game | null = null;
     if (game.current === null) {
-      game.current = StartGame("game-container", {
+      gameInstance = StartGame("game-container", {
         player1Id,
         player2Id,
         player1,
       });
+      game.current = gameInstance;
 
-      if (typeof ref === "function") {
-        ref({ game: game.current, scene: null });
-      } else if (ref) {
-        ref.current = { game: game.current, scene: null };
+      if (gameInstance && onGameReady) {
+        onGameReady(gameInstance);
+      } else {
+        console.warn(
+          "PhaserGame useLayoutEffect: Game instance or onGameReady missing.",
+        );
       }
     }
 
@@ -43,52 +52,47 @@ const PhaserGame = forwardRef<IRefPhaserGame, IProps>(function PhaserGame(
         game.current = null;
       }
     };
-  }, [ref, player1Id, player2Id, player1]);
+  }, [player1Id, player2Id, player1, onGameReady]);
 
   useEffect(() => {
-    // Update registry data if props change after initialization
-    if (game.current) {
-      if (player1Id) {
-        game.current.registry.set("player1Id", player1Id);
-      }
+    if (!game.current) {
+      console.log(
+        "PhaserGame useEffect: Guard clause hit, game.current is null.",
+      );
+      return;
+    }
 
-      if (player2Id) {
-        game.current.registry.set("player2Id", player2Id);
-      }
+    if (player1Id) {
+      game.current.registry.set("player1Id", player1Id);
+    }
 
-      if (player1) {
-        game.current.registry.set("player1", player1);
-      }
+    if (player2Id) {
+      game.current.registry.set("player2Id", player2Id);
+    }
+
+    if (player1) {
+      game.current.registry.set("player1", player1);
     }
 
     const handleSceneReady = (scene_instance: Phaser.Scene) => {
-      if (currentActiveScene && typeof currentActiveScene === "function") {
-        currentActiveScene(scene_instance);
+      if (!game.current) {
+        console.warn(
+          "PhaserGame handleSceneReady: game.current became null unexpectedly.",
+        );
+        return;
       }
 
-      if (typeof ref === "function") {
-        ref({ game: game.current, scene: scene_instance });
-      } else if (ref) {
-        ref.current = {
-          game: game.current,
-          scene: scene_instance,
-        };
-      }
+      if (currentActiveScene) currentActiveScene(scene_instance);
     };
 
-    // Listen for scene ready events
-    if (game.current) {
-      game.current.events.on("current-scene-ready", handleSceneReady);
-    }
+    game.current.events.on("current-scene-ready", handleSceneReady);
 
     return () => {
-      if (game.current) {
-        game.current.events.off("current-scene-ready", handleSceneReady);
-      }
+      game.current?.events.off("current-scene-ready", handleSceneReady);
     };
-  }, [currentActiveScene, ref, player1Id, player2Id, player1]);
+  }, [currentActiveScene, player1Id, player2Id, player1]);
 
-  return <div id="game-container" />;
-});
+  return <div id="game-container" className="w-full h-full" />;
+};
 
 export default PhaserGame;

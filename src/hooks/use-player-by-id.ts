@@ -54,7 +54,6 @@ export function usePlayerById(playerId: string) {
 
         // Convert the raw player data to a Player object
         const player = await convertRawFighterToFighter(fighters[0]);
-        console.log("Fetched player:", player);
         return player;
       } catch (error) {
         console.error("Error fetching player:", error);

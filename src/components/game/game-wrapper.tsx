@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useCallback } from "react";
 import { Button } from "../ui/button";
 import type { Fighter } from "@/types/fighter-types";
+import type { IRefPhaserGame } from "@/game/PhaserGame";
+import type Phaser from "phaser";
 
 // Dynamically import PhaserGame with no SSR
 const PhaserGame = dynamic(() => import("@/game/PhaserGame"), {
@@ -23,7 +25,9 @@ export function GameWrapper({ player1 }: GameWrapperProps) {
   const [isClient, setIsClient] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const [isGameReady, setIsGameReady] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+  const phaserInstanceRef = useRef<IRefPhaserGame>({ game: null, scene: null });
   const router = useRouter();
 
   useEffect(() => {
@@ -66,18 +70,47 @@ export function GameWrapper({ player1 }: GameWrapperProps) {
     };
   }, [isClient, fixCanvasSize]);
 
-  const toggleFullscreen = () => {
-    if (!document.fullscreenElement) {
-      containerRef.current?.requestFullscreen();
+  const handleGameReady = useCallback((gameInstance: Phaser.Game) => {
+    if (gameInstance) {
+      phaserInstanceRef.current.game = gameInstance;
+      setIsGameReady(true);
     } else {
-      document.exitFullscreen();
+      console.error(
+        "handleGameReady received invalid game instance:",
+        gameInstance,
+      );
     }
-    setIsFullscreen(!isFullscreen);
+  }, []);
+
+  const toggleFullscreen = () => {
+    const targetElement = containerRef.current;
+    if (!targetElement) return;
+
+    if (!document.fullscreenElement) {
+      targetElement.requestFullscreen().catch((err) => {
+        console.error(
+          `Error attempting to enable fullscreen: ${err.message} (${err.name})`,
+        );
+      });
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
+    setIsFullscreen(!document.fullscreenElement);
   };
 
   const toggleMute = () => {
-    setIsMuted(!isMuted);
-    // Add actual mute logic here, possibly via EventBus
+    const newMuteState = !isMuted;
+    setIsMuted(newMuteState);
+    if (phaserInstanceRef.current?.game) {
+      phaserInstanceRef.current.game.events.emit("set-mute", newMuteState);
+    } else {
+      console.error(
+        "Ref or Game instance missing in toggleMute!",
+        phaserInstanceRef.current,
+      );
+    }
   };
 
   const exitPractice = () => {
@@ -97,14 +130,15 @@ export function GameWrapper({ player1 }: GameWrapperProps) {
           aspectRatio: "16/9",
         }}
       >
-        <PhaserGame player1={player1} />
+        <PhaserGame player1={player1} onGameReady={handleGameReady} />
 
         <div className="absolute bottom-1 right-1 flex gap-1 bg-black/50 backdrop-blur-sm rounded-md z-50">
           <Button
             variant="ghost"
             size="icon"
-            className="h-6 w-6 md:h-8 md:w-8 p-0.5 text-yellow-400 hover:bg-yellow-900/30"
+            className="h-6 w-6 md:h-8 md:w-8 p-0.5 text-yellow-400 hover:bg-yellow-900/30 disabled:opacity-50"
             onClick={toggleMute}
+            disabled={!isGameReady}
           >
             {isMuted ? <VolumeX size={14} /> : <Volume2 size={14} />}
           </Button>
@@ -112,8 +146,9 @@ export function GameWrapper({ player1 }: GameWrapperProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="h-6 w-6 md:h-8 md:w-8 p-0.5 text-yellow-400 hover:bg-yellow-900/30"
+            className="h-6 w-6 md:h-8 md:w-8 p-0.5 text-yellow-400 hover:bg-yellow-900/30 disabled:opacity-50"
             onClick={toggleFullscreen}
+            disabled={!isGameReady}
           >
             <Maximize2 size={14} />
           </Button>
@@ -121,8 +156,9 @@ export function GameWrapper({ player1 }: GameWrapperProps) {
           <Button
             variant="ghost"
             size="icon"
-            className="h-6 w-6 md:h-8 md:w-8 p-0.5 text-red-400 hover:bg-red-900/30"
+            className="h-6 w-6 md:h-8 md:w-8 p-0.5 text-red-400 hover:bg-red-900/30 disabled:opacity-50"
             onClick={exitPractice}
+            disabled={!isGameReady}
           >
             <X size={14} />
           </Button>
