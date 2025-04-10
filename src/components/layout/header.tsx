@@ -82,16 +82,16 @@ export function Header() {
            whileTap={{ scale: 0.95 }}
            transition={{ type: "spring", stiffness: 400, damping: 17 }}
         >
-          <Link href="/leaderboards">
+          <Link href="/battle-archives">
             <Button
               variant="outline"
               className={`${navButtonBaseClasses} ${
-                isActive('/leaderboards') ? navButtonActiveClasses : navButtonInactiveClasses
+                isActive('/battle-archives') ? navButtonActiveClasses : navButtonInactiveClasses
               }`}
                style={{ padding: '' }}
             >
               <Trophy className="mr-1.5 h-4 w-4 sm:mr-2 sm:h-5 sm:w-5 transition-transform group-hover:scale-110" />
-              Leaderboards
+              Battle Archives
             </Button>
           </Link>
         </motion.div>

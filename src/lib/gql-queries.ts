@@ -255,6 +255,18 @@ export const GET_ACTIVE_DEFAULT_PLAYER_IDS_QUERY = gql`
   }
 `;
 
+export const GET_ALL_OPEN_CHALLENGES = gql`
+  query GetAllOpenChallenges($limit: Int!, $skip: Int!) {
+    duelChallenges(
+      orderBy: createdAt,
+      orderDirection: desc,
+      where: { state: OPEN }, first: $limit, skip: $skip) {
+      ...ChallengeCompleteFields
+    }
+  }
+  ${CHALLENGE_COMPLETE_FRAGMENT}
+`;
+
 // Add this new query to your gql-queries.ts file
 export const GET_FIGHTER_CHALLENGES = gql`
   query GetFighterChallenges($fighterId: ID!) {
@@ -393,15 +405,11 @@ export const GET_ALL_DUELS = gql`
         wagerAmount
         challengerId
         defenderId
-        challenger {
+        challengerSnapshot {
           id
           fullName
         }
-        defender {
-          id
-          fullName
-        }
-        winner {
+        defenderSnapshot {
           id
           fullName
         }
