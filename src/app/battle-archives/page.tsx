@@ -1,13 +1,18 @@
 "use client";
 
+import { useState } from "react";
 import { MostDuelsAccepted } from "@/components/battle-archives/most-duels-accepted";
 import { MostDuelsCreated } from "@/components/battle-archives/most-duels-created";
 import { OpenChallenges } from "@/components/battle-archives/open-challenges";
 import { RecentBattles } from "@/components/battle-archives/recent-battles";
 import { TopDuelsByWager } from "@/components/battle-archives/top-duels-by-wager";
 import { WarriorLeaderboard } from "@/components/battle-archives/warrior-leaderboard";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Shield, Swords, CircleDollarSign, Trophy, Clock, Users } from "lucide-react";
 
 export default function BattleArchivesPage() {
+  const [activeTab, setActiveTab] = useState("recent");
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="mb-6">
@@ -19,33 +24,80 @@ export default function BattleArchivesPage() {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* First row - full width on mobile, split on desktop */}
-        <div className="md:col-span-2">
+      <Tabs
+        value={activeTab}
+        onValueChange={setActiveTab}
+        className="w-full"
+      >
+        <TabsList className="bg-stone-800/50 border border-yellow-600/20 w-full flex justify-between mb-6 overflow-x-auto">
+          <TabsTrigger
+            value="recent"
+            className="data-[state=active]:bg-yellow-600/20 data-[state=active]:text-yellow-400 flex items-center gap-2"
+          >
+            <Clock className="h-4 w-4" />
+            Recent Battles
+          </TabsTrigger>
+          <TabsTrigger
+            value="challenges"
+            className="data-[state=active]:bg-yellow-600/20 data-[state=active]:text-yellow-400 flex items-center gap-2"
+          >
+            <Swords className="h-4 w-4" />
+            Open Challenges
+          </TabsTrigger>
+          <TabsTrigger
+            value="leaderboard"
+            className="data-[state=active]:bg-yellow-600/20 data-[state=active]:text-yellow-400 flex items-center gap-2"
+          >
+            <Trophy className="h-4 w-4" />
+            Warrior Leaderboard
+          </TabsTrigger>
+          <TabsTrigger
+            value="wagers"
+            className="data-[state=active]:bg-yellow-600/20 data-[state=active]:text-yellow-400 flex items-center gap-2"
+          >
+            <CircleDollarSign className="h-4 w-4" />
+            Top Wagers
+          </TabsTrigger>
+          <TabsTrigger
+            value="accepted"
+            className="data-[state=active]:bg-yellow-600/20 data-[state=active]:text-yellow-400 flex items-center gap-2"
+          >
+            <Shield className="h-4 w-4" />
+            Most Accepted
+          </TabsTrigger>
+          <TabsTrigger
+            value="created"
+            className="data-[state=active]:bg-yellow-600/20 data-[state=active]:text-yellow-400 flex items-center gap-2"
+          >
+            <Users className="h-4 w-4" />
+            Most Created
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="recent" className="space-y-4">
           <RecentBattles />
-        </div>
+        </TabsContent>
 
-        {/* Second row - split on all sizes */}
-        <div>
+        <TabsContent value="challenges">
           <OpenChallenges />
-        </div>
-        <div>
+        </TabsContent>
+
+        <TabsContent value="leaderboard">
           <WarriorLeaderboard />
-        </div>
+        </TabsContent>
 
-        {/* Third row - split on all sizes */}
-        <div>
+        <TabsContent value="wagers">
           <TopDuelsByWager />
-        </div>
-        <div>
-          <MostDuelsAccepted />
-        </div>
+        </TabsContent>
 
-        {/* Fourth row - full width on mobile, split on desktop */}
-        <div className="md:col-span-2">
+        <TabsContent value="accepted">
+          <MostDuelsAccepted />
+        </TabsContent>
+
+        <TabsContent value="created">
           <MostDuelsCreated />
-        </div>
-      </div>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
