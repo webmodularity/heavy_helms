@@ -29,8 +29,6 @@ const PhaserGame = forwardRef<IRefPhaserGame, IProps>(function PhaserGame(
         player2Id,
         player1,
       });
-      console.log("player1", player1);
-      console.log("currentActiveScene", currentActiveScene);
 
       if (typeof ref === "function") {
         ref({ game: game.current, scene: null });
@@ -45,26 +43,25 @@ const PhaserGame = forwardRef<IRefPhaserGame, IProps>(function PhaserGame(
         game.current = null;
       }
     };
-  }, [ref, player1Id, player2Id, currentActiveScene, player1]);
+  }, [ref, player1Id, player2Id, player1]);
 
   useEffect(() => {
     // Update registry data if props change after initialization
     if (game.current) {
       if (player1Id) {
-        game.current.registry.set('player1Id', player1Id);
+        game.current.registry.set("player1Id", player1Id);
       }
-      
+
       if (player2Id) {
-        game.current.registry.set('player2Id', player2Id);
+        game.current.registry.set("player2Id", player2Id);
       }
-      
+
       if (player1) {
-        game.current.registry.set('player1', player1);
+        game.current.registry.set("player1", player1);
       }
     }
 
     const handleSceneReady = (scene_instance: Phaser.Scene) => {
-      console.log("scene_instance", scene_instance);
       if (currentActiveScene && typeof currentActiveScene === "function") {
         currentActiveScene(scene_instance);
       }
@@ -79,7 +76,7 @@ const PhaserGame = forwardRef<IRefPhaserGame, IProps>(function PhaserGame(
       }
     };
 
-    // Still listen for scene ready events
+    // Listen for scene ready events
     if (game.current) {
       game.current.events.on("current-scene-ready", handleSceneReady);
     }

@@ -1,6 +1,6 @@
 import type { GameObjects, Scene } from "phaser";
 import {
-  getAbbreviatedWeaponName,
+  getWeaponDisplayName,
   getArmorDisplayName,
   getStanceDisplayName,
 } from "@/lib/equipment-utils";
@@ -80,7 +80,7 @@ export class PlayerStatsDisplay {
     this.textElements = [];
 
     // Style configurations
-    this.containerWidth = 160;
+    this.containerWidth = 170;
     this.padding = 12;
     this.labelWidth = 45;
     this.valueWidth = 55;
@@ -274,52 +274,82 @@ export class PlayerStatsDisplay {
       maxWidth = Math.max(maxWidth, headerText.width + this.padding * 2);
     };
 
-    const addTextRow = (label: string, value: string | number): void => {
+    const addTextRow = (
+      label: string,
+      value: string | number,
+      isMultiLineHint = false,
+    ): void => {
       const labelText = this.scene.add
         .text(this.padding, currentY, `${label}:`, this.styles.label)
         .setOrigin(0, 0);
 
+      // Create the value text using the base style
       const valueText = this.scene.add
         .text(
           this.padding + this.labelWidth + 20,
           currentY,
           value.toString(),
-          this.styles.value,
+          this.styles.value, // Use the original style object
         )
         .setOrigin(0, 0);
 
+      // --- Set lineSpacing AFTER creation if needed ---
+      const lines = value.toString().split("\n");
+      if (lines.length > 1) {
+        valueText.setLineSpacing(3); // Set spacing directly on the Text object
+      }
+      // --- End lineSpacing adjustment ---
+
+      // Adjust maxWidth calculation (remains the same)
+      const valueTextWidth = valueText.width;
       maxWidth = Math.max(
         maxWidth,
-        valueText.x + valueText.width + this.padding,
+        this.padding + this.labelWidth + 20 + valueTextWidth + this.padding,
       );
+
       this.textElements.push(labelText, valueText);
 
-      // Store references to health and stamina text
-      if (label === "HP") {
-        this.healthText = valueText;
-        this.currentHealth = player.currentState?.currentHealth ?? 0;
-      } else if (label === "STAM") {
-        this.staminaText = valueText;
-        this.currentStamina = player.currentState?.currentEndurance ?? 0;
-      }
+      // Store references (remains the same)
+      // IMPORTANT: Update labels if you changed them in the previous step
+      if (label === "Health") this.healthText = valueText;
+      if (label === "Stamina") this.staminaText = valueText;
 
-      currentY += spacing;
+      // Increment Y position (remains the same)
+      const lineCount = lines.length;
+      currentY += spacing * lineCount;
+      if (lineCount > 1) {
+        currentY += spacing * 0.2;
+      }
     };
 
     // Strategy section
     addHeader("Strategy");
 
-    // Convert numeric values to display names using the utility functions
     const weaponValue = player.currentSkin.weapon || 0;
     const armorValue = player.currentSkin.armor || 0;
     const stanceValue = player.stance || 0;
 
-    // Use the utility functions to get display names
-    const weaponDisplay = getAbbreviatedWeaponName(weaponValue as WeaponType);
+    // Get display names
+    let weaponDisplay = getWeaponDisplayName(weaponValue as WeaponType);
     const armorDisplay = getArmorDisplayName(armorValue as ArmorType);
     const stanceDisplay = getStanceDisplayName(stanceValue as StanceType);
 
-    addTextRow("Weapon", weaponDisplay);
+    // Add the newline logic for " + "
+    const isMultiLineWeapon = weaponDisplay.includes(" + ");
+    if (isMultiLineWeapon) {
+      weaponDisplay = weaponDisplay.replace(" + ", "\n+ ");
+    } else {
+      // If it wasn't multi-line due to "+", add a blank newline anyway
+      // to ensure consistent height with panels that ARE multi-line.
+      weaponDisplay += "\n";
+    }
+
+    // The isMultiLineHint might not be strictly necessary anymore with this approach,
+    // but we can leave it or remove it depending on how addTextRow uses it.
+    // Let's keep it for now as addTextRow uses lineCount.
+    const finalIsMultiLine = weaponDisplay.includes("\n");
+
+    addTextRow("Weapon", weaponDisplay, finalIsMultiLine);
     addTextRow("Armor", armorDisplay);
     addTextRow("Stance", stanceDisplay);
     currentY += spacing / 2;
@@ -330,17 +360,18 @@ export class PlayerStatsDisplay {
     addTextRow("Con", player.attributes.constitution || 0);
     addTextRow("Size", player.attributes.size || 0);
     addTextRow("Agi", player.attributes.agility || 0);
-    addTextRow("Stam", player.attributes.stamina || 0);
     addTextRow("Luck", player.attributes.luck || 0);
+    currentY += spacing / 2;
 
-    // Get health and stamina values from player state
+    // Condition section
+    addHeader("Condition");
     const currentHealth = player.currentState?.currentHealth ?? 0;
     const maxHealth = player.calculatedStats?.maxHealth ?? 100;
     const currentEndurance = player.currentState?.currentEndurance ?? 0;
     const maxEndurance = player.calculatedStats?.maxEndurance ?? 100;
 
-    addTextRow("HP", `${Math.floor(currentHealth)}/${maxHealth}`);
-    addTextRow("STAM", `${Math.floor(currentEndurance)}/${maxEndurance}`);
+    addTextRow("Health", `${Math.floor(currentHealth)}/${maxHealth}`);
+    addTextRow("Stamina", `${Math.floor(currentEndurance)}/${maxEndurance}`);
     currentY += spacing / 2;
 
     // Reputation section
@@ -354,7 +385,7 @@ export class PlayerStatsDisplay {
     // Create background with calculated dimensions
     const bg = this.scene.add.graphics();
     const containerHeight = currentY + this.padding;
-    this.containerWidth = Math.max(160, maxWidth);
+    this.containerWidth = Math.max(170, maxWidth);
 
     // Fill with semi-transparent black
     bg.fillStyle(

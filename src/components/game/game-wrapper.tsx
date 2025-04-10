@@ -1,12 +1,9 @@
 "use client";
 
-import { X } from "lucide-react";
-import { Maximize2 } from "lucide-react";
-import { Volume2 } from "lucide-react";
-import { VolumeX } from "lucide-react";
+import { X, Maximize2, Volume2, VolumeX } from "lucide-react";
 import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import { Button } from "../ui/button";
 import type { Fighter } from "@/types/fighter-types";
 
@@ -33,14 +30,45 @@ export function GameWrapper({ player1 }: GameWrapperProps) {
     setIsClient(true);
   }, []);
 
-  const toggleFullscreen = () => {
-    const gameContainer = document.getElementById("game-container");
-    if (!gameContainer) return;
+  const fixCanvasSize = useCallback(() => {
+    const canvas = containerRef.current?.querySelector("canvas");
+    if (canvas && containerRef.current) {
+      const containerWidth = containerRef.current.clientWidth;
+      const containerHeight = containerRef.current.clientHeight;
 
+      canvas.setAttribute(
+        "style",
+        `
+        width: ${containerWidth}px !important;
+        height: ${containerHeight}px !important;
+        max-width: 100% !important;
+        max-height: 100% !important;
+        object-fit: contain !important;
+        border-radius: 0.375rem !important;
+      `,
+      );
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isClient) {
+      return;
+    }
+
+    fixCanvasSize();
+    window.addEventListener("resize", fixCanvasSize);
+
+    const timer = setTimeout(fixCanvasSize, 500);
+
+    return () => {
+      window.removeEventListener("resize", fixCanvasSize);
+      clearTimeout(timer);
+    };
+  }, [isClient, fixCanvasSize]);
+
+  const toggleFullscreen = () => {
     if (!document.fullscreenElement) {
-      gameContainer.requestFullscreen().catch((err) => {
-        console.error(`Error attempting to enable fullscreen: ${err.message}`);
-      });
+      containerRef.current?.requestFullscreen();
     } else {
       document.exitFullscreen();
     }
@@ -59,41 +87,46 @@ export function GameWrapper({ player1 }: GameWrapperProps) {
   if (!isClient) return null;
 
   return (
-    <div
-      //   id="game-container"
-      //   ref={containerRef}
-      className="relative flex items-center justify-center w-[320px] h-[180px] md:w-[960px] md:h-[540px] "
-    >
-      <PhaserGame player1={player1} />
+    <div className="w-full flex justify-center items-center">
+      <div
+        ref={containerRef}
+        id="game-container-outer"
+        className="relative bg-black w-full overflow-hidden rounded-md"
+        style={{
+          maxWidth: "960px",
+          aspectRatio: "16/9",
+        }}
+      >
+        <PhaserGame player1={player1} />
 
-      {/* Game Controls Overlay */}
-      <div className="absolute md:bottom-0 -bottom-10 right-0 p-1 md:p-2 flex md:gap-2 gap-1 bg-stone-900/70 backdrop-blur-sm rounded-tl-md z-10">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-yellow-400 hover:bg-yellow-800/30"
-          onClick={toggleMute}
-        >
-          {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
-        </Button>
+        <div className="absolute bottom-1 right-1 flex gap-1 bg-black/50 backdrop-blur-sm rounded-md z-50">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 md:h-8 md:w-8 p-0.5 text-yellow-400 hover:bg-yellow-900/30"
+            onClick={toggleMute}
+          >
+            {isMuted ? <VolumeX size={14} /> : <Volume2 size={14} />}
+          </Button>
 
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-yellow-400 hover:bg-yellow-800/30"
-          onClick={toggleFullscreen}
-        >
-          <Maximize2 size={16} />
-        </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 md:h-8 md:w-8 p-0.5 text-yellow-400 hover:bg-yellow-900/30"
+            onClick={toggleFullscreen}
+          >
+            <Maximize2 size={14} />
+          </Button>
 
-        <Button
-          variant="ghost"
-          size="sm"
-          className="text-red-400 hover:bg-red-800/30"
-          onClick={exitPractice}
-        >
-          <X size={16} />
-        </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-6 w-6 md:h-8 md:w-8 p-0.5 text-red-400 hover:bg-red-900/30"
+            onClick={exitPractice}
+          >
+            <X size={14} />
+          </Button>
+        </div>
       </div>
     </div>
   );

@@ -2,7 +2,7 @@ import type { PlayerAttributes } from "@/types/player.types";
 import { WeaponType, ArmorType, StanceType } from "../types/equipment.types";
 
 export const WEAPON_DISPLAY_NAMES: Record<WeaponType, string> = {
-  [WeaponType.ArmingSwordKite]: "Sword + Kite Shield",
+  [WeaponType.ArmingSwordKite]: "Arming Sword + Kite Shield",
   [WeaponType.MaceTower]: "Mace + Tower Shield",
   [WeaponType.RapierBuckler]: "Rapier + Buckler",
   [WeaponType.Greatsword]: "Greatsword",
@@ -21,9 +21,9 @@ export const WEAPON_DISPLAY_NAMES: Record<WeaponType, string> = {
   [WeaponType.MaceKite]: "Mace + Kite Shield",
   [WeaponType.ClubTower]: "Club + Tower Shield",
   [WeaponType.Clubs]: "Clubs",
-  [WeaponType.ArmingSwordShortsword]: "Sword + Shortsword",
+  [WeaponType.ArmingSwordShortsword]: "Arming Sword + Shortsword",
   [WeaponType.ScimitarDagger]: "Scimitar + Dagger",
-  [WeaponType.ArmingSwordClub]: "Sword + Club",
+  [WeaponType.ArmingSwordClub]: "Arming Sword + Club",
   [WeaponType.AxeMace]: "Axe + Mace",
   [WeaponType.FlailDagger]: "Flail + Dagger",
   [WeaponType.MaceShortsword]: "Mace + Shortsword",
