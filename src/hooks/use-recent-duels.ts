@@ -16,6 +16,7 @@ export function useRecentDuels(playerId?: string | number, pageSize = 10) {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    isRefetching,
   } = useInfiniteQuery({
     queryKey: playerId
       ? ["recent-duels", address, playerId, pageSize]
@@ -70,5 +71,6 @@ export function useRecentDuels(playerId?: string | number, pageSize = 10) {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    isRefetching,
   };
 }

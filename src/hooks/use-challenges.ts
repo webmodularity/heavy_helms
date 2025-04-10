@@ -90,6 +90,7 @@ export function useChallenges(fighterId?: string, pageSize = 10) {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    isRefetching,
   } = useInfiniteQuery({
     initialPageParam: 0,
 
@@ -212,5 +213,6 @@ export function useChallenges(fighterId?: string, pageSize = 10) {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    isRefetching,
   };
 }

@@ -7,6 +7,63 @@ import { useChallenges } from "@/hooks/use-challenges";
 import { formatEther } from "viem";
 import { Button } from "@/components/ui/button";
 
+// Loading skeleton for a challenge card
+function ChallengeCardSkeleton() {
+  return (
+    <div className="relative border border-amber-900/50 rounded bg-amber-950/10 overflow-hidden">
+      {/* Torn edges effect with SVG */}
+      <svg
+        className="absolute top-0 left-0 w-full h-8 text-amber-900/30"
+        viewBox="0 0 100 10"
+        preserveAspectRatio="none"
+        aria-hidden="true"
+      >
+        <path
+          d="M0,0 L10,5 L20,2 L30,7 L40,3 L50,8 L60,2 L70,8 L80,5 L90,8 L100,3 L100,0 Z"
+          fill="currentColor"
+        />
+      </svg>
+
+      {/* "WANTED" stamp skeleton */}
+      <div className="absolute -right-8 top-6 rotate-45 bg-red-900/40 text-amber-200 text-sm px-10 font-bold tracking-widest shadow-md animate-pulse">
+        OPEN
+      </div>
+
+      <div className="pt-10 px-4 pb-4">
+        {/* Title skeleton */}
+        <div className="text-center mb-4">
+          <div className="h-6 w-40 bg-amber-800/30 animate-pulse rounded mx-auto mb-2" />
+          <div className="h-3 w-28 bg-amber-900/20 animate-pulse rounded mx-auto" />
+        </div>
+
+        {/* Challenge details skeleton */}
+        <div className="space-y-3">
+          <div className="text-center">
+            <div className="h-4 w-24 bg-amber-700/30 animate-pulse rounded mx-auto mb-2" />
+            <div className="h-5 w-32 bg-amber-950/30 animate-pulse rounded mx-auto" />
+          </div>
+
+          <div className="text-center border-y border-amber-900/30 py-2 my-2">
+            <div className="h-4 w-32 bg-amber-700/30 animate-pulse rounded mx-auto mb-2" />
+            <div className="h-5 w-32 bg-amber-950/30 animate-pulse rounded mx-auto" />
+          </div>
+
+          <div className="text-center">
+            <div className="h-4 w-28 bg-amber-700/30 animate-pulse rounded mx-auto mb-2" />
+            <div className="h-6 w-20 bg-amber-950/30 animate-pulse rounded mx-auto" />
+          </div>
+        </div>
+
+        {/* Decorative corner elements */}
+        <div className="absolute top-2 left-2 w-6 h-6 border-t-2 border-l-2 border-amber-800/40" />
+        <div className="absolute top-2 right-2 w-6 h-6 border-t-2 border-r-2 border-amber-800/40" />
+        <div className="absolute bottom-2 left-2 w-6 h-6 border-b-2 border-l-2 border-amber-800/40" />
+        <div className="absolute bottom-2 right-2 w-6 h-6 border-b-2 border-r-2 border-amber-800/40" />
+      </div>
+    </div>
+  );
+}
+
 export function OpenChallenges() {
   const {
     challenges,
@@ -16,16 +73,14 @@ export function OpenChallenges() {
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    isRefetching,
   } = useChallenges();
 
-  const [isRefetching, setIsRefetching] = useState(false);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const handleRefetch = async () => {
-    setIsRefetching(true);
     await refetch();
-    setIsRefetching(false);
   };
 
   // Format timestamp to a readable date
@@ -90,8 +145,12 @@ export function OpenChallenges() {
       </div>
 
       {isLoading && challenges.length === 0 ? (
-        <div className="flex justify-center py-8">
-          <Loader2 className="h-8 w-8 text-yellow-500 animate-spin" />
+        <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {/* For skeleton loading items, we can safely use fixed keys since they're temporary */}
+          <ChallengeCardSkeleton key="skeleton-1" />
+          <ChallengeCardSkeleton key="skeleton-2" />
+          <ChallengeCardSkeleton key="skeleton-3" />
+          <ChallengeCardSkeleton key="skeleton-4" />
         </div>
       ) : error ? (
         <div className="text-center py-8 text-red-400">
