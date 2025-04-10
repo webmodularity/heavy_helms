@@ -76,11 +76,11 @@ export function RecentBattles() {
             <Clock className="h-4 w-4 mr-1" /> Latest combat logs
           </span>
           <Button
-            variant="outline"
+            // variant="outline"
             size="sm"
             onClick={handleRefetch}
             disabled={isRefetching}
-            className="border-yellow-600/20 hover:bg-yellow-500/10 hover:text-yellow-400 text-stone-400"
+            className="border-yellow-600/20 hover:bg-yellow-500/10 hover:text-yellow-400 text-stone-400 text-yellow-500"
           >
             {isRefetching ? (
               <Loader2 className="h-4 w-4 animate-spin" />
