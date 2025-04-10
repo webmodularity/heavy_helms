@@ -68,27 +68,6 @@ export function Header() {
           whileTap={{ scale: 0.95 }}
           transition={{ type: "spring", stiffness: 400, damping: 17 }}
         >
-          <Link href="/stats">
-            <Button
-              variant="outline"
-              className={`${navButtonBaseClasses} ${
-                isActive("/stats")
-                  ? navButtonActiveClasses
-                  : navButtonInactiveClasses
-              }`}
-              style={{ padding: "" }}
-            >
-              <Scroll className="mr-1.5 h-4 w-4 sm:mr-2 sm:h-5 sm:w-5 transition-transform group-hover:scale-110" />
-              Chronicles of Glory
-            </Button>
-          </Link>
-        </motion.div>
-
-        <motion.div
-          whileHover={{ scale: 1.05, y: -2 }}
-          whileTap={{ scale: 0.95 }}
-          transition={{ type: "spring", stiffness: 400, damping: 17 }}
-        >
           <Link href="/battle-archives">
             <Button
               variant="outline"
@@ -101,6 +80,27 @@ export function Header() {
             >
               <Trophy className="mr-1.5 h-4 w-4 sm:mr-2 sm:h-5 sm:w-5 transition-transform group-hover:scale-110" />
               Battle Archives
+            </Button>
+          </Link>
+        </motion.div>
+
+        <motion.div
+          whileHover={{ scale: 1.05, y: -2 }}
+          whileTap={{ scale: 0.95 }}
+          transition={{ type: "spring", stiffness: 400, damping: 17 }}
+        >
+          <Link href="/stats">
+            <Button
+              variant="outline"
+              className={`${navButtonBaseClasses} ${
+                isActive("/stats")
+                  ? navButtonActiveClasses
+                  : navButtonInactiveClasses
+              }`}
+              style={{ padding: "" }}
+            >
+              <Scroll className="mr-1.5 h-4 w-4 sm:mr-2 sm:h-5 sm:w-5 transition-transform group-hover:scale-110" />
+              Chronicles of Glory
             </Button>
           </Link>
         </motion.div>
