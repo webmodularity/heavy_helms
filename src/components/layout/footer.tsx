@@ -112,13 +112,13 @@ export function Footer() {
                 <div className="w-1.5 h-1.5 rounded-full bg-stone-600/50 mr-2 group-hover:bg-yellow-400 transition-colors"></div>
                 <a
                   href={
-                    "https://sepolia.basescan.org/address/0x442e6C81eEEfA04BE198fc50572CD3332AeEeE42"
+                    "https://sepolia.basescan.org/address/0xB37c539d86e0C627f8AD13E4DddC201cf1d8ea0C"
                   }
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-stone-200 text-sm hover:text-yellow-400 transition-colors flex items-center"
                 >
-                  Game Engine Contract (v0.7)
+                  Game Engine Contract (v0.22)
                   <svg
                     className="w-4 h-4 ml-1 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-yellow-400"
                     viewBox="0 0 24 24"
