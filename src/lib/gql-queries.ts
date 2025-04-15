@@ -378,9 +378,10 @@ export const GET_PLAYER_DUELS = gql`
 
 // Query for all duels (without filtering)
 export const GET_ALL_DUELS = gql`
-  query GetAllDuels($limit: Int = 10) {
+  query GetAllDuels($limit: Int = 1, $skip: Int!) {
     duelCompletes(
       first: $limit, 
+      skip: $skip,
       orderBy: blockNumber, 
       orderDirection: desc
     ) {
@@ -392,15 +393,11 @@ export const GET_ALL_DUELS = gql`
         wagerAmount
         challengerId
         defenderId
-        challenger {
+        challengerSnapshot {
           id
           fullName
         }
-        defender {
-          id
-          fullName
-        }
-        winner {
+        defenderSnapshot {
           id
           fullName
         }
@@ -477,6 +474,21 @@ export const GET_GAME_OWNED_SKIN_COLLECTION = gql`
       }
     }
   }
+`;
+
+export const GET_ALL_OPEN_CHALLENGES = gql`
+  query GetAllOpenChallenges($limit: Int!, $skip: Int!) {
+    duelChallenges(
+      orderBy: createdAt,
+      orderDirection: desc,
+      where: { state: OPEN },
+      first: $limit,
+      skip: $skip
+    ) {
+      ...ChallengeCompleteFields
+    }
+  }
+  ${CHALLENGE_COMPLETE_FRAGMENT}
 `;
 
 export const GET_FIGHTER_CHALLENGES_PAGINATED = `
