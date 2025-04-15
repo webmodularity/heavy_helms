@@ -174,6 +174,11 @@ export function RecentBattles() {
                 ? duel.challenge.defenderSnapshot
                 : duel.challenge.challengerSnapshot;
 
+              const challengerImageUrl =
+                duel.challenge.challengerSnapshot.currentSkin?.imageURL;
+              const defenderImageUrl =
+                duel.challenge.defenderSnapshot.currentSkin?.imageURL;
+
               return (
                 <motion.div
                   key={duel.id}
@@ -192,13 +197,26 @@ export function RecentBattles() {
                         <div
                           className={`h-10 w-10 rounded-full overflow-hidden bg-stone-800 relative ${isChallenger ? "ring-2 ring-green-500" : ""}`}
                         >
+                          {challengerImageUrl ? (
+                            <Image
+                              src={challengerImageUrl}
+                              alt={
+                                duel.challenge.challengerSnapshot.fullName ||
+                                "Challenger"
+                              }
+                              fill
+                              className="object-cover"
+                              sizes="40px" // Provide sizes hint
+                              priority={index < 5} // Prioritize loading images for the first few battles
+                            />
+                          ) : (
+                            <div className="h-full w-full bg-amber-800 flex items-center justify-center text-white font-bold">
+                              {duel.challenge.challengerSnapshot.fullName.charAt(
+                                0,
+                              )}
+                            </div>
+                          )}
                           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-stone-900/60" />
-                          {/* Placeholder for actual images */}
-                          <div className="h-full w-full bg-amber-800 flex items-center justify-center text-white font-bold">
-                            {duel.challenge.challengerSnapshot.fullName.charAt(
-                              0,
-                            )}
-                          </div>
                         </div>
                         <span className="text-xs text-stone-400 mt-1 truncate w-20 text-center">
                           {duel.challenge.challengerSnapshot.fullName}
@@ -216,11 +234,26 @@ export function RecentBattles() {
                         <div
                           className={`h-10 w-10 rounded-full overflow-hidden bg-stone-800 relative ${!isChallenger ? "ring-2 ring-green-500" : ""}`}
                         >
+                          {defenderImageUrl ? (
+                            <Image
+                              src={defenderImageUrl}
+                              alt={
+                                duel.challenge.defenderSnapshot.fullName ||
+                                "Defender"
+                              }
+                              fill
+                              className="object-cover"
+                              sizes="40px" // Provide sizes hint
+                              priority={index < 5} // Prioritize loading images for the first few battles
+                            />
+                          ) : (
+                            <div className="h-full w-full bg-red-900 flex items-center justify-center text-white font-bold">
+                              {duel.challenge.defenderSnapshot.fullName.charAt(
+                                0,
+                              )}
+                            </div>
+                          )}
                           <div className="absolute inset-0 bg-gradient-to-b from-transparent to-stone-900/60" />
-                          {/* Placeholder for actual images */}
-                          <div className="h-full w-full bg-red-900 flex items-center justify-center text-white font-bold">
-                            {duel.challenge.defenderSnapshot.fullName.charAt(0)}
-                          </div>
                         </div>
                         <span className="text-xs text-stone-400 mt-1 truncate w-20 text-center">
                           {duel.challenge.defenderSnapshot.fullName}

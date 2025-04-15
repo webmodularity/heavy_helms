@@ -5,6 +5,7 @@ export const PLAYER_DATA_FRAGMENT = gql`
     id
     firstName
     surname
+    fullName
     currentSkin {
       collection {
         id
@@ -17,7 +18,6 @@ export const PLAYER_DATA_FRAGMENT = gql`
       metadataURI
       weapon
       armor
-  
     }
     stance
     strength
@@ -304,6 +304,7 @@ export const GET_COMBAT_RESULT = gql`
       winningPlayerId
       packedResults
       blockTimestamp
+      blockNumber
     }
   }
 `;
@@ -340,49 +341,13 @@ export const GET_SKIN_BY_INDICES = gql`
   }
 `;
 
-// Query for a specific player's duels
-export const GET_PLAYER_DUELS = gql`
-  query GetPlayerDuels($limit: Int = 10, $skip: Int!, $playerId: ID!) {
+// Query for all duels (without filtering)
+export const GET_ALL_DUELS = gql`
+  query GetAllDuels($limit: Int!, $skip: Int!) {
     duelCompletes(
       first: $limit,
       skip: $skip,
-      orderBy: blockNumber, 
-      orderDirection: desc,
-      where: {
-        or: [
-          { challenge_: { challengerId: $playerId } },
-          { challenge_: { defenderId: $playerId } }
-        ]
-      }
-    ) {
-      id
-      blockNumber
-      blockTimestamp
-      winnerId
-      challenge {
-        wagerAmount
-        challengerId
-        defenderId
-        challengerSnapshot {
-          id
-          fullName
-        }
-        defenderSnapshot {
-          id
-          fullName
-        }
-      }
-    }
-  }
-`;
-
-// Query for all duels (without filtering)
-export const GET_ALL_DUELS = gql`
-  query GetAllDuels($limit: Int = 1, $skip: Int!) {
-    duelCompletes(
-      first: $limit, 
-      skip: $skip,
-      orderBy: blockNumber, 
+      orderBy: blockTimestamp,
       orderDirection: desc
     ) {
       id
@@ -395,11 +360,131 @@ export const GET_ALL_DUELS = gql`
         defenderId
         challengerSnapshot {
           id
+          firstName
+          surname
           fullName
+          currentSkin {
+            collection { id contractAddress isVerified skinType requiredNFTAddress }
+            tokenId
+            metadataURI
+            weapon
+            armor
+          }
+          stance
+          strength
+          constitution
+          size
+          agility
+          stamina
+          luck
+          wins
+          losses
+          kills
+          isRetired
+          isImmortal
         }
         defenderSnapshot {
           id
+          firstName
+          surname
           fullName
+          currentSkin {
+            collection { id contractAddress isVerified skinType requiredNFTAddress }
+            tokenId
+            metadataURI
+            weapon
+            armor
+          }
+          stance
+          strength
+          constitution
+          size
+          agility
+          stamina
+          luck
+          wins
+          losses
+          kills
+          isRetired
+          isImmortal
+        }
+      }
+    }
+  }
+  ${PLAYER_DATA_FRAGMENT}
+`;
+
+export const GET_PLAYER_DUELS = gql`
+  query GetPlayerDuels($limit: Int!, $skip: Int!, $playerId: ID!) {
+     duelCompletes(
+      where: {
+        or: [
+          { challengerId: $playerId },
+          { defenderId: $playerId }
+        ]
+      },
+      first: $limit,
+      skip: $skip,
+      orderBy: blockTimestamp,
+      orderDirection: desc
+    ) {
+      id
+      blockNumber
+      blockTimestamp
+      winnerId
+      challenge {
+        wagerAmount
+        challengerId
+        defenderId
+        challengerSnapshot {
+          id
+          firstName
+          surname
+          fullName
+          currentSkin {
+            collection { id contractAddress isVerified skinType requiredNFTAddress }
+            tokenId
+            metadataURI
+            weapon
+            armor
+          }
+          stance
+          strength
+          constitution
+          size
+          agility
+          stamina
+          luck
+          wins
+          losses
+          kills
+          isRetired
+          isImmortal
+        }
+        defenderSnapshot {
+          id
+          firstName
+          surname
+          fullName
+          currentSkin {
+            collection { id contractAddress isVerified skinType requiredNFTAddress }
+            tokenId
+            metadataURI
+            weapon
+            armor
+          }
+          stance
+          strength
+          constitution
+          size
+          agility
+          stamina
+          luck
+          wins
+          losses
+          kills
+          isRetired
+          isImmortal
         }
       }
     }
@@ -551,4 +636,40 @@ export const GET_USER_CHALLENGES_PAGINATED = `
     }
   }
   ${CHALLENGE_COMPLETE_FRAGMENT}
+`;
+
+// Fighter snapshot fragment needed for challenge display
+export const CHALLENGE_FIGHTER_SNAPSHOT_FRAGMENT = gql`
+  fragment ChallengeFighterSnapshotFields on PlayerSnapshot {
+     id
+     # No need for full PlayerDataFields, just name and maybe ID
+     fullName
+  }
+`;
+
+export const GET_OPEN_WAGER_CHALLENGES = gql`
+  query GetOpenWagerChallenges($limit: Int!, $skip: Int!) {
+    duelChallenges(
+      first: $limit,
+      skip: $skip,
+      orderBy: createdAt,
+      orderDirection: desc,
+      where: {
+        state: OPEN,
+        wagerAmount_gt: "0" # Filter for wagers greater than 0
+      }
+    ) {
+      id
+      wagerAmount
+      createdAt # Timestamp for sorting and display
+      # Fetch snapshots directly with necessary fields
+      challengerSnapshot {
+       ...ChallengeFighterSnapshotFields
+      }
+      defenderSnapshot {
+       ...ChallengeFighterSnapshotFields
+      }
+    }
+  }
+  ${CHALLENGE_FIGHTER_SNAPSHOT_FRAGMENT} # Include the necessary fragment
 `;

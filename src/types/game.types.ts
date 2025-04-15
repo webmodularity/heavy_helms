@@ -65,6 +65,7 @@ export interface RawCombatResult {
   winningPlayerId: string;
   packedResults: string; // Encoded combat log
   blockTimestamp: string;
+  blockNumber: string;
   transactionHash: string;
 }
 
@@ -80,10 +81,16 @@ export interface Duel {
     challengerSnapshot: {
       fighterId: string;
       fullName: string;
+      currentSkin: {
+        imageURL: string;
+      };
     };
     defenderSnapshot: {
       fighterId: string;
       fullName: string;
+      currentSkin: {
+        imageURL: string;
+      };
     };
   };
 }

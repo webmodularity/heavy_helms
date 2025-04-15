@@ -60,7 +60,7 @@ export class CombatService {
         decodedCombatBytes,
         player1,
         player2,
-        blockNumber: combatResult.blockTimestamp,
+        blockNumber: combatResult.blockNumber,
       };
     } catch (error) {
       console.error("Error loading combat result:", error);
