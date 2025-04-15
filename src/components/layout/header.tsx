@@ -5,31 +5,75 @@ import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { ChainSelection } from "./chain-selection";
 import Link from "next/link";
-import { Trophy, Scroll, Shield } from "lucide-react";
+import { Trophy, Scroll, Shield, ListOrdered, Menu } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { motion } from "framer-motion";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import type React from "react";
+
+// Define the structure for a navigation item
+interface NavItem {
+  label: string;
+  path: string;
+  icon: React.ElementType;
+}
+
+// Navigation configuration array
+const navigationItems: NavItem[] = [
+  { label: "Warrior's Hall", path: "/", icon: Shield },
+  { label: "Battle Archives", path: "/battle-archives", icon: Trophy },
+  { label: "Leaderboards", path: "/leaderboards", icon: ListOrdered },
+  { label: "Game Statistics", path: "/stats", icon: Scroll },
+];
 
 export function Header() {
   const pathname = usePathname();
-
   const isActive = (href: string) => pathname === href;
-
-  const navButtonBaseClasses =
-    "group border-2 transition-all duration-200 ease-in-out shadow-md hover:shadow-lg backdrop-blur-sm px-4 py-1 sm:px-6 sm:py-2 text-sm sm:text-base font-semibold tracking-wide flex items-center justify-center rounded-lg";
-
-  const navButtonInactiveClasses =
-    "bg-stone-800/80 border-yellow-700/60 text-yellow-300 hover:bg-yellow-600 hover:text-stone-900 hover:border-yellow-500";
-
-  const navButtonActiveClasses =
-    "bg-yellow-600 border-yellow-400 text-stone-900 shadow-lg scale-105";
 
   return (
     <header className="relative w-full flex flex-col items-center py-2 sm:py-4">
-      <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-50 flex justify-end gap-2 items-center">
+      {/* Top right corner group */}
+      <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-50 flex items-center gap-2">
         <AuthButton />
         <ChainSelection />
+
+        {/* Navigation Dropdown Menu */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            {/* Reverted Button Style */}
+            <Button
+              variant="outline"
+              size="icon"
+              className="border-yellow-700/60 bg-stone-800/80 hover:bg-yellow-600/20"
+            >
+              <Menu className="h-5 w-5 text-yellow-300" />
+              <span className="sr-only">Toggle Menu</span>{" "}
+              {/* Keep accessibility */}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent
+            align="end"
+            className="w-56 bg-stone-900/95 border-yellow-600/30 text-stone-200 mr-2 backdrop-blur-sm"
+          >
+            {navigationItems.map((item) => (
+              <Link key={item.path} href={item.path} passHref>
+                <DropdownMenuItem
+                  className={`cursor-pointer focus:bg-yellow-600/20 focus:text-yellow-300 ${isActive(item.path) ? "bg-yellow-700/30 text-yellow-400" : "hover:bg-stone-800"}`}
+                >
+                  <item.icon className="mr-2 h-4 w-4" />
+                  <span>{item.label}</span>
+                </DropdownMenuItem>
+              </Link>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
 
+      {/* Header Image */}
       <div className="w-full max-w-[600px] md:max-w-[800px] px-4">
         <Image
           src="/heavy_helms_header_drop_shadow.png"
@@ -40,71 +84,7 @@ export function Header() {
           priority
         />
       </div>
-
-      <nav className="mt-2 sm:mt-4 flex flex-wrap justify-center items-center gap-2 sm:gap-4 px-2">
-        <motion.div
-          whileHover={{ scale: 1.05, y: -2 }}
-          whileTap={{ scale: 0.95 }}
-          transition={{ type: "spring", stiffness: 400, damping: 17 }}
-        >
-          <Link href="/">
-            <Button
-              variant="outline"
-              className={`${navButtonBaseClasses} ${
-                isActive("/")
-                  ? navButtonActiveClasses
-                  : navButtonInactiveClasses
-              }`}
-              style={{ padding: "" }}
-            >
-              <Shield className="mr-1.5 h-4 w-4 sm:mr-2 sm:h-5 sm:w-5 transition-transform group-hover:scale-110" />
-              Warrior's Hall
-            </Button>
-          </Link>
-        </motion.div>
-
-        <motion.div
-          whileHover={{ scale: 1.05, y: -2 }}
-          whileTap={{ scale: 0.95 }}
-          transition={{ type: "spring", stiffness: 400, damping: 17 }}
-        >
-          <Link href="/battle-archives">
-            <Button
-              variant="outline"
-              className={`${navButtonBaseClasses} ${
-                isActive("/battle-archives")
-                  ? navButtonActiveClasses
-                  : navButtonInactiveClasses
-              }`}
-              style={{ padding: "" }}
-            >
-              <Trophy className="mr-1.5 h-4 w-4 sm:mr-2 sm:h-5 sm:w-5 transition-transform group-hover:scale-110" />
-              Battle Archives
-            </Button>
-          </Link>
-        </motion.div>
-
-        <motion.div
-          whileHover={{ scale: 1.05, y: -2 }}
-          whileTap={{ scale: 0.95 }}
-          transition={{ type: "spring", stiffness: 400, damping: 17 }}
-        >
-          <Link href="/stats">
-            <Button
-              variant="outline"
-              className={`${navButtonBaseClasses} ${
-                isActive("/stats")
-                  ? navButtonActiveClasses
-                  : navButtonInactiveClasses
-              }`}
-              style={{ padding: "" }}
-            >
-              <Scroll className="mr-1.5 h-4 w-4 sm:mr-2 sm:h-5 sm:w-5 transition-transform group-hover:scale-110" />
-              Chronicles of Glory
-            </Button>
-          </Link>
-        </motion.div>
-      </nav>
+      {/* Old nav is removed */}
     </header>
   );
 }

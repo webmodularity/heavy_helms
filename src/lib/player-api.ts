@@ -10,10 +10,7 @@ import {
 } from "./gql-queries";
 import type {
   RawPlayerData,
-  // Player,
   PlayerName,
-  PlayerAttributes,
-  PlayerRecord,
   DefaultPlayer,
   Player,
 } from "@/types/player.types";

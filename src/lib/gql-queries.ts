@@ -29,8 +29,14 @@ export const PLAYER_DATA_FRAGMENT = gql`
     wins
     losses
     kills
+    uniqueWins
+    uniqueLosses
+    battleRating
     isRetired
     isImmortal
+    owner {
+      address
+    }
   }
 `;
 
@@ -419,8 +425,8 @@ export const GET_PLAYER_DUELS = gql`
      duelCompletes(
       where: {
         or: [
-          { challengerId: $playerId },
-          { defenderId: $playerId }
+          { challenge_: { challengerId: $playerId } }, 
+          { challenge_: { defenderId: $playerId } }
         ]
       },
       first: $limit,
@@ -672,4 +678,22 @@ export const GET_OPEN_WAGER_CHALLENGES = gql`
     }
   }
   ${CHALLENGE_FIGHTER_SNAPSHOT_FRAGMENT} # Include the necessary fragment
+`;
+
+// New query for leaderboard data
+export const GET_LEADERBOARD_PLAYERS = gql`
+  query GetLeaderboardPlayers($limit: Int = 100, $skip: Int = 0) {
+    players(
+      first: $limit, 
+      skip: $skip, 
+      where: { isRetired: false }, 
+      orderBy: battleRating, 
+      orderDirection: desc
+      # Secondary sort by wins requires handling post-fetch or a more complex GQL setup if supported
+      # For now, primary sort by battleRating. We can add wins sort in the frontend hook.
+    ) {
+      ...PlayerDataFields
+    }
+  }
+  ${PLAYER_DATA_FRAGMENT}
 `;
