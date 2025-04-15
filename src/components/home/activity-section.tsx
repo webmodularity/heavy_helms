@@ -145,15 +145,13 @@ function RecentBattles({
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    isRefetching,
   } = useRecentDuels(selectedCharacter?.id || "");
-  const [isRefetching, setIsRefetching] = useState(false);
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const handleRefetch = async () => {
-    setIsRefetching(true);
     await refetch();
-    setIsRefetching(false);
   };
 
   useEffect(() => {
@@ -347,6 +345,7 @@ function ActiveChallenges({
     fetchNextPage,
     hasNextPage,
     isFetchingNextPage,
+    isRefetching,
   } = useChallenges(selectedCharacter?.id || "");
 
   const { cancelChallenge, isCancellingChallenge } = useCancelChallenge();
@@ -357,15 +356,12 @@ function ActiveChallenges({
   const [processingChallengeId, setProcessingChallengeId] = useState<
     bigint | null
   >(null);
-  const [isRefetching, setIsRefetching] = useState(false);
 
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
   const handleRefetch = async () => {
-    setIsRefetching(true);
     await refetch();
-    setIsRefetching(false);
   };
 
   // Filter challenges for the current character

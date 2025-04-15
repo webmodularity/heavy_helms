@@ -309,10 +309,9 @@ export class PlayerStatsDisplay {
 
       this.textElements.push(labelText, valueText);
 
-      // Store references (remains the same)
-      // IMPORTANT: Update labels if you changed them in the previous step
+      // Store references
       if (label === "Health") this.healthText = valueText;
-      if (label === "Stamina") this.staminaText = valueText;
+      if (label === "Energy") this.staminaText = valueText;
 
       // Increment Y position (remains the same)
       const lineCount = lines.length;
@@ -359,6 +358,7 @@ export class PlayerStatsDisplay {
     addTextRow("Str", player.attributes.strength || 0);
     addTextRow("Con", player.attributes.constitution || 0);
     addTextRow("Size", player.attributes.size || 0);
+    addTextRow("Stam", player.attributes.stamina || 0);
     addTextRow("Agi", player.attributes.agility || 0);
     addTextRow("Luck", player.attributes.luck || 0);
     currentY += spacing / 2;
@@ -371,7 +371,7 @@ export class PlayerStatsDisplay {
     const maxEndurance = player.calculatedStats?.maxEndurance ?? 100;
 
     addTextRow("Health", `${Math.floor(currentHealth)}/${maxHealth}`);
-    addTextRow("Stamina", `${Math.floor(currentEndurance)}/${maxEndurance}`);
+    addTextRow("Energy", `${Math.floor(currentEndurance)}/${maxEndurance}`);
     currentY += spacing / 2;
 
     // Reputation section

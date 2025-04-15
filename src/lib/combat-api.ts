@@ -11,7 +11,9 @@ const DUEL_GAME_CONTRACT_ADDRESS = process.env
   .NEXT_PUBLIC_DUEL_GAME_CONTRACT_ADDRESS as `0x${string}`;
 
 // CombatResult event ABI and selector
-const combatResultEvent = parseAbiItem('event CombatResult(bytes32 indexed player1Data, bytes32 indexed player2Data, uint32 indexed winningPlayerId, bytes packedResults)');
+const combatResultEvent = parseAbiItem(
+  "event CombatResult(bytes32 indexed player1Data, bytes32 indexed player2Data, uint32 indexed winningPlayerId, bytes packedResults)",
+);
 const combatResultSelector = toEventSelector(combatResultEvent);
 
 // Simple in-memory cache to avoid repeated blockchain calls
@@ -44,15 +46,17 @@ export async function fetchRawCombatResultByTx(
       return response.combatResult;
     }
 
-    console.log("Combat result not found in subgraph, falling back to blockchain...");
-    
+    console.log(
+      "Combat result not found in subgraph, falling back to blockchain...",
+    );
+
     // If not found in subgraph, fallback to blockchain
     const blockchainResult = await fetchCombatResultFromBlockchain(txHash);
     combatResultCache.set(txHash, blockchainResult);
     return blockchainResult;
   } catch (error) {
     console.error("Error fetching raw combat result from subgraph:", error);
-    
+
     // Try blockchain fallback on any error from subgraph
     try {
       console.log("Falling back to blockchain due to subgraph error...");
@@ -69,26 +73,30 @@ export async function fetchRawCombatResultByTx(
 /**
  * Fallback function to get combat result directly from blockchain events
  */
-async function fetchCombatResultFromBlockchain(txHash: string): Promise<RawCombatResult> {
+async function fetchCombatResultFromBlockchain(
+  txHash: string,
+): Promise<RawCombatResult> {
   try {
     // Get transaction receipt to find events
     const receipt = await viemClient.getTransactionReceipt({
       hash: txHash as `0x${string}`,
     });
-    
+
     // Find CombatResult event in the logs
-    const combatResultLogs = receipt.logs.filter(log => 
-      log.address.toLowerCase() === DUEL_GAME_CONTRACT_ADDRESS.toLowerCase() &&
-      log.topics[0] === combatResultSelector
+    const combatResultLogs = receipt.logs.filter(
+      (log) =>
+        log.address.toLowerCase() ===
+          DUEL_GAME_CONTRACT_ADDRESS.toLowerCase() &&
+        log.topics[0] === combatResultSelector,
     );
-    
+
     if (combatResultLogs.length === 0) {
       // More specific error
       throw new Error(
-        `CombatResult event not found in transaction ${txHash}. This may indicate the transaction is still pending or hasn't emitted the expected event.`
+        `CombatResult event not found in transaction ${txHash}. This may indicate the transaction is still pending or hasn't emitted the expected event.`,
       );
     }
-    
+
     // Parse the CombatResult event using the standalone decodeEventLog function
     const log = combatResultLogs[0];
     const decoded = decodeEventLog({
@@ -97,12 +105,12 @@ async function fetchCombatResultFromBlockchain(txHash: string): Promise<RawComba
       // biome-ignore lint/suspicious/noExplicitAny: <explanation>
       topics: log.topics as any, // Type coercion may be needed
     });
-    
+
     // Get transaction block data to get timestamp
     const block = await viemClient.getBlock({
       blockHash: receipt.blockHash,
     });
-    
+
     // Format the result to match RawCombatResult
     const result: RawCombatResult = {
       id: txHash, // Use txHash as ID (same as subgraph)
@@ -111,9 +119,10 @@ async function fetchCombatResultFromBlockchain(txHash: string): Promise<RawComba
       winningPlayerId: decoded.args.winningPlayerId.toString(),
       packedResults: decoded.args.packedResults,
       blockTimestamp: String(Number(block.timestamp)), // Convert to string to match subgraph format
+      blockNumber: String(block.number),
       transactionHash: txHash,
     };
-    
+
     return result;
   } catch (error) {
     if (error instanceof Error) {

@@ -6,8 +6,7 @@ import type { Metadata, Viewport } from "next/types";
 import localFont from "next/font/local";
 import Image from "next/image";
 import { Toaster } from "sonner";
-import { ConditionalBackButtonWrapper } from '@/components/layout/conditional-back-button-wrapper';
-import { cn } from '@/lib/utils';
+import { ConditionalBackButtonWrapper } from "@/components/layout/conditional-back-button-wrapper";
 
 // Load Bokor font from the public directory
 const bokor = localFont({
