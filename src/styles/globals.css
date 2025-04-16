@@ -184,5 +184,24 @@ button {
   }
   body {
     @apply bg-background text-foreground;
+    /* Default font applied via className in layout.tsx */
   }
+  /* Keep this override attempt */
+  button,
+  [type="button"],
+  [type="reset"],
+  [type="submit"] {
+    font-family: inherit;
+  }
+}
+
+/* FONT UTILITIES */
+@layer utilities {
+  .font-heading {
+    font-family: var(--font-cormorant-unicase), serif !important; /* Add !important */
+  }
+  .font-bokor {
+    font-family: var(--font-bokor), sans-serif !important; /* Add !important */
+  }
+  /* You can add other custom utilities here if needed */
 }

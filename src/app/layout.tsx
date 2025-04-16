@@ -4,16 +4,33 @@ import { Header } from "@/components/layout/header";
 import Providers from "@/providers";
 import type { Metadata, Viewport } from "next/types";
 import localFont from "next/font/local";
+import { Cinzel, Cormorant_Unicase } from "next/font/google";
 import Image from "next/image";
 import { Toaster } from "sonner";
 import { ConditionalBackButtonWrapper } from "@/components/layout/conditional-back-button-wrapper";
 
-// Load Bokor font from the public directory
+// Load Bokor
 const bokor = localFont({
   src: "../../public/fonts/Bokor-Regular.ttf",
   weight: "400",
   display: "swap",
   variable: "--font-bokor",
+});
+
+// Load Cinzel (will be default body)
+const cinzel = Cinzel({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  display: "swap",
+  variable: "--font-cinzel",
+});
+
+// Load Cormorant Unicase (for headings)
+const cormorantUnicase = Cormorant_Unicase({
+  subsets: ["latin"],
+  weight: ["400", "700"],
+  display: "swap",
+  variable: "--font-cormorant-unicase",
 });
 
 export const metadata: Metadata = {
@@ -39,7 +56,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={`${bokor.className} min-h-screen flex flex-col`}>
+      <body
+        className={`${cinzel.variable} ${bokor.variable} ${cormorantUnicase.variable} ${cinzel.className} min-h-screen flex flex-col`}
+      >
         {/* Background with reduced opacity */}
         <div className="fixed inset-0 -z-1">
           <Image

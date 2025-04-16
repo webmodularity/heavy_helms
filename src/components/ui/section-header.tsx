@@ -11,11 +11,7 @@ interface SectionHeaderProps {
 export function SectionHeader({ title, subtitle, icon }: SectionHeaderProps) {
   return (
     <div className="text-center mb-8">
-      {icon && (
-        <div className="flex justify-center mb-2">
-          {icon}
-        </div>
-      )}
+      {icon && <div className="flex justify-center mb-2">{icon}</div>}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}

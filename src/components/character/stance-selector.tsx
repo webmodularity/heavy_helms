@@ -110,7 +110,7 @@ export function StanceSelector({
             >
               <div className="flex flex-col items-center gap-1 py-2 relative z-10">
                 <span className="text-yellow-400">{info.icon}</span>
-                <span className="text-xs font-medium text-zinc-200">
+                <span className="text-xs font-medium text-zinc-200 font-bokor">
                   {info.label}
                 </span>
               </div>

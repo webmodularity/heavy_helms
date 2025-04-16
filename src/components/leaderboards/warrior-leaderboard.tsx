@@ -24,99 +24,8 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-
-// Mock data for development
-const mockFighters: Fighter[] = [
-  {
-    id: "1",
-    fullName: "Sir Galahad",
-    wins: 42,
-    losses: 5,
-    weapon: "Greatsword",
-    armor: "Plate",
-  },
-  {
-    id: "2",
-    fullName: "The Mountain",
-    wins: 38,
-    losses: 2,
-    weapon: "Mace and Shield",
-    armor: "Plate",
-  },
-  {
-    id: "3",
-    fullName: "Lady Brienne",
-    wins: 35,
-    losses: 7,
-    weapon: "Sword and Shield",
-    armor: "Chain",
-  },
-  {
-    id: "4",
-    fullName: "Ser Arthur",
-    wins: 29,
-    losses: 8,
-    weapon: "Greatsword",
-    armor: "Plate",
-  },
-  {
-    id: "5",
-    fullName: "Lord Stark",
-    wins: 27,
-    losses: 11,
-    weapon: "Greatsword",
-    armor: "Leather",
-  },
-  {
-    id: "6",
-    fullName: "The Hound",
-    wins: 24,
-    losses: 9,
-    weapon: "Battleaxe",
-    armor: "Chain",
-  },
-  {
-    id: "7",
-    fullName: "Dread Knight",
-    wins: 22,
-    losses: 15,
-    weapon: "Mace and Shield",
-    armor: "Plate",
-  },
-  {
-    id: "8",
-    fullName: "Sir Jaime",
-    wins: 18,
-    losses: 12,
-    weapon: "Sword and Shield",
-    armor: "Plate",
-  },
-  {
-    id: "9",
-    fullName: "Ragged Warrior",
-    wins: 16,
-    losses: 20,
-    weapon: "Spear",
-    armor: "Leather",
-  },
-  {
-    id: "10",
-    fullName: "Queen Cersei",
-    wins: 12,
-    losses: 25,
-    weapon: "Rapier and Shield",
-    armor: "Cloth",
-  },
-];
-
-interface Fighter {
-  id: string;
-  fullName: string;
-  wins: number;
-  losses: number;
-  weapon: string;
-  armor: string;
-}
+import { useRouter } from "next/navigation";
+import { EnsNameDisplay } from "@/components/ui/ens-name-display";
 
 // Helper function to format Battle Rating as integer
 function formatBattleRating(rating: number): string {
@@ -126,6 +35,7 @@ function formatBattleRating(rating: number): string {
 }
 
 export function WarriorLeaderboard() {
+  const router = useRouter();
   // Fetch top 20 players
   const { players, isLoading, error, refetch, isRefetching } =
     useLeaderboardData(20); // Limit changed to 20
@@ -189,13 +99,18 @@ export function WarriorLeaderboard() {
               Rank
             </TableHead>
             <TableHead className="text-yellow-500">Warrior</TableHead>
-            {/* Moved Battle Rating Header */}
+            <TableHead className="hidden md:table-cell w-24 text-center text-yellow-500">
+              ID
+            </TableHead>
             <TableHead className="w-24 text-center text-yellow-500">
               Battle Rating
             </TableHead>
             <TableHead className="text-center text-yellow-500">Wins</TableHead>
             <TableHead className="text-center text-yellow-500">
               Losses
+            </TableHead>
+            <TableHead className="hidden lg:table-cell text-center text-yellow-500">
+              Owner
             </TableHead>
           </TableRow>
         </TableHeader>
@@ -210,7 +125,9 @@ export function WarriorLeaderboard() {
               <TableCell>
                 <Skeleton className="h-4 w-3/4" />
               </TableCell>
-              {/* Moved Battle Rating Cell Skeleton */}
+              <TableCell className="hidden md:table-cell text-center">
+                <Skeleton className="h-4 w-16 mx-auto" />
+              </TableCell>
               <TableCell className="text-center">
                 <Skeleton className="h-4 w-12 mx-auto" />
               </TableCell>
@@ -219,6 +136,10 @@ export function WarriorLeaderboard() {
               </TableCell>
               <TableCell className="text-center">
                 <Skeleton className="h-4 w-6 mx-auto" />
+              </TableCell>
+              <TableCell className="hidden lg:table-cell text-center">
+                <Skeleton className="h-4 w-20 mx-auto" />{" "}
+                {/* Slightly smaller skeleton for abbreviated address */}
               </TableCell>
             </TableRow>
           ))}
@@ -243,6 +164,18 @@ export function WarriorLeaderboard() {
   // Split data once loaded
   const topThree = players?.slice(0, 3) || [];
   const restOfPlayers = players?.slice(3) || []; // Will contain up to 17 players
+
+  // Function to handle row click
+  const handleRowClick = (playerId: string) => {
+    router.push(`/character/${playerId}`);
+  };
+
+  // --- Click handler for Top 3 cards ---
+  const handleCardClick = (playerId: string | undefined) => {
+    if (playerId) {
+      router.push(`/character/${playerId}`);
+    }
+  };
 
   return (
     <div className="bg-stone-900 border border-yellow-600/20 rounded-lg overflow-hidden h-full">
@@ -295,13 +228,14 @@ export function WarriorLeaderboard() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.2 }}
+                  onClick={() => handleCardClick(player.id)}
                   className={`relative p-4 w-full sm:w-1/3 ${
                     index === 0
                       ? "bg-gradient-to-b from-amber-900/30 to-stone-900 border-2 border-yellow-600/40 order-2 sm:order-2"
                       : index === 1
                         ? "bg-gradient-to-b from-slate-800/30 to-stone-900 border border-slate-400/30 order-1 sm:order-1"
                         : "bg-gradient-to-b from-amber-800/20 to-stone-900 border border-amber-700/30 order-3 sm:order-3"
-                  } rounded-lg shadow-lg flex flex-col min-h-[160px]`}
+                  } rounded-lg shadow-lg flex flex-col min-h-[180px] cursor-pointer group`}
                 >
                   {renderRankBadge(index + 1)}
                   <div className="text-center flex-grow">
@@ -315,17 +249,27 @@ export function WarriorLeaderboard() {
                           ? "Runner-up"
                           : "Third Place"}
                     </div>
-                    {/* Name */}
-                    <div className="text-stone-200 font-bold">
-                      {player.fullName}
+                    {/* Name with ID */}
+                    <div className="text-stone-200 font-bold group-hover:text-yellow-400 transition-colors">
+                      {player.fullName}{" "}
+                      <span className="text-stone-400 text-sm font-normal">
+                        ({player.id})
+                      </span>
+                    </div>
+                    {/* Owner ENS/Address */}
+                    <div className="mt-1 text-xs h-4">
+                      <EnsNameDisplay
+                        address={
+                          player.owner?.address as `0x${string}` | undefined
+                        }
+                      />
                     </div>
                     {/* Battle Rating (Integer) */}
                     <div
-                      className={`inline-flex items-center gap-1 mt-2 font-bold ${index === 0 ? "text-yellow-500" : index === 1 ? "text-slate-400" : "text-amber-800"}`}
+                      className={`inline-flex items-center gap-1 mt-3 font-bold ${index === 0 ? "text-yellow-500" : index === 1 ? "text-slate-400" : "text-amber-800"}`}
                     >
                       <BadgeCheck className="h-4 w-4" />
                       <span>
-                        {/* Use updated formatting function */}
                         {formatBattleRating(player.battleRating)} Battle Rating
                       </span>
                     </div>
@@ -352,7 +296,9 @@ export function WarriorLeaderboard() {
                     Rank
                   </TableHead>
                   <TableHead className="text-yellow-500">Warrior</TableHead>
-                  {/* Moved Battle Rating Header */}
+                  <TableHead className="hidden md:table-cell w-24 text-center text-yellow-500">
+                    ID
+                  </TableHead>
                   <TableHead className="w-24 text-center text-yellow-500">
                     Battle Rating
                   </TableHead>
@@ -362,30 +308,49 @@ export function WarriorLeaderboard() {
                   <TableHead className="text-center text-yellow-500">
                     Losses
                   </TableHead>
+                  <TableHead className="hidden lg:table-cell text-center text-yellow-500">
+                    Owner
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {restOfPlayers.map((player, index) => (
                   <TableRow
                     key={player.id}
-                    className="hover:bg-amber-950/20 group"
+                    className="hover:bg-amber-950/20 group cursor-pointer"
+                    onClick={() => handleRowClick(player.id)}
                   >
                     <TableCell className="text-center font-semibold text-stone-500">
-                      {index + 4} {/* Rank starts from 4 */}
+                      {index + 4}
                     </TableCell>
-                    <TableCell className="font-medium text-stone-300">
+                    <TableCell className="font-medium text-stone-300 group-hover:text-yellow-400 transition-colors">
                       {player.fullName}
                     </TableCell>
-                    {/* Moved Battle Rating Cell (Integer) */}
-                    <TableCell className="text-center text-stone-400 font-mono">
-                      {/* Use updated formatting function */}
+                    {/* ID Cell */}
+                    <TableCell className="hidden md:table-cell text-center text-stone-400 font-mono text-xs">
+                      {player.id}
+                    </TableCell>
+                    {/* Battle Rating Cell - Highlighted */}
+                    <TableCell className="text-center text-yellow-400 font-mono font-semibold">
+                      {" "}
+                      {/* Changed color and added font-semibold */}
                       {formatBattleRating(player.battleRating)}
                     </TableCell>
+                    {/* Wins Cell */}
                     <TableCell className="text-center text-green-500 font-bold">
                       {player.wins}
                     </TableCell>
+                    {/* Losses Cell */}
                     <TableCell className="text-center text-red-500">
                       {player.losses}
+                    </TableCell>
+                    {/* Owner Cell - Use EnsNameDisplay */}
+                    <TableCell className="hidden lg:table-cell text-center">
+                      <EnsNameDisplay
+                        address={
+                          player.owner?.address as `0x${string}` | undefined
+                        }
+                      />
                     </TableCell>
                   </TableRow>
                 ))}
