@@ -7,6 +7,9 @@ import type { GameModeStrategy } from "../strategies/GameModeStrategy";
 import { AssetManager } from "../services/AssetManager";
 import { LoadingUI } from "../ui/LoadingUI";
 
+// Define the event name (must match React component)
+const DUEL_DATA_LOADED = "duel-data-loaded";
+
 export class Preloader extends Scene {
   // Player data
   private player1: Fighter;
@@ -117,8 +120,16 @@ export class Preloader extends Scene {
         this.loadingUI.startStage("finalizing");
         this.events.emit("status-update", "Finalizing...");
 
+        // Emit the data needed by the React UI before starting the next scene
+        console.log("Preloader EventBus instance:", EventBus); 
+        console.log("Phaser emitting DUEL_DATA_LOADED");
+        EventBus.emit(DUEL_DATA_LOADED, {
+          player1: this.player1,
+          player2: this.player2,
+          decodedCombatBytes: this.decodedCombatBytes,
+        });
+
         // Simulate a small delay for final preparations
-        // This prevents the jarring transition if everything loads instantly
         setTimeout(() => {
           // Complete the finalizing stage
           this.loadingUI.completeStage();

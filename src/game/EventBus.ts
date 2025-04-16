@@ -4,6 +4,9 @@ import { Events } from "phaser";
 // https://newdocs.phaser.io/docs/3.70.0/Phaser.Events.EventEmitter
 export const EventBus = new Events.EventEmitter();
 
+// Add this log
+console.log("EventBus initialized:", EventBus);
+
 // Event types
 export enum GameEvents {
   CURRENT_SCENE_READY = "current-scene-ready",

@@ -19,6 +19,9 @@ interface TextStyles {
   metalGradient: Phaser.GameObjects.Text;
 }
 
+// Define the event name (must match React component)
+const GAME_OVER_EVENT = "game-over";
+
 export class FightScene extends Scene {
   // Scene data
   private player1: Fighter;
@@ -1090,7 +1093,12 @@ export class FightScene extends Scene {
 
   completeSequence(isLastAction: boolean): void {
     if (isLastAction) {
-      this.events.emit("fightComplete");
+      // Ensure health bars reflect the final state before triggering victory
+      this.healthManager.updateBars();
+      this.refreshPlayerStats(false); // Update stats display too
+      this.time.delayedCall(500, () => { // Small delay for visual sync
+        this.events.emit("fightComplete"); // Trigger internal victory handling
+      });
     } else {
       this.events.emit("sequenceComplete", isLastAction);
     }
@@ -1136,12 +1144,34 @@ export class FightScene extends Scene {
     const p1Id = Number(this.player1.id);
     const p2Id = Number(this.player2.id);
 
+    let didSomeoneWin = false;
     if (winnerId === p1Id) {
       this.playVictorySequence(player1, player2);
+      didSomeoneWin = true;
     } else if (winnerId === p2Id) {
       this.playVictorySequence(player2, player1, true);
+      didSomeoneWin = true;
     } else {
-      console.error("Invalid winner ID:", winner);
+      // Handle Draw/Exhaustion case where there might not be a winner ID
+      // Or if winner ID is somehow invalid
+      console.warn("No clear winner or invalid winner ID:", winner);
+      // If it's a draw, perhaps play a specific animation or just end
+      // For now, we'll just emit GAME_OVER_EVENT after a delay
+       this.time.delayedCall(this.VICTORY_DELAY, () => {
+         // Add these logs
+         console.log("FightScene EventBus instance (Draw/No Winner):", EventBus);
+         console.log("Phaser emitting GAME_OVER_EVENT (Draw/No Winner)");
+         EventBus.emit(GAME_OVER_EVENT);
+       });
+    }
+
+     // If someone won, GAME_OVER_EVENT will be emitted at the end of playVictorySequence
+     if (!didSomeoneWin) {
+        // If no one won (draw/error), emit after a standard delay
+        this.time.delayedCall(this.VICTORY_DELAY * 2, () => { // Use a delay similar to victory
+            console.log("Phaser emitting GAME_OVER_EVENT (Draw/No Winner)");
+            EventBus.emit(GAME_OVER_EVENT);
+        });
     }
   }
 
@@ -1234,7 +1264,13 @@ export class FightScene extends Scene {
         ease: "Linear",
         onComplete: () => {
           // After walking away, start taunt sequence
-          this.playTauntSequence(winner, isPlayer2);
+          this.playTauntSequence(winner, isPlayer2, 0, () => {
+              // << EMIT EVENT HERE (Victory) >>
+              // Add these logs
+              console.log("FightScene EventBus instance (Victory):", EventBus);
+              console.log("Phaser emitting GAME_OVER_EVENT (Victory)");
+              EventBus.emit(GAME_OVER_EVENT);
+          });
         },
       });
     });
@@ -1244,8 +1280,18 @@ export class FightScene extends Scene {
     winner: Phaser.Physics.Arcade.Sprite,
     isPlayer2: boolean,
     currentTauntCount = 0,
+    onCompleteCallback?: () => void // Added callback parameter
   ): void {
     const MAX_TAUNTS = 4; // Total of 4 taunts (2 before, 2 after)
+
+    // Base case: All taunts (and attack) finished
+    if (currentTauntCount >= MAX_TAUNTS) {
+      this.animator.playAnimation(winner, "idle", isPlayer2);
+      if (onCompleteCallback) {
+        onCompleteCallback(); // Execute the final callback
+      }
+      return;
+    }
 
     // After first 2 taunts, play attack animation
     if (currentTauntCount === 2) {
@@ -1254,26 +1300,16 @@ export class FightScene extends Scene {
         // Continue with taunt sequence after attack
         this.animator.playAnimation(winner, "taunting", isPlayer2);
         winner.once("animationcomplete", () => {
-          this.playTauntSequence(winner, isPlayer2, currentTauntCount + 1);
+          this.playTauntSequence(winner, isPlayer2, currentTauntCount + 1, onCompleteCallback); // Pass callback along
         });
       });
       return;
     }
 
-    if (currentTauntCount >= MAX_TAUNTS) {
-      this.animator.playAnimation(winner, "idle", isPlayer2);
-      return;
-    }
-
+    // Play regular taunt animation
     this.animator.playAnimation(winner, "taunting", isPlayer2);
-
     winner.once("animationcomplete", () => {
-      const nextTauntCount = currentTauntCount + 1;
-      if (nextTauntCount < MAX_TAUNTS) {
-        this.playTauntSequence(winner, isPlayer2, nextTauntCount);
-      } else {
-        this.animator.playAnimation(winner, "idle", isPlayer2);
-      }
+        this.playTauntSequence(winner, isPlayer2, currentTauntCount + 1, onCompleteCallback); // Pass callback along
     });
   }
 
