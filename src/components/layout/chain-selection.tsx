@@ -23,7 +23,7 @@ export function ChainSelection() {
         currentChainId !== null &&
         !checking && (
           <div
-            className={`flex items-center px-3 py-1.5 rounded-full text-sm border ${
+            className={`font-bokor flex items-center px-3 py-1.5 rounded-full text-sm border ${
               !isWrongNetwork
                 ? "bg-green-950/20 border-green-800/30 text-green-400"
                 : "bg-yellow-950/20 border-yellow-800/30 text-yellow-400"

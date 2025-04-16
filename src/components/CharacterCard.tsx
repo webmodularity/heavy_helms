@@ -1,11 +1,5 @@
-import { Bokor } from "next/font/google";
 import Image from "next/image";
 import type React from "react";
-
-const bokor = Bokor({
-  weight: "400",
-  subsets: ["latin"],
-});
 
 interface CharacterCardProps {
   playerId?: string;
@@ -79,7 +73,7 @@ const CharacterCard: React.FC<CharacterCardProps> = ({
           transform-gpu border-6 border-slate-700/50
           ${isSelected ? "ring-4 ring-yellow-400/50 scale-[1.02] shadow-[0_0_25px_rgba(250,204,21,0.3)]" : ""}
           hover:scale-[1.03] hover:shadow-[0_0_20px_rgba(0,0,0,0.4)]
-          w-full text-left font-bokor
+          w-full text-left
         `}
         onClick={handleClick}
         aria-pressed={isSelected}
@@ -88,7 +82,9 @@ const CharacterCard: React.FC<CharacterCardProps> = ({
         {/* Name Banner */}
         <div className="relative z-10 w-full bg-gradient-to-r from-slate-950/95 via-slate-900/95 to-slate-950/95 text-white py-3 px-3 border-b border-slate-700/50 shadow-[inset_0_-10px_20px_-5px_rgba(0,0,0,0.3)]">
           <h3
-            className={`text-center font-normal text-xl tracking-wide ${bokor.className} whitespace-nowrap overflow-hidden text-ellipsis drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] text-yellow-50/95`}
+            className={
+              "text-center font-normal text-xl tracking-wide whitespace-nowrap overflow-hidden text-ellipsis drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] text-yellow-50/95"
+            }
           >
             {name}
           </h3>

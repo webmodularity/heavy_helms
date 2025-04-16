@@ -92,7 +92,7 @@ export function CharacterCard({
 
           {/* Selected Badge */}
           {isSelected && (
-            <div className="absolute top-3 right-3 bg-yellow-500 text-black px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1 z-20">
+            <div className="absolute top-3 right-3 bg-yellow-500 text-black px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1 z-20 font-bokor">
               <Check size={12} /> Selected
             </div>
           )}
@@ -143,7 +143,7 @@ export function CharacterCard({
         <div className="grid grid-cols-2 gap-2 pt-2">
           <YellowButton
             onClick={isSelected ? onDeselect : () => onSelect()}
-            className="w-full"
+            className="w-full font-bokor"
             variant={isSelected ? "outline" : "default"}
           >
             {isSelected ? "Deselect" : "Select"}
@@ -151,7 +151,7 @@ export function CharacterCard({
 
           <YellowButton
             onClick={onViewDetails}
-            className="w-full"
+            className="w-full font-bokor"
             variant="outline"
           >
             Details

@@ -6,18 +6,96 @@ import { StatsCard } from "./stats-card";
 import { formatEther } from "viem";
 
 interface WagerStats {
-  totalWageredAmount: number;
-  totalFeesCollected: number;
-  totalWinnerPayouts: number;
-  averageWagerAmount: number;
+  // Keep the interface expecting bigint, but we'll validate at runtime
+  totalWageredAmount: bigint | number | string; // Loosen type for runtime flexibility
+  totalFeesCollected: bigint | number | string;
+  totalWinnerPayouts: bigint | number | string;
+  averageWagerAmount: bigint | number | string;
 }
 
 interface WagerStatsSectionProps {
   stats: WagerStats;
 }
 
+// Helper function for formatting and rounding
+function formatAndRoundEther(
+  value: bigint | number | string,
+  decimals: number = 5,
+): string {
+  try {
+    const bigIntValue = typeof value === "bigint" ? value : BigInt(value);
+    const formatted = formatEther(bigIntValue);
+    const parsed = parseFloat(formatted);
+    if (isNaN(parsed)) {
+      return "0"; // Return simple 0 if NaN
+    }
+    // Format to fixed decimals, then remove trailing zeros after decimal
+    let fixed = parsed.toFixed(decimals);
+    if (fixed.includes(".")) {
+      fixed = fixed.replace(/\.?0+$/, ""); // Remove trailing .000 or 000
+    }
+    // Handle case where removing zeros leaves just "0." -> return "0"
+    return fixed === "0." ? "0" : fixed;
+  } catch (e) {
+    console.error("Error formatting ether value:", value, e);
+    return "Error";
+  }
+}
+
+// Helper function for safe percentage calculation with explicit conversions
+function calculatePercentage(
+  numeratorInput: bigint | number | string,
+  denominatorInput: bigint | number | string,
+): number {
+  try {
+    // Explicitly convert inputs to BigInt, handling potential errors
+    const numerator =
+      typeof numeratorInput === "bigint"
+        ? numeratorInput
+        : BigInt(numeratorInput);
+    const denominator =
+      typeof denominatorInput === "bigint"
+        ? denominatorInput
+        : BigInt(denominatorInput);
+
+    if (denominator === 0n) {
+      return 0;
+    }
+    // Perform calculation using only BigInts
+    const scaledNumerator = numerator * 100n;
+    const percentageBigInt = scaledNumerator / denominator;
+    // Convert only the final result for rounding
+    return Math.round(Number(percentageBigInt));
+  } catch (e) {
+    console.error(
+      "Error calculating percentage:",
+      { numeratorInput, denominatorInput },
+      e,
+    );
+    return 0; // Return 0 on error
+  }
+}
+
 export function WagerStatsSection({ stats }: WagerStatsSectionProps) {
-  // Format currency values with 2 decimal places
+  // Explicitly log the types coming in from props for debugging
+  // console.log("Stats types:", {
+  //   totalWageredAmount: typeof stats.totalWageredAmount,
+  //   totalWinnerPayouts: typeof stats.totalWinnerPayouts,
+  //   totalFeesCollected: typeof stats.totalFeesCollected,
+  // });
+
+  // Use the safe percentage helper
+  const winnerPayoutPercentage = calculatePercentage(
+    stats.totalWinnerPayouts,
+    stats.totalWageredAmount,
+  );
+  const feesCollectedPercentage = calculatePercentage(
+    stats.totalFeesCollected,
+    stats.totalWageredAmount,
+  );
+
+  // Ensure averageWagerAmount is also handled correctly if used elsewhere
+  const formattedAverageWager = formatAndRoundEther(stats.averageWagerAmount);
 
   return (
     <section>
@@ -30,7 +108,7 @@ export function WagerStatsSection({ stats }: WagerStatsSectionProps) {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard
           title="Total Wagered"
-          value={formatEther(BigInt(stats.totalWageredAmount))}
+          value={formatAndRoundEther(stats.totalWageredAmount)} // Uses helper with conversion
           icon={<CreditCard className="h-5 w-5" />}
           className="bg-gradient-to-br from-stone-900/80 to-emerald-950/20 border-emerald-900/20"
           valueClassName="text-emerald-500"
@@ -38,7 +116,7 @@ export function WagerStatsSection({ stats }: WagerStatsSectionProps) {
 
         <StatsCard
           title="Winner Payouts"
-          value={formatEther(BigInt(stats.totalWinnerPayouts))}
+          value={formatAndRoundEther(stats.totalWinnerPayouts)} // Uses helper with conversion
           icon={<Trophy className="h-5 w-5" />}
           className="bg-gradient-to-br from-stone-900/80 to-yellow-950/20 border-yellow-900/20"
           valueClassName="text-yellow-500"
@@ -46,7 +124,7 @@ export function WagerStatsSection({ stats }: WagerStatsSectionProps) {
 
         <StatsCard
           title="Fees Collected"
-          value={formatEther(BigInt(stats.totalFeesCollected))}
+          value={formatAndRoundEther(stats.totalFeesCollected)} // Uses helper with conversion
           icon={<Percent className="h-5 w-5" />}
           className="bg-gradient-to-br from-stone-900/80 to-blue-950/20 border-blue-900/20"
           valueClassName="text-blue-400"
@@ -54,7 +132,7 @@ export function WagerStatsSection({ stats }: WagerStatsSectionProps) {
 
         <StatsCard
           title="Average Wager"
-          value={formatEther(BigInt(stats.averageWagerAmount))}
+          value={formattedAverageWager} // Use pre-formatted value
           className="bg-gradient-to-br from-stone-900/80 to-purple-950/20 border-purple-900/20"
           valueClassName="text-purple-400"
         />
@@ -71,14 +149,11 @@ export function WagerStatsSection({ stats }: WagerStatsSectionProps) {
               <Trophy className="h-8 w-8 text-yellow-500" />
             </div>
             <div className="text-xl font-bold text-yellow-500">
-              {formatEther(BigInt(stats.totalWinnerPayouts))}
+              {formatAndRoundEther(stats.totalWinnerPayouts)}
             </div>
             <div className="text-xs text-stone-400 mt-1">Winner Payouts</div>
             <div className="text-xs text-stone-500 mt-1">
-              {stats.totalWageredAmount > 0
-                ? `${Math.round((stats.totalWinnerPayouts / stats.totalWageredAmount) * 100)}%`
-                : "0%"}{" "}
-              of total wagered
+              {`${winnerPayoutPercentage}%`} of total wagered
             </div>
           </div>
 
@@ -87,14 +162,11 @@ export function WagerStatsSection({ stats }: WagerStatsSectionProps) {
               <Percent className="h-8 w-8 text-blue-400" />
             </div>
             <div className="text-xl font-bold text-blue-400">
-              {formatEther(BigInt(stats.totalFeesCollected))}
+              {formatAndRoundEther(stats.totalFeesCollected)}
             </div>
             <div className="text-xs text-stone-400 mt-1">Fees Collected</div>
             <div className="text-xs text-stone-500 mt-1">
-              {stats.totalWageredAmount > 0
-                ? `${Math.round((stats.totalFeesCollected / stats.totalWageredAmount) * 100)}%`
-                : "0%"}{" "}
-              of total wagered
+              {`${feesCollectedPercentage}%`} of total wagered
             </div>
           </div>
 
@@ -103,7 +175,7 @@ export function WagerStatsSection({ stats }: WagerStatsSectionProps) {
               <CreditCard className="h-8 w-8 text-emerald-500" />
             </div>
             <div className="text-xl font-bold text-emerald-500">
-              {formatEther(BigInt(stats.totalWageredAmount))}
+              {formatAndRoundEther(stats.totalWageredAmount)}
             </div>
             <div className="text-xs text-stone-400 mt-1">Total Wagered</div>
             <div className="text-xs text-stone-500 mt-1">
