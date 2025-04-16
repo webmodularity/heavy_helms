@@ -42,9 +42,9 @@ const CharacterCard: React.FC<CharacterCardProps> = ({
 }) => {
   // Define stance styles
   const stanceStyles = {
-    "offensive": "text-red-400",
-    "defensive": "text-green-400",
-    "balanced": "text-blue-400",
+    offensive: "text-red-400",
+    defensive: "text-green-400",
+    balanced: "text-blue-400",
   };
 
   // Define weapon icons (using unicode symbols)
@@ -79,7 +79,7 @@ const CharacterCard: React.FC<CharacterCardProps> = ({
           transform-gpu border-6 border-slate-700/50
           ${isSelected ? "ring-4 ring-yellow-400/50 scale-[1.02] shadow-[0_0_25px_rgba(250,204,21,0.3)]" : ""}
           hover:scale-[1.03] hover:shadow-[0_0_20px_rgba(0,0,0,0.4)]
-          w-full text-left
+          w-full text-left font-bokor
         `}
         onClick={handleClick}
         aria-pressed={isSelected}
