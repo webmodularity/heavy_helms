@@ -20,13 +20,13 @@ interface WagerStatsSectionProps {
 // Helper function for formatting and rounding
 function formatAndRoundEther(
   value: bigint | number | string,
-  decimals: number = 5,
+  decimals = 5,
 ): string {
   try {
     const bigIntValue = typeof value === "bigint" ? value : BigInt(value);
     const formatted = formatEther(bigIntValue);
-    const parsed = parseFloat(formatted);
-    if (isNaN(parsed)) {
+    const parsed = Number.parseFloat(formatted);
+    if (Number.isNaN(parsed)) {
       return "0"; // Return simple 0 if NaN
     }
     // Format to fixed decimals, then remove trailing zeros after decimal
@@ -48,7 +48,6 @@ function calculatePercentage(
   denominatorInput: bigint | number | string,
 ): number {
   try {
-    // Explicitly convert inputs to BigInt, handling potential errors
     const numerator =
       typeof numeratorInput === "bigint"
         ? numeratorInput
@@ -58,11 +57,12 @@ function calculatePercentage(
         ? denominatorInput
         : BigInt(denominatorInput);
 
-    if (denominator === 0n) {
+    // Replace 0n with BigInt(0) for compatibility
+    if (denominator === BigInt(0)) {
       return 0;
     }
-    // Perform calculation using only BigInts
-    const scaledNumerator = numerator * 100n;
+    // Perform calculation using only BigInts, replace 100n with BigInt(100)
+    const scaledNumerator = numerator * BigInt(100);
     const percentageBigInt = scaledNumerator / denominator;
     // Convert only the final result for rounding
     return Math.round(Number(percentageBigInt));
