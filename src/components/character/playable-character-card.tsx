@@ -143,7 +143,7 @@ export function CharacterCard({
         <div className="grid grid-cols-2 gap-2 pt-2">
           <YellowButton
             onClick={isSelected ? onDeselect : () => onSelect()}
-            className="w-full font-bokor"
+            className="w-full font-bokor text-lg"
             variant={isSelected ? "outline" : "default"}
           >
             {isSelected ? "Deselect" : "Select"}
@@ -151,7 +151,7 @@ export function CharacterCard({
 
           <YellowButton
             onClick={onViewDetails}
-            className="w-full font-bokor"
+            className="w-full font-bokor text-lg"
             variant="outline"
           >
             Details

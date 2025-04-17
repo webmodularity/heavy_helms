@@ -2,8 +2,7 @@
 "use client";
 import { motion } from "framer-motion";
 import Link from "next/link";
-import { ChartBar } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { CTAButton } from "@/components/ui/cta-button";
 import { useGameStats } from "@/hooks/use-game-stats";
 import { formatEther } from "viem";
 
@@ -99,14 +98,14 @@ export function CommunityStats() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.7, delay: 0.6 }}
           >
-            <Link href="/stats">
-              <Button
-                variant="outline"
-                className="group border-yellow-600/30 hover:bg-yellow-500 hover:text-stone-900 hover:border-yellow-500 text-yellow-500"
-              >
-                <ChartBar className="mr-2 h-4 w-4 transition-transform group-hover:scale-110" />
-                View Detailed Statistics
-              </Button>
+            <Link href="/stats" passHref>
+              <CTAButton
+                onClick={() => {
+                  /* Link handles click */
+                }}
+                title="View Detailed Statistics"
+                size="lg"
+              />
             </Link>
           </motion.div>
         </div>
