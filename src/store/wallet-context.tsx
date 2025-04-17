@@ -76,7 +76,9 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!ready || !authenticated || !wallets || wallets.length === 0) return;
 
-    switchToPrimaryNetwork();
+    if (getChainId(wagmiConfig) !== shape.id) {
+      switchToPrimaryNetwork();
+    }
   }, [ready, authenticated, wallets]);
 
   // Switch network function
