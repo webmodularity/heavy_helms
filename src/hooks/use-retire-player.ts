@@ -24,7 +24,7 @@ interface RetirePlayerResult {
  */
 export function useRetirePlayer(playerId: string) {
   const { authenticated } = usePrivy();
-  const { isWrongNetwork, switchToBaseSepolia } = useWallet();
+  const { isWrongNetwork, switchToPrimaryNetwork } = useWallet();
   const queryClient = useQueryClient();
   const { address } = useAccount();
   const [pendingRetirement, setPendingRetirement] = useState<boolean>(false);
@@ -97,7 +97,7 @@ export function useRetirePlayer(playerId: string) {
       }
 
       if (isWrongNetwork) {
-        await switchToBaseSepolia();
+        await switchToPrimaryNetwork();
       }
 
       if (!address) {
@@ -132,7 +132,7 @@ export function useRetirePlayer(playerId: string) {
             label: "View on BaseScan",
             onClick: () =>
               window.open(
-                `https://sepolia.basescan.org/tx/${data.txHash}`,
+                `${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${data.txHash}`,
                 "_blank",
               ),
           },

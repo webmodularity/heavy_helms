@@ -31,7 +31,7 @@ interface EquipSkinResult {
 
 export function useEquipSkin(playerId: string) {
   const { authenticated } = usePrivy();
-  const { isWrongNetwork, switchToBaseSepolia } = useWallet();
+  const { isWrongNetwork, switchToPrimaryNetwork } = useWallet();
   const queryClient = useQueryClient();
   const { address } = useAccount();
   const [pendingSkin, setPendingSkin] = useState<EquipSkinParams | null>(null);
@@ -98,7 +98,7 @@ export function useEquipSkin(playerId: string) {
             label: "View on BaseScan",
             onClick: () =>
               window.open(
-                `https://sepolia.basescan.org/tx/${writeData}`,
+                `${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${writeData}`,
                 "_blank",
               ),
           },
@@ -129,7 +129,7 @@ export function useEquipSkin(playerId: string) {
       }
 
       if (isWrongNetwork) {
-        await switchToBaseSepolia();
+        await switchToPrimaryNetwork();
       }
 
       if (!address) {
@@ -170,7 +170,7 @@ export function useEquipSkin(playerId: string) {
           label: "View on BaseScan",
           onClick: () =>
             window.open(
-              `https://sepolia.basescan.org/tx/${result.txHash}`,
+              `${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${result.txHash}`,
               "_blank",
             ),
         },

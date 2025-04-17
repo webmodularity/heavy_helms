@@ -29,6 +29,7 @@ export const CHAIN_NAMES: Record<string, string> = {
   "eip155:80001": "Polygon Mumbai",
   "eip155:42161": "Arbitrum One",
   "eip155:421613": "Arbitrum Goerli",
+  "eip155:360": "Shape",
 };
 
 interface WalletContextType {
@@ -37,7 +38,7 @@ interface WalletContextType {
   checking: boolean;
   hasWallet: boolean;
   currentChainName: string;
-  switchToBaseSepolia: () => Promise<void>;
+  switchToPrimaryNetwork: () => Promise<void>;
 }
 
 export const WalletContext = createContext<WalletContextType>({
@@ -46,7 +47,7 @@ export const WalletContext = createContext<WalletContextType>({
   checking: false,
   hasWallet: false,
   currentChainName: "Disconnected",
-  switchToBaseSepolia: async () => {},
+  switchToPrimaryNetwork: async () => {},
 });
 
 export function WalletProvider({ children }: { children: ReactNode }) {
@@ -101,17 +102,21 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   }, [ready, authenticated, wallets]);
 
   // Switch network function
-  const switchToBaseSepolia = useCallback(async () => {
+  const switchToPrimaryNetwork = useCallback(async () => {
     if (!wallets || wallets.length === 0) return;
 
     try {
       const wallet = wallets[0]; // Get the first wallet
 
       // Use the switchChain method directly on the wallet object
-      await wallet.switchChain(BASE_SEPOLIA_CHAIN_ID);
+      await wallet.switchChain(
+        process.env.NEXT_PUBLIC_ALCHEMY_NETWORK === "base-sepolia"
+          ? BASE_SEPOLIA_CHAIN_ID
+          : 360,
+      );
 
       toast("Network switched", {
-        description: "Successfully connected to Base Sepolia",
+        description: `Successfully connected to ${process.env.NEXT_PUBLIC_ALCHEMY_NETWORK === "base-sepolia" ? "Base Sepolia" : "Shape"}`,
       });
     } catch (error: unknown) {
       const errorMessage =
@@ -135,7 +140,7 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     checking,
     hasWallet,
     currentChainName,
-    switchToBaseSepolia,
+    switchToPrimaryNetwork,
   };
 
   return (

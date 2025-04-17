@@ -41,7 +41,7 @@ interface AcceptChallengeResult {
 
 export function useAcceptChallenge() {
   const { authenticated } = usePrivy();
-  const { isWrongNetwork, switchToBaseSepolia } = useWallet();
+  const { isWrongNetwork, switchToPrimaryNetwork } = useWallet();
   const queryClient = useQueryClient();
   const router = useRouter();
   const { address } = useAccount();
@@ -100,7 +100,7 @@ export function useAcceptChallenge() {
       }
 
       if (isWrongNetwork) {
-        await switchToBaseSepolia();
+        await switchToPrimaryNetwork();
       }
 
       if (!address) {
@@ -153,7 +153,7 @@ export function useAcceptChallenge() {
           label: "View on BaseScan",
           onClick: () =>
             window.open(
-              `https://sepolia.basescan.org/tx/${result.txHash}`,
+              `${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${result.txHash}`,
               "_blank",
             ),
         },
@@ -187,7 +187,10 @@ export function useAcceptChallenge() {
       action: {
         label: "View on BaseScan",
         onClick: () =>
-          window.open(`https://sepolia.basescan.org/tx/${txHash}`, "_blank"),
+          window.open(
+            `${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${txHash}`,
+            "_blank",
+          ),
       },
       duration: 5000,
     });

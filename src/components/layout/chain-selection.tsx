@@ -11,7 +11,7 @@ export function ChainSelection() {
     checking,
     hasWallet,
     currentChainName,
-    switchToBaseSepolia,
+    switchToPrimaryNetwork,
   } = useWallet();
 
   return (
@@ -39,7 +39,7 @@ export function ChainSelection() {
             {/* Show switch link if on wrong network */}
             {isWrongNetwork && (
               <button
-                onClick={switchToBaseSepolia}
+                onClick={switchToPrimaryNetwork}
                 className="ml-2 text-xs underline hover:text-white transition-colors"
                 type="button"
               >

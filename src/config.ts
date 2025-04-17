@@ -1,9 +1,12 @@
 import { http, createPublicClient } from "viem";
-import { baseSepolia, mainnet, sepolia } from "viem/chains";
+import { baseSepolia, mainnet, shape } from "viem/chains";
 import { createConfig } from "@privy-io/wagmi";
 // Export the public viem client for direct blockchain interactions
 export const viemClient = createPublicClient({
-  chain: baseSepolia,
+  chain:
+    process.env.NEXT_PUBLIC_ALCHEMY_NETWORK === "base-sepolia"
+      ? baseSepolia
+      : shape,
   transport: http(
     `https://${process.env.NEXT_PUBLIC_ALCHEMY_NETWORK}.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`,
   ),
@@ -13,10 +16,13 @@ export const viemClient = createPublicClient({
 });
 
 export const wagmiConfig = createConfig({
-  chains: [baseSepolia, mainnet],
+  chains: [baseSepolia, mainnet, shape],
   transports: {
     [baseSepolia.id]: http(),
     [mainnet.id]: http(),
+    [shape.id]: http(
+      `https://${process.env.NEXT_PUBLIC_ALCHEMY_NETWORK}.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`,
+    ),
   },
 });
 
