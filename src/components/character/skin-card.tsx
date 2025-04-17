@@ -124,10 +124,10 @@ export function SkinCard({
       )}
 
       {/* Skin Info Overlay (appears on hover on desktop and touch on mobile) */}
-      <div 
+      <div
         className={`absolute inset-0 bg-gradient-to-t from-stone-900/90 via-stone-900/50 to-transparent 
           md:opacity-0 md:group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-4 z-20
-          ${isInfoVisible ? 'opacity-100' : 'opacity-0'}`}
+          ${isInfoVisible ? "opacity-100" : "opacity-0"}`}
       >
         <div className="space-y-1">
           <div className="flex justify-between items-center">

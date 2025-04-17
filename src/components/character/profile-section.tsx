@@ -3,7 +3,7 @@
 import type { Player } from "@/types/player.types";
 import Image from "next/image";
 import { motion } from "framer-motion";
-import { Flag, Trophy } from "lucide-react";
+import { Flag, Trophy, Medal } from "lucide-react";
 
 interface ProfileSectionProps {
   character: Player;
@@ -51,15 +51,11 @@ export function ProfileSection({ character }: ProfileSectionProps) {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 relative z-10">
             <InfoItem
-              label="First Name"
-              value={character.name.firstName}
+              label="Name"
+              value={character.name.fullName}
               icon={null}
             />
-            <InfoItem
-              label="Surname"
-              value={character.name.surname}
-              icon={null}
-            />
+            <InfoItem label="ID" value={character.id} icon={null} />
             <InfoItem
               label="Status"
               value={character.isRetired ? "Retired" : "Active"}
@@ -87,7 +83,18 @@ export function ProfileSection({ character }: ProfileSectionProps) {
             Battle Legacy
           </h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 relative z-10">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 relative z-10">
+            {/* Rank box */}
+            <StatBox
+              label="Rank"
+              value={character?.rank ? `#${character.rank}` : "N/A"}
+              className="text-amber-500"
+            />
+            <StatBox
+              label="Rating"
+              value={formatBattleRating(character.battleRating)}
+              className="text-yellow-400"
+            />
             <StatBox
               label="Wins"
               value={character.record.wins.toString()}
@@ -101,7 +108,7 @@ export function ProfileSection({ character }: ProfileSectionProps) {
             <StatBox
               label="Kills"
               value={character.record.kills.toString()}
-              className="text-yellow-400"
+              className="text-stone-200"
             />
           </div>
         </div>
@@ -138,9 +145,15 @@ interface StatBoxProps {
   label: string;
   value: string;
   className?: string;
+  icon?: React.ReactNode;
 }
 
-function StatBox({ label, value, className = "" }: StatBoxProps) {
+function formatBattleRating(rating?: number): string {
+  if (rating === undefined || rating === null) return "0";
+  return Math.round(rating).toString();
+}
+
+function StatBox({ label, value, className = "", icon = null }: StatBoxProps) {
   return (
     <motion.div
       className="text-center p-4 bg-stone-800/30 rounded-lg border border-yellow-600/10 relative overflow-hidden group hover:border-yellow-600/20 transition-all duration-300"
@@ -148,11 +161,12 @@ function StatBox({ label, value, className = "" }: StatBoxProps) {
     >
       <div className="absolute inset-0 bg-gradient-to-t from-yellow-600/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
       <motion.div
-        className={`text-2xl font-bold ${className} relative z-10`}
+        className={`text-2xl font-bold ${className} relative z-10 flex items-center justify-center`}
         initial={{ scale: 0.8, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ duration: 0.5, delay: 0.2 }}
       >
+        {icon}
         {value}
       </motion.div>
       <div className="text-stone-400 text-sm mt-1 relative z-10 group-hover:text-stone-300 transition-colors duration-300">
@@ -160,4 +174,4 @@ function StatBox({ label, value, className = "" }: StatBoxProps) {
       </div>
     </motion.div>
   );
-} 
+}

@@ -44,6 +44,8 @@ export interface Fighter {
   currentState?: FighterState;
   isRetired: boolean;
   isImmortal: boolean;
+  owner?: { address: string };
+  battleRating?: number;
 }
 
 // Calculated stats interface for all fighters
@@ -114,6 +116,9 @@ export interface RawFighterData {
   isImmortal?: boolean;
   owner?: { address: string };
   tier?: number;
+  battleRating?: number;
+  uniqueWins?: number;
+  uniqueLosses?: number;
 }
 
 export interface ContractInfo {

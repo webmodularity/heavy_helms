@@ -119,6 +119,9 @@ export const PLAYER_SPECIFIC_FRAGMENT = gql`
     owner {
       address
     }
+    battleRating
+    uniqueWins
+    uniqueLosses
   }
 `;
 

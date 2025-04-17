@@ -19,6 +19,10 @@ export interface PlayerName extends FighterName {
 export interface Player extends Fighter {
   fighterType: FighterType.Player;
   name: PlayerName;
+  battleRating: number;
+  rank: number;
+  uniqueWins: number;
+  uniqueLosses: number;
   isImmortal: boolean;
 }
 

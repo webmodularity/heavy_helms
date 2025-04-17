@@ -12,9 +12,15 @@ function abbreviateAddress(address: string | undefined | null): string {
 
 interface EnsNameDisplayProps {
   address: `0x${string}` | undefined | null;
+  className?: string;
+  isAbbreviated?: boolean; // Added this prop with default value true
 }
 
-export function EnsNameDisplay({ address }: EnsNameDisplayProps) {
+export function EnsNameDisplay({
+  address,
+  className,
+  isAbbreviated = true, // Default to true for backwards compatibility
+}: EnsNameDisplayProps) {
   // Convert null to undefined before passing to the hook
   const addressForHook = address ?? undefined;
 
@@ -41,20 +47,26 @@ export function EnsNameDisplay({ address }: EnsNameDisplayProps) {
 
   // Show skeleton while loading (Only shows if address is provided and fetch starts)
   if (address && isLoading) {
-    return <Skeleton className="h-4 w-24" />;
+    return (
+      <Skeleton
+        className={`h-4 ${isAbbreviated ? "w-24" : "w-40"} ${className || ""}`}
+      />
+    );
   }
 
   // Display ENS name if found (and not loading/error)
   if (address && ensName && !isLoading && !isError) {
     return (
-      <span className="text-stone-400 font-medium text-xs">{ensName}</span>
+      <span className={`text-stone-400 font-medium text-xs ${className || ""}`}>
+        {ensName}
+      </span>
     );
   }
 
-  // Fallback to abbreviated address if no ENS name, error, or no address provided
+  // Fallback to address (abbreviated or full based on props)
   return (
-    <span className="text-stone-500 font-mono text-xs">
-      {abbreviateAddress(address)}
+    <span className={`text-stone-500 font-mono text-xs ${className || ""}`}>
+      {isAbbreviated ? abbreviateAddress(address) : address || "N/A"}
     </span>
   );
 }

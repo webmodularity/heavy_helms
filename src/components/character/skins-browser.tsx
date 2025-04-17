@@ -7,7 +7,7 @@ import { SectionHeader } from "@/components/ui/section-header";
 
 import { SkinType } from "@/types/skin.types";
 import type { Player, PlayerAttributes } from "@/types/player.types";
-import { Paintbrush } from "lucide-react";
+import { Shield, Swords } from "lucide-react";
 import { motion } from "framer-motion";
 import { SkinCard } from "./skin-card";
 import { SkinTypeFilter } from "./skin-type-filter";
@@ -129,8 +129,8 @@ export function SkinsBrowser({ character }: SkinsBrowserProps) {
     <section className="mt-12 mb-16">
       <SectionHeader
         title="Character Skins"
-        subtitle="Customize your warrior's appearance"
-        icon={<Paintbrush className="h-5 w-5 text-yellow-500" />}
+        subtitle="Choose wisely, adventurer - your chosen skin dictates your warrior's equipment and combat path!"
+        icon={<Swords className="h-5 w-5 text-yellow-500" />}
       />
 
       {/* Skin Type Filter */}

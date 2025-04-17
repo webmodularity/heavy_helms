@@ -35,7 +35,7 @@ export function Header() {
   const isActive = (href: string) => pathname === href;
 
   return (
-    <header className="relative w-full flex flex-col items-center py-2 sm:py-4">
+    <header className="relative w-full flex flex-col items-center pt-2 sm:pt-4 pb-0">
       {/* Top right corner group */}
       <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-50 flex items-center gap-2">
         <AuthButton />
@@ -73,8 +73,11 @@ export function Header() {
         </DropdownMenu>
       </div>
 
-      {/* Header Image */}
-      <div className="w-full max-w-[600px] md:max-w-[800px] px-4">
+      {/* Header Image wrapped in Link */}
+      <Link
+        href="/"
+        className="w-full max-w-[600px] md:max-w-[800px] px-4 block"
+      >
         <Image
           src="/heavy_helms_header_drop_shadow.png"
           alt="Heavy Helms Header"
@@ -83,7 +86,7 @@ export function Header() {
           className="w-full opacity-100"
           priority
         />
-      </div>
+      </Link>
       {/* Old nav is removed */}
     </header>
   );

@@ -1,7 +1,8 @@
 "use client";
 
+import { useState } from "react";
 import type { Player } from "@/types/player.types";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   ArrowLeft,
   Dices,
@@ -9,6 +10,8 @@ import {
   HeartPulse,
   Ruler,
   Zap,
+  Info,
+  X,
 } from "lucide-react";
 
 interface AttributesSectionProps {
@@ -16,6 +19,97 @@ interface AttributesSectionProps {
 }
 
 export function AttributesSection({ character }: AttributesSectionProps) {
+  const [selectedAttribute, setSelectedAttribute] = useState<string | null>(
+    null,
+  );
+
+  const getAttributeDetails = (attr: string) => {
+    switch (attr) {
+      case "Strength":
+        return {
+          title: "Strength",
+          description:
+            "Affects physical power, weapon damage, parry chance, counterattack effectiveness, and endurance",
+          details: [
+            "Increases physical damage with all weapons",
+            "Improves parry chance against enemy attacks",
+            "Enhances counterattack damage and effectiveness",
+            "Contributes to critical hit damage multiplier",
+            "Slightly improves maximum endurance",
+          ],
+        };
+      case "Constitution":
+        return {
+          title: "Constitution",
+          description:
+            "Affects maximum health, block chance, riposte ability, and survival in lethal situations",
+          details: [
+            "Major contributor to maximum health",
+            "Improves chance to block attacks with shields",
+            "Contributes to riposte chance after successful parry",
+            "Significantly increases survival chance in lethal situations",
+          ],
+        };
+      case "Size":
+        return {
+          title: "Size",
+          description:
+            "Affects maximum health, physical power, block chance, and inversely affects dodge capability",
+          details: [
+            "Contributes to maximum health",
+            "Increases physical power and damage modifier",
+            "Improves block chance with shields",
+            "Higher size reduces dodge chance",
+            "Affects your combat presence and ability to withstand damage",
+          ],
+        };
+      case "Agility":
+        return {
+          title: "Agility",
+          description:
+            "Affects initiative, hit accuracy, dodge chance, parry ability, critical strikes, counterattacks, and ripostes",
+          details: [
+            "Major factor in initiative calculation and combat speed",
+            "Increases hit chance and accuracy in combat",
+            "Primary contributor to dodge chance",
+            "Improves parry success rate",
+            "Contributes to critical hit chance",
+            "Enhances counterattack and riposte abilities",
+          ],
+        };
+      case "Stamina":
+        return {
+          title: "Stamina",
+          description:
+            "Affects maximum endurance, energy reserves, dodge capability, parry effectiveness, and contributes to health",
+          details: [
+            "Primary contributor to maximum endurance",
+            "Determines how quickly you fatigue in combat",
+            "Adds to total health",
+            "Improves dodge capability",
+            "Contributes to parry effectiveness",
+            "Critical for sustained combat performance",
+          ],
+        };
+      case "Luck":
+        return {
+          title: "Luck",
+          description:
+            "Affects initiative, accuracy, critical hit chance, riposte ability, and survival chance in lethal situations",
+          details: [
+            "Contributes to initiative and combat order",
+            "Significantly increases hit chance",
+            "Improves critical hit chances",
+            "Enhances riposte success rate",
+            "Increases survival chances in lethal combat situations",
+            "Affects favorable outcomes in various combat scenarios",
+          ],
+        };
+      default:
+        return null;
+    }
+  };
+
   return (
     <motion.div
       className="mb-12"
@@ -32,40 +126,55 @@ export function AttributesSection({ character }: AttributesSectionProps) {
         <AttributeCard
           label="Strength"
           value={character.attributes.strength}
-          description="Determines attack power"
+          description="Physical power & combat"
           icon={<Dumbbell className="h-5 w-5" />}
+          onInfoClick={() => setSelectedAttribute("Strength")}
         />
         <AttributeCard
           label="Constitution"
           value={character.attributes.constitution}
-          description="Affects health and resilience"
+          description="Health & resilience"
           icon={<HeartPulse className="h-5 w-5" />}
+          onInfoClick={() => setSelectedAttribute("Constitution")}
         />
         <AttributeCard
           label="Size"
           value={character.attributes.size}
-          description="Affects damage and defense"
+          description="Power & defense"
           icon={<Ruler className="h-5 w-5" />}
+          onInfoClick={() => setSelectedAttribute("Size")}
         />
         <AttributeCard
           label="Agility"
           value={character.attributes.agility}
-          description="Affects dodge and speed"
+          description="Speed & finesse"
           icon={<ArrowLeft className="h-5 w-5 transform -rotate-45" />}
+          onInfoClick={() => setSelectedAttribute("Agility")}
         />
         <AttributeCard
           label="Stamina"
           value={character.attributes.stamina}
-          description="Determines endurance in battle"
+          description="Endurance & energy"
           icon={<Zap className="h-5 w-5" />}
+          onInfoClick={() => setSelectedAttribute("Stamina")}
         />
         <AttributeCard
           label="Luck"
           value={character.attributes.luck}
-          description="Affects critical hits and special events"
+          description="Critical moments"
           icon={<Dices className="h-5 w-5" />}
+          onInfoClick={() => setSelectedAttribute("Luck")}
         />
       </div>
+
+      <AnimatePresence>
+        {selectedAttribute && (
+          <AttributeModal
+            details={getAttributeDetails(selectedAttribute)}
+            onClose={() => setSelectedAttribute(null)}
+          />
+        )}
+      </AnimatePresence>
     </motion.div>
   );
 }
@@ -75,6 +184,7 @@ interface AttributeCardProps {
   value: number;
   description: string;
   icon: React.ReactNode;
+  onInfoClick: () => void;
 }
 
 function AttributeCard({
@@ -82,6 +192,7 @@ function AttributeCard({
   value,
   description,
   icon,
+  onInfoClick,
 }: AttributeCardProps) {
   // Generate a dynamic color based on the attribute value
   const getValueColor = (val: number) => {
@@ -113,9 +224,18 @@ function AttributeCard({
           {value}
         </span>
       </div>
-      <p className="text-stone-400 text-sm relative z-10 group-hover:text-stone-300 transition-colors duration-300">
-        {description}
-      </p>
+
+      <div className="flex justify-between items-center text-stone-400 text-sm relative z-10 group-hover:text-stone-300 transition-colors duration-300">
+        <p>{description}</p>
+        <button
+          type="button"
+          onClick={onInfoClick}
+          className="ml-2 text-yellow-500/70 hover:text-yellow-400 transition-colors duration-200 focus:outline-none"
+          aria-label="More information"
+        >
+          <Info className="h-4 w-4" />
+        </button>
+      </div>
 
       {/* Progress bar visualization */}
       <div className="mt-3 h-1 w-full bg-stone-700/50 rounded-full overflow-hidden">
@@ -126,6 +246,63 @@ function AttributeCard({
           transition={{ duration: 1, delay: 0.5 }}
         />
       </div>
+    </motion.div>
+  );
+}
+
+interface AttributeModalProps {
+  details: {
+    title: string;
+    description: string;
+    details: string[];
+  } | null;
+  onClose: () => void;
+}
+
+function AttributeModal({ details, onClose }: AttributeModalProps) {
+  if (!details) return null;
+
+  return (
+    <motion.div
+      className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-4"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onClose}
+    >
+      <motion.div
+        className="bg-stone-900 border border-yellow-600/30 rounded-lg max-w-md w-full p-6"
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        exit={{ scale: 0.9, opacity: 0 }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-xl font-semibold text-yellow-500">
+            {details.title}
+          </h3>
+          <button
+            type="button"
+            onClick={onClose}
+            className="text-stone-400 hover:text-yellow-400 transition-colors"
+          >
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+
+        <p className="text-stone-300 mb-4">{details.description}</p>
+
+        <h4 className="text-yellow-400 text-sm font-medium mb-2">Effects:</h4>
+        <ul className="text-stone-300 space-y-2">
+          {details.details.map((detail, index) => (
+            // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+            <li key={index} className="flex items-start">
+              <span className="text-yellow-500 mr-2">•</span>
+              <span className="text-sm">{detail}</span>
+            </li>
+          ))}
+        </ul>
+      </motion.div>
     </motion.div>
   );
 }

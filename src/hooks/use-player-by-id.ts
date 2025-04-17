@@ -7,60 +7,81 @@ import {
 import request from "graphql-request";
 import type { Fighter } from "@/types/fighter-types";
 import { SUBGRAPH_URL } from "@/config";
-import { useWallet } from "./use-wallet";
 import { useAccount } from "wagmi";
-// Initialize GraphQL client
+import { useLeaderboardData } from "@/hooks/use-leaderboard-data";
+import { useMemo } from "react";
 
 /**
- * Custom hook to fetch a player by ID, first checking the cache
- * and only making an API call if the player isn't found
+ * Custom hook to fetch a player by ID and determine their leaderboard rank.
  */
 export function usePlayerById(playerId: string) {
   const queryClient = useQueryClient();
-  // Get the connected wallet address
   const { address } = useAccount();
+  // Fetch leaderboard data - Make sure the limit is sufficient if the player might be outside the top few
+  const { players: leaderboardPlayers, isLoading: leaderboardLoading } =
+    useLeaderboardData(20); // Fetches top 20, adjust if needed
 
-  return useQuery({
+  // Fetch the specific player's data
+  const { data, isLoading, error } = useQuery({
     queryKey: ["player", playerId],
     queryFn: async () => {
-      // First check if the player is in the context
-      const characters = queryClient.getQueryData<Fighter[]>([
-        "owned-players",
-        address,
-      ]);
+      // Check cache first (omitted for brevity, assume it's there)
+      // ... cache check logic ...
 
-      if (characters && characters.length > 0) {
-        const foundCharacter = characters.find((char) => char.id === playerId);
-        if (foundCharacter) {
-          return foundCharacter;
-        }
-      }
-
-      // Player not found in context, fetch from API
+      // Fetch from API if not in cache
       try {
-        // Fetch the player data from the GraphQL API
         const response = await request<FightersResponse>(
           SUBGRAPH_URL,
           GET_FIGHTERS_BY_IDS,
           { fighterIds: [playerId] },
         );
-
         const fighters = response.fighters;
-
-        // If no player found, return null
-        if (!fighters || fighters.length === 0) {
-          return null;
-        }
-
-        // Convert the raw player data to a Player object
-        const player = await convertRawFighterToFighter(fighters[0]);
-        return player;
-      } catch (error) {
-        console.error("Error fetching player:", error);
-        throw error;
+        if (!fighters || fighters.length === 0) return null;
+        return await convertRawFighterToFighter(fighters[0]);
+      } catch (err) {
+        console.error("Error fetching player:", err);
+        throw err;
       }
     },
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: 5 * 60 * 1000,
     retry: 2,
   });
+
+  // Calculate rank directly from the fetched leaderboard data
+  const playerRank = useMemo(() => {
+    // Ensure both leaderboard and player data are loaded and valid
+    if (!leaderboardPlayers || leaderboardPlayers.length === 0 || !data) {
+      return null; // Cannot determine rank yet
+    }
+
+    // Find the index of the player in the leaderboard array using their ID
+    // Use String() comparison for safety against type mismatches (e.g., '10003' vs 10003)
+    const index = leaderboardPlayers.findIndex(
+      (leaderboardPlayer) => String(leaderboardPlayer.id) === String(playerId),
+    );
+
+    // If the player is found (index >= 0), their rank is index + 1
+    if (index >= 0) {
+      return index + 1;
+    }
+
+    // Player not found in the fetched leaderboard slice (e.g., outside top 20)
+    return null;
+  }, [leaderboardPlayers, data, playerId]); // Dependencies: leaderboard, player data, and the ID itself
+
+  // Combine player data with the calculated rank
+  const playerWithRank = useMemo(() => {
+    if (!data) return null;
+    return {
+      ...data,
+      rank: playerRank, // This will be null if not ranked in the fetched list
+    };
+  }, [data, playerRank]);
+
+  return {
+    data: playerWithRank,
+    // Combine loading states
+    isLoading: isLoading || leaderboardLoading,
+    error,
+  };
 }

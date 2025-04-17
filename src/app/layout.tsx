@@ -72,7 +72,7 @@ export default function RootLayout({
         <Providers>
           <div className="flex flex-col from-slate-900 to-indigo-900">
             <Header />
-            <main className="container mx-auto flex min-h-screen flex-col px-4 py-8 md:px-6 lg:px-8">
+            <main className="container mx-auto flex min-h-screen flex-col px-4 pt-0 pb-8 md:px-6 lg:px-8">
               <ConditionalBackButtonWrapper>
                 {children}
               </ConditionalBackButtonWrapper>

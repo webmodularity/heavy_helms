@@ -35,8 +35,8 @@ export function SkinTypeFilter({
             onClick={() => onChange(option.value)}
             className={
               selectedType === option.value
-                ? "bg-yellow-600 hover:bg-yellow-700 text-stone-900"
-                : "border-yellow-600/20 hover:border-yellow-600/40 text-yellow-500 hover:text-yellow-400 hover:bg-yellow-900/20"
+                ? "bg-yellow-600 hover:bg-yellow-700 text-stone-900 font-bokor text-lg"
+                : "border-yellow-600/20 hover:border-yellow-600/40 text-yellow-500 hover:text-yellow-400 hover:bg-yellow-900/20 font-bokor text-lg"
             }
           >
             {option.label}

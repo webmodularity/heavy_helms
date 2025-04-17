@@ -158,7 +158,7 @@ export function SkinDetailsDialog({
           {/* Action Button */}
           {!isCurrentSkin && (
             <Button
-              className="w-full bg-yellow-600 hover:bg-yellow-700 text-stone-100"
+              className="w-full bg-yellow-600 hover:bg-yellow-700 text-stone-100 font-bokor text-lg"
               onClick={() => onEquip(stance)}
               disabled={isEquipping || !isValid || isValidating}
             >

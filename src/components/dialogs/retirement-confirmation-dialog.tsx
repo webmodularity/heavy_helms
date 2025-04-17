@@ -98,6 +98,7 @@ export function RetirementConfirmationDialog({
                   variant="ghost"
                   onClick={() => onOpenChange(false)}
                   disabled={isRetiring}
+                  className="font-bokor text-lg"
                 >
                   Cancel
                 </Button>
@@ -105,7 +106,7 @@ export function RetirementConfirmationDialog({
                   variant="destructive"
                   onClick={onConfirm}
                   disabled={isRetiring}
-                  className="bg-red-700 hover:bg-red-800 text-white"
+                  className="bg-red-700 hover:bg-red-800 text-white font-bokor text-lg"
                 >
                   {isRetiring ? "Retiring..." : "Confirm Retirement"}
                 </Button>

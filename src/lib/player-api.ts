@@ -353,6 +353,7 @@ export async function convertRawFighterToFighter(
     record,
     isRetired: rawFighter.isRetired || false,
     isImmortal: false,
+    battleRating: rawFighter.battleRating || 0,
   };
 
   // Add type-specific properties based on fighterType
