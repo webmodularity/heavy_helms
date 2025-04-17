@@ -13,7 +13,7 @@ export class Boot extends Phaser.Scene {
       .text(
         this.cameras.main.width / 2,
         this.cameras.main.height / 2,
-        "Initializing...",
+        "", // TODO: This is the line which causes and intermediary loading screen between react and phaser handoff
         {
           fontFamily: "Arial",
           fontSize: "24px",
