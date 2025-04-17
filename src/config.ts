@@ -17,6 +17,7 @@ export const viemClient = createPublicClient({
 
 export const wagmiConfig = createConfig({
   chains: [baseSepolia, mainnet, shape],
+  
   transports: {
     [baseSepolia.id]: http(),
     [mainnet.id]: http(),
