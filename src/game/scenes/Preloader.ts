@@ -118,7 +118,7 @@ export class Preloader extends Scene {
         this.events.emit("status-update", "Finalizing...");
 
         // Emit the duel data loaded event for the /duel page
-        EventBus.emit(GameEvents.DUEL_DATA_LOADED, {
+        EventBus?.emit(GameEvents.DUEL_DATA_LOADED, {
           player1: this.player1,
           player2: this.player2,
           decodedCombatBytes: this.decodedCombatBytes,
@@ -152,7 +152,7 @@ export class Preloader extends Scene {
       this.scene.start("FightScene", sceneData);
 
       // Let React know that the scene is ready
-      EventBus.emit("current-scene-ready", this);
+      EventBus?.emit("current-scene-ready", this);
     } catch (error) {
       console.error("Error starting fight:", error);
       this.loadingUI.showError("Error starting game. Please try again.");

@@ -1235,7 +1235,7 @@ export class FightScene extends Scene {
         onComplete: () => {
           // After walking away, start taunt sequence
           this.playTauntSequence(winner, isPlayer2);
-          EventBus.emit(GameEvents.GAME_OVER);
+          EventBus?.emit(GameEvents.GAME_OVER);
         },
       });
     });

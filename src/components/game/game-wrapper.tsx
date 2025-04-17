@@ -19,9 +19,10 @@ interface GameWrapperProps {
   // player2Id?: string;
   player1?: Fighter;
   // txId?: string;
+  onPhaserLoaded?: () => void;
 }
 
-export function GameWrapper({ player1 }: GameWrapperProps) {
+export function GameWrapper({ player1, onPhaserLoaded }: GameWrapperProps) {
   const [isClient, setIsClient] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
@@ -32,7 +33,10 @@ export function GameWrapper({ player1 }: GameWrapperProps) {
 
   useEffect(() => {
     setIsClient(true);
-  }, []);
+    if (onPhaserLoaded) {
+      onPhaserLoaded();
+    }
+  }, [onPhaserLoaded]);
 
   const fixCanvasSize = useCallback(() => {
     const canvas = containerRef.current?.querySelector("canvas");

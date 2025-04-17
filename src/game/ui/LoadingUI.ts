@@ -1,5 +1,6 @@
 import type { Scene } from "phaser";
 import { LoadingProgressManager } from "./LoadingProgressManager";
+import { EventBus, GameEvents } from "../EventBus";
 
 export class LoadingUI {
   private scene: Scene;
@@ -17,6 +18,10 @@ export class LoadingUI {
     });
 
     this.create();
+    
+    // Emit that the loading UI is ready
+    EventBus?.emit(GameEvents.LOADING_UI_READY);
+    
     this.setupListeners();
     this.configureLoadingStages();
   }
