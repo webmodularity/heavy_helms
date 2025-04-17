@@ -20,8 +20,15 @@ export const wagmiConfig = createConfig({
   },
 });
 
-export const SUBGRAPH_URL =
-  "https://subgraph.satsuma-prod.com/5d543e96d159/viabull-labs/heavy-helms-subgraph/api";
+// Use environment variable for Subgraph URL
+export const SUBGRAPH_URL = process.env.NEXT_PUBLIC_SUBGRAPH_URL as string;
+
+// Add a check for the new environment variable
+if (!SUBGRAPH_URL) {
+  console.warn("NEXT_PUBLIC_SUBGRAPH_URL is not set in environment variables.");
+  // Optionally, you could set a default or throw an error if it's critical
+  // throw new Error("Critical environment variable NEXT_PUBLIC_SUBGRAPH_URL is missing.");
+}
 
 // Contract addresses
 export const PLAYER_CONTRACT_ADDRESS = process.env
