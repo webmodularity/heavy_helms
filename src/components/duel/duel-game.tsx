@@ -42,9 +42,11 @@ export default function DuelGame() {
   // State for Results Summary
   const [player1, setPlayer1] = useState<Fighter | null>(null);
   const [player2, setPlayer2] = useState<Fighter | null>(null);
-  const [duelResult, setDuelResult] = useState<DecodedCombatResult | null>(null);
+  const [duelResult, setDuelResult] = useState<DecodedCombatResult | null>(
+    null,
+  );
   const [showResults, setShowResults] = useState(false);
-  
+
   useEffect(() => {
     // Redirect if no transaction ID is provided
     if (!txId && typeof window !== "undefined") {
@@ -65,7 +67,7 @@ export default function DuelGame() {
     if (typeof window === "undefined" || !EventBus) {
       return;
     }
-    
+
     // Handler for when initial duel data is loaded from Phaser
     const handleDuelDataLoaded = (data: {
       player1: Fighter;
@@ -101,7 +103,7 @@ export default function DuelGame() {
   };
 
   if (!txId) {
-    return <GameLoading />;
+    return null;
   }
 
   return (
