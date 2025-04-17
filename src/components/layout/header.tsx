@@ -5,7 +5,14 @@ import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import { ChainSelection } from "./chain-selection";
 import Link from "next/link";
-import { Trophy, Scroll, Shield, ListOrdered, Menu } from "lucide-react";
+import {
+  Trophy,
+  Scroll,
+  Shield,
+  ListOrdered,
+  Menu,
+  MessageCircleQuestion,
+} from "lucide-react";
 import { usePathname } from "next/navigation";
 import {
   DropdownMenu,
@@ -28,6 +35,7 @@ const navigationItems: NavItem[] = [
   { label: "Battle Archives", path: "/battle-archives", icon: Trophy },
   { label: "Leaderboards", path: "/leaderboards", icon: ListOrdered },
   { label: "Game Statistics", path: "/stats", icon: Scroll },
+  { label: "FAQ", path: "/faq", icon: MessageCircleQuestion },
 ];
 
 export function Header() {

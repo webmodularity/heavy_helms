@@ -30,31 +30,40 @@ export function useOpenWagerChallenges(pageSize = 10) {
   const queryResult = useInfiniteQuery({
     queryKey: ["open-wager-challenges", pageSize],
     queryFn: async ({ pageParam = 0 }) => {
+      // Calculate timestamp for 7 days ago (in seconds)
+      const sevenDaysInSeconds = 7 * 24 * 60 * 60;
+      const nowInSeconds = Math.floor(Date.now() / 1000);
+      const minTimestamp = nowInSeconds - sevenDaysInSeconds;
+
       try {
-        // Now uses the inline types
         const response = await request<OpenWagerChallengeQueryResult>(
           SUBGRAPH_URL,
           GET_OPEN_WAGER_CHALLENGES,
           {
             limit: pageSize,
             skip: pageParam,
+            // Pass the calculated timestamp as a string for BigInt variable
+            minTimestamp: String(minTimestamp),
           },
         );
         return response.duelChallenges || [];
       } catch (error) {
         console.error("Error fetching open wager challenges:", error);
-        throw error; // Re-throw for react-query error handling
+        // Consider throwing a more specific error or handling differently
+        throw new Error("Failed to fetch open wager challenges");
       }
     },
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) => {
+      // Optional chaining for safety
       if (!lastPage || lastPage.length < pageSize) return undefined;
-      return allPages.length * pageSize;
+      // Ensure allPages is defined and is an array
+      const currentPageCount = Array.isArray(allPages) ? allPages.length : 0;
+      return currentPageCount * pageSize;
     },
     staleTime: 300 * 1000, // 5m
     refetchInterval: 300 * 1000, // 5m
     select: (data) => ({
-      // Flatten pages for easier access
       pages: data.pages,
       pageParams: data.pageParams,
       challenges: data?.pages.flat() || [],

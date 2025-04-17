@@ -657,7 +657,8 @@ export const CHALLENGE_FIGHTER_SNAPSHOT_FRAGMENT = gql`
 `;
 
 export const GET_OPEN_WAGER_CHALLENGES = gql`
-  query GetOpenWagerChallenges($limit: Int!, $skip: Int!) {
+  # Add $minTimestamp variable (use BigInt for Unix timestamps)
+  query GetOpenWagerChallenges($limit: Int!, $skip: Int!, $minTimestamp: BigInt!) {
     duelChallenges(
       first: $limit,
       skip: $skip,
@@ -665,13 +666,13 @@ export const GET_OPEN_WAGER_CHALLENGES = gql`
       orderDirection: desc,
       where: {
         state: OPEN,
-        wagerAmount_gt: "0" # Filter for wagers greater than 0
+        wagerAmount_gt: "0", # Filter for wagers greater than 0
+        createdAt_gte: $minTimestamp # Filter for challenges created >= 7 days ago
       }
     ) {
       id
       wagerAmount
       createdAt # Timestamp for sorting and display
-      # Fetch snapshots directly with necessary fields
       challengerSnapshot {
        ...ChallengeFighterSnapshotFields
       }
@@ -680,7 +681,36 @@ export const GET_OPEN_WAGER_CHALLENGES = gql`
       }
     }
   }
-  ${CHALLENGE_FIGHTER_SNAPSHOT_FRAGMENT} # Include the necessary fragment
+  ${CHALLENGE_FIGHTER_SNAPSHOT_FRAGMENT}
+`;
+
+// Add this new query for expired challenges
+export const GET_EXPIRED_WAGER_CHALLENGES = gql`
+  # Use $maxTimestamp variable (challenges created BEFORE 7 days ago)
+  query GetExpiredWagerChallenges($limit: Int!, $skip: Int!, $maxTimestamp: BigInt!) {
+    duelChallenges(
+      first: $limit,
+      skip: $skip,
+      orderBy: createdAt, # Still order by creation, might want oldest expired first? (desc)
+      orderDirection: desc,
+      where: {
+        state: OPEN, # Still technically OPEN in subgraph data
+        wagerAmount_gt: "0",
+        createdAt_lt: $maxTimestamp # Filter for challenges created < 7 days ago
+      }
+    ) {
+      id
+      wagerAmount
+      createdAt
+      challengerSnapshot {
+       ...ChallengeFighterSnapshotFields
+      }
+      defenderSnapshot {
+       ...ChallengeFighterSnapshotFields
+      }
+    }
+  }
+  ${CHALLENGE_FIGHTER_SNAPSHOT_FRAGMENT}
 `;
 
 // New query for leaderboard data

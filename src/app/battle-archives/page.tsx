@@ -6,6 +6,7 @@ import { useState } from "react";
 // import { MostDuelsCreated } from "@/components/battle-archives/most-duels-created";
 import { OpenChallenges } from "@/components/battle-archives/open-challenges";
 import { RecentBattles } from "@/components/battle-archives/recent-battles";
+import { ExpiredChallenges } from "@/components/battle-archives/expired-challenges";
 // import { TopDuelsByWager } from "@/components/battle-archives/top-duels-by-wager";
 // import { WarriorLeaderboard } from "@/components/battle-archives/warrior-leaderboard";
 import {
@@ -13,6 +14,7 @@ import {
   // RefreshCw, Shield, Swords, CircleDollarSign, Trophy, Users
   Clock,
   Swords,
+  ArchiveX,
 } from "lucide-react";
 // Remove Button import if Refresh button is not needed here anymore
 // import { Button } from "@/components/ui/button";
@@ -67,6 +69,18 @@ export default function BattleArchivesPage() {
             <Swords className="h-4 w-4" />
             Open Challenges
           </button>
+          <button
+            type="button"
+            onClick={() => handleTabChange("expired")}
+            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+              activeTab === "expired"
+                ? "bg-yellow-500 text-black"
+                : "bg-stone-800 text-stone-300 hover:bg-stone-700 hover:text-stone-100"
+            }`}
+          >
+            <ArchiveX className="h-4 w-4" />
+            Expired Challenges
+          </button>
           {/* Removed other buttons */}
         </div>
       </div>
@@ -75,6 +89,7 @@ export default function BattleArchivesPage() {
       <div>
         {activeTab === "recent" && <RecentBattles />}
         {activeTab === "challenges" && <OpenChallenges />}
+        {activeTab === "expired" && <ExpiredChallenges />}
         {/* Removed other content sections */}
       </div>
     </div>

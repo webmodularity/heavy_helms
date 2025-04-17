@@ -1,6 +1,6 @@
 import Link from "next/link";
 // Import icons needed for navigation links (assuming they are same as header)
-import { Trophy, Scroll, Shield, ListOrdered } from "lucide-react";
+import { Trophy, Scroll, Shield, ListOrdered, HelpCircle } from "lucide-react";
 
 export function Footer() {
   // Re-define navigation items here for the footer, or import from a shared config
@@ -9,6 +9,7 @@ export function Footer() {
     { label: "Battle Archives", path: "/battle-archives", icon: Trophy },
     { label: "Leaderboards", path: "/leaderboards", icon: ListOrdered },
     { label: "Game Statistics", path: "/stats", icon: Scroll },
+    { label: "FAQ", path: "/faq", icon: HelpCircle },
   ];
 
   return (
@@ -62,32 +63,39 @@ export function Footer() {
               Navigation
             </h3>
             <ul className="space-y-3">
-              {/* Map over navigation items */}
-              {navigationItems.map((item) => (
-                <li key={item.path} className="flex items-center group">
-                  <div className="w-1.5 h-1.5 rounded-full bg-stone-600/50 mr-2 group-hover:bg-yellow-400 transition-colors"></div>
-                  <Link
-                    href={item.path}
-                    className="text-stone-200 text-sm hover:text-yellow-400 transition-colors flex items-center"
-                  >
-                    {item.label}
-                    <svg
-                      className="w-4 h-4 ml-1 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-yellow-400"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      xmlns="http://www.w3.org/2000/svg"
+              {navigationItems.map((item) => {
+                // Assign the icon component to a variable for easier use
+                const IconComponent = item.icon;
+                return (
+                  <li key={item.path} className="flex items-center group">
+                    {/* Keep the dot */}
+                    <div className="w-1.5 h-1.5 rounded-full bg-stone-600/50 mr-2 group-hover:bg-yellow-400 transition-colors"></div>
+                    <Link
+                      href={item.path}
+                      className="text-stone-200 text-sm hover:text-yellow-400 transition-colors flex items-center"
                     >
-                      <path
-                        d="M5 12H19M19 12L12 5M19 12L12 19"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      />
-                    </svg>
-                  </Link>
-                </li>
-              ))}
+                      {/* Render the icon before the label */}
+                      <IconComponent className="mr-1.5 h-4 w-4 text-stone-400 group-hover:text-yellow-400 transition-colors" />
+                      {item.label}
+                      {/* Keep the arrow SVG */}
+                      <svg
+                        className="w-4 h-4 ml-1 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-yellow-400"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M5 12H19M19 12L12 5M19 12L12 19"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </Link>
+                  </li>
+                );
+              })}
               {/* REMOVED "Powered by Shape Network" link and divider */}
             </ul>
           </div>
