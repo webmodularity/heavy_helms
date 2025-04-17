@@ -12,19 +12,30 @@ export const metadata: Metadata = {
   description: "Frequently asked questions about the Heavy Helms game.",
 };
 
-// Helper to format requirement string
-function formatReqs(reqs: { [key: string]: number }): React.ReactNode {
+// Define a specific interface for the requirements object
+interface EquipmentReqs {
+  str?: number;
+  con?: number;
+  siz?: number;
+  agi?: number;
+  sta?: number;
+  luc?: number; // Added luck just in case, can be removed if not used
+}
+
+// Update the function signature to use the specific interface
+function formatReqs(reqs: EquipmentReqs): React.ReactNode {
+  // Filter out undefined values before mapping
   const parts = Object.entries(reqs)
-    .filter(([, value]) => value > 0)
-    .map(([key, value]) => `${key.toUpperCase()}: ${value}`);
+    .filter(([, value]) => value !== undefined && value > 0) // Check for undefined and > 0
+    .map(([key, value]) => `${key.toUpperCase()}: ${value}`); // Value is guaranteed number here
 
   if (parts.length === 0) {
     return <span className="italic text-stone-400">None</span>;
   }
-
   return (
     <span className="inline-block">
       {parts.map((part, index) => (
+        // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
         <span key={index} className="mr-3 whitespace-nowrap last:mr-0">
           {part}
         </span>
@@ -232,6 +243,7 @@ export default function FaqPage() {
           <Accordion type="single" collapsible className="w-full">
             {faqData.map((faq, index) => (
               <AccordionItem
+                // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
                 key={index}
                 value={`item-${index}`}
                 className="border-stone-700/50"

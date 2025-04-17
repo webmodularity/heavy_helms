@@ -69,7 +69,7 @@ export function Footer() {
                 return (
                   <li key={item.path} className="flex items-center group">
                     {/* Keep the dot */}
-                    <div className="w-1.5 h-1.5 rounded-full bg-stone-600/50 mr-2 group-hover:bg-yellow-400 transition-colors"></div>
+                    <div className="w-1.5 h-1.5 rounded-full bg-stone-600/50 mr-2 group-hover:bg-yellow-400 transition-colors" />
                     <Link
                       href={item.path}
                       className="text-stone-200 text-sm hover:text-yellow-400 transition-colors flex items-center"
@@ -83,6 +83,7 @@ export function Footer() {
                         viewBox="0 0 24 24"
                         fill="none"
                         xmlns="http://www.w3.org/2000/svg"
+                        aria-label="Arrow icon"
                       >
                         <path
                           d="M5 12H19M19 12L12 5M19 12L12 19"
@@ -134,7 +135,7 @@ export function Footer() {
                 </a>
               </li>
               <li className="flex items-center group">
-                <div className="w-1.5 h-1.5 rounded-full bg-stone-600/50 mr-2 group-hover:bg-yellow-400 transition-colors"></div>
+                <div className="w-1.5 h-1.5 rounded-full bg-stone-600/50 mr-2 group-hover:bg-yellow-400 transition-colors" />
                 <a
                   href={
                     "https://sepolia.basescan.org/address/0xB37c539d86e0C627f8AD13E4DddC201cf1d8ea0C"
@@ -161,7 +162,7 @@ export function Footer() {
                 </a>
               </li>
               <li className="flex items-center group">
-                <div className="w-1.5 h-1.5 rounded-full bg-stone-600/50 mr-2 group-hover:bg-yellow-400 transition-colors"></div>
+                <div className="w-1.5 h-1.5 rounded-full bg-stone-600/50 mr-2 group-hover:bg-yellow-400 transition-colors" />
                 <a
                   href={
                     "https://sepolia.basescan.org/address/0xe8CBD0015453addb322DD97994c89DC7C17B1afF"
@@ -188,7 +189,7 @@ export function Footer() {
                 </a>
               </li>
               <li className="flex items-center group">
-                <div className="w-1.5 h-1.5 rounded-full bg-stone-600/50 mr-2 group-hover:bg-yellow-400 transition-colors"></div>
+                <div className="w-1.5 h-1.5 rounded-full bg-stone-600/50 mr-2 group-hover:bg-yellow-400 transition-colors" />
                 <a
                   href={
                     "https://sepolia.basescan.org/address/0xD50f3Ac0E0AC9b1356301a153a777dF1A985E42e"
