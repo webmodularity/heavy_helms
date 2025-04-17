@@ -129,7 +129,7 @@ export function useRetirePlayer(playerId: string) {
           description:
             "Your warrior retirement request has been submitted to the blockchain.",
           action: {
-            label: "View on BaseScan",
+            label: "View on ShapeScan",
             onClick: () =>
               window.open(
                 `${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${data.txHash}`,

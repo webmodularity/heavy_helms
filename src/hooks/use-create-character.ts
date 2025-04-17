@@ -163,7 +163,7 @@ export function useCreateCharacter() {
         description:
           "Your character creation transaction has been sent to the blockchain.",
         action: {
-          label: "View on BaseScan",
+          label: "View on ShapeScan",
           onClick: () =>
             window.open(
               `${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${result.txHash}`,
@@ -199,7 +199,7 @@ export function useCreateCharacter() {
       description:
         "Your character creation request has been submitted to the blockchain.",
       action: {
-        label: "View on BaseScan",
+        label: "View on ShapeScan",
         onClick: () =>
           window.open(
             `${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${txHash}`,

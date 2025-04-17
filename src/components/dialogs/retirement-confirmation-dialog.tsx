@@ -64,7 +64,7 @@ export function RetirementConfirmationDialog({
               rel="noopener noreferrer"
               className="text-blue-400 underline mb-6 inline-block"
             >
-              View transaction on BaseScan
+              View transaction on ShapeScan
             </a>
 
             <p className="text-stone-400 text-sm mt-4">
