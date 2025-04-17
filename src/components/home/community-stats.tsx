@@ -5,26 +5,63 @@ import Link from "next/link";
 import { CTAButton } from "@/components/ui/cta-button";
 import { useGameStats } from "@/hooks/use-game-stats";
 import { formatEther } from "viem";
+import { SectionHeader } from "@/components/ui/section-header";
+import { useCreateCharacter } from "@/hooks/use-create-character";
+import { usePrivy } from "@privy-io/react-auth";
+import { BarChart, ScrollText, Trophy } from "lucide-react";
 
 export function CommunityStats() {
   const { stats: gameStats, isLoading } = useGameStats();
+  const { createCharacter, isCreatingCharacter } = useCreateCharacter();
+  const { login, authenticated } = usePrivy();
+
   // Hardcoded values for now
   const stats = [
     {
-      label: "Active Players",
+      label: "Active Users",
       value: gameStats?.uniqueOwnersCount,
       icon: "👥",
     },
     { label: "Duels Completed", value: gameStats?.totalDuels, icon: "⚔️" },
     {
-      label: "Characters Minted",
+      label: "Players Created",
       value: gameStats?.totalFightersCount,
-      icon: "🛡️",
+      icon: "🎲",
     },
     {
       label: "Total Wagers",
-      value: formatEther(BigInt(gameStats?.totalWageredAmount || 0)),
+      value: `${formatEther(BigInt(gameStats?.totalWageredAmount || 0))} ETH`,
       icon: "💰",
+    },
+  ];
+
+  // Primary Action
+  const createAction = {
+    id: "create",
+    label: "Create Your Warrior",
+    action: authenticated ? createCharacter : login,
+    disabled: isCreatingCharacter,
+  };
+
+  // Secondary Navigation Links with Icons
+  const secondaryLinks = [
+    {
+      id: "archives",
+      href: "/battle-archives",
+      label: "Battle Archives",
+      icon: <ScrollText className="mr-1 h-4 w-4" />,
+    },
+    {
+      id: "leaderboards",
+      href: "/leaderboards",
+      label: "Leaderboards",
+      icon: <Trophy className="mr-1 h-4 w-4" />,
+    },
+    {
+      id: "stats",
+      href: "/stats",
+      label: "Game Statistics",
+      icon: <BarChart className="mr-1 h-4 w-4" />,
     },
   ];
 
@@ -39,27 +76,11 @@ export function CommunityStats() {
       <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-amber-700/30 via-yellow-500/50 to-amber-700/30" />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Section Header */}
-        <div className="text-center mb-10">
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7 }}
-          >
-            <h2 className="text-3xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-600 uppercase tracking-widest mb-2">
-              Realm Statistics
-            </h2>
-            <div className="flex items-center justify-center mb-3">
-              <div className="h-[1px] w-12 bg-yellow-600/40" />
-              <div className="mx-4">
-                <span className="text-yellow-400/90 text-sm font-medium tracking-widest">
-                  THE SAGA UNFOLDS
-                </span>
-              </div>
-              <div className="h-[1px] w-12 bg-yellow-600/40" />
-            </div>
-          </motion.div>
-        </div>
+        <SectionHeader
+          title="Realm Statistics"
+          subtitle="Welcome to Early Access on Shape Network"
+          className="mb-10"
+        />
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
@@ -82,33 +103,42 @@ export function CommunityStats() {
           ))}
         </div>
 
-        {/* Community call to action */}
-        <div className="mt-10 text-center">
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.7, delay: 0.5 }}
-            className="text-stone-200 italic mb-6"
-          >
+        {/* --- Exploration Section --- */}
+        <motion.div
+          className="mt-16 text-center"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.7, delay: 0.4 }}
+        >
+          <p className="text-stone-200 italic mb-8">
             Join the ranks of warriors from across the realms
-          </motion.p>
+          </p>
 
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7, delay: 0.6 }}
-          >
-            <Link href="/stats" passHref>
-              <CTAButton
-                onClick={() => {
-                  /* Link handles click */
-                }}
-                title="View Detailed Statistics"
-                size="lg"
-              />
-            </Link>
-          </motion.div>
-        </div>
+          <div className="mb-10">
+            <CTAButton
+              key={createAction.id}
+              title={createAction.label}
+              onClick={() => createAction.action()}
+              size="lg"
+            />
+          </div>
+
+          <div className="flex justify-center items-center flex-wrap gap-6 sm:gap-10">
+            {secondaryLinks.map((link) => (
+              <Link
+                key={link.id}
+                href={link.href}
+                className="group inline-flex items-center text-sm text-stone-300 hover:text-yellow-400 transition-colors uppercase tracking-wider font-medium font-bokor"
+              >
+                {link.icon}
+                <span className="group-hover:underline decoration-yellow-500/70 underline-offset-4">
+                  {link.label}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </motion.div>
+        {/* --- End Exploration Section --- */}
       </div>
     </section>
   );

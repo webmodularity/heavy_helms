@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
+import { SectionHeader } from "@/components/ui/section-header";
 
 export function GameIntroduction() {
   const [activeStep, setActiveStep] = useState(0);
@@ -23,25 +24,22 @@ export function GameIntroduction() {
   // Updated game steps/instructions
   const gameSteps = [
     {
-      title: "Choose Your Warrior",
+      title: "🎲 Roll Your Warrior",
       description:
-        "Select from legendary warriors, each with unique attribute distributions that affect combat calculations.",
-      imageUrl: "/images/intro/select-warrior.webp",
-      icon: "🛡️",
+        "Get a randomly generated warrior with VRF stats — no rerolls, no pay-to-win. Everyone starts fair.",
+      imageUrl: "/images/intro/select-warrior.jpg",
     },
     {
-      title: "Select Your Strategy",
+      title: "🛡️ Equip Smart, Not Flashy",
       description:
-        "Equip skins that determine your weapon & armor, and choose your fighting stance. Each combination has unique strengths and weaknesses.",
-      imageUrl: "/images/intro/combat.webp",
-      icon: "⚔️",
+        "NFT armor and weapons equipped as skins actually change how your warrior performs. Strategy > drip.",
+      imageUrl: "/images/intro/skins.jpg",
     },
     {
-      title: "Watch Battles Unfold",
+      title: "👑 Climb the Leaderboard",
       description:
-        "Witness automatic turn-based combat where initiative, hit chance, blocks, and critical strikes determine the victor.",
-      imageUrl: "/images/intro/victory.webp",
-      icon: "👑",
+        "Challenge your friends or duel anons. Place wagers, watch replays, and fight your way to the top.",
+      imageUrl: "/images/intro/combat.jpg",
     },
   ];
 
@@ -55,56 +53,59 @@ export function GameIntroduction() {
   };
 
   return (
-    <section className="relative py-16">
-      {/* Reuse the similar border decoration style as CharacterGallery */}
-      {/* <BorderDecoration /> */}
+    // Outer section: Handles spacing, relative positioning (Matches CommunityStats)
+    <section className="relative mt-8 md:mt-12 py-16">
+      {/* Background, Shadow, Borders - Placed directly inside, NO Z-INDEX */}
+      <div className="absolute inset-0 bg-stone-900/60" />
+      <div className="absolute inset-0 shadow-[inset_0_0_100px_rgba(30,20,10,0.6)]" />
+      <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-700/30 via-yellow-500/50 to-amber-700/30" />
+      <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-700/30 via-yellow-500/50 to-amber-700/30" />
 
+      {/* Single Inner container: Constrains width, adds padding, holds ALL content */}
+      {/* Added relative positioning (Matches CommunityStats) */}
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.7 }}
-          >
-            <h2 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-600 uppercase tracking-widest mb-1">
-              Enter The Arena
-            </h2>
-            <div className="flex items-center justify-center mb-3">
-              <div className="h-[1px] w-16 bg-yellow-600/40" />
-              <div className="mx-4">
-                <span className="text-yellow-400/90 text-sm font-medium tracking-widest">
-                  BATTLE AWAITS
-                </span>
-              </div>
-              <div className="h-[1px] w-16 bg-yellow-600/40" />
-            </div>
-          </motion.div>
-        </div>
+        {/* SectionHeader is INSIDE this constrained, relative container */}
+        <SectionHeader
+          title="Enter The Arena"
+          subtitle="The fully on-chain strategy auto battler where bragging rights are on the line."
+          className="mb-12"
+        />
 
-        <div className="flex flex-col md:flex-row gap-8 items-center">
+        {/* The actual content flex container */}
+        <div
+          className="
+            flex flex-col md:flex-row gap-8 items-center
+          "
+        >
           {/* Left side: Image showcase */}
           <motion.div
-            className="w-full md:w-1/2 aspect-video relative rounded-md overflow-hidden border border-yellow-600/20"
+            className="w-full md:w-1/2 aspect-video relative rounded-md overflow-hidden bg-stone-900"
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.7 }}
           >
-            {/* Placeholder for gameplay images/videos */}
-            {gameSteps.map((step) => (
-              <div
-                key={`slide-${step.title}`}
-                className={`absolute inset-0 transition-all duration-700 ${
-                  activeStep === gameSteps.indexOf(step)
-                    ? "opacity-100"
-                    : "opacity-0 pointer-events-none"
-                }`}
+            {/* Use Next/Image component */}
+            {gameSteps.map((step, index) => (
+              <motion.div
+                key={step.title}
+                className="absolute inset-0"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: activeStep === index ? 1 : 0 }}
+                transition={{ duration: 0.7 }}
+                style={{
+                  pointerEvents: activeStep === index ? "auto" : "none",
+                }}
               >
-                {/* You can use actual Images here once you have them */}
+                <Image
+                  src={step.imageUrl}
+                  alt={step.title}
+                  fill
+                  style={{ objectFit: "cover" }}
+                  priority={index === 0}
+                  unoptimized
+                />
                 <div className="absolute inset-0 bg-gradient-to-t from-stone-900/90 to-transparent z-10" />
-                <div className="w-full h-full bg-stone-800 flex items-center justify-center text-7xl">
-                  {step.icon}
-                </div>
-              </div>
+              </motion.div>
             ))}
 
             {/* Step title overlay */}
@@ -196,53 +197,5 @@ export function GameIntroduction() {
         </div>
       </div>
     </section>
-  );
-}
-
-// Reusing the BorderDecoration component to maintain style consistency
-function BorderDecoration() {
-  return (
-    <>
-      {/* Dark overlay with textured base */}
-      <div className="absolute inset-0 bg-stone-900/60" />
-
-      {/* Inner glow effect */}
-      <div className="absolute inset-0 shadow-[inset_0_0_100px_rgba(30,20,10,0.6)]" />
-
-      {/* Decorative top border */}
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-amber-700/30 via-yellow-500/50 to-amber-700/30" />
-      <div className="absolute top-1 left-0 w-full h-3 bg-gradient-to-r from-amber-800/20 via-yellow-600/30 to-amber-800/20" />
-      <div className="absolute top-4 left-0 w-full h-0.5 bg-amber-600/10" />
-
-      {/* Decorative bottom border */}
-      <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-amber-700/30 via-yellow-500/50 to-amber-700/30" />
-      <div className="absolute bottom-1 left-0 w-full h-3 bg-gradient-to-r from-amber-800/20 via-yellow-600/30 to-amber-800/20" />
-      <div className="absolute bottom-4 left-0 w-full h-0.5 bg-amber-600/10" />
-
-      {/* Corner decorations (simplified version) */}
-      <div className="absolute top-0 left-0 w-16 h-16 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-0 w-[2px] h-12 bg-gradient-to-b from-yellow-500/70 to-transparent" />
-        <div className="absolute top-0 left-0 h-[2px] w-12 bg-gradient-to-r from-yellow-500/70 to-transparent" />
-        <div className="absolute top-0 left-0 w-8 h-8 border-t-2 border-l-2 border-yellow-500/30 rounded-tl-sm" />
-      </div>
-
-      <div className="absolute top-0 right-0 w-16 h-16 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 right-0 w-[2px] h-12 bg-gradient-to-b from-yellow-500/70 to-transparent" />
-        <div className="absolute top-0 right-0 h-[2px] w-12 bg-gradient-to-r from-transparent to-yellow-500/70" />
-        <div className="absolute top-0 right-0 w-8 h-8 border-t-2 border-r-2 border-yellow-500/30 rounded-tr-sm" />
-      </div>
-
-      <div className="absolute bottom-0 left-0 w-16 h-16 overflow-hidden pointer-events-none">
-        <div className="absolute bottom-0 left-0 w-[2px] h-12 bg-gradient-to-t from-yellow-500/70 to-transparent" />
-        <div className="absolute bottom-0 left-0 h-[2px] w-12 bg-gradient-to-r from-yellow-500/70 to-transparent" />
-        <div className="absolute bottom-0 left-0 w-8 h-8 border-b-2 border-l-2 border-yellow-500/30 rounded-bl-sm" />
-      </div>
-
-      <div className="absolute bottom-0 right-0 w-16 h-16 overflow-hidden pointer-events-none">
-        <div className="absolute bottom-0 right-0 w-[2px] h-12 bg-gradient-to-t from-yellow-500/70 to-transparent" />
-        <div className="absolute bottom-0 right-0 h-[2px] w-12 bg-gradient-to-r from-transparent to-yellow-500/70" />
-        <div className="absolute bottom-0 right-0 w-8 h-8 border-b-2 border-r-2 border-yellow-500/30 rounded-br-sm" />
-      </div>
-    </>
   );
 }

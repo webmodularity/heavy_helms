@@ -22,7 +22,7 @@ export default function Home() {
       ) : (
         // Non-authenticated view
         <>
-          <CharacterGallery />
+
           <GameIntroduction />
           <CommunityStats />
         </>
