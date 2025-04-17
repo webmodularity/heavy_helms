@@ -25,7 +25,7 @@ function GameErrorFallback() {
       <button
         type="button"
         className="bg-gradient-to-r from-amber-700 to-yellow-600 hover:from-amber-600 hover:to-yellow-500 text-stone-100 px-4 py-2 rounded"
-        onClick={() => window.location.reload()}
+        onClick={() => window?.location?.reload()}
       >
         Try Again
       </button>
