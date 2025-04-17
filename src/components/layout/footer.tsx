@@ -111,7 +111,7 @@ export function Footer() {
                 <div className="w-1.5 h-1.5 rounded-full bg-stone-600/50 mr-2 group-hover:bg-yellow-400 transition-colors"></div>
                 <a
                   href={
-                    "https://sepolia.basescan.org/address/0x0006A67Ca3F41885f42A42799406ea848c67f33f"
+                    "https://shapescan.xyz/address/0x75B4750D41A9a04e989FAD58544C37930AEf2e5B"
                   }
                   target="_blank"
                   rel="noopener noreferrer"
@@ -138,7 +138,7 @@ export function Footer() {
                 <div className="w-1.5 h-1.5 rounded-full bg-stone-600/50 mr-2 group-hover:bg-yellow-400 transition-colors" />
                 <a
                   href={
-                    "https://sepolia.basescan.org/address/0xB37c539d86e0C627f8AD13E4DddC201cf1d8ea0C"
+                    "https://shapescan.xyz/address/0x60567795F7a60986204A5507538600b53adeE42a"
                   }
                   target="_blank"
                   rel="noopener noreferrer"
@@ -165,7 +165,7 @@ export function Footer() {
                 <div className="w-1.5 h-1.5 rounded-full bg-stone-600/50 mr-2 group-hover:bg-yellow-400 transition-colors" />
                 <a
                   href={
-                    "https://sepolia.basescan.org/address/0xe8CBD0015453addb322DD97994c89DC7C17B1afF"
+                    "https://shapescan.xyz/address/0xee5Ccf602AA0E5ff1C6F78CAB3AaC0dA317aF0b3"
                   }
                   target="_blank"
                   rel="noopener noreferrer"
@@ -192,13 +192,40 @@ export function Footer() {
                 <div className="w-1.5 h-1.5 rounded-full bg-stone-600/50 mr-2 group-hover:bg-yellow-400 transition-colors" />
                 <a
                   href={
-                    "https://sepolia.basescan.org/address/0xD50f3Ac0E0AC9b1356301a153a777dF1A985E42e"
+                    "https://shapescan.xyz/address/0x805b44fadbCBA7a65b37875551820593a45a8716"
                   }
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-stone-200 text-sm hover:text-yellow-400 transition-colors flex items-center"
                 >
                   Duel Game Contract
+                  <svg
+                    className="w-4 h-4 ml-1 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-yellow-400"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M5 12H19M19 12L12 5M19 12L12 19"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </a>
+              </li>
+              <li className="flex items-center group">
+                <div className="w-1.5 h-1.5 rounded-full bg-stone-600/50 mr-2 group-hover:bg-yellow-400 transition-colors" />
+                <a
+                  href={
+                    "https://shapescan.xyz/address/0x70FA59BA4FbD253850c76B6d1A12a7DFaC744072"
+                  }
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-stone-200 text-sm hover:text-yellow-400 transition-colors flex items-center"
+                >
+                  Player Skin Registry
                   <svg
                     className="w-4 h-4 ml-1 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-yellow-400"
                     viewBox="0 0 24 24"
@@ -222,6 +249,22 @@ export function Footer() {
         {/* Social Links */}
         <div className="mt-8 pt-8 border-t border-stone-600/30">
           <div className="flex justify-center space-x-6">
+            <a
+              href="https://discord.gg/5XHu76FmpJ"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group"
+            >
+              <div className="bg-gradient-to-b from-stone-800/60 to-stone-900/60 backdrop-blur-sm p-3 rounded-full transform transition-all duration-200 hover:scale-110 border border-stone-600/30 shadow-lg">
+                <svg
+                  className="h-6 w-6 text-stone-400 group-hover:text-yellow-400 transition-colors"
+                  fill="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path d="M20.317 4.492c-1.53-.69-3.17-1.2-4.885-1.49a.075.075 0 00-.079.036c-.21.369-.444.85-.608 1.23a18.566 18.566 0 00-5.487 0 12.36 12.36 0 00-.617-1.23A.077.077 0 008.562 3c-1.714.29-3.354.8-4.885 1.491a.07.07 0 00-.032.027C.533 9.093-.32 13.555.099 17.961a.08.08 0 00.031.055 20.03 20.03 0 005.993 2.98.078.078 0 00.084-.026 13.83 13.83 0 001.226-1.963.074.074 0 00-.041-.104 13.175 13.175 0 01-1.872-.878.075.075 0 01-.008-.125c.126-.093.252-.19.372-.287a.075.075 0 01.078-.01c3.927 1.764 8.18 1.764 12.061 0a.075.075 0 01.079.009c.12.098.245.195.372.288a.075.075 0 01-.006.125c-.598.344-1.22.635-1.873.877a.075.075 0 00-.041.105c.36.687.772 1.341 1.225 1.962a.077.077 0 00.084.028 19.963 19.963 0 006.002-2.981.076.076 0 00.032-.054c.5-5.094-.838-9.52-3.549-13.442a.06.06 0 00-.031-.028zM8.02 15.278c-1.182 0-2.157-1.069-2.157-2.38 0-1.312.956-2.38 2.157-2.38 1.21 0 2.176 1.077 2.157 2.38 0 1.312-.956 2.38-2.157 2.38zm7.975 0c-1.183 0-2.157-1.069-2.157-2.38 0-1.312.955-2.38 2.157-2.38 1.21 0 2.176 1.077 2.157 2.38 0 1.312-.946 2.38-2.157 2.38z" />
+                </svg>
+              </div>
+            </a>
             <a
               href="https://x.com/HeavyHelms"
               target="_blank"

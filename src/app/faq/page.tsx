@@ -84,138 +84,153 @@ const equipmentRequirements = {
 };
 
 // Updated FAQ data from README
-const faqData = [
-  {
-    question: "How much does it cost to create a player?",
-    answer:
-      "During early access we have set the cost of creating a new player to 0.002 ETH",
-  },
-  {
-    question: "How much does it cost to duel?",
-    answer:
-      "The cost for a duel is 0.0002 ETH per duel. If a wager is made we collect an aditional 2% of the wager amount.",
-  },
-  {
-    question: "How many players can I manage?",
-    answer:
-      "We are currently limiting the amount of active warriors each user can own to five during early access. You will be able to purchase additional active warrior slots in the future. In the meantime you can retire warriors that you aren't attached to and free up a slot.",
-  },
-  {
-    question: "What network does Heavy Helms run on?",
-    answer: (
-      <>
-        We are on{" "}
-        <a
-          href="https://shape.network/"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-yellow-500 hover:text-yellow-400 underline"
-        >
-          Shape Network
-        </a>{" "}
-        - an L2 OP Superchain.
-      </>
-    ),
-  },
-  {
-    question: "What does early access mean?",
-    answer:
-      "It simply means that we are still tweaking balance as well as adding new game modes and features. Your players will NOT be lost when we leave early access and all skins acquired will still be available. Basically you can expect some aggressive balance changes as well as some updates to the look and feel of the game.",
-  },
-  {
-    question: "When do you plan to leave early access?",
-    answer:
-      "We plan to leave early access after the tournament mode is launched. You can follow us on twitter or check out our roadmap for more details.",
-  },
-  {
-    question: "Is this really a web3 game?",
-    answer:
-      "Yes, Heavy Helms is a web3 native game. The game engine was written in Solidity and we encourage you to check out the contracts linked in the footer.",
-  },
-  {
-    question: "What is an auto battler?",
-    answer:
-      "An auto battler (also known as an auto chess or auto-combat game) is a competitive strategy game genre where players build a team of characters that then fight automatically against other players' teams without direct input during the combat phase.",
-  },
-  {
-    question: "What are the attribute requirements for equipment?",
-    answer: (
-      <div className="space-y-6">
-        <div>
-          <h4 className="text-lg font-semibold text-yellow-300 mb-3 border-b border-stone-700 pb-1">
-            Weapons
-          </h4>
-          <div className="grid grid-cols-[1fr_auto] gap-x-4 text-sm">
-            {equipmentRequirements.weapons.map((item) => (
-              <React.Fragment key={item.name}>
-                <div className="text-stone-100 font-medium pt-1.5 pb-1.5">
-                  {item.name}
-                </div>
-                <div className="text-stone-300 pt-1.5 pb-1.5 text-right">
-                  {formatReqs(item.reqs)}
-                </div>
-                <div className="col-span-2 border-b border-stone-700/50" />
-              </React.Fragment>
-            ))}
+const faqDataCategorized = {
+  "Costs & Limits": [
+    {
+      question: "How much does it cost to create a player?",
+      answer:
+        "During early access we have set the cost of creating a new player to 0.002 ETH",
+    },
+    {
+      question: "How much does it cost to duel?",
+      answer:
+        "The cost for a duel is 0.0002 ETH per duel. If a wager is made we collect an aditional 2% of the wager amount.",
+    },
+    {
+      question: "How many players can I manage?",
+      answer:
+        "We are currently limiting the amount of active warriors each user can own to five during early access. You will be able to purchase additional active warrior slots in the future. In the meantime you can retire warriors that you aren't attached to and free up a slot.",
+    },
+  ],
+  "General Gameplay": [
+    {
+      question: "What is an auto battler?",
+      answer:
+        "An auto battler (also known as an auto chess or auto-combat game) is a competitive strategy game genre where players build a team of characters that then fight automatically against other players' teams without direct input during the combat phase.",
+    },
+    {
+      question: "What makes Heavy Helms combat fair?",
+      answer:
+        "All players have the same total attribute points, just distributed differently. Skins determine weapon and armor, offering strategic choices with strengths and weaknesses, but do not provide a pay-to-win advantage.",
+    },
+    {
+      question: "What types of skins are there and what do they do?",
+      answer:
+        "All skins are NFTs. There are game-owned skins that any player can always equip without owing any NFTs. There are also skins that require NFT ownership to equip that can be purchased from a marketplace. The equipped skin determines your Weapon and Armor, influencing strategy and combat modifiers.",
+    },
+    {
+      question: "Do you plan to release more skins?",
+      answer:
+        "Yes! During early access we will be releasing several new skins on a weekly basis. We are also working with artists to bring you some 1 of 1 custom skins.",
+    },
+  ],
+  "Equipment & Attributes": [
+    {
+      question: "What are the attribute requirements for equipment?",
+      answer: (
+        <div className="space-y-6">
+          <div>
+            <h4 className="text-lg font-semibold text-yellow-300 mb-3 border-b border-stone-700 pb-1">
+              Weapons
+            </h4>
+            <div className="grid grid-cols-[1fr_auto] gap-x-4 text-sm">
+              {equipmentRequirements.weapons.map((item) => (
+                <React.Fragment key={item.name}>
+                  <div className="text-stone-100 font-medium pt-1.5 pb-1.5">
+                    {item.name}
+                  </div>
+                  <div className="text-stone-300 pt-1.5 pb-1.5 text-right">
+                    {formatReqs(item.reqs)}
+                  </div>
+                  <div className="col-span-2 border-b border-stone-700/50" />
+                </React.Fragment>
+              ))}
+            </div>
+          </div>
+          <div>
+            <h4 className="text-lg font-semibold text-yellow-300 mb-3 border-b border-stone-700 pb-1">
+              Armor
+            </h4>
+            <div className="grid grid-cols-[1fr_auto] gap-x-4 text-sm">
+              {equipmentRequirements.armors.map((item) => (
+                <React.Fragment key={item.name}>
+                  <div className="text-stone-100 font-medium pt-1.5 pb-1.5">
+                    {item.name}
+                  </div>
+                  <div className="text-stone-300 pt-1.5 pb-1.5 text-right">
+                    {formatReqs(item.reqs)}
+                  </div>
+                  <div className="col-span-2 border-b border-stone-700/50" />
+                </React.Fragment>
+              ))}
+            </div>
           </div>
         </div>
-        <div>
-          <h4 className="text-lg font-semibold text-yellow-300 mb-3 border-b border-stone-700 pb-1">
-            Armor
-          </h4>
-          <div className="grid grid-cols-[1fr_auto] gap-x-4 text-sm">
-            {equipmentRequirements.armors.map((item) => (
-              <React.Fragment key={item.name}>
-                <div className="text-stone-100 font-medium pt-1.5 pb-1.5">
-                  {item.name}
-                </div>
-                <div className="text-stone-300 pt-1.5 pb-1.5 text-right">
-                  {formatReqs(item.reqs)}
-                </div>
-                <div className="col-span-2 border-b border-stone-700/50" />
-              </React.Fragment>
-            ))}
-          </div>
-        </div>
-      </div>
-    ),
-  },
-  {
-    question: "What makes Heavy Helms combat fair?",
-    answer:
-      "All players have the same total attribute points, just distributed differently. Skins determine weapon and armor, offering strategic choices with strengths and weaknesses, but do not provide a pay-to-win advantage.",
-  },
-  {
-    question: "What types of skins are there and what do they do?",
-    answer:
-      "All skins are NFTs. There are game-owned skins that any player can always equip without owing any NFTs. There are also skins that require NFT ownership to equip that can be purchased from a marketplace. The equipped skin determines your Weapon and Armor, influencing strategy and combat modifiers.",
-  },
-  {
-    question: "How do attributes and skins affect gameplay?",
-    answer:
-      "Your player's base attributes (Strength, Constitution, Size, Agility, Stamina, and Luck) calculate stats like Max Health, Hit Chance, and Crit Chance. The onchain Game Engine combines these base stats with modifiers based on your equipped skin's weapon and armor and your chosen stance to determine combat outcomes.",
-  },
-  {
-    question: "What game modes are currently available?",
-    answer:
-      "Currently, there are two modes: Practice Game (free, uses block entropy for pseudo-random outcomes, no permanent record) and Duel Game (records Wins/Losses onchain, uses VRF for randomness, logs results publicly, allows optional ETH wagers).",
-  },
-  {
-    question: "Are new game modes planned?",
-    answer:
-      "Yes! The contracts are modular. A tournament mode is planned, and the permission system allows other approved game contracts to modify player state (like records or granting rewards) in the future.",
-  },
-  {
-    question: "What happens if the game engine needs updates or balancing?",
-    answer:
-      "The Game Engine is modular and versioned. Updates can be deployed without affecting player contracts. Game modes can specify which engine version they use, and the game client can interpret different combat result versions.",
-  },
-  {
-    question: "Where can I find the community and contract details?",
-    answer:
-      "Join our official Discord (link in footer) and follow us on X/Twitter. Deployed contract addresses for Shape Mainnet can be found in the project's README on GitHub.",
-  },
-];
+      ),
+    },
+    {
+      question: "How do attributes and skins affect gameplay?",
+      answer:
+        "Your player's base attributes (Strength, Constitution, Size, Agility, Stamina, and Luck) calculate stats like Max Health, Hit Chance, and Crit Chance. The onchain Game Engine combines these base stats with modifiers based on your equipped skin's weapon and armor and your chosen stance to determine combat outcomes.",
+    },
+  ],
+  "Web3 & Technical": [
+    {
+      question: "What network does Heavy Helms run on?",
+      answer: (
+        <>
+          We are on{" "}
+          <a
+            href="https://shape.network/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-yellow-500 hover:text-yellow-400 underline"
+          >
+            Shape Network
+          </a>{" "}
+          - an L2 OP Superchain.
+        </>
+      ),
+    },
+    {
+      question: "Is this really a web3 game?",
+      answer:
+        "Yes, Heavy Helms is a web3 native game. The game engine was written in Solidity and we encourage you to check out the contracts linked in the footer.",
+    },
+    {
+      question: "What happens if the game engine needs updates or balancing?",
+      answer:
+        "The Game Engine is modular and versioned. Updates can be deployed without affecting player contracts. Game modes can specify which engine version they use, and the game client can interpret different combat result versions.",
+    },
+    {
+      question: "Where can I find the community and contract details?",
+      answer:
+        "Join our official Discord (link in footer) and follow us on X/Twitter. Deployed contract addresses for Shape Mainnet can be found in the project's README on GitHub.",
+    },
+  ],
+  "Development & Future": [
+    {
+      question: "What does early access mean?",
+      answer:
+        "It simply means that we are still tweaking balance as well as adding new game modes and features. Your players will NOT be lost when we leave early access and all skins acquired will still be available. Basically you can expect some aggressive balance changes as well as some updates to the look and feel of the game.",
+    },
+    {
+      question: "When do you plan to leave early access?",
+      answer:
+        "We plan to leave early access after the tournament mode is launched. You can follow us on twitter or check out our roadmap for more details.",
+    },
+    {
+      question: "What game modes are currently available?",
+      answer:
+        "Currently, there are two modes: Practice Game (free, uses block entropy for pseudo-random outcomes, no permanent record) and Duel Game (records Wins/Losses onchain, uses VRF for randomness, logs results publicly, allows optional ETH wagers).",
+    },
+    {
+      question: "Are new game modes planned?",
+      answer:
+        "Yes! The contracts are modular. A tournament mode is planned, and the permission system allows other approved game contracts to modify player state (like records or granting rewards) in the future.",
+    },
+  ],
+};
 
 export default function FaqPage() {
   return (
@@ -240,23 +255,31 @@ export default function FaqPage() {
         <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-700/30 via-yellow-500/50 to-amber-700/30" />
 
         <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-12">
-          <Accordion type="single" collapsible className="w-full">
-            {faqData.map((faq, index) => (
-              <AccordionItem
-                // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-                key={index}
-                value={`item-${index}`}
-                className="border-stone-700/50"
-              >
-                <AccordionTrigger className="text-lg hover:no-underline text-left font-semibold text-yellow-400">
-                  {faq.question}
-                </AccordionTrigger>
-                <AccordionContent className="text-stone-300 pt-2 pb-4 leading-relaxed text-base font-sans">
-                  {faq.answer}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
+          {Object.entries(faqDataCategorized).map(
+            ([category, questions], categoryIndex) => (
+              <div key={category} className={categoryIndex > 0 ? "mt-10" : ""}>
+                <h3 className="text-2xl font-bold text-stone-100 tracking-wide mb-4 border-b border-stone-600/50 pb-2">
+                  {category}
+                </h3>
+                <Accordion type="single" collapsible className="w-full">
+                  {questions.map((faq, questionIndex) => (
+                    <AccordionItem
+                      key={`${categoryIndex}-${questionIndex}`}
+                      value={`item-${categoryIndex}-${questionIndex}`}
+                      className="border-stone-700/50"
+                    >
+                      <AccordionTrigger className="text-lg hover:no-underline text-left font-semibold text-yellow-400">
+                        {faq.question}
+                      </AccordionTrigger>
+                      <AccordionContent className="text-stone-300 pt-2 pb-4 leading-relaxed text-base font-sans">
+                        {faq.answer}
+                      </AccordionContent>
+                    </AccordionItem>
+                  ))}
+                </Accordion>
+              </div>
+            ),
+          )}
         </div>
       </div>
 
