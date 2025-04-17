@@ -1,5 +1,5 @@
 import { Scene } from "phaser";
-import { EventBus } from "../EventBus";
+import { EventBus, GameEvents } from "../EventBus";
 import type { DecodedCombatResult } from "@/types/game.types";
 import type { Fighter } from "@/types/fighter-types";
 import { GameModeStrategyFactory } from "../strategies/GameModeStrategyFactory";
@@ -116,6 +116,13 @@ export class Preloader extends Scene {
         // Start the finalizing stage
         this.loadingUI.startStage("finalizing");
         this.events.emit("status-update", "Finalizing...");
+
+        // Emit the duel data loaded event for the /duel page
+        EventBus.emit(GameEvents.DUEL_DATA_LOADED, {
+          player1: this.player1,
+          player2: this.player2,
+          decodedCombatBytes: this.decodedCombatBytes,
+        });
 
         // Simulate a small delay for final preparations
         // This prevents the jarring transition if everything loads instantly

@@ -1,5 +1,5 @@
 import { Scene } from "phaser";
-import { EventBus } from "../EventBus";
+import { EventBus, GameEvents } from "../EventBus";
 
 import { DamageNumbers } from "../systems/damage-numbers";
 import { CombatAnimator } from "../systems/combat-animator";
@@ -1235,6 +1235,7 @@ export class FightScene extends Scene {
         onComplete: () => {
           // After walking away, start taunt sequence
           this.playTauntSequence(winner, isPlayer2);
+          EventBus.emit(GameEvents.GAME_OVER);
         },
       });
     });
