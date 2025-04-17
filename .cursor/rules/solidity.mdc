@@ -1,0 +1,843 @@
+---
+description: Writing/Understanting solidity code
+globs: *.sol
+alwaysApply: false
+---
+## Project Structure
+
+```
+project/
+├── contracts/
+│   ├── interfaces/
+│   │   └── IMyContract.sol
+│   ├── libraries/
+│   │   └── SafeMath.sol
+│   ├── core/
+│   │   ├── MyToken.sol
+│   │   └── MyProtocol.sol
+│   ├── access/
+│   │   └── Roles.sol
+│   └── utils/
+│       └── StringUtils.sol
+├── scripts/
+│   ├── deploy.js
+│   └── verify.js
+├── test/
+│   ├── unit/
+│   │   └── MyToken.test.js
+│   └── integration/
+│       └── Protocol.test.js
+├── .env
+├── hardhat.config.js
+└── package.json
+```
+
+## Core Principles
+
+### 1. Contract Structure
+
+Follow a consistent structure for readability and maintainability:
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+
+/**
+ * @title MyContract
+ * @dev A contract for demonstrating best practices
+ * @author Your Name
+ */
+contract MyContract is Ownable {
+    // Type declarations
+    struct UserInfo {
+        uint256 balance;
+        bool isActive;
+    }
+    
+    // State variables
+    IERC20 public token;
+    uint256 public constant MAX_SUPPLY = 1000000 * 10**18;
+    mapping(address => UserInfo) public users;
+    
+    // Events
+    event Deposit(address indexed user, uint256 amount);
+    event Withdrawal(address indexed user, uint256 amount);
+    
+    // Errors
+    error InsufficientBalance(uint256 requested, uint256 available);
+    error InvalidAmount();
+    
+    // Modifiers
+    modifier validAmount(uint256 amount) {
+        if (amount == 0) revert InvalidAmount();
+        _;
+    }
+    
+    // Constructor
+    constructor(address _tokenAddress) {
+        token = IERC20(_tokenAddress);
+    }
+    
+    // External functions
+    
+    /**
+     * @notice Deposits tokens into the contract
+     * @param amount The amount to deposit
+     */
+    function deposit(uint256 amount) external validAmount(amount) {
+        if (!token.transferFrom(msg.sender, address(this), amount)) {
+            revert("Transfer failed");
+        }
+        
+        users[msg.sender].balance += amount;
+        users[msg.sender].isActive = true;
+        
+        emit Deposit(msg.sender, amount);
+    }
+    
+    // Public functions
+    
+    /**
+     * @notice Withdraws tokens from the contract
+     * @param amount The amount to withdraw
+     */
+    function withdraw(uint256 amount) public validAmount(amount) {
+        UserInfo storage user = users[msg.sender];
+        
+        if (user.balance < amount) {
+            revert InsufficientBalance({
+                requested: amount,
+                available: user.balance
+            });
+        }
+        
+        user.balance -= amount;
+        
+        if (user.balance == 0) {
+            user.isActive = false;
+        }
+        
+        if (!token.transfer(msg.sender, amount)) {
+            revert("Transfer failed");
+        }
+        
+        emit Withdrawal(msg.sender, amount);
+    }
+    
+    // Internal functions
+    
+    /**
+     * @dev Updates user status
+     * @param userAddress The address of the user
+     * @param status The new status
+     */
+    function _updateUserStatus(address userAddress, bool status) internal {
+        users[userAddress].isActive = status;
+    }
+    
+    // Private functions
+    
+    /**
+     * @dev Calculates a fee
+     * @param amount The amount to calculate fee for
+     * @return The calculated fee
+     */
+    function _calculateFee(uint256 amount) private pure returns (uint256) {
+        return amount * 3 / 1000; // 0.3% fee
+    }
+}
+```
+
+### 2. Use Current Solidity Features
+
+Leverage modern Solidity features for safety and readability:
+
+```solidity
+// Use custom errors instead of revert strings
+error InsufficientBalance(uint256 requested, uint256 available);
+
+function withdraw(uint256 amount) external {
+    if (balances[msg.sender] < amount) {
+        revert InsufficientBalance({
+            requested: amount,
+            available: balances[msg.sender]
+        });
+    }
+    // ...
+}
+
+// Use unchecked blocks for gas optimization where overflow/underflow is impossible
+function sumArray(uint256[] calldata values) external pure returns (uint256) {
+    uint256 sum = 0;
+    
+    for (uint256 i = 0; i < values.length;) {
+        sum += values[i];
+        
+        unchecked {
+            ++i; // Gas optimization for loop counter
+        }
+    }
+    
+    return sum;
+}
+```
+
+### 3. Access Control
+
+Implement proper access control mechanisms:
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+
+import "@openzeppelin/contracts/access/AccessControl.sol";
+
+contract RoleBasedAccess is AccessControl {
+    bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
+    bytes32 public constant MINTER_ROLE = keccak256("MINTER_ROLE");
+    
+    constructor() {
+        _grantRole(DEFAULT_ADMIN_ROLE, msg.sender);
+        _grantRole(ADMIN_ROLE, msg.sender);
+    }
+    
+    function mint(address to, uint256 amount) external onlyRole(MINTER_ROLE) {
+        // Minting logic
+    }
+    
+    function configureMinter(address minter, bool canMint) external onlyRole(ADMIN_ROLE) {
+        if (canMint) {
+            _grantRole(MINTER_ROLE, minter);
+        } else {
+            _revokeRole(MINTER_ROLE, minter);
+        }
+    }
+}
+```
+
+## Security Best Practices
+
+### 1. Prevent Reentrancy Attacks
+
+Use the checks-effects-interactions pattern and consider reentrancy guards:
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+
+contract SecureWithdrawal is ReentrancyGuard {
+    mapping(address => uint256) private balances;
+    
+    // Use nonReentrant modifier from OpenZeppelin
+    function withdraw(uint256 amount) external nonReentrant {
+        // Checks
+        require(balances[msg.sender] >= amount, "Insufficient balance");
+        
+        // Effects (update state)
+        balances[msg.sender] -= amount;
+        
+        // Interactions (external calls)
+        (bool success, ) = msg.sender.call{value: amount}("");
+        require(success, "Transfer failed");
+    }
+    
+    function deposit() external payable {
+        balances[msg.sender] += msg.value;
+    }
+}
+```
+
+### 2. Handle Integer Overflow/Underflow
+
+Solidity 0.8.x has built-in overflow/underflow checking, but use `unchecked` when safe:
+
+```solidity
+function decrementWithCheck(uint256 x, uint256 y) public pure returns (uint256) {
+    // Built-in overflow/underflow checking will revert if x < y
+    return x - y;
+}
+
+function decrementCounter(uint256 counter) public pure returns (uint256) {
+    // For cases where overflow/underflow is impossible, use unchecked for gas savings
+    unchecked {
+        return counter - 1;
+    }
+}
+```
+
+### 3. Properly Handle External Calls
+
+Always check return values and use try/catch for external contract calls:
+
+```solidity
+function safeExternalCall(address target, bytes calldata data) external returns (bool, bytes memory) {
+    // Option 1: Low-level call with return value check
+    (bool success, bytes memory returnData) = target.call(data);
+    require(success, "External call failed");
+    return (success, returnData);
+    
+    // Option 2: Try/catch for better error handling
+    try IExternalContract(target).someFunction() returns (uint256 value) {
+        return (true, abi.encode(value));
+    } catch Error(string memory reason) {
+        // Handles revert/require with reason
+        emit ErrorCaught(reason);
+        return (false, abi.encode(reason));
+    } catch (bytes memory lowLevelData) {
+        // Handles other errors
+        emit LowLevelError(lowLevelData);
+        return (false, lowLevelData);
+    }
+}
+```
+
+### 4. Avoid tx.origin for Authentication
+
+Use msg.sender instead of tx.origin for authentication:
+
+```solidity
+// INSECURE - vulnerable to phishing
+function insecureWithdraw() external {
+    require(tx.origin == owner, "Not owner");
+    payable(owner).transfer(address(this).balance);
+}
+
+// SECURE - use msg.sender
+function secureWithdraw() external {
+    require(msg.sender == owner, "Not owner");
+    payable(owner).transfer(address(this).balance);
+}
+```
+
+### 5. Protect Against Front-Running
+
+Use techniques like commit-reveal schemes or set min/max bounds:
+
+```solidity
+contract CommitReveal {
+    // Mapping of commit hashes to addresses
+    mapping(bytes32 => address) public commits;
+    
+    // Phase tracking
+    uint256 public commitPhaseEnd;
+    uint256 public revealPhaseEnd;
+    
+    constructor(uint256 _commitPhaseDuration, uint256 _revealPhaseDuration) {
+        commitPhaseEnd = block.timestamp + _commitPhaseDuration;
+        revealPhaseEnd = commitPhaseEnd + _revealPhaseDuration;
+    }
+    
+    // User submits hash of their action + nonce
+    function commit(bytes32 commitHash) external {
+        require(block.timestamp < commitPhaseEnd, "Commit phase ended");
+        commits[commitHash] = msg.sender;
+    }
+    
+    // User reveals their original value and nonce
+    function reveal(uint256 value, bytes32 nonce) external {
+        require(block.timestamp >= commitPhaseEnd, "Commit phase not ended");
+        require(block.timestamp < revealPhaseEnd, "Reveal phase ended");
+        
+        // Verify the hash matches
+        bytes32 commitHash = keccak256(abi.encodePacked(value, nonce, msg.sender));
+        require(commits[commitHash] == msg.sender, "Invalid commit");
+        
+        // Process the revealed value
+        // ...
+    }
+}
+```
+
+## Gas Optimization Techniques
+
+### 1. Storage Variables
+
+Pack storage variables to save gas:
+
+```solidity
+// INEFFICIENT - uses 3 storage slots
+contract Inefficient {
+    uint256 a; // 32 bytes - slot 0
+    uint128 b; // 16 bytes - slot 1
+    uint64 c;  // 8 bytes - slot 2
+}
+
+// EFFICIENT - uses 2 storage slots
+contract Efficient {
+    uint128 b; // 16 bytes - slot 0
+    uint64 c;  // 8 bytes - slot 0 (remaining space)
+    uint256 a; // 32 bytes - slot 1
+}
+```
+
+### 2. Function Optimization
+
+Optimize function visibility and state mutability:
+
+```solidity
+// Gas optimization hierarchy (from most to least efficient):
+// 1. pure functions (don't read state)
+// 2. view functions (read but don't modify state)
+// 3. internal functions (can be inlined)
+// 4. external functions (more efficient for large parameters via calldata)
+// 5. public functions (generates getter and accepts both calldata and memory)
+
+// Use calldata for external function parameters to save gas
+function processArray(uint256[] calldata data) external {
+    // ...
+}
+
+// Use memory for internal function parameters
+function _processArray(uint256[] memory data) internal {
+    // ...
+}
+```
+
+### 3. Loop Optimization
+
+Optimize loops for gas efficiency:
+
+```solidity
+function efficientLoop(uint256[] calldata data) external pure returns (uint256) {
+    uint256 result = 0;
+    uint256 length = data.length;
+    
+    // Cache length to avoid accessing array length property in each iteration
+    for (uint256 i = 0; i < length;) {
+        result += data[i];
+        
+        // Use unchecked increment to save gas
+        unchecked { ++i; }
+    }
+    
+    return result;
+}
+```
+
+### 4. Assembly Techniques
+
+For advanced gas optimization, use inline assembly (with caution):
+
+```solidity
+function efficientMultiTransfer(address[] calldata recipients, uint256[] calldata amounts) external {
+    require(recipients.length == amounts.length, "Length mismatch");
+    
+    for (uint256 i = 0; i < recipients.length;) {
+        // Assembly for efficient ERC20 transfers
+        assembly {
+            // Get token address from storage slot 0
+            let token := sload(0)
+            
+            // Load recipient and amount from calldata
+            let recipient := calldataload(add(recipients.offset, mul(i, 32)))
+            let amount := calldataload(add(amounts.offset, mul(i, 32)))
+            
+            // Prepare calldata for token.transfer(recipient, amount)
+            let ptr := mload(0x40) // Get free memory pointer
+            
+            // Function selector for transfer(address,uint256)
+            mstore(ptr, 0xa9059cbb00000000000000000000000000000000000000000000000000000000)
+            mstore(add(ptr, 4), recipient) // First parameter (address)
+            mstore(add(ptr, 36), amount)   // Second parameter (uint256)
+            
+            // Make the call
+            let success := call(
+                gas(),    // Gas
+                token,    // Address
+                0,        // Value
+                ptr,      // Input data
+                68,       // Input size (4 + 32 + 32)
+                ptr,      // Output location
+                32        // Output size
+            )
+            
+            // Check result
+            if iszero(success) {
+                revert(0, 0)
+            }
+        }
+        
+        unchecked { ++i; }
+    }
+}
+```
+
+## Design Patterns
+
+### 1. Upgradeable Contracts
+
+Use proxy patterns for upgradeable contracts:
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+
+import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+
+contract MyUpgradeableContract is Initializable, OwnableUpgradeable {
+    uint256 public value;
+    
+    // Use initialize instead of constructor
+    function initialize(uint256 initialValue) external initializer {
+        __Ownable_init(); // Initialize parent contracts
+        value = initialValue;
+    }
+    
+    function setValue(uint256 newValue) external onlyOwner {
+        value = newValue;
+    }
+}
+```
+
+### 2. Factory Pattern
+
+Use factories to deploy multiple contract instances:
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+
+contract SimpleToken {
+    string public name;
+    address public owner;
+    
+    constructor(string memory _name, address _owner) {
+        name = _name;
+        owner = _owner;
+    }
+}
+
+contract TokenFactory {
+    event TokenCreated(address tokenAddress, string name, address owner);
+    
+    function createToken(string calldata name) external returns (address) {
+        SimpleToken newToken = new SimpleToken(name, msg.sender);
+        
+        emit TokenCreated(address(newToken), name, msg.sender);
+        
+        return address(newToken);
+    }
+}
+```
+
+### 3. Pull over Push Pattern
+
+Prefer pull pattern for payouts to prevent DoS attacks:
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+
+contract Rewards {
+    mapping(address => uint256) public pendingRewards;
+    
+    // Credit rewards (push)
+    function addReward(address user, uint256 amount) external {
+        pendingRewards[user] += amount;
+    }
+    
+    // Claim rewards (pull)
+    function claimRewards() external {
+        uint256 amount = pendingRewards[msg.sender];
+        require(amount > 0, "No rewards to claim");
+        
+        // Update state before external call
+        pendingRewards[msg.sender] = 0;
+        
+        // Send rewards
+        (bool success, ) = msg.sender.call{value: amount}("");
+        require(success, "Transfer failed");
+    }
+}
+```
+
+## Testing and Verification
+
+### 1. Comprehensive Testing Strategy
+
+Implement a multi-layered testing approach:
+
+```javascript
+// Unit testing with Hardhat and Ethers.js
+const { expect } = require("chai");
+const { ethers } = require("hardhat");
+
+describe("MyToken", function () {
+  let token;
+  let owner;
+  let user1;
+  
+  beforeEach(async function () {
+    // Deploy contract before each test
+    const MyToken = await ethers.getContractFactory("MyToken");
+    [owner, user1] = await ethers.getSigners();
+    token = await MyToken.deploy("MyToken", "MTK");
+    await token.deployed();
+  });
+  
+  it("Should have correct initial supply", async function () {
+    const totalSupply = await token.totalSupply();
+    expect(totalSupply).to.equal(ethers.utils.parseEther("1000000"));
+  });
+  
+  it("Should transfer tokens correctly", async function () {
+    // Transfer tokens
+    await token.transfer(user1.address, ethers.utils.parseEther("100"));
+    
+    // Check balances
+    const user1Balance = await token.balanceOf(user1.address);
+    expect(user1Balance).to.equal(ethers.utils.parseEther("100"));
+  });
+  
+  it("Should revert when transferring more than balance", async function () {
+    // Transfer should fail
+    await expect(
+      token.connect(user1).transfer(owner.address, ethers.utils.parseEther("1"))
+    ).to.be.revertedWith("ERC20: transfer amount exceeds balance");
+  });
+});
+```
+
+### 2. Formal Verification
+
+Consider formal verification for critical contracts:
+
+```solidity
+// Example annotation for formal verification tools
+/// @notice invariant totalSupply == sum(balances)
+contract VerifiableToken {
+    mapping(address => uint256) public balances;
+    uint256 public totalSupply;
+    
+    /// @notice postcondition balances[msg.sender] == old(balances[msg.sender]) - amount
+    /// @notice postcondition balances[to] == old(balances[to]) + amount
+    function transfer(address to, uint256 amount) external {
+        require(balances[msg.sender] >= amount, "Insufficient balance");
+        balances[msg.sender] -= amount;
+        balances[to] += amount;
+    }
+}
+```
+
+## Advanced Techniques
+
+### 1. Create2 for Deterministic Addresses
+
+Use CREATE2 for predictable contract addresses:
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+
+contract Factory {
+    event Deployed(address addr, uint256 salt);
+    
+    function deploy(bytes memory bytecode, uint256 salt) external returns (address) {
+        address addr;
+        
+        assembly {
+            addr := create2(
+                0,          // Wei sent with deployment
+                add(bytecode, 0x20), // Actual bytecode starts after length prefix
+                mload(bytecode),     // Length of bytecode
+                salt                 // Salt
+            )
+            
+            if iszero(extcodesize(addr)) {
+                revert(0, 0)
+            }
+        }
+        
+        emit Deployed(addr, salt);
+        return addr;
+    }
+    
+    function getDeploymentAddress(bytes memory bytecode, uint256 salt) external view returns (address) {
+        bytes32 hash = keccak256(
+            abi.encodePacked(
+                bytes1(0xff),
+                address(this),
+                salt,
+                keccak256(bytecode)
+            )
+        );
+        
+        return address(uint160(uint256(hash)));
+    }
+}
+```
+
+### 2. EIP-2612 Permit for Gasless Approvals
+
+Implement permit for gasless token approvals:
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+
+import "@openzeppelin/contracts/token/ERC20/extensions/ERC20Permit.sol";
+
+contract PermitToken is ERC20Permit {
+    constructor(string memory name, string memory symbol) 
+        ERC20(name, symbol) 
+        ERC20Permit(name) 
+    {
+        _mint(msg.sender, 1000000 * 10**decimals());
+    }
+    
+    // User can now approve spending without a transaction using permit
+    // function permit(
+    //     address owner,
+    //     address spender,
+    //     uint256 value,
+    //     uint256 deadline,
+    //     uint8 v,
+    //     bytes32 r,
+    //     bytes32 s
+    // ) is inherited from ERC20Permit
+}
+```
+
+### 3. Meta-Transactions and EIP-712
+
+Implement meta-transactions for gas abstraction:
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+
+import "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import "@openzeppelin/contracts/utils/cryptography/draft-EIP712.sol";
+
+contract MetaTransactionReceiver is EIP712 {
+    using ECDSA for bytes32;
+    
+    struct MetaTransaction {
+        address from;
+        address to;
+        uint256 value;
+        uint256 nonce;
+    }
+    
+    mapping(address => uint256) public nonces;
+    
+    bytes32 private constant META_TRANSACTION_TYPEHASH = 
+        keccak256("MetaTransaction(address from,address to,uint256 value,uint256 nonce)");
+    
+    constructor() EIP712("MetaTransactionReceiver", "1") {}
+    
+    function executeMetaTransaction(
+        address from,
+        address to,
+        uint256 value,
+        uint256 nonce,
+        bytes calldata signature
+    ) external {
+        // Verify nonce
+        require(nonce == nonces[from], "Invalid nonce");
+        nonces[from]++;
+        
+        // Verify signature
+        bytes32 digest = _hashTypedDataV4(
+            keccak256(abi.encode(
+                META_TRANSACTION_TYPEHASH,
+                from,
+                to,
+                value,
+                nonce
+            ))
+        );
+        
+        address signer = digest.recover(signature);
+        require(signer == from, "Invalid signature");
+        
+        // Execute the transaction
+        (bool success, ) = to.call{value: value}("");
+        require(success, "Transaction failed");
+    }
+}
+```
+
+## Security Auditing
+
+1. **Implement Static Analysis**: Use tools like Slither, Mythril, and Securify.
+
+2. **Perform Dynamic Analysis**: Use tools like Echidna for fuzzing.
+
+3. **Manual Code Review**: Follow a security checklist:
+   - Check for reentrancy vulnerabilities
+   - Verify access control
+   - Ensure proper error handling
+   - Check for timestamp dependencies
+   - Validate arithmetic operations
+
+4. **External Audits**: Always get a professional audit before deploying high-value contracts.
+
+5. **Bug Bounty Programs**: Consider implementing a bug bounty program for continuous security improvement.
+
+## Deployment Best Practices
+
+1. **Use Multi-Sig Wallets**: Deploy critical contracts from multi-signature wallets.
+
+2. **Verify Contract Code**: Always verify your contract code on Etherscan or similar block explorers.
+
+3. **Implement Timelock**: Use timelock for critical operations:
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.17;
+
+contract Timelock {
+    uint256 public constant MINIMUM_DELAY = 2 days;
+    
+    mapping(bytes32 => bool) public queued;
+    
+    event QueueTransaction(bytes32 indexed txHash, address target, uint256 value, bytes data, uint256 eta);
+    event ExecuteTransaction(bytes32 indexed txHash, address target, uint256 value, bytes data);
+    
+    function queueTransaction(address target, uint256 value, bytes calldata data) external returns (bytes32) {
+        uint256 eta = block.timestamp + MINIMUM_DELAY;
+        
+        bytes32 txHash = keccak256(abi.encode(target, value, data, eta));
+        queued[txHash] = true;
+        
+        emit QueueTransaction(txHash, target, value, data, eta);
+        return txHash;
+    }
+    
+    function executeTransaction(address target, uint256 value, bytes calldata data, uint256 eta) external returns (bytes memory) {
+        bytes32 txHash = keccak256(abi.encode(target, value, data, eta));
+        
+        require(queued[txHash], "Transaction not queued");
+        require(block.timestamp >= eta, "Timelock not expired");
+        
+        queued[txHash] = false;
+        
+        (bool success, bytes memory returnData) = target.call{value: value}(data);
+        require(success, "Transaction failed");
+        
+        emit ExecuteTransaction(txHash, target, value, data);
+        
+        return returnData;
+    }
+}
+```
+
+## Conclusion
+
+Following these best practices will help you create secure, efficient, and maintainable Solidity smart contracts. Remember to:
+
+- Structure your contracts consistently
+- Prioritize security over optimization
+- Implement thorough testing
+- Use modern Solidity features
+- Optimize gas consumption where appropriate
+- Get professional audits before deployment
+
+Smart contract development requires a security-first mindset. The immutable nature of blockchain means errors can have permanent and costly consequences, so follow these guidelines to minimize risks.

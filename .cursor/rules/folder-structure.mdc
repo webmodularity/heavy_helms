@@ -1,0 +1,116 @@
+---
+description: Follow this structure whenever you have to create a new file/folder
+globs: 
+alwaysApply: false
+---
+
+# Heavy Helms Project Structure
+
+/
+├── public/ # Static assets
+│ ├── assets/ # Game assets
+│ │ ├── images/ # Game images
+│ │ ├── audio/ # Game audio
+│ │ └── spritesheets/ # Character spritesheets
+│ ├── fonts/ # Custom fonts
+│ └── favicon.png # Site favicon
+│
+├── src/
+│ ├── app/ # Next.js App Router
+│ │ ├── api/ # API routes
+│ │ │ └── [...]
+│ │ ├── game/ # Game page
+│ │ │ └── page.tsx
+│ │ ├── layout.tsx # Root layout
+│ │ └── page.tsx # Home page
+│ │
+│ ├── components/ # React components
+│ │ ├── auth/ # Authentication components
+│ │ ├── character/ # Character-related components
+│ │ │ ├── character-card.tsx
+│ │ │ ├── character-creation.tsx
+│ │ │ └── character-stats.tsx
+│ │ ├── game/ # Game UI components
+│ │ │ ├── game-controls.tsx
+│ │ │ ├── game-status.tsx
+│ │ │ └── game-results.tsx
+│ │ ├── layout/ # Layout components
+│ │ │ ├── header.tsx
+│ │ │ ├── footer.tsx
+│ │ │ └── sidebar.tsx
+│ │ └── ui/ # Reusable UI components
+│ │ ├── button.tsx
+│ │ ├── card.tsx
+│ │ └── modal.tsx
+│ │
+│ ├── game/ # Phaser game code
+│ │ ├── config/ # Game configuration
+│ │ │ ├── constants.ts # Game constants
+│ │ │ └── game-config.ts # Phaser config
+│ │ ├── objects/ # Game objects
+│ │ │ ├── Character.ts # Character class
+│ │ │ ├── Weapon.ts # Weapon class
+│ │ │ └── CombatEffects.ts # Visual effects
+│ │ ├── scenes/ # Game scenes
+│ │ │ ├── boot.ts # Boot scene
+│ │ │ ├── preloader.ts # Preloader scene
+│ │ │ ├── main-menu.ts # Main menu scene
+│ │ │ ├── character-select.ts # Character selection scene
+│ │ │ ├── practice-mode.ts # Practice mode scene
+│ │ │ ├── duel-mode.ts # Duel mode scene
+│ │ │ └── game-over.ts # Game over scene
+│ │ ├── systems/ # Game systems
+│ │ │ ├── combat-system.ts # Combat system
+│ │ │ ├── animation-system.ts # Animation system
+│ │ │ └── input-system.ts # Input handling
+│ │ ├── utils/ # Game utilities
+│ │ │ ├── combat-decoder.ts # Decode combat bytes
+│ │ │ └── sprite-loader.ts # Load character sprites
+│ │ ├── event-bus.ts # Event communication
+│ │ ├── phaser-game.tsx # React component for Phaser
+│ │ └── main.ts # Game entry point
+│ │
+│ ├── hooks/ # Custom React hooks
+│ │ ├── use-player.ts # Player data hook
+│ │ ├── use-game-state.ts # Game state hook
+│ │ └── use-blockchain.ts # Blockchain interaction hook
+│ │
+│ ├── lib/ # Utility libraries
+│ │ ├── blockchain/ # Blockchain utilities
+│ │ │ ├── contracts/ # Contract ABIs and addresses
+│ │ │ ├── viem-client.ts # Viem client setup
+│ │ │ └── wagmi-config.ts # Wagmi configuration
+│ │ └── utils/ # General utilities
+│ │ ├── format.ts # Formatting utilities
+│ │ └── validation.ts # Validation utilities
+│ │
+│ ├── services/ # Service layer
+│ │ ├── api.ts # API service
+│ │ ├── player-service.ts # Player service
+│ │ ├── game-service.ts # Game service
+│ │ └── blockchain-service.ts # Blockchain service
+│ │
+│ ├── store/ # State management
+│ │ ├── player-store.ts # Player state
+│ │ ├── game-store.ts # Game state
+│ │ └── blockchain-store.ts # Blockchain state
+│ │
+│ ├── styles/ # Global styles
+│ │ ├── globals.css # Global CSS
+│ │ └── theme.ts # Theme configuration
+│ │
+│ └── types/ # TypeScript type definitions
+│ ├── player.types.ts # Player types
+│ ├── game.types.ts # Game types
+│ └── blockchain.types.ts # Blockchain types
+│
+├── .env.local # Environment variables
+├── .gitignore # Git ignore file
+├── next.config.mjs # Next.js configuration
+├── package.json # Project dependencies
+├── postcss.config.js # PostCSS configuration
+├── tailwind.config.js # Tailwind CSS configuration
+├── tsconfig.json # TypeScript configuration
+└── README.md # Project documentation
+.
+

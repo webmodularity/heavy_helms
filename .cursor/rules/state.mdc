@@ -1,0 +1,6 @@
+---
+description: 
+globs: src/stores/**/*.ts
+alwaysApply: false
+---
+Use best practices from https://zustand.docs.pmnd.rs/getting-started/introduction & https://tkdodo.eu/blog/working-with-zustand
