@@ -8,12 +8,13 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog"; // Assuming usage of Shadcn Dialog
-import { Trophy, ShieldAlert } from "lucide-react"; // Example icons
+import { Trophy, ShieldAlert, RotateCw } from "lucide-react"; // Example icons
 import type { Fighter } from "@/types/fighter-types";
 
 interface ResultsSummaryProps {
   isOpen: boolean;
   onClose: () => void;
+  onReplay: () => void;
   result: DecodedCombatResult | null;
   player1: Fighter | null;
   player2: Fighter | null;
@@ -22,6 +23,7 @@ interface ResultsSummaryProps {
 export function ResultsSummary({
   isOpen,
   onClose,
+  onReplay,
   result,
   player1,
   player2,
@@ -67,15 +69,16 @@ export function ResultsSummary({
           {/* Add more details if needed, e.g., final health, specific rounds */}
         </div>
 
-        <DialogFooter className="sm:justify-center">
-          {/* <Button
+        <DialogFooter className="sm:justify-center gap-2">
+          <Button
             type="button"
-            variant="outline"
-            onClick={onClose}
-            className="bg-yellow-600 hover:bg-yellow-500 text-black border-none"
+            variant="secondary"
+            onClick={onReplay}
+            className="bg-stone-700 hover:bg-stone-600 text-stone-100 border-stone-600"
           >
-            Close
-          </Button> */}
+            <RotateCw className="mr-2 h-4 w-4" />
+            Replay Duel
+          </Button>
           <Button
             type="button"
             variant="outline"
@@ -84,8 +87,6 @@ export function ResultsSummary({
           >
             Back to Warrior's Hall
           </Button>
-          {/* Placeholder for other actions */}
-          {/* <Button type="button" variant="secondary">View Transaction</Button> */}
         </DialogFooter>
       </DialogContent>
     </Dialog>

@@ -14,6 +14,7 @@ import type { DecodedCombatResult } from "@/types/game.types";
 // Define event names or import from a shared location
 const DUEL_DATA_LOADED = "duel-data-loaded";
 const GAME_OVER_EVENT = "game-over";
+const REPLAY_DUEL = "replay-duel"; // Define replay event name
 
 // Fallback component for when the game fails to load
 function GameErrorFallback() {
@@ -91,9 +92,10 @@ function DuelGame() {
     const handleGameOver = () => {
       console.log("React received GAME_OVER_EVENT");
       setShowResults(true); // Trigger the results modal
-      setTimeout(() => {
-        // router.push("/");
-      }, 5000);
+      // Remove automatic redirect on game over
+      // setTimeout(() => {
+      //   // router.push("/");
+      // }, 5000);
     };
 
     // Add this log
@@ -108,13 +110,20 @@ function DuelGame() {
       EventBus.off(DUEL_DATA_LOADED, handleDuelDataLoaded);
       EventBus.off(GAME_OVER_EVENT, handleGameOver);
     };
-  }, [router.push]); // Add router.push to dependency array
+  }, []); // Changed dependency array back to empty
 
-  const onDialogBack = () => {
+  // Handler for closing the dialog (navigates back via button)
+  const onDialogClose = () => {
     setShowResults(false);
-    setTimeout(() => {
-      router.push("/duel");
-    }, 1000);
+    // The button itself will handle navigation if needed
+    router.push("/"); // Navigate immediately when "Back" is clicked
+  };
+
+  // Handler for the Replay button
+  const handleReplay = () => {
+    console.log("Replay requested, emitting REPLAY_DUEL");
+    EventBus.emit(REPLAY_DUEL); // Emit the replay event
+    setShowResults(false); // Close the dialog immediately
   };
 
   if (!txId) {
@@ -131,7 +140,8 @@ function DuelGame() {
 
       <ResultsSummary
         isOpen={showResults}
-        onClose={onDialogBack}
+        onClose={onDialogClose}
+        onReplay={handleReplay}
         result={duelResult}
         player1={player1}
         player2={player2}
