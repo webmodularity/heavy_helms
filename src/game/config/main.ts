@@ -21,7 +21,7 @@ export const gameData = {
 
 //  Find out more information about the Game Config at:
 //  https://newdocs.phaser.io/docs/3.70.0/Phaser.Types.Core.GameConfig
-const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+const isIOS = typeof navigator !== 'undefined' && /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
 const config: Phaser.Types.Core.GameConfig = {
   type: isIOS ? Phaser.CANVAS : Phaser.AUTO,
