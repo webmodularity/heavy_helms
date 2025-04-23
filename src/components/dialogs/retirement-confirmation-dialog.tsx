@@ -59,12 +59,12 @@ export function RetirementConfirmationDialog({
             </p>
 
             <a
-              href={`https://sepolia.basescan.org/tx/${txHash}`}
+              href={`${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${txHash}`}
               target="_blank"
               rel="noopener noreferrer"
               className="text-blue-400 underline mb-6 inline-block"
             >
-              View transaction on BaseScan
+              View transaction on ShapeScan
             </a>
 
             <p className="text-stone-400 text-sm mt-4">

@@ -41,7 +41,7 @@ interface AcceptChallengeResult {
 
 export function useAcceptChallenge() {
   const { authenticated } = usePrivy();
-  const { isWrongNetwork, switchToBaseSepolia } = useWallet();
+  const { isWrongNetwork, switchToPrimaryNetwork } = useWallet();
   const queryClient = useQueryClient();
   const router = useRouter();
   const { address } = useAccount();
@@ -100,7 +100,7 @@ export function useAcceptChallenge() {
       }
 
       if (isWrongNetwork) {
-        await switchToBaseSepolia();
+        await switchToPrimaryNetwork();
       }
 
       if (!address) {
@@ -150,10 +150,10 @@ export function useAcceptChallenge() {
       toast.success("Challenge acceptance submitted", {
         description: "Your challenge acceptance is being processed...",
         action: {
-          label: "View on BaseScan",
+          label: "View on ShapeScan",
           onClick: () =>
             window.open(
-              `https://sepolia.basescan.org/tx/${result.txHash}`,
+              `${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${result.txHash}`,
               "_blank",
             ),
         },
@@ -185,9 +185,12 @@ export function useAcceptChallenge() {
       description:
         "You've accepted the challenge! Preparing for battle as the duel begins.",
       action: {
-        label: "View on BaseScan",
+        label: "View on ShapeScan",
         onClick: () =>
-          window.open(`https://sepolia.basescan.org/tx/${txHash}`, "_blank"),
+          window.open(
+            `${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${txHash}`,
+            "_blank",
+          ),
       },
       duration: 5000,
     });

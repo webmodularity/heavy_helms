@@ -13,7 +13,6 @@ import {
   useMutation,
   useQueryClient,
 } from "@tanstack/react-query";
-import { baseSepolia } from "wagmi/chains";
 import { SUBGRAPH_URL, viemClient } from "@/config";
 import request from "graphql-request";
 import { GET_FIGHTERS_BY_IDS } from "@/lib/gql-queries";
@@ -77,17 +76,6 @@ export function useCreateChallenge() {
         throw new Error("No public client available");
       }
 
-      // Check if we're on the right network (Base Sepolia)
-      if (chainId !== baseSepolia.id) {
-        try {
-          await switchChain({ chainId: baseSepolia.id });
-        } catch (error) {
-          throw new Error(
-            "Failed to switch to Base Sepolia network. Please switch manually and try again.",
-          );
-        }
-      }
-
       // Convert wager amount to wei
       const wagerValue = parseEther(wagerAmount);
 
@@ -142,9 +130,12 @@ export function useCreateChallenge() {
         description:
           "Your challenge has been created and is now waiting for acceptance.",
         action: {
-          label: "View on BaseScan",
+          label: "View on ShapeScan",
           onClick: () =>
-            window.open(`https://sepolia.basescan.org/tx/${txHash}`, "_blank"),
+            window.open(
+              `${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${txHash}`,
+              "_blank",
+            ),
         },
         duration: 5000,
       });

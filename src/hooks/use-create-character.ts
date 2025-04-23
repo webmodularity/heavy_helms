@@ -30,7 +30,7 @@ interface CreateCharacterResult {
 
 export function useCreateCharacter() {
   const { authenticated } = usePrivy();
-  const { isWrongNetwork, switchToBaseSepolia } = useWallet();
+  const { isWrongNetwork, switchToPrimaryNetwork } = useWallet();
   const queryClient = useQueryClient();
   const router = useRouter();
   const { address } = useAccount();
@@ -127,7 +127,7 @@ export function useCreateCharacter() {
       }
 
       if (isWrongNetwork) {
-        await switchToBaseSepolia();
+        await switchToPrimaryNetwork();
       }
 
       if (!address) {
@@ -145,7 +145,7 @@ export function useCreateCharacter() {
         abi: PlayerABI,
         functionName: "requestCreatePlayer",
         args: [useNameSetB],
-        value: parseEther("0.001"),
+        value: parseEther("0.002"),
       });
 
       // Return just the txHash - we'll get the requestId later when the receipt is available
@@ -163,10 +163,10 @@ export function useCreateCharacter() {
         description:
           "Your character creation transaction has been sent to the blockchain.",
         action: {
-          label: "View on BaseScan",
+          label: "View on ShapeScan",
           onClick: () =>
             window.open(
-              `https://sepolia.basescan.org/tx/${result.txHash}`,
+              `${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${result.txHash}`,
               "_blank",
             ),
         },
@@ -199,9 +199,12 @@ export function useCreateCharacter() {
       description:
         "Your character creation request has been submitted to the blockchain.",
       action: {
-        label: "View on BaseScan",
+        label: "View on ShapeScan",
         onClick: () =>
-          window.open(`https://sepolia.basescan.org/tx/${txHash}`, "_blank"),
+          window.open(
+            `${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${txHash}`,
+            "_blank",
+          ),
       },
       duration: 5000,
     });

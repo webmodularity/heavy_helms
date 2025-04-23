@@ -1,10 +1,12 @@
 "use client";
+import { wagmiConfig } from "@/config";
 import {
   type ConnectedWallet,
   usePrivy,
   useWallets,
 } from "@privy-io/react-auth";
 import { useSetActiveWallet } from "@privy-io/wagmi";
+import { getChainId, switchChain } from "@wagmi/core";
 import {
   type ReactNode,
   createContext,
@@ -13,51 +15,43 @@ import {
   useState,
 } from "react";
 import { toast } from "sonner";
-import { baseSepolia } from "viem/chains";
+import { baseSepolia, shape } from "viem/chains";
 
 // Base Sepolia Chain ID
 export const BASE_SEPOLIA_CHAIN_ID = 84532;
 
 // Chain name mapping
 export const CHAIN_NAMES: Record<string, string> = {
-  "eip155:1": "Ethereum Mainnet",
-  "eip155:5": "Goerli Testnet",
-  "eip155:11155111": "Sepolia Testnet",
-  "eip155:84532": "Base Sepolia",
-  "eip155:8453": "Base",
-  "eip155:137": "Polygon",
-  "eip155:80001": "Polygon Mumbai",
-  "eip155:42161": "Arbitrum One",
-  "eip155:421613": "Arbitrum Goerli",
+  360: "Shape",
+  84532: "Base Sepolia",
 };
 
 interface WalletContextType {
-  currentChainId: string | null;
+  currentChainId: number;
   isWrongNetwork: boolean;
   checking: boolean;
   hasWallet: boolean;
   currentChainName: string;
-  switchToBaseSepolia: () => Promise<void>;
+  switchToPrimaryNetwork: () => Promise<void>;
 }
 
 export const WalletContext = createContext<WalletContextType>({
-  currentChainId: null,
+  currentChainId: shape.id,
   isWrongNetwork: false,
   checking: false,
   hasWallet: false,
   currentChainName: "Disconnected",
-  switchToBaseSepolia: async () => {},
+  switchToPrimaryNetwork: async () => {},
 });
 
 export function WalletProvider({ children }: { children: ReactNode }) {
   const { ready, authenticated } = usePrivy();
   const { wallets } = useWallets();
-  const [currentChainId, setCurrentChainId] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
   const { setActiveWallet } = useSetActiveWallet();
 
   // Get chain name or use "Unknown Network" as fallback
-  const getChainName = (chainId: string | null) => {
+  const getChainName = (chainId: number) => {
     if (chainId === null) return "Disconnected";
     return CHAIN_NAMES[chainId] || `Unknown Network (${chainId})`;
   };
@@ -82,60 +76,31 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!ready || !authenticated || !wallets || wallets.length === 0) return;
 
-    const checkChain = async () => {
-      try {
-        setChecking(true);
-        const wallet = wallets[0]; // Get the first wallet
-
-        // Get current chain directly from wallet object
-        const chainId = wallet.chainId;
-        setCurrentChainId(chainId);
-      } catch (error) {
-        console.error("Failed to get chain ID:", error);
-      } finally {
-        setChecking(false);
-      }
-    };
-
-    checkChain();
+    if (getChainId(wagmiConfig) !== shape.id) {
+      switchToPrimaryNetwork();
+    }
   }, [ready, authenticated, wallets]);
 
   // Switch network function
-  const switchToBaseSepolia = useCallback(async () => {
-    if (!wallets || wallets.length === 0) return;
-
-    try {
-      const wallet = wallets[0]; // Get the first wallet
-
-      // Use the switchChain method directly on the wallet object
-      await wallet.switchChain(BASE_SEPOLIA_CHAIN_ID);
-
-      toast("Network switched", {
-        description: "Successfully connected to Base Sepolia",
-      });
-    } catch (error: unknown) {
-      const errorMessage =
-        error instanceof Error ? error.message : "Failed to switch networks";
-      toast("Network switch failed", {
-        description: errorMessage,
-        style: { backgroundColor: "rgb(239, 68, 68)", color: "white" },
-      });
-    }
-  }, [wallets]);
+  const switchToPrimaryNetwork = async () => {
+    switchChain(wagmiConfig, { chainId: shape.id });
+    toast("Network switched", {
+      description: `Successfully connected to ${process.env.NEXT_PUBLIC_ALCHEMY_NETWORK === "base-sepolia" ? "Base Sepolia" : "Shape"}`,
+    });
+  };
 
   // Calculate derived state
-  const isWrongNetwork =
-    currentChainId !== null && currentChainId !== "eip155:84532";
+
   const hasWallet = Boolean(wallets && wallets.length > 0);
-  const currentChainName = getChainName(currentChainId);
+  const currentChainName = getChainName(getChainId(wagmiConfig));
 
   const value = {
-    currentChainId,
-    isWrongNetwork,
+    currentChainId: getChainId(wagmiConfig),
+    isWrongNetwork: getChainId(wagmiConfig) !== shape.id,
     checking,
     hasWallet,
     currentChainName,
-    switchToBaseSepolia,
+    switchToPrimaryNetwork,
   };
 
   return (
