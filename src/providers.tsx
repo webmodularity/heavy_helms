@@ -3,7 +3,7 @@
 import { PrivyProvider } from "@privy-io/react-auth";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { ReactNode } from "react";
-import { base, baseSepolia, shape } from "viem/chains";
+import { baseSepolia, shape } from "viem/chains";
 import { WalletProvider } from "./store/wallet-context";
 import { WagmiProvider } from "@privy-io/wagmi";
 import { wagmiConfig } from "./config";
@@ -32,7 +32,10 @@ function Providers({ children }: ProvidersProps) {
           process.env.NEXT_PUBLIC_ALCHEMY_NETWORK === "base-sepolia"
             ? baseSepolia
             : shape,
-        supportedChains: [base, baseSepolia, shape],
+        supportedChains:
+          process.env.NEXT_PUBLIC_ALCHEMY_NETWORK === "base-sepolia"
+            ? [baseSepolia]
+            : [shape],
       }}
     >
       <QueryClientProvider client={queryClient}>

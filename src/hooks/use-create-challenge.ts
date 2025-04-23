@@ -130,7 +130,7 @@ export function useCreateChallenge() {
         description:
           "Your challenge has been created and is now waiting for acceptance.",
         action: {
-          label: "View on ShapeScan",
+          label: "",
           onClick: () =>
             window.open(
               `${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${txHash}`,

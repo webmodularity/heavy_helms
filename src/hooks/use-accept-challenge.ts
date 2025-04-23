@@ -150,7 +150,10 @@ export function useAcceptChallenge() {
       toast.success("Challenge acceptance submitted", {
         description: "Your challenge acceptance is being processed...",
         action: {
-          label: "View on ShapeScan",
+          label:
+            process.env.NEXT_PUBLIC_ALCHEMY_NETWORK === "base-sepolia"
+              ? "View on BaseSepoliaScan"
+              : "View on ShapeScan",
           onClick: () =>
             window.open(
               `${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${result.txHash}`,
@@ -185,7 +188,10 @@ export function useAcceptChallenge() {
       description:
         "You've accepted the challenge! Preparing for battle as the duel begins.",
       action: {
-        label: "View on ShapeScan",
+        label:
+          process.env.NEXT_PUBLIC_ALCHEMY_NETWORK === "base-sepolia"
+            ? "View on BaseSepoliaScan"
+            : "View on ShapeScan",
         onClick: () =>
           window.open(
             `${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${txHash}`,
