@@ -39,7 +39,7 @@ export class FighterService {
       }>(SUBGRAPH_URL, GET_ALL_ACTIVE_PLAYER_IDS_QUERY);
 
       let allPlayerIds = [
-        ...allActivePlayerIds.players.map((player) => player.id),
+        // ...allActivePlayerIds.players.map((player) => player.id),
         ...allActivePlayerIds.defaultPlayers.map((player) => player.id),
         // ...allActivePlayerIds.monsters.map((player) => player.id),
       ];
