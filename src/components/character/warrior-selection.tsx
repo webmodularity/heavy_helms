@@ -10,6 +10,10 @@ import { CharacterCardSkeleton } from "../ui/skeletons/character-card-skeleton";
 import { useCreateCharacter } from "@/hooks/use-create-character";
 import { useOwnPlayers } from "@/hooks/use-own-players";
 import type { StanceType } from "@/types/equipment.types";
+
+// Define type for name preference - can be shared or defined locally
+type NamePreference = 'male' | 'female';
+
 interface WarriorSelectionProps {
   selectedCharacter: Player | null;
   onSelectCharacter: (character: Player, stance?: StanceType) => void;
@@ -86,7 +90,7 @@ export function WarriorSelection({
               {players && players.length < MAX_PLAYERS ? (
                 <NewCharacterCard
                   delay={players?.length || 0}
-                  onClick={createCharacter}
+                  onClick={(namePreference: NamePreference) => createCharacter(namePreference)}
                   isCreating={isCreatingCharacter}
                   txHash={txHash}
                 />
