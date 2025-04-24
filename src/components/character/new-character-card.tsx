@@ -64,7 +64,7 @@ export function NewCharacterCard({
           <div className="rounded-full bg-yellow-800/20 p-3 mb-3">
             <PlusIcon className="h-10 w-10 text-yellow-600" strokeWidth={1.5} />
           </div>
-          <h3 className="text-lg font-medium text-yellow-500">
+          <h3 className="text-lg font-mediugitm text-yellow-500 text-center">
             Create New Character
           </h3>
           <p className="mt-1 text-sm text-center text-zinc-400">

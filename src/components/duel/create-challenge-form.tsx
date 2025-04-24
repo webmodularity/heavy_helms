@@ -28,7 +28,7 @@ export function CreateChallengeForm({
   onCancel,
 }: CreateChallengeFormProps) {
   const [defenderId, setDefenderId] = useState<string>("");
-  const [wagerAmount, setWagerAmount] = useState<string>("0.001");
+  const [wagerAmount, setWagerAmount] = useState<string>("0");
   const [selectedChallenger, setSelectedChallenger] = useState<Fighter | null>(
     null,
   );
