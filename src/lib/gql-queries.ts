@@ -320,11 +320,19 @@ export const GET_COMBAT_RESULT = gql`
 
 // Query to fetch names by their indices
 export const GET_NAMES_BY_INDICES = gql`
-  query GetNamesByIndices($firstNameIndex: Int!, $surnameIndex: Int!) {
-    firstNameResult: names(where: {index: $firstNameIndex, nameType: 0}) {
+  query GetNamesByIndices(
+    $firstNameIndex: Int!,
+    $surnameIndex: Int!,
+    $firstNameType: Int! # Use nameType instead of registryId
+  ) {
+    # Filter first name by the dynamic nameType (0 or 1)
+    firstNameResult: names(where: { nameType: $firstNameType, index: $firstNameIndex }) {
+      id
       value
     }
-    surnameResult: names(where: {index: $surnameIndex, nameType: 2}) {
+    # Filter surname by the fixed nameType 2
+    surnameResult: names(where: { nameType: 2, index: $surnameIndex }) {
+      id
       value
     }
   }

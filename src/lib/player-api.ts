@@ -64,6 +64,9 @@ export interface FightersResponse {
   fighters: RawFighterData[];
 }
 
+// Define constant based on Name Registry contract
+const SET_A_START_INDEX = 1000;
+
 /**
  * Fetches players by their IDs from the subgraph
  */
@@ -457,7 +460,7 @@ export async function buildRawFighterFromDecodedData(
 }
 
 /**
- * Fetches name data from the subgraph using indices
+ * Fetches name data from the subgraph using indices and deriving nameType from firstNameIndex
  */
 export async function fetchNamesByIndices(
   firstNameIndex: number,
@@ -470,12 +473,21 @@ export async function fetchNamesByIndices(
   }
 
   try {
+    // Determine firstNameType based on the index value
+    // nameType: 0 for nameSetA (>= 1000), 1 for nameSetB (< 1000)
+    const firstNameType = firstNameIndex < SET_A_START_INDEX ? 1 : 0;
+    // Surnames are always type 2, ensure the GQL query reflects this or accepts it dynamically
+    // const surnameNameType = 2;
+
     const response = await request<NamesResponse>(
       SUBGRAPH_URL,
-      GET_NAMES_BY_INDICES,
+      GET_NAMES_BY_INDICES, // Ensure this query uses nameType filtering correctly
       {
         firstNameIndex,
         surnameIndex,
+        firstNameType, // Pass the derived nameType
+        // If GET_NAMES_BY_INDICES requires surnameNameType, add:
+        // surnameNameType: 2,
       },
     );
 
