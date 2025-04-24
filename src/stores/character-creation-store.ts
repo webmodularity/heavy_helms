@@ -7,7 +7,7 @@ const PLAYER_CONTRACT_ADDRESS = process.env
   .NEXT_PUBLIC_PLAYER_CONTRACT_ADDRESS as `0x${string}`
 
 // Define a type for the character creation event data
-interface CharacterCreationEventData {
+export interface CharacterCreationEventData {
   firstNameIndex: number;
   surnameIndex: number;
   strength: number;
@@ -18,6 +18,12 @@ interface CharacterCreationEventData {
   luck: number;
 }
 
+// Revert callback type to original (no namePreference)
+type CharacterCreationCallback = (
+  playerId: string,
+  eventData: CharacterCreationEventData | null
+) => void
+
 type CharacterCreationState = {
   isListening: boolean
   requestId: bigint | null
@@ -25,11 +31,15 @@ type CharacterCreationState = {
   isTimeout: boolean
   listenerTimeout: number | null
   unwatchFn: (() => void) | null
-  eventData: CharacterCreationEventData | null
+  eventData: CharacterCreationEventData | null // Use original type name
   
   // Group actions in a separate object
   actions: {
-    startListening: (requestId: bigint, onCharacterCreated?: (playerId: string, eventData: CharacterCreationEventData | null) => void) => void
+    // Revert startListening signature
+    startListening: (
+      requestId: bigint,
+      onCharacterCreated?: CharacterCreationCallback // Use original callback type
+    ) => void
     stopListening: () => void
     setPlayerId: (playerId: string) => void
     markAsTimedOut: () => void
@@ -49,6 +59,7 @@ const useCharacterCreationStore = create<CharacterCreationState>((set, get) => (
   eventData: null,
   
   actions: {
+    // Revert startListening implementation signature
     startListening: (requestId, onCharacterCreated) => {
       // First clean up any existing listener
       const state = get()
@@ -59,49 +70,30 @@ const useCharacterCreationStore = create<CharacterCreationState>((set, get) => (
       const unwatchFn = viemClient.watchEvent({
         address: PLAYER_CONTRACT_ADDRESS,
         event: parseAbiItem('event PlayerCreationComplete(uint256 indexed requestId, uint32 indexed playerId, address indexed owner, uint256 randomness, uint16 firstNameIndex, uint16 surnameIndex, uint8 strength, uint8 constitution, uint8 size, uint8 agility, uint8 stamina, uint8 luck)'),
+        args: {
+          requestId: requestId,
+        },
         onLogs: (logs) => {
-          // Check if any of the logs are for our request
-          const matchingLog = logs.find(
-            (log) => log.args.requestId === requestId
-          )
-          
-          if (matchingLog?.args) {
-            // We found our character creation event
-            console.log("PlayerCreationComplete event found:", matchingLog)
-            
-            const { 
-              playerId: playerIdRaw, 
-              firstNameIndex, 
-              surnameIndex,
-              strength,
-              constitution,
-              size,
-              agility,
-              stamina,
-              luck
-            } = matchingLog.args;
-            
-            // Convert playerId to string
-            const playerIdFromEvent = playerIdRaw?.toString() ?? null;
-            
-            // Create event data object
+          const state = get();
+          if (state.isListening && logs[0]) {
+            const log = logs[0];
+            // Revert type assertion if changed
+            const args = log.args as unknown as CharacterCreationEventData & { playerId: number };
+            const playerId = args.playerId.toString();
+
+            // Revert eventData type if changed
             const eventData: CharacterCreationEventData = {
-              firstNameIndex: Number(firstNameIndex),
-              surnameIndex: Number(surnameIndex),
-              strength: Number(strength),
-              constitution: Number(constitution),
-              size: Number(size),
-              agility: Number(agility),
-              stamina: Number(stamina),
-              luck: Number(luck)
+              firstNameIndex: args.firstNameIndex,
+              surnameIndex: args.surnameIndex,
+              strength: args.strength,
+              constitution: args.constitution,
+              size: args.size,
+              agility: args.agility,
+              stamina: args.stamina,
+              luck: args.luck,
             };
-            
-            // Update the store
-            set({ 
-              playerId: playerIdFromEvent,
-              isListening: false,
-              eventData
-            })
+
+            set({ playerId: playerId, isListening: false, eventData: eventData });
             
             // Stop the timeout if it exists
             const currentState = get()
@@ -110,20 +102,16 @@ const useCharacterCreationStore = create<CharacterCreationState>((set, get) => (
               set({ listenerTimeout: null })
             }
             
-            // Call the callback if provided
-            if (onCharacterCreated) onCharacterCreated(playerIdFromEvent || "", eventData)
+            // Call the original callback (no namePreference)
+            if (onCharacterCreated) {
+              onCharacterCreated(playerId, eventData);
+            }
           }
         },
       })
       
-      // Update state
-      set({ 
-        isListening: true,
-        requestId,
-        isTimeout: false,
-        unwatchFn,
-        eventData: null
-      })
+      // Revert state update if needed
+      set({ isListening: true, requestId: requestId, unwatchFn: unwatchFn, isTimeout: false, eventData: null });
     },
     
     stopListening: () => {

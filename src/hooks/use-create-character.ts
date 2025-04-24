@@ -7,14 +7,18 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { parseEther, parseAbiItem } from "viem";
 import { useRouter } from "next/navigation";
-import { useCharacterCreationActions } from "@/stores/character-creation-store";
-import { FighterType, type Fighter } from "@/types/fighter-types";
+import {
+  useCharacterCreationActions,
+  type CharacterCreationEventData,
+} from "@/stores/character-creation-store";
+import { FighterType, type Fighter, type RawFighterData } from "@/types/fighter-types";
 import { SkinType } from "@/types/skin.types";
 import { ArmorType, StanceType, WeaponType } from "@/types/equipment.types";
 import {
   convertRawFighterToFighter,
   fetchNamesByIndices,
 } from "@/lib/player-api";
+import { delay } from "@/lib/utils";
 import {
   useWriteContract,
   useWaitForTransactionReceipt,
@@ -23,10 +27,14 @@ import {
 import { useEffect, useState } from "react";
 import { useGameOwnedSkinCollection } from "./use-game-owned-skin-collection";
 
+// Reverted Interface - No namePreference needed here
 interface CreateCharacterResult {
   txHash: string;
   requestId?: bigint;
 }
+
+// Define type for name preference (needed for mutation input)
+type NamePreference = 'male' | 'female';
 
 export function useCreateCharacter() {
   const { authenticated } = usePrivy();
@@ -34,6 +42,7 @@ export function useCreateCharacter() {
   const queryClient = useQueryClient();
   const router = useRouter();
   const { address } = useAccount();
+  // Reverted pending state - no namePreference needed
   const [pendingCharacter, setPendingCharacter] =
     useState<CreateCharacterResult | null>(null);
 
@@ -44,9 +53,6 @@ export function useCreateCharacter() {
   // Get player contract address
   const playerContractAddress = process.env
     .NEXT_PUBLIC_PLAYER_CONTRACT_ADDRESS as `0x${string}`;
-
-  // Use nameSetB flag - determines which name set to use
-  const useNameSetB = false;
 
   // Using wagmi's useWriteContract hook
   const {
@@ -72,42 +78,30 @@ export function useCreateCharacter() {
   );
 
   // Effect to process the logs once we have the receipt
-  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     async function processTransactionReceipt() {
-      // Only proceed if we have a pending character and a receipt
       if (!pendingCharacter || !txReceipt || !address) return;
-
       try {
-        // Find our event in the transaction logs using viemClient
         const logs = await viemClient.getLogs({
           address: playerContractAddress,
           event: playerCreationRequestedEvent,
           fromBlock: txReceipt.blockNumber,
           toBlock: txReceipt.blockNumber,
         });
-
-        // Find our specific event in the logs
         const requestEvent = logs.find((log) => log.args.requester === address);
-
         if (!requestEvent || !requestEvent.args.requestId) {
           console.error("Could not find request ID in transaction logs");
           return;
         }
-
         const requestId = requestEvent.args.requestId;
 
-        // Complete the pending character data
-        const completeCharacter = {
-          ...pendingCharacter,
+        // Complete character data - no namePreference needed
+        const completeCharacter: CreateCharacterResult = {
+          txHash: pendingCharacter.txHash,
           requestId,
         };
-
-        // Clear the pending state
-        setPendingCharacter(null);
-
-        // Process the successful creation
-        handleCharacterCreationSuccess(completeCharacter);
+        setPendingCharacter(null); // Clear pending state
+        handleCharacterCreationSuccess(completeCharacter); // Pass simplified data
       } catch (error) {
         console.error("Error processing transaction receipt:", error);
         toast.error("Error processing character creation", {
@@ -115,30 +109,34 @@ export function useCreateCharacter() {
         });
       }
     }
-
     processTransactionReceipt();
-  }, [txReceipt, pendingCharacter, address]);
+  }, [
+      txReceipt, 
+      pendingCharacter, 
+      address, 
+      playerContractAddress,
+      playerCreationRequestedEvent
+    ]);
 
   // Create a mutation for character creation
-  const mutation = useMutation({
-    mutationFn: async (): Promise<CreateCharacterResult> => {
+  const mutation = useMutation<CreateCharacterResult, Error, NamePreference>({
+    mutationFn: async (namePreference: NamePreference): Promise<CreateCharacterResult> => {
       if (!authenticated) {
         throw new Error("Authentication required");
       }
-
       if (isWrongNetwork) {
         await switchToPrimaryNetwork();
       }
-
       if (!address) {
         throw new Error("No wallet found");
       }
-
       if (!playerContractAddress) {
         throw new Error("Player contract address not configured");
       }
 
-      // Execute the contract write and wait for the result
+      // Determine useNameSetB for the contract call
+      const useNameSetB = namePreference === 'female';
+
       const txHash = await writeContractAsync({
         account: address,
         address: playerContractAddress,
@@ -148,22 +146,21 @@ export function useCreateCharacter() {
         value: parseEther("0.002"),
       });
 
-      // Return just the txHash - we'll get the requestId later when the receipt is available
-      return {
-        txHash,
-      };
+      // Return only txHash
+      return { txHash };
     },
-
     onSuccess: (result) => {
-      // Set the pending character - we'll complete it when the receipt is available
+      // Reverted onSuccess - only set txHash/requestId
       setPendingCharacter(result);
-
-      // Show the initial success toast
-      toast.success("Transaction submitted", {
+      // ... toast ...
+       toast.success("Transaction submitted", {
         description:
           "Your character creation transaction has been sent to the blockchain.",
         action: {
-          label: "View on ShapeScan",
+          label:
+            process.env.NEXT_PUBLIC_ALCHEMY_NETWORK === "base-sepolia"
+              ? "View on BaseSepoliaScan"
+              : "View on ShapeScan",
           onClick: () =>
             window.open(
               `${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${result.txHash}`,
@@ -173,11 +170,8 @@ export function useCreateCharacter() {
         duration: 5000,
       });
     },
-
     onError: (error) => {
       console.error("Error creating character:", error);
-
-      // Show error toast
       toast.error("Error creating character", {
         description:
           error instanceof Error ? error.message : "An unknown error occurred",
@@ -185,7 +179,8 @@ export function useCreateCharacter() {
     },
   });
 
-  // Function to handle successful character creation after we have the requestId
+  // Function to handle successful character creation
+  // Reverted signature - no namePreference needed
   const handleCharacterCreationSuccess = ({
     txHash,
     requestId,
@@ -195,25 +190,27 @@ export function useCreateCharacter() {
       return;
     }
 
+    // ... toast ...
     toast.success("Character creation submitted", {
-      description:
-        "Your character creation request has been submitted to the blockchain.",
-      action: {
-        label: "View on ShapeScan",
-        onClick: () =>
-          window.open(
-            `${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${txHash}`,
-            "_blank",
-          ),
-      },
-      duration: 5000,
-    });
+        description:
+          "Your character creation request has been submitted to the blockchain.",
+        action: {
+          label:
+            process.env.NEXT_PUBLIC_ALCHEMY_NETWORK === "base-sepolia"
+              ? "View on BaseSepoliaScan"
+              : "View on ShapeScan",
+          onClick: () =>
+            window.open(
+              `${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${txHash}`,
+              "_blank",
+            ),
+        },
+        duration: 5000,
+      });
 
-    // Start listening for PlayerCreationComplete event
-    startListening(requestId, async (playerId, eventData) => {
-      // Use the event data to create a player object directly
+    // Corrected startListening call
+    startListening(requestId, async (playerId: string, eventData: CharacterCreationEventData | null) => {
       if (eventData && address) {
-        // Extract player data from event
         const {
           firstNameIndex,
           surnameIndex,
@@ -224,103 +221,108 @@ export function useCreateCharacter() {
           stamina,
           luck,
         } = eventData;
-        const names = await fetchNamesByIndices(firstNameIndex, surnameIndex);
-        const newPlayer = await convertRawFighterToFighter({
-          agility,
-          constitution,
-          stamina,
-          firstName: names.firstName,
-          surname: names.surname,
-          size,
-          strength,
-          luck,
-          wins: 0,
-          losses: 0,
-          kills: 0,
+
+        // Fetch names - Corrected call without useNameSetB
+        let names = { firstName: "Unknown", surname: "Fighter" };
+        let retries = 3;
+        while (retries > 0 && names.firstName === "Unknown") {
+          // Call fetchNamesByIndices with only indices
+          names = await fetchNamesByIndices(firstNameIndex, surnameIndex);
+          if (names.firstName === "Unknown") {
+            retries--;
+            if (retries > 0) {
+              console.log(`Name fetch returned Unknown, retrying... (${retries} left)`);
+              await delay(500); // Keep delay
+            } else {
+              console.warn("Failed to fetch character name after multiple retries.");
+            }
+          }
+        }
+
+        // Construct raw data for conversion
+        const rawFighterDataForConversion: RawFighterData = {
+          id: playerId,
           fighterId: playerId,
           fighterType: FighterType.Player,
           isRetired: false,
-          id: playerId,
-          owner: {
-            address,
-          },
+          strength,
+          constitution,
+          size,
+          agility,
+          stamina,
+          luck,
+          firstName: names.firstName, // Use fetched name
+          surname: names.surname,
           currentSkin: {
             collection: {
               id: defaultPlayerSkinCollection?.registryId || "0",
-              contractAddress:
-                (defaultPlayerSkinCollection?.contractAddress as `0x${string}`) ||
-                "0x0000000000000000000000000000000000000000",
+              contractAddress: defaultPlayerSkinCollection?.contractAddress || "0x0000000000000000000000000000000000000000",
               isVerified: true,
-              skinType:
-                defaultPlayerSkinCollection?.skinType || SkinType.DefaultPlayer,
-              requiredNFTAddress:
-                defaultPlayerSkinCollection?.requiredNFTAddress ?? null,
+              skinType: defaultPlayerSkinCollection?.skinType || SkinType.DefaultPlayer,
+              requiredNFTAddress: defaultPlayerSkinCollection?.requiredNFTAddress || null,
             },
             tokenId: defaultPlayerSkinCollection?.skins?.[0]?.tokenId || 0,
-            metadataURI:
-              defaultPlayerSkinCollection?.skins?.[0]?.metadataURI || "",
-            weapon:
-              defaultPlayerSkinCollection?.skins?.[0]?.weapon ||
-              WeaponType.Quarterstaff,
-            armor:
-              defaultPlayerSkinCollection?.skins?.[0]?.armor || ArmorType.Cloth,
+            metadataURI: defaultPlayerSkinCollection?.skins?.[0]?.metadataURI || "",
+            weapon: defaultPlayerSkinCollection?.skins?.[0]?.weapon || WeaponType.Quarterstaff,
+            armor: defaultPlayerSkinCollection?.skins?.[0]?.armor || ArmorType.Cloth,
           },
           stance: StanceType.Balanced,
-        });
+          wins: 0,
+          losses: 0,
+          kills: 0,
+          owner: { address },
+          isImmortal: false,
+          fullName: `${names.firstName} ${names.surname}`,
+          battleRating: 0,
+        };
 
-        // Update the React Query cache for owned players
+        const newPlayer = await convertRawFighterToFighter(rawFighterDataForConversion);
+
+        // ... update cache ...
         queryClient.setQueryData(
-          ["owned-players", address],
-          (oldData: Fighter[] | undefined) => {
-            if (!oldData) return [newPlayer];
-            return [...oldData, newPlayer];
-          },
-        );
-
-        // Also set the individual player in cache
+            ["owned-players", address],
+            (oldData: Fighter[] | undefined) => {
+              if (!oldData) return [newPlayer];
+              return [...oldData, newPlayer];
+            },
+          );
         queryClient.setQueryData(["player", playerId], newPlayer);
 
-        // Show success toast
+        // ... toast ...
         toast.success("Character created successfully!", {
           description: "Your new character is ready for battle.",
           duration: 4000,
         });
-
-        // Navigate to the character details page
+        // ... navigate ...
         router.push(`/character/${playerId}`);
       } else {
-        // Fallback if we don't have event data - shouldn't happen
         console.warn("Missing event data for player creation");
-
-        // Still navigate, but without cache update
-        router.push(`/character/${playerId}`);
+        if (playerId) router.push(`/character/${playerId}`); // Navigate even if data missing
       }
     });
 
-    // Start a 60-second timeout
+    // ... timeout logic ...
     const timeoutId = window.setTimeout(() => {
-      markAsTimedOut();
-      toast.error("Character creation timeout", {
-        description:
-          "The character creation is taking longer than expected. You can check back later.",
-      });
-    }, 60000); // 1 minute timeout
-
+        markAsTimedOut();
+        toast.error("Character creation timeout", {
+          description:
+            "The character creation is taking longer than expected. You can check back later.",
+        });
+      }, 60000);
     setListenerTimeout(timeoutId);
 
-    // Navigate to the loading screen
     router.push("/characters/creating");
   };
 
-  const createCharacter = async () => {
+  // createCharacter accepts preference for the mutation call
+  const createCharacter = async (namePreference: NamePreference) => {
     if (!authenticated) {
       toast.error("Authentication required", {
         description: "Please connect your wallet to create a character.",
       });
       return;
     }
-
-    mutation.mutate();
+    mutation.mutate(namePreference);
   };
 
   const { collection: defaultPlayerSkinCollection } =

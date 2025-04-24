@@ -1,19 +1,9 @@
 "use client";
 import { wagmiConfig } from "@/config";
-import {
-  type ConnectedWallet,
-  usePrivy,
-  useWallets,
-} from "@privy-io/react-auth";
+import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { useSetActiveWallet } from "@privy-io/wagmi";
 import { getChainId, switchChain } from "@wagmi/core";
-import {
-  type ReactNode,
-  createContext,
-  useCallback,
-  useEffect,
-  useState,
-} from "react";
+import { type ReactNode, createContext, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { baseSepolia, shape } from "viem/chains";
 
@@ -76,7 +66,12 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!ready || !authenticated || !wallets || wallets.length === 0) return;
 
-    if (getChainId(wagmiConfig) !== shape.id) {
+    if (
+      getChainId(wagmiConfig) !==
+      (process.env.NEXT_PUBLIC_ALCHEMY_NETWORK === "base-sepolia"
+        ? baseSepolia.id
+        : shape.id)
+    ) {
       switchToPrimaryNetwork();
     }
   }, [ready, authenticated, wallets]);
@@ -96,7 +91,11 @@ export function WalletProvider({ children }: { children: ReactNode }) {
 
   const value = {
     currentChainId: getChainId(wagmiConfig),
-    isWrongNetwork: getChainId(wagmiConfig) !== shape.id,
+    isWrongNetwork:
+      getChainId(wagmiConfig) !==
+      (process.env.NEXT_PUBLIC_ALCHEMY_NETWORK === "base-sepolia"
+        ? baseSepolia.id
+        : shape.id),
     checking,
     hasWallet,
     currentChainName,

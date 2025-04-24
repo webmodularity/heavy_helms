@@ -129,7 +129,10 @@ export function useRetirePlayer(playerId: string) {
           description:
             "Your warrior retirement request has been submitted to the blockchain.",
           action: {
-            label: "View on ShapeScan",
+            label:
+              process.env.NEXT_PUBLIC_ALCHEMY_NETWORK === "base-sepolia"
+                ? "View on BaseSepoliaScan"
+                : "View on ShapeScan",
             onClick: () =>
               window.open(
                 `${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${data.txHash}`,

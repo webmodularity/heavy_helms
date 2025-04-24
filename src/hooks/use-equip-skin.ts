@@ -95,7 +95,10 @@ export function useEquipSkin(playerId: string) {
         toast.success("Skin equipped successfully!", {
           description: "Your warrior has been updated with the new skin.",
           action: {
-            label: "View on ShapeScan",
+            label:
+              process.env.NEXT_PUBLIC_ALCHEMY_NETWORK === "base-sepolia"
+                ? "View on BaseSepoliaScan"
+                : "View on ShapeScan",
             onClick: () =>
               window.open(
                 `${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${writeData}`,
@@ -167,7 +170,10 @@ export function useEquipSkin(playerId: string) {
       toast.success("Equipping skin...", {
         description: "Your transaction has been submitted to the blockchain.",
         action: {
-          label: "View on ShapeScan",
+          label:
+            process.env.NEXT_PUBLIC_ALCHEMY_NETWORK === "base-sepolia"
+              ? "View on BaseSepoliaScan"
+              : "View on ShapeScan",
           onClick: () =>
             window.open(
               `${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${result.txHash}`,

@@ -118,7 +118,13 @@ export function CommunityStats() {
             <CTAButton
               key={createAction.id}
               title={createAction.label}
-              onClick={() => createAction.action()}
+              onClick={() => {
+                if (authenticated) {
+                  createCharacter('male');
+                } else {
+                  login();
+                }
+              }}
               size="lg"
             />
           </div>

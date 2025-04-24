@@ -66,7 +66,10 @@ export function useCancelChallenge() {
         description:
           "Your challenge has been successfully cancelled. Any wager amount will be returned to your wallet.",
         action: {
-          label: "View on ShapeScan",
+          label:
+            process.env.NEXT_PUBLIC_ALCHEMY_NETWORK === "base-sepolia"
+              ? "View on BaseSepoliaScan"
+              : "View on ShapeScan",
           onClick: () =>
             window.open(
               `${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${writeData}`,
@@ -144,7 +147,10 @@ export function useCancelChallenge() {
       toast.success("Cancelling challenge...", {
         description: "Your transaction has been submitted to the blockchain.",
         action: {
-          label: "View on ShapeScan",
+          label:
+            process.env.NEXT_PUBLIC_ALCHEMY_NETWORK === "base-sepolia"
+              ? "View on BaseSepoliaScan"
+              : "View on ShapeScan",
           onClick: () =>
             window.open(
               `${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${result.txHash}`,
