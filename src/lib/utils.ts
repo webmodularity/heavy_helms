@@ -18,3 +18,10 @@ export function ipfsToHttps(url: string): string {
   
   return url;
 }
+
+/**
+ * Basic timeout delay function
+ */
+export function delay(ms: number): Promise<void> {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
