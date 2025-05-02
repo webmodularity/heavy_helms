@@ -34,16 +34,17 @@ export async function fetchRawCombatResultByTx(
 
   try {
     // First try subgraph
-    const response = await request<{ combatResult: RawCombatResult | null }>(
+    const response = await request<{ combatResults: RawCombatResult[] }>(
       SUBGRAPH_URL,
       GET_COMBAT_RESULT,
       { txHash: txHash },
     );
 
-    // If subgraph has indexed it, cache and return the result
-    if (response.combatResult) {
-      combatResultCache.set(txHash, response.combatResult);
-      return response.combatResult;
+    // Check if the combatResults array has at least one item
+    if (response.combatResults && response.combatResults.length > 0) {
+      const result = response.combatResults[0];
+      combatResultCache.set(txHash, result);
+      return result;
     }
 
     console.log(

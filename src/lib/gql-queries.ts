@@ -305,9 +305,13 @@ export const GET_OWNED_PLAYERS_QUERY = gql`
 `;
 
 export const GET_COMBAT_RESULT = gql`
-  query GetCombatResult($txHash: ID!) {
-    combatResult(id: $txHash) {
+  query GetCombatResult($txHash: Bytes!) {
+    combatResults(
+      where: { transactionHash: $txHash },
+      first: 1
+    ) {
       id
+      transactionHash
       player1Data
       player2Data
       winningPlayerId
