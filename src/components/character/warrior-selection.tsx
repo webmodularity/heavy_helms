@@ -2,7 +2,7 @@
 
 import type { Player } from "@/types/player.types";
 import { useRouter } from "next/navigation";
-import { useRef, useMemo } from "react";
+import { useRef, useMemo, useEffect } from "react";
 import { SectionHeader } from "../ui/section-header";
 import { CharacterCard } from "./playable-character-card";
 import { NewCharacterCard } from "./new-character-card";
@@ -10,9 +10,11 @@ import { CharacterCardSkeleton } from "../ui/skeletons/character-card-skeleton";
 import { useCreateCharacter } from "@/hooks/use-create-character";
 import { useOwnPlayers } from "@/hooks/use-own-players";
 import type { StanceType } from "@/types/equipment.types";
+import { useQueryClient } from "@tanstack/react-query";
+import { useAccount } from "wagmi";
 
 // Define type for name preference - can be shared or defined locally
-type NamePreference = 'male' | 'female';
+type NamePreference = "male" | "female";
 
 interface WarriorSelectionProps {
   selectedCharacter: Player | null;
@@ -32,6 +34,32 @@ export function WarriorSelection({
   const characterListRef = useRef<HTMLDivElement>(null);
   const { players, isLoading } = useOwnPlayers();
   const { createCharacter, isCreatingCharacter, txHash } = useCreateCharacter();
+  const queryClient = useQueryClient();
+  const { address } = useAccount();
+
+  // Effect to refresh selectedCharacter if its underlying data changes
+  useEffect(() => {
+    if (selectedCharacter && players && players.length > 0) {
+      const currentlySelectedPlayerFromList = players.find(
+        (p) => p.id === selectedCharacter.id,
+      );
+
+      if (
+        currentlySelectedPlayerFromList &&
+        currentlySelectedPlayerFromList.gauntletStatus !==
+          selectedCharacter.gauntletStatus
+      ) {
+        console.log(
+          `WarriorSelection (Effect): Detected gauntletStatus change for selected character ${selectedCharacter.id}. Old: ${selectedCharacter.gauntletStatus}, New: ${currentlySelectedPlayerFromList.gauntletStatus}. Refreshing selection.`,
+        );
+        // Call onSelectCharacter with the fresh player object and its current stance
+        onSelectCharacter(
+          currentlySelectedPlayerFromList as Player,
+          (currentlySelectedPlayerFromList as Player).stance,
+        );
+      }
+    }
+  }, [players, selectedCharacter, onSelectCharacter]);
 
   const handleViewDetails = (character: Player) => {
     router.push(`/character/${character.id}`);
@@ -75,13 +103,31 @@ export function WarriorSelection({
                   character={character as Player}
                   index={index}
                   isSelected={selectedCharacter?.id === character.id}
-                  onSelect={(newStance) =>
+                  onSelect={(newStance) => {
                     onSelectCharacter(
                       character as Player,
                       (newStance as unknown as StanceType) ?? character.stance,
-                    )
-                  }
-                  onDeselect={onDeselectCharacter}
+                    );
+                    if (address) {
+                      console.log(
+                        `WarriorSelection: Selected ${character.id}. Invalidating owned-players.`,
+                      );
+                      queryClient.invalidateQueries({
+                        queryKey: ["owned-players", address],
+                      });
+                    }
+                  }}
+                  onDeselect={() => {
+                    onDeselectCharacter();
+                    if (address) {
+                      console.log(
+                        "WarriorSelection: Deselected. Invalidating owned-players.",
+                      );
+                      queryClient.invalidateQueries({
+                        queryKey: ["owned-players", address],
+                      });
+                    }
+                  }}
                   onViewDetails={() => handleViewDetails(character as Player)}
                 />
               ))}
@@ -90,7 +136,9 @@ export function WarriorSelection({
               {players && players.length < MAX_PLAYERS ? (
                 <NewCharacterCard
                   delay={players?.length || 0}
-                  onClick={(namePreference: NamePreference) => createCharacter(namePreference)}
+                  onClick={(namePreference: NamePreference) =>
+                    createCharacter(namePreference)
+                  }
                   isCreating={isCreatingCharacter}
                   txHash={txHash}
                 />

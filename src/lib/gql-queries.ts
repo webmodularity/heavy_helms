@@ -122,6 +122,7 @@ export const PLAYER_SPECIFIC_FRAGMENT = gql`
     battleRating
     uniqueWins
     uniqueLosses
+    gauntletStatus
   }
 `;
 
@@ -555,6 +556,18 @@ export const GET_GAME_STATS = gql`
       
       # Timestamps
       lastUpdated
+
+      # Gauntlet statistics
+      totalGauntletsStarted
+      totalGauntletsCompleted
+      totalGauntletsRecovered
+      totalGauntletPrizeMoneyAwarded
+      totalGauntletFeesCollected
+      currentGauntletQueueSize
+      currentGauntletEntryFee
+      currentGauntletSize
+      currentGauntletFeePercentage
+      currentMinTimeBetweenGauntlets
     }
   }
 `;

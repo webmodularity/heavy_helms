@@ -1,5 +1,5 @@
 import type { Skin } from "./skin.types";
-
+import type { PlayerGauntletStatus } from "./player.types";
 // Enum for fighter types
 export enum FighterType {
   Player = "Player",
@@ -46,6 +46,7 @@ export interface Fighter {
   isImmortal: boolean;
   owner?: { address: string };
   battleRating?: number;
+  gauntletStatus?: PlayerGauntletStatus;
 }
 
 // Calculated stats interface for all fighters
@@ -119,6 +120,7 @@ export interface RawFighterData {
   battleRating?: number;
   uniqueWins?: number;
   uniqueLosses?: number;
+  gauntletStatus?: PlayerGauntletStatus;
 }
 
 export interface ContractInfo {

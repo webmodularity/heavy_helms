@@ -7,3 +7,4 @@ export { ERC721ABI } from "./ERC721ABI.abi";
 export { DefaultPlayerSkinNFTABI } from "./DefaultPlayerSkinNFT.abi";
 export { MonsterABI } from "./MonsterABI.abi";
 export { DefaultPlayerABI } from "./DefaultPlayerABI.abi";
+export { GauntletGameABI } from "./GauntletGameABI.abi";
