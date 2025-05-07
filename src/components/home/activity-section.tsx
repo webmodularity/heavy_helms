@@ -18,6 +18,17 @@ import { type Challenge, useChallenges } from "@/hooks/use-challenges";
 import { useRecentDuels } from "@/hooks/use-recent-duels";
 import Link from "next/link";
 import { ChallengeCard } from "@/components/home/challenge-card";
+import {
+  useRecentGauntlets,
+  type GauntletChronicle,
+} from "@/hooks/use-recent-gauntlets";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { GauntletAccordionItem } from "@/components/gauntlet/gauntlet-accordion-item";
 
 interface ActivitySectionProps {
   selectedCharacter: Player | null;
@@ -133,7 +144,7 @@ function BattleTabs({
 
       <div className="mt-0 pt-6 pb-0 px-0">
         <TabsContent value="gauntlets" className="space-y-4 mt-0">
-          <RecentGauntletsPlaceholder selectedCharacter={selectedCharacter} />
+          <RecentGauntletsTabContent selectedCharacter={selectedCharacter} />
         </TabsContent>
 
         <TabsContent value="duels" className="space-y-4 mt-0">
@@ -148,24 +159,49 @@ function BattleTabs({
   );
 }
 
-function RecentGauntletsPlaceholder({
+function RecentGauntletsTabContent({
   selectedCharacter,
 }: { selectedCharacter: Player | null }) {
-  const handleRefetch = () => {
-    // Placeholder for refetch logic
-    console.log("Refetching gauntlets for", selectedCharacter?.id);
-    toast.info("Refetching recent gauntlets...", {
-      description: "This feature is coming soon.",
-    });
+  const {
+    gauntlets,
+    isLoading,
+    error,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isRefetching,
+  } = useRecentGauntlets(selectedCharacter?.id);
+
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+
+  // State to track the currently expanded accordion item's value
+  const [expandedItemValue, setExpandedItemValue] = useState<
+    string | undefined
+  >();
+
+  const handleRefetch = async () => {
+    await refetch();
   };
 
-  // TODO: Replace with actual loading state and data fetching for gauntlets
-  const isLoadingGauntlets = false; // Placeholder
-  const isRefetchingGauntlets = false; // Placeholder
-  const gauntletsError = null; // Placeholder
-  const hasGauntlets = false; // Placeholder
+  useEffect(() => {
+    if (observerRef.current) observerRef.current.disconnect();
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && hasNextPage && !isFetchingNextPage) {
+          void fetchNextPage();
+        }
+      },
+      { rootMargin: "200px" },
+    );
+    if (loadMoreRef.current) observerRef.current.observe(loadMoreRef.current);
+    return () => {
+      if (observerRef.current) observerRef.current.disconnect();
+    };
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
-  if (isLoadingGauntlets) {
+  if (isLoading && gauntlets.length === 0) {
     return (
       <div className="flex justify-center py-8">
         <Loader2 className="h-8 w-8 text-yellow-500 animate-spin" />
@@ -173,7 +209,7 @@ function RecentGauntletsPlaceholder({
     );
   }
 
-  if (gauntletsError) {
+  if (error) {
     return (
       <div className="text-center py-8 text-red-400">
         <p>Failed to load recent gauntlets</p>
@@ -185,7 +221,7 @@ function RecentGauntletsPlaceholder({
           variant="default"
         >
           <Loader2
-            className={`mr-2 h-4 w-4 ${isRefetchingGauntlets ? "animate-spin" : ""}`}
+            className={`mr-2 h-4 w-4 ${isRefetching ? "animate-spin" : ""}`}
           />
           Refresh
         </YellowButton>
@@ -204,23 +240,21 @@ function RecentGauntletsPlaceholder({
     );
   }
 
-  if (!hasGauntlets) {
+  if (gauntlets.length === 0) {
     return (
       <div className="text-center py-8 text-stone-300">
         <Trophy className="h-12 w-12 mx-auto mb-4 text-yellow-600/50" />
         <h3 className="text-lg font-medium text-yellow-500 mb-2">
           This warrior has no recent gauntlets.
         </h3>
-        <p className="text-sm text-stone-400 mb-4">(Coming Soon)</p>
         <YellowButton
           onClick={handleRefetch}
           className="mt-4"
           size="sm"
           variant="default"
-          // disabled={isRefetchingGauntlets} // Placeholder
         >
           <Loader2
-            className={`mr-2 h-4 w-4 ${isRefetchingGauntlets ? "animate-spin" : ""}`}
+            className={`mr-2 h-4 w-4 ${isRefetching ? "animate-spin" : ""}`}
           />
           Refresh
         </YellowButton>
@@ -228,27 +262,65 @@ function RecentGauntletsPlaceholder({
     );
   }
 
-  // Placeholder for when gauntlets are loaded
   return (
-    <div className="space-y-4">
-      <div className="flex justify-end mb-2">
+    <div className="space-y-2">
+      <div className="flex justify-end mb-4">
         <YellowButton
           onClick={handleRefetch}
           size="sm"
           variant="default"
-          // disabled={isRefetchingGauntlets}
+          disabled={isRefetching}
         >
-          <Loader2
-            className={`mr-2 h-4 w-4 ${isRefetchingGauntlets ? "animate-spin" : ""}`}
-          />
-          Refresh
+          {isRefetching ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Refreshing...
+            </>
+          ) : (
+            <>
+              <Loader2 className="mr-2 h-4 w-4" /> Refresh
+            </>
+          )}
         </YellowButton>
       </div>
-      <div className="text-center py-8 text-stone-300">
-        <p>
-          Recent Gauntlet data will appear here for {selectedCharacter.fullName}
-          .
-        </p>
+
+      <Accordion
+        type="single"
+        collapsible
+        className="w-full space-y-2"
+        value={expandedItemValue}
+        onValueChange={setExpandedItemValue}
+      >
+        {gauntlets.map((gauntlet, index) => {
+          const currentItemValue = `gauntlet-${gauntlet.id}-${index}`;
+          return (
+            <GauntletAccordionItem
+              key={currentItemValue}
+              itemValue={currentItemValue}
+              gauntlet={gauntlet}
+              selectedCharacter={selectedCharacter}
+              isExpanded={expandedItemValue === currentItemValue}
+            />
+          );
+        })}
+      </Accordion>
+
+      {/* Loading more indicator */}
+      <div ref={loadMoreRef} className="py-6 flex justify-center">
+        {isFetchingNextPage ? (
+          <Loader2 className="h-6 w-6 text-yellow-500 animate-spin" />
+        ) : hasNextPage ? (
+          <Button
+            variant="link"
+            onClick={() => fetchNextPage()}
+            className="text-yellow-500 hover:text-yellow-400"
+          >
+            Load More Gauntlets
+          </Button>
+        ) : gauntlets.length > 0 ? (
+          <span className="text-sm text-stone-400">
+            End of gauntlet history
+          </span>
+        ) : null}
       </div>
     </div>
   );
