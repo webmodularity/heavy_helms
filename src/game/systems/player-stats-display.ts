@@ -17,6 +17,9 @@ interface DisplayStyles {
     alpha: number;
     borderColor: number;
     borderWidth: number;
+    borderRadius?: number;
+    shadowColor?: number;
+    shadowBlur?: number;
   };
   header: {
     fontFamily: string;
@@ -80,46 +83,49 @@ export class PlayerStatsDisplay {
     this.textElements = [];
 
     // Style configurations
-    this.containerWidth = 170;
-    this.padding = 12;
-    this.labelWidth = 45;
-    this.valueWidth = 55;
+    this.containerWidth = 320;
+    this.padding = 20;
+    this.labelWidth = 80;
+    this.valueWidth = 140;
 
     // Calculate text positions with padding between label and value
     if (isRightSide) {
       this.labelStartX = x + this.padding;
       this.valueStartX = x + this.padding + this.labelWidth + 20;
       // Start position for right side (off screen)
-      this.startX = scene.cameras.main.width;
-      this.targetX = scene.cameras.main.width - this.containerWidth;
+      this.startX = scene.cameras.main.width + 20;
+      this.targetX = scene.cameras.main.width - this.containerWidth - x;
     } else {
       this.labelStartX = x + this.padding;
       this.valueStartX = x + this.padding + this.labelWidth + 20;
       // Start position for left side (off screen)
       this.startX = -this.containerWidth;
-      this.targetX = 0;
+      this.targetX = x;
     }
 
     this.styles = {
       container: {
         backgroundColor: 0x000000,
-        alpha: 0.4,
-        borderColor: 0x000000,
-        borderWidth: 1,
+        alpha: 0.8,
+        borderColor: 0xffd700,
+        borderWidth: 3,
+        borderRadius: 8,
+        shadowColor: 0x000000,
+        shadowBlur: 15
       },
       header: {
         fontFamily: "Bokor",
-        fontSize: "14px",
-        color: "#ffffff",
+        fontSize: "24px",
+        color: "#ffd700",
       },
       label: {
         fontFamily: "Montserrat",
-        fontSize: "11px",
-        color: "#888888",
+        fontSize: "18px",
+        color: "#ffffff",
       },
       value: {
         fontFamily: "Montserrat",
-        fontSize: "11px",
+        fontSize: "18px",
         color: "#d4af37",
       },
     };
@@ -262,7 +268,7 @@ export class PlayerStatsDisplay {
     }
 
     let currentY = this.padding;
-    const spacing = 14;
+    const spacing = 20;
     let maxWidth = 0;
 
     const addHeader = (text: string): void => {
@@ -382,46 +388,40 @@ export class PlayerStatsDisplay {
     );
     addTextRow("ID", player.id);
 
-    // Create background with calculated dimensions
+    // Create background with calculated dimensions and styling
     const bg = this.scene.add.graphics();
     const containerHeight = currentY + this.padding;
-    this.containerWidth = Math.max(170, maxWidth);
+    this.containerWidth = Math.max(240, maxWidth);
+
+    // Add shadow effect
+    if (this.styles.container.shadowBlur) {
+      bg.fillStyle(this.styles.container.shadowColor || 0x000000, 0.5);
+      bg.fillRoundedRect(
+        4, 4, 
+        this.containerWidth, 
+        containerHeight,
+        this.styles.container.borderRadius || 0
+      );
+    }
 
     // Fill with semi-transparent black
-    bg.fillStyle(
-      this.styles.container.backgroundColor,
-      this.styles.container.alpha,
-    );
-    bg.fillRect(0, 0, this.containerWidth, containerHeight);
-
-    // Add borders
-    bg.lineStyle(
-      this.styles.container.borderWidth,
-      this.styles.container.borderColor,
-    );
-
-    // Top border
-    bg.beginPath();
-    bg.moveTo(0, 0);
-    bg.lineTo(this.containerWidth, 0);
-    bg.strokePath();
-
-    // Bottom border
-    bg.beginPath();
-    bg.moveTo(0, containerHeight);
-    bg.lineTo(this.containerWidth, containerHeight);
-    bg.strokePath();
-
-    // Side border (right for player 1, left for player 2)
-    bg.beginPath();
-    if (this.isRightSide) {
-      bg.moveTo(0, 0);
-      bg.lineTo(0, containerHeight);
+    bg.fillStyle(this.styles.container.backgroundColor, this.styles.container.alpha);
+    
+    // Use rounded rectangle if borderRadius is specified
+    if (this.styles.container.borderRadius) {
+      bg.fillRoundedRect(0, 0, this.containerWidth, containerHeight, this.styles.container.borderRadius);
+      
+      // Add borders with rounded corners
+      bg.lineStyle(this.styles.container.borderWidth, this.styles.container.borderColor);
+      bg.strokeRoundedRect(0, 0, this.containerWidth, containerHeight, this.styles.container.borderRadius);
     } else {
-      bg.moveTo(this.containerWidth, 0);
-      bg.lineTo(this.containerWidth, containerHeight);
+      // Original rectangle code
+      bg.fillRect(0, 0, this.containerWidth, containerHeight);
+      
+      // Original border code
+      bg.lineStyle(this.styles.container.borderWidth, this.styles.container.borderColor);
+      bg.strokeRect(0, 0, this.containerWidth, containerHeight);
     }
-    bg.strokePath();
 
     // Add background first
     this.container.add(bg);
@@ -431,6 +431,17 @@ export class PlayerStatsDisplay {
     for (const element of this.textElements) {
       element.setDepth(11);
       this.container.add(element);
+    }
+
+    // At the end of fullUpdate method, right before adding elements to container
+    // Update target position after container width is recalculated
+    if (this.isRightSide) {
+      this.targetX = this.scene.cameras.main.width - this.containerWidth - this.x;
+      
+      // If the container is already shown, update its position immediately
+      if (this.container.x !== this.startX) {
+        this.container.x = this.targetX;
+      }
     }
   }
 }

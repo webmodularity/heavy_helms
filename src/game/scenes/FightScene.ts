@@ -251,11 +251,11 @@ export class FightScene extends Scene {
       .setDepth(100);
 
     // Create player stats displays immediately but don't show them yet
-    this.player1Stats = new PlayerStatsDisplay(this, 10, 160, false);
+    this.player1Stats = new PlayerStatsDisplay(this, 30, 120, false);
     this.player2Stats = new PlayerStatsDisplay(
       this,
-      this.cameras.main.width - 150,
-      160,
+      30, // Same margin for both sides
+      120,
       true,
     );
 
