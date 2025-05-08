@@ -1,0 +1,5 @@
+@font-face {
+  font-family: 'PixeloidMono';
+  src: url('PixeloidMono.ttf') format('truetype');
+  /* Adjust the src path if your CSS file is in a different location relative to the font file */
+}

@@ -1,5 +1,4 @@
 import { SUBGRAPH_URL } from "@/config";
-import { usePrivy } from "@privy-io/react-auth";
 import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import { request } from "graphql-request";
 import {
@@ -80,7 +79,7 @@ export interface Challenge {
 }
 
 export function useChallenges(fighterId?: string, pageSize = 10) {
-  const { authenticated } = usePrivy();
+  const { isConnected } = useAccount();
   const { address } = useAccount();
   const {
     data,
@@ -101,7 +100,7 @@ export function useChallenges(fighterId?: string, pageSize = 10) {
         : ["active-challenges", address, pageSize],
     queryFn: async ({ pageParam = 0 }) => {
       // Don't fetch if not authenticated
-      if (!authenticated) {
+      if (!isConnected) {
         return [];
       }
 

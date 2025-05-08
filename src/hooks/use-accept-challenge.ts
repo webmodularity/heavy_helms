@@ -1,6 +1,5 @@
 import { DuelGameABI } from "@/game/abi/DuelGameABI.abi";
 import { useWallet } from "@/hooks/use-wallet";
-import { usePrivy } from "@privy-io/react-auth";
 import {
   type InfiniteData,
   useMutation,
@@ -40,7 +39,7 @@ interface AcceptChallengeResult {
 }
 
 export function useAcceptChallenge() {
-  const { authenticated } = usePrivy();
+  const { isConnected } = useAccount();
   const { isWrongNetwork, switchToPrimaryNetwork } = useWallet();
   const queryClient = useQueryClient();
   const router = useRouter();
@@ -95,7 +94,7 @@ export function useAcceptChallenge() {
       challengeId,
       wagerAmount,
     }: AcceptChallengeParams): Promise<AcceptChallengeResult> => {
-      if (!authenticated) {
+      if (!isConnected) {
         throw new Error("Authentication required");
       }
 
@@ -240,7 +239,7 @@ export function useAcceptChallenge() {
   };
 
   const acceptChallenge = async (params: AcceptChallengeParams) => {
-    if (!authenticated) {
+    if (!isConnected) {
       toast.error("Authentication required", {
         description: "Please connect your wallet to accept a challenge.",
       });

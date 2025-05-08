@@ -169,25 +169,33 @@ export class FightScene extends Scene {
     this.children.removeAll();
 
     for (const layer of layers) {
-      this.add
-        .image(0, 0, layer.key)
-        .setOrigin(0, 0)
-        .setScale(0.5)
-        .setDepth(layer.depth)
-        .setAlpha(layer.alpha);
+      const img = this.add.image(0, 0, layer.key).setOrigin(0, 0);
+      // Calculate scale needed to cover the screen width and height
+      const scaleX = this.cameras.main.width / img.width;
+      const scaleY = this.cameras.main.height / img.height;
+      // Use the larger scale factor to cover the screen, potentially cropping
+      const scale = Math.max(scaleX, scaleY);
+      // Or use Math.min if you want to fit without cropping
+
+      img.setScale(scale).setDepth(layer.depth).setAlpha(layer.alpha);
     }
 
     // 2. Player Setup
-    const groundY = 600;
+    const groundMargin = 50; // Adjust this value as needed
+    const groundY = this.cameras.main.height - groundMargin;
+
+    // Calculate relative X positions
+    const player1InitialX = this.cameras.main.width * 0.15; // e.g., 15% from left
+    const player2InitialX = this.cameras.main.width * 0.85; // e.g., 15% from right
     this.player1Sprite = this.physics.add
-      .sprite(125, groundY - 40, `fighter${this.player1.id}-spritesheet`)
+      .sprite(player1InitialX, groundY, `fighter${this.player1.id}-spritesheet`)
       .setFlipX(false)
       .setOrigin(0.5, 1)
       .setDisplaySize(300, 300)
       .setDepth(5);
 
     this.player2Sprite = this.physics.add
-      .sprite(835, groundY - 40, `fighter${this.player2.id}-spritesheet`)
+      .sprite(player2InitialX, groundY, `fighter${this.player2.id}-spritesheet`)
       .setFlipX(true)
       .setOrigin(0.5, 1)
       .setDisplaySize(300, 300)

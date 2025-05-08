@@ -3,7 +3,6 @@ import { PlayerABI } from "@/game/abi/PlayerABI.abi";
 import { useWallet } from "@/hooks/use-wallet";
 import { createPlayerSkin } from "@/lib/player-api";
 import type { Player } from "@/types/player.types";
-import { usePrivy } from "@privy-io/react-auth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -30,7 +29,7 @@ interface EquipSkinResult {
 }
 
 export function useEquipSkin(playerId: string) {
-  const { authenticated } = usePrivy();
+  const { isConnected } = useAccount();
   const { isWrongNetwork, switchToPrimaryNetwork } = useWallet();
   const queryClient = useQueryClient();
   const { address } = useAccount();
@@ -127,7 +126,7 @@ export function useEquipSkin(playerId: string) {
       newSkin,
       stance,
     }): Promise<EquipSkinResult> => {
-      if (!authenticated) {
+      if (!isConnected) {
         throw new Error("Wallet not connected");
       }
 

@@ -1,0 +1,17 @@
+{
+  "accountAssociation": {
+      "header": "eyJmaWQiOjI0NjA3NSwidHlwZSI6ImN1c3RvZHkiLCJrZXkiOiIweDlhNThhZDZkZDNiZTA4NDMyZGU2ZGNkZjk4YTVkMzg3YTNiNTY4NjYifQ",
+      "payload": "eyJkb21haW4iOiJsb2NhbGhvc3Q6MzAwMCJ9",
+      "signature": ""
+    },
+    "frame": {
+      "name": "HeavyHelms",
+      "version": "1",
+      "iconUrl": "https://wyoming-albums-zip-see.trycloudflare.com/heavy_helms_header_drop_shadow.png",
+      "homeUrl": "https://wyoming-albums-zip-see.trycloudflare.com",
+      "imageUrl": "https://wyoming-albums-zip-see.trycloudflare.com/heavy_helms_header_drop_shadow.png",
+      "buttonTitle": "Play",
+      "splashImageUrl": "https://wyoming-albums-zip-see.trycloudflare.com/heavy_helms_header_drop_shadow.png",
+      "splashBackgroundColor": "#f9c846"
+    }
+}

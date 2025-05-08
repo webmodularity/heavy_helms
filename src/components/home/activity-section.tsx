@@ -6,7 +6,6 @@ import { SectionHeader } from "@/components/ui/section-header";
 import { motion } from "framer-motion";
 import { useCancelChallenge } from "@/hooks/use-cancel-challenge";
 import { useAcceptChallenge } from "@/hooks/use-accept-challenge";
-import { usePrivy } from "@privy-io/react-auth";
 import { Loader2, Shield, Swords, Trophy } from "lucide-react";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { formatEther } from "viem";
@@ -29,13 +28,14 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { GauntletAccordionItem } from "@/components/gauntlet/gauntlet-accordion-item";
+import { useAccount } from "wagmi";
 
 interface ActivitySectionProps {
   selectedCharacter: Player | null;
 }
 
 export function ActivitySection({ selectedCharacter }: ActivitySectionProps) {
-  const { authenticated, login } = usePrivy();
+  const { isConnected } = useAccount();
 
   return (
     <section className="mb-8" id="activity-section">
@@ -47,15 +47,10 @@ export function ActivitySection({ selectedCharacter }: ActivitySectionProps) {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.7, delay: 0.7 }}
       >
-        {authenticated ? (
+        {isConnected ? (
           <BattleTabs selectedCharacter={selectedCharacter} />
         ) : (
-          <div className="flex flex-col items-center justify-center py-8 space-y-4">
-            <p className="text-stone-300 text-center">
-              Connect your wallet to view your battle chronicles
-            </p>
-            <YellowButton onClick={login}>Connect Wallet</YellowButton>
-          </div>
+          <></>
         )}
       </motion.div>
     </section>

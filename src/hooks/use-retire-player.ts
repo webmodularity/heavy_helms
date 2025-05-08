@@ -1,4 +1,3 @@
-import { usePrivy } from "@privy-io/react-auth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { PlayerABI } from "@/game/abi";
@@ -23,7 +22,7 @@ interface RetirePlayerResult {
  * @returns Object containing retirement function and state
  */
 export function useRetirePlayer(playerId: string) {
-  const { authenticated } = usePrivy();
+  const { isConnected } = useAccount();
   const { isWrongNetwork, switchToPrimaryNetwork } = useWallet();
   const queryClient = useQueryClient();
   const { address } = useAccount();
@@ -92,7 +91,7 @@ export function useRetirePlayer(playerId: string) {
 
   const mutation = useMutation<RetirePlayerResult, Error, void>({
     mutationFn: async (): Promise<RetirePlayerResult> => {
-      if (!authenticated) {
+      if (!isConnected) {
         throw new Error("Authentication required");
       }
 
@@ -198,7 +197,7 @@ export function useRetirePlayer(playerId: string) {
    * @returns Promise that resolves when the player is retired
    */
   const retirePlayer = async (): Promise<RetirePlayerResult> => {
-    if (!authenticated) {
+    if (!isConnected) {
       toast.error("Please connect your wallet", {
         description: "You need to be logged in to retire a character.",
       });

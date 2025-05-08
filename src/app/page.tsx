@@ -6,23 +6,17 @@ import { CommunityStats } from "@/components/home/community-stats";
 import { GameIntroduction } from "@/components/home/game-introduction";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 // Import types
-import { usePrivy } from "@privy-io/react-auth";
+import { useAccount } from "wagmi";
 
 export default function Home() {
-  const { authenticated, ready } = usePrivy();
-
+  const { address } = useAccount();
+  console.log("address", address);
   return (
     <div className="min-h-screen w-full overflow-y-auto">
-      {!ready ? (
-        <div className="flex items-center justify-center h-screen">
-          <LoadingSpinner size="lg" text="Loading game..." />
-        </div>
-      ) : authenticated ? (
+      {address ? (
         <AuthenticatedView />
       ) : (
-        // Non-authenticated view
         <>
-
           <GameIntroduction />
           <CommunityStats />
         </>

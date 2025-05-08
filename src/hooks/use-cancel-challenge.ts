@@ -1,6 +1,5 @@
 import { DuelGameABI } from "@/game/abi/DuelGameABI.abi";
 import { useWallet } from "@/hooks/use-wallet";
-import { usePrivy } from "@privy-io/react-auth";
 import {
   type InfiniteData,
   useMutation,
@@ -31,7 +30,7 @@ interface CancelChallengeParams {
 }
 
 export function useCancelChallenge() {
-  const { authenticated } = usePrivy();
+  const { isConnected } = useAccount();
   const { isWrongNetwork, switchToPrimaryNetwork } = useWallet();
   const queryClient = useQueryClient();
   const { address } = useAccount();
@@ -112,7 +111,7 @@ export function useCancelChallenge() {
       challengeId,
       characterId,
     }: CancelChallengeParams): Promise<CancelChallengeResult> => {
-      if (!authenticated) {
+      if (!isConnected) {
         throw new Error("Authentication required");
       }
 
@@ -173,7 +172,7 @@ export function useCancelChallenge() {
   });
 
   const cancelChallenge = async (params: CancelChallengeParams) => {
-    if (!authenticated) {
+    if (!isConnected) {
       toast.error("Authentication required", {
         description: "Please connect your wallet to cancel a challenge.",
       });

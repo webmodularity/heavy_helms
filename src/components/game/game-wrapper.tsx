@@ -121,54 +121,56 @@ export function GameWrapper({ player1, txId, logIndex }: GameWrapperProps) {
   if (!isClient) return null;
 
   return (
-    <div className="w-full flex justify-center items-center">
-      <div
-        ref={containerRef}
-        id="game-container-outer"
-        className="relative bg-black w-full overflow-hidden rounded-md"
-        style={{
-          maxWidth: "960px",
-          aspectRatio: "16/9",
-        }}
-      >
-        <PhaserGame
-          player1={player1}
-          txId={txId}
-          logIndex={logIndex}
-          onGameReady={handleGameReady}
-        />
+    <div
+      ref={containerRef}
+      id="game-container-outer"
+      className="relative bg-black w-full overflow-hidden"
+      style={{
+        width: "100vw",
+        height: "100vh",
+        position: "fixed",
+        top: 0,
+        left: 0,
+        zIndex: 2,
+      }}
+    >
+      <PhaserGame
+        player1={player1}
+        txId={txId}
+        logIndex={logIndex}
+        onGameReady={handleGameReady}
+      />
 
-        <div className="absolute bottom-1 right-1 flex gap-1 bg-black/50 backdrop-blur-sm rounded-md z-50">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6 md:h-8 md:w-8 p-0.5 text-yellow-400 hover:bg-yellow-900/30 disabled:opacity-50"
-            onClick={toggleMute}
-            disabled={!isGameReady}
-          >
-            {isMuted ? <VolumeX size={14} /> : <Volume2 size={14} />}
-          </Button>
+      <div className="absolute bottom-1 right-1 flex gap-1 bg-black/50 backdrop-blur-sm rounded-md z-50">
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-6 w-6 md:h-8 md:w-8 p-0.5 text-yellow-400 hover:bg-yellow-900/30 disabled:opacity-50"
+          onClick={toggleMute}
+          disabled={!isGameReady}
+        >
+          {isMuted ? <VolumeX size={14} /> : <Volume2 size={14} />}
+        </Button>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6 md:h-8 md:w-8 p-0.5 text-yellow-400 hover:bg-yellow-900/30 disabled:opacity-50"
-            onClick={toggleFullscreen}
-            disabled={!isGameReady}
-          >
-            <Maximize2 size={14} />
-          </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-6 w-6 md:h-8 md:w-8 p-0.5 text-yellow-400 hover:bg-yellow-900/30 disabled:opacity-50"
+          onClick={toggleFullscreen}
+          disabled={!isGameReady}
+        >
+          <Maximize2 size={14} />
+        </Button>
 
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6 md:h-8 md:w-8 p-0.5 text-red-400 hover:bg-red-900/30 disabled:opacity-50"
-            onClick={exitPractice}
-            disabled={!isGameReady}
-          >
-            <X size={14} />
-          </Button>
-        </div>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="h-6 w-6 md:h-8 md:w-8 p-0.5 text-red-400 hover:bg-red-900/30 disabled:opacity-50"
+          onClick={exitPractice}
+          disabled={!isGameReady}
+        >
+          <X size={14} />
+        </Button>
       </div>
     </div>
   );

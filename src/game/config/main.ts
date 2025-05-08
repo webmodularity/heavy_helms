@@ -4,6 +4,8 @@ import { Boot } from "../scenes/Boot";
 import { FightScene } from "../scenes/FightScene";
 import { Preloader } from "../scenes/Preloader";
 import type { Fighter } from "@/types/fighter-types";
+import WebFontLoaderPlugin from "phaser3-rex-plugins/plugins/webfontloader-plugin.js";
+import UIPlugin from "phaser3-rex-plugins/templates/ui/ui-plugin.js";
 
 // Game configuration interface
 interface GameConfig {
@@ -21,12 +23,11 @@ export const gameData = {
 
 //  Find out more information about the Game Config at:
 //  https://newdocs.phaser.io/docs/3.70.0/Phaser.Types.Core.GameConfig
-const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
 const config: Phaser.Types.Core.GameConfig = {
-  type: isIOS ? Phaser.CANVAS : Phaser.AUTO,
-  width: 960,
-  height: 540,
+  type: Phaser.AUTO,
+  width: 1024,
+  height: 768,
   parent: "game-container",
   scene: [Boot, Preloader, FightScene],
   physics: {
@@ -37,19 +38,37 @@ const config: Phaser.Types.Core.GameConfig = {
     },
   },
   scale: {
-    mode: Phaser.Scale.FIT,
+    mode: Phaser.Scale.EXPAND,
     parent: "game-container",
     width: 960,
     height: 540,
     autoCenter: Phaser.Scale.CENTER_BOTH,
     min: {
-      width: 320,
-      height: 180,
+      width: 200,
+      height: 600,
     },
     max: {
-      width: 1920,
-      height: 1080,
+      width: 1600,
+      height: 1200,
     },
+  },
+  plugins: {
+    global: [
+
+      {
+        key: "rexWebFontLoader",
+        plugin: WebFontLoaderPlugin,
+        start: true,
+      },
+      // ...
+    ],
+    scene: [
+      {
+        key: "rexUI",
+        plugin: UIPlugin,
+        mapping: "rexUI",
+      },
+    ],
   },
   render: {
     pixelArt: false,

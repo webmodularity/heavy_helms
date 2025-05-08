@@ -1,7 +1,6 @@
 // src/components/home/character-gallery.tsx
 "use client";
 import type { Player } from "@/types/player.types";
-import { usePrivy } from "@privy-io/react-auth";
 import { motion } from "framer-motion";
 import CharacterCard from "../CharacterCard";
 import { CTAButton as CTAButtonComponent } from "../ui/cta-button";
@@ -9,6 +8,7 @@ import {
   getWeaponDisplayName,
   getArmorDisplayName,
 } from "@/lib/equipment-utils";
+import AuthButton from "../auth-button";
 
 interface CharacterGalleryProps {
   characters?: Player[];
@@ -61,14 +61,7 @@ export function CharacterGallery({ characters }: CharacterGalleryProps) {
 }
 
 function CTAButton() {
-  const { login } = usePrivy();
-  return (
-    <CTAButtonComponent
-      onClick={() => login()}
-      title="Claim Your Destiny"
-      size="lg"
-    />
-  );
+  return <AuthButton />;
 }
 
 // Component for decorative borders and corner elements

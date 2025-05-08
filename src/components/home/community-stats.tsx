@@ -7,14 +7,13 @@ import { useGameStats } from "@/hooks/use-game-stats";
 import { formatEther } from "viem";
 import { SectionHeader } from "@/components/ui/section-header";
 import { useCreateCharacter } from "@/hooks/use-create-character";
-import { usePrivy } from "@privy-io/react-auth";
 import { BarChart, ScrollText, Trophy } from "lucide-react";
+import { useAccount } from "wagmi";
 
 export function CommunityStats() {
   const { stats: gameStats, isLoading } = useGameStats();
   const { createCharacter, isCreatingCharacter } = useCreateCharacter();
-  const { login, authenticated } = usePrivy();
-
+  const { isConnected } = useAccount();
   // Hardcoded values for now
   const stats = [
     {
@@ -39,7 +38,7 @@ export function CommunityStats() {
   const createAction = {
     id: "create",
     label: "Create Your Warrior",
-    action: authenticated ? createCharacter : login,
+    action: isConnected ? createCharacter : () => {},
     disabled: isCreatingCharacter,
   };
 
@@ -119,10 +118,10 @@ export function CommunityStats() {
               key={createAction.id}
               title={createAction.label}
               onClick={() => {
-                if (authenticated) {
-                  createCharacter('male');
+                if (isConnected) {
+                  createCharacter("male");
                 } else {
-                  login();
+                  console.log("Not connected");
                 }
               }}
               size="lg"

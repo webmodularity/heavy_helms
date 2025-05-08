@@ -1,6 +1,6 @@
 import { useEnsName } from "wagmi";
 import { Skeleton } from "@/components/ui/skeleton"; // For loading state
-import { mainnet } from "viem/chains"; // Import mainnet chain for ENS lookup
+import { mainnet } from "wagmi/chains"; // Import mainnet chain for ENS lookup
 import { useEffect } from "react"; // Import useEffect for logging
 
 // Helper function to abbreviate address (keep this available)
