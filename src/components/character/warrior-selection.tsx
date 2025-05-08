@@ -49,9 +49,6 @@ export function WarriorSelection({
         currentlySelectedPlayerFromList.gauntletStatus !==
           selectedCharacter.gauntletStatus
       ) {
-        console.log(
-          `WarriorSelection (Effect): Detected gauntletStatus change for selected character ${selectedCharacter.id}. Old: ${selectedCharacter.gauntletStatus}, New: ${currentlySelectedPlayerFromList.gauntletStatus}. Refreshing selection.`,
-        );
         // Call onSelectCharacter with the fresh player object and its current stance
         onSelectCharacter(
           currentlySelectedPlayerFromList as Player,
@@ -80,7 +77,6 @@ export function WarriorSelection({
       <CharacterCardSkeleton key={key} index={index} />
     ));
   };
-  console.log("players", players);
   return (
     <section className="mt-8 md:mt-12">
       <SectionHeader
@@ -109,9 +105,6 @@ export function WarriorSelection({
                       (newStance as unknown as StanceType) ?? character.stance,
                     );
                     if (address) {
-                      console.log(
-                        `WarriorSelection: Selected ${character.id}. Invalidating owned-players.`,
-                      );
                       queryClient.invalidateQueries({
                         queryKey: ["owned-players", address],
                       });
@@ -120,9 +113,6 @@ export function WarriorSelection({
                   onDeselect={() => {
                     onDeselectCharacter();
                     if (address) {
-                      console.log(
-                        "WarriorSelection: Deselected. Invalidating owned-players.",
-                      );
                       queryClient.invalidateQueries({
                         queryKey: ["owned-players", address],
                       });

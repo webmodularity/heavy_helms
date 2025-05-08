@@ -324,9 +324,9 @@ export const GET_COMBAT_RESULT = gql`
 `;
 
 export const GET_COMBAT_RESULTS = gql`
-  query GetCombatResultsByTxHash($transactionHash: Bytes!) {
+  query GetCombatResultsByTxHash($txHash: Bytes!) {
     combatResults(
-      where: { transactionHash: $transactionHash }
+      where: { transactionHash: $txHash }
       orderBy: logIndex
       orderDirection: asc
     ) {

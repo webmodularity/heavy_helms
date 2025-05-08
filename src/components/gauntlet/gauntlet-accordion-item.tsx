@@ -199,40 +199,21 @@ export function GauntletAccordionItem({
     queryKey: ["gauntletCombatResults", gauntlet.id, gauntlet.completedTx],
     queryFn: async () => {
       if (!gauntlet.completedTx) {
-        if (isExpanded) {
-          console.log(
-            `CombatResults Query (WARN): No completedTx for gauntlet ${gauntlet.id} but item is expanded. Value: ${itemValue}`,
-          );
-        }
         return [];
       }
-      console.log(
-        `CombatResults Query: Fetching for GID ${gauntlet.id} (Tx: ${gauntlet.completedTx ? gauntlet.completedTx.substring(0, 10) : "N/A"}...). Item: ${itemValue}, Expanded: ${isExpanded}`,
-      );
       try {
         const response = await request<CombatResultsQueryResponse>(
           SUBGRAPH_URL,
           GET_COMBAT_RESULTS,
           {
-            transactionHash: gauntlet.completedTx,
+            txHash: gauntlet.completedTx,
           },
         );
         if (!response || !response.combatResults) {
-          if (isExpanded) {
-            console.log(
-              `CombatResults Query (WARN): No combatResults field for GID ${gauntlet.id} (Tx: ${gauntlet.completedTx ? gauntlet.completedTx.substring(0, 10) : "N/A"}...) despite being expanded.`,
-            );
-          }
           return [];
         }
         return response.combatResults;
       } catch (error) {
-        if (isExpanded) {
-          console.error(
-            `CombatResults Query (ERROR): Fetch failed for GID ${gauntlet.id} (Tx: ${gauntlet.completedTx ? gauntlet.completedTx.substring(0, 10) : "N/A"}...):`,
-            error,
-          );
-        }
         return [];
       }
     },
@@ -317,9 +298,6 @@ export function GauntletAccordionItem({
       combatResults.length === 0
     ) {
       if (isExpanded) {
-        console.log(
-          `Availability Check (GID ${gauntlet.id}, Expanded: ${isExpanded}, isLoadingCombat: false): No/empty combat results or participants after loading.`,
-        );
         return (
           <p className="text-xs text-stone-400">
             Fight details are not yet available or no fights recorded.
@@ -422,7 +400,7 @@ export function GauntletAccordionItem({
           roundFightsJsx.push(
             <Link
               key={fight.id || fightCounter}
-              href={`/gauntlet?txId=${gauntlet.completedTx}&fightIndex=${fightCounter}`}
+              href={`/gauntlet?txId=${gauntlet.completedTx}&logIndex=${fightCounter}`}
               className="block"
             >
               <div className="bg-stone-700/40 p-3 rounded-md mb-2 flex justify-between items-center group hover:bg-stone-600/60 transition-colors duration-150 ease-in-out cursor-pointer">

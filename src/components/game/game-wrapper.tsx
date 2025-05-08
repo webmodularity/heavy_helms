@@ -15,13 +15,14 @@ const PhaserGame = dynamic(() => import("@/game/PhaserGame"), {
 });
 
 interface GameWrapperProps {
+  player1?: Fighter;
+  txId?: string;
+  logIndex?: string;
   // player1Id?: string;
   // player2Id?: string;
-  player1?: Fighter;
-  // txId?: string;
 }
 
-export function GameWrapper({ player1 }: GameWrapperProps) {
+export function GameWrapper({ player1, txId, logIndex }: GameWrapperProps) {
   const [isClient, setIsClient] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
@@ -130,7 +131,12 @@ export function GameWrapper({ player1 }: GameWrapperProps) {
           aspectRatio: "16/9",
         }}
       >
-        <PhaserGame player1={player1} onGameReady={handleGameReady} />
+        <PhaserGame
+          player1={player1}
+          txId={txId}
+          logIndex={logIndex}
+          onGameReady={handleGameReady}
+        />
 
         <div className="absolute bottom-1 right-1 flex gap-1 bg-black/50 backdrop-blur-sm rounded-md z-50">
           <Button

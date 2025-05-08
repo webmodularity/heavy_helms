@@ -15,6 +15,8 @@ interface IProps {
   player1Id?: string;
   player2Id?: string;
   player1?: Fighter;
+  txId?: string;
+  logIndex?: string;
   onGameReady?: (gameInstance: Phaser.Game) => void;
 }
 
@@ -23,6 +25,8 @@ const PhaserGame = ({
   player1Id,
   player2Id,
   player1,
+  txId,
+  logIndex,
   onGameReady,
 }: IProps) => {
   const game = useRef<Phaser.Game | null>(null);
@@ -32,7 +36,6 @@ const PhaserGame = ({
     if (game.current === null) {
       gameInstance = StartGame("game-container", {
         player1Id,
-        player2Id,
         player1,
       });
       game.current = gameInstance;
@@ -52,7 +55,7 @@ const PhaserGame = ({
         game.current = null;
       }
     };
-  }, [player1Id, player2Id, player1, onGameReady]);
+  }, [player1Id, player1, onGameReady]);
 
   useEffect(() => {
     if (!game.current) {
@@ -66,12 +69,24 @@ const PhaserGame = ({
       game.current.registry.set("player1Id", player1Id);
     }
 
-    if (player2Id) {
-      game.current.registry.set("player2Id", player2Id);
-    }
-
     if (player1) {
       game.current.registry.set("player1", player1);
+    }
+
+    if (txId) {
+      game.current.registry.set("txId", txId);
+    }
+
+    if (logIndex !== undefined) {
+      const parsedLogIndex = Number.parseInt(logIndex, 10);
+      if (!Number.isNaN(parsedLogIndex)) {
+        game.current.registry.set("logIndex", parsedLogIndex);
+      } else {
+        game.current.registry.set("logIndex", logIndex);
+        console.warn(
+          `PhaserGame: Invalid logIndex prop received: "${logIndex}"`,
+        );
+      }
     }
 
     const handleSceneReady = (scene_instance: Phaser.Scene) => {
@@ -90,7 +105,7 @@ const PhaserGame = ({
     return () => {
       game.current?.events.off("current-scene-ready", handleSceneReady);
     };
-  }, [currentActiveScene, player1Id, player2Id, player1]);
+  }, [currentActiveScene, player1Id, player1, txId, logIndex]);
 
   return <div id="game-container" className="w-full h-full" />;
 };

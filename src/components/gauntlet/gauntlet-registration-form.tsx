@@ -45,6 +45,7 @@ const SUBGRAPH_ENDPOINT = process.env.NEXT_PUBLIC_SUBGRAPH_URL || "";
 interface GauntletRegistrationFormProps {
   character: Player;
   onCancel: () => void;
+  onRegister: () => void;
   animationDelay?: number;
 }
 
@@ -66,6 +67,7 @@ function formatSeconds(secondsStr: string): string {
 export function GauntletRegistrationForm({
   character,
   onCancel,
+  onRegister,
   animationDelay = 0,
 }: GauntletRegistrationFormProps) {
   const queryClient = useQueryClient();
@@ -76,13 +78,13 @@ export function GauntletRegistrationForm({
     isLoading: isLoadingStats,
     error: errorStats,
     isSuccess: isStatsSuccess,
-  } = useQuery<GameStats>({
+  } = useQuery<GameStats, Error>({
     queryKey: ["gameStats"],
-    queryFn: async () => {
+    queryFn: async (): Promise<GameStats> => {
       if (!SUBGRAPH_ENDPOINT) {
         throw new Error("Subgraph URL is not configured.");
       }
-      const data = await request(SUBGRAPH_ENDPOINT, GET_GAME_STATS);
+      const data = await request<GameStats>(SUBGRAPH_ENDPOINT, GET_GAME_STATS);
       return data;
     },
     staleTime: 0,
@@ -265,11 +267,10 @@ export function GauntletRegistrationForm({
         setLocalIsInQueue(true);
         console.log("Register Optimistic: localIsInQueue set to true");
         queryClient.invalidateQueries({ queryKey: ["gameStats"] });
+        onRegister();
       },
       onError: (err) => {
-        console.error("Register TX Error:", err.message);
-        // Potentially reset optimistic state here if needed, or allow subgraph to correct
-        // justUpdatedOptimistically.current = false; // Not strictly needed if error leads to no UI change based on optimism
+        console.error("Register TX Error:", (err as Error).message);
       },
     });
   };
