@@ -18,12 +18,12 @@ export const viemClient = createPublicClient({
 export const wagmiConfig = createConfig({
   chains:
     process.env.NEXT_PUBLIC_ALCHEMY_NETWORK === "base-sepolia"
-      ? [mainnet, baseSepolia]
-      : [mainnet, shape],
+      ? [baseSepolia]
+      : [shape],
 
   transports: {
     [baseSepolia.id]: http(),
-    [mainnet.id]: http(),
+    // [mainnet.id]: http(),
     [shape.id]: http(
       `https://${process.env.NEXT_PUBLIC_ALCHEMY_NETWORK}.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`,
     ),
