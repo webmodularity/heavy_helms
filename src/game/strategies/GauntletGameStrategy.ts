@@ -6,15 +6,16 @@ import type { Address } from "viem";
 import { CombatService } from "../services/CombatService";
 import { FighterService } from "../services/FighterService";
 
-export class DuelGameStrategy implements GameModeStrategy {
+export class GauntletGameStrategy implements GameModeStrategy {
   private scene: Scene;
   private player1: Fighter;
   private player2: Fighter;
   private txId: string;
+  private logIndex: number;
   private network: string;
   private blockNumber: string;
   private decodedCombatBytes: DecodedCombatResult;
-  private duelGameContractAddress: Address;
+  private gauntletGameContractAddress: Address;
 
   async initialize(scene: Scene): Promise<void> {
     this.scene = scene;
@@ -25,27 +26,43 @@ export class DuelGameStrategy implements GameModeStrategy {
     // Get transaction ID
     this.txId = params.get("txId") || "";
 
+    // Get logIndex - canHandle ensures it's a non-null, non-empty string
+    // biome-ignore lint/style/noNonNullAssertion: assertion is safe due to canHandle
+    const logIndexStr = params.get("logIndex")!;
+    const parsedLogIndex = Number.parseInt(logIndexStr);
+
+    if (Number.isNaN(parsedLogIndex) || parsedLogIndex < 0) {
+      throw new Error(
+        `GauntletGameStrategy: Invalid or negative logIndex in URL: "${logIndexStr}".`,
+      );
+    }
+    this.logIndex = parsedLogIndex;
+
     // Get network
     this.network =
       params.get("network") ||
       process.env.NEXT_PUBLIC_ALCHEMY_NETWORK ||
       "mainnet";
 
-    // Get duel game contract address
-    this.duelGameContractAddress = process.env
-      .NEXT_PUBLIC_DUEL_GAME_CONTRACT_ADDRESS as Address;
+    // Get gauntlet game contract address
+    this.gauntletGameContractAddress = process.env
+      .NEXT_PUBLIC_GAUNTLET_GAME_CONTRACT_ADDRESS as Address;
   }
 
   canHandle(scene: Scene): boolean {
-    // Check if we're in duel mode (txId provided)
+    // Check if we're in gauntlet mode (txId + logIndex provided)
     const params = new URLSearchParams(window.location.search);
-    return !!params.get("txId");
+    return !!params.get("txId") && !!params.get("logIndex");
   }
 
   async loadPlayerData(): Promise<{ player1: Fighter; player2: Fighter }> {
     // Load combat result data to get player info
     const { player1, player2, blockNumber, decodedCombatBytes } =
-      await CombatService.loadCombatResultFromTx(this.txId, 0, this.duelGameContractAddress);
+      await CombatService.loadCombatResultFromTx(
+        this.txId,
+        this.logIndex,
+        this.gauntletGameContractAddress,
+      );
 
     this.player1 = player1;
     this.player2 = player2;

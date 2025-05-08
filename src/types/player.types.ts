@@ -9,6 +9,13 @@ import type {
   FighterState,
 } from "./fighter-types";
 
+// Define the Enum based on the subgraph schema
+export enum PlayerGauntletStatus {
+  NONE = "NONE",
+  QUEUED = "QUEUED",
+  IN_GAUNTLET = "IN_GAUNTLET",
+}
+
 // Player-specific name type
 export interface PlayerName extends FighterName {
   firstName: string;
@@ -24,6 +31,7 @@ export interface Player extends Fighter {
   uniqueWins: number;
   uniqueLosses: number;
   isImmortal: boolean;
+  gauntletStatus: PlayerGauntletStatus;
 }
 
 // DefaultPlayer extends Fighter with no additional fields
@@ -68,6 +76,7 @@ export interface RawPlayerData {
   kills: number;
   isRetired: boolean;
   isImmortal: boolean;
+  gauntletStatus: string;
 }
 
 export interface PlayerLoadout {

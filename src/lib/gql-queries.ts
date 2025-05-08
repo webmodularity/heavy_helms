@@ -122,6 +122,7 @@ export const PLAYER_SPECIFIC_FRAGMENT = gql`
     battleRating
     uniqueWins
     uniqueLosses
+    gauntletStatus
   }
 `;
 
@@ -318,6 +319,26 @@ export const GET_COMBAT_RESULT = gql`
       packedResults
       blockTimestamp
       blockNumber
+    }
+  }
+`;
+
+export const GET_COMBAT_RESULTS = gql`
+  query GetCombatResultsByTxHash($txHash: Bytes!) {
+    combatResults(
+      where: { transactionHash: $txHash }
+      orderBy: logIndex
+      orderDirection: asc
+    ) {
+      id
+      transactionHash
+      logIndex
+      player1Data
+      player2Data
+      winningPlayerId
+      blockNumber
+      blockTimestamp
+      packedResults
     }
   }
 `;
@@ -555,6 +576,18 @@ export const GET_GAME_STATS = gql`
       
       # Timestamps
       lastUpdated
+
+      # Gauntlet statistics
+      totalGauntletsStarted
+      totalGauntletsCompleted
+      totalGauntletsRecovered
+      totalGauntletPrizeMoneyAwarded
+      totalGauntletFeesCollected
+      currentGauntletQueueSize
+      currentGauntletEntryFee
+      currentGauntletSize
+      currentGauntletFeePercentage
+      currentMinTimeBetweenGauntlets
     }
   }
 `;
@@ -741,4 +774,54 @@ export const GET_LEADERBOARD_PLAYERS = gql`
     }
   }
   ${PLAYER_DATA_FRAGMENT}
+`;
+
+export const GET_PLAYER_GAUNTLETS_PAGINATED = gql`
+  query GetPlayerGauntletsPaginated(
+    $playerId: String!
+    $limit: Int!
+    $skip: Int!
+  ) {
+    gauntletParticipants(
+      first: $limit
+      skip: $skip
+      where: { player: $playerId }
+      orderBy: id
+      orderDirection: desc
+    ) {
+      id # GauntletParticipant ID
+      gauntlet {
+        id # Gauntlet ID
+        size
+        entryFee
+        state
+        vrfRequestTimestamp
+        completionTimestamp
+        champion {
+          id
+          fighterId
+          fullName
+          # Add other Fighter fields if needed for display
+        }
+        prizeAwarded
+        feeCollected
+        startedAt
+        startedTx
+        completedAt
+        completedTx
+        # We might not need all participants here if the list is large and only for player check
+        # Consider if a derived field on Gauntlet like 'playerParticipated' could be useful if performance is an issue
+        # For now, fetching participants to confirm involvement is okay if the count is reasonable.
+        # Alternatively, we trust the primary filter on gauntletParticipants.
+        finalParticipantIds # Good for seeing who actually ended up in the gauntlet
+        roundWinners
+      }
+      player { # To confirm, though primary filter is on this
+        id
+        fighterId
+      }
+      # skin used by player in this gauntlet if needed
+      # stance used by player in this gauntlet if needed
+    }
+  }
 `;
