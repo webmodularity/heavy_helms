@@ -78,60 +78,67 @@ export function WarriorSelection({
     ));
   };
   return (
-    <section className="mt-8 md:mt-12">
+    <section className="mt-4">
       <SectionHeader
         title="Warriors"
         subtitle="Select your warrior to enter the battles"
       />
 
-      <div className="relative max-w-full px-4 md:px-6">
+      <div className="relative max-w-full px-4">
         <div
           ref={characterListRef}
-          className="flex gap-4 md:gap-5 mt-4 overflow-x-auto pb-4 pt-2 snap-x scrollbar-thin scrollbar-thumb-yellow-600/20 scrollbar-track-transparent px-4 items-start"
+          className="flex gap-2 mt-4 overflow-x-auto pb-4 pt-2 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-yellow-600/20 scrollbar-track-transparent items-start overscroll-x-contain"
         >
           {isLoading ? (
             renderSkeletons()
           ) : (
             <>
               {players?.map((character, index) => (
-                <CharacterCard
+                <div
                   key={character.id}
-                  character={character as Player}
-                  index={index}
-                  isSelected={selectedCharacter?.id === character.id}
-                  onSelect={(newStance) => {
-                    onSelectCharacter(
-                      character as Player,
-                      (newStance as unknown as StanceType) ?? character.stance,
-                    );
-                    if (address) {
-                      queryClient.invalidateQueries({
-                        queryKey: ["owned-players", address],
-                      });
-                    }
-                  }}
-                  onDeselect={() => {
-                    onDeselectCharacter();
-                    if (address) {
-                      queryClient.invalidateQueries({
-                        queryKey: ["owned-players", address],
-                      });
-                    }
-                  }}
-                  onViewDetails={() => handleViewDetails(character as Player)}
-                />
+                  className="flex-shrink-0 snap-center w-full"
+                >
+                  <CharacterCard
+                    character={character as Player}
+                    index={index}
+                    isSelected={selectedCharacter?.id === character.id}
+                    onSelect={(newStance) => {
+                      onSelectCharacter(
+                        character as Player,
+                        (newStance as unknown as StanceType) ??
+                          character.stance,
+                      );
+                      if (address) {
+                        queryClient.invalidateQueries({
+                          queryKey: ["owned-players", address],
+                        });
+                      }
+                    }}
+                    onDeselect={() => {
+                      onDeselectCharacter();
+                      if (address) {
+                        queryClient.invalidateQueries({
+                          queryKey: ["owned-players", address],
+                        });
+                      }
+                    }}
+                    onViewDetails={() => handleViewDetails(character as Player)}
+                  />
+                </div>
               ))}
 
               {/* Character Creation Card */}
               {players && players.length < MAX_PLAYERS ? (
-                <NewCharacterCard
-                  delay={players?.length || 0}
-                  onClick={(namePreference: NamePreference) =>
-                    createCharacter(namePreference)
-                  }
-                  isCreating={isCreatingCharacter}
-                  txHash={txHash}
-                />
+                <div className="flex-shrink-0 snap-center w-full">
+                  <NewCharacterCard
+                    delay={players?.length || 0}
+                    onClick={(namePreference: NamePreference) =>
+                      createCharacter(namePreference)
+                    }
+                    isCreating={isCreatingCharacter}
+                    txHash={txHash}
+                  />
+                </div>
               ) : (
                 <></>
               )}
@@ -140,7 +147,8 @@ export function WarriorSelection({
         </div>
 
         {/* Scroll Indicators - Optional enhancement */}
-        <div className="hidden md:block absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-black/40 to-transparent pointer-events-none" />
+        {/* The following div will be removed as it's md:block and desktop is not a priority */}
+        {/* <div className="hidden md:block absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-black/40 to-transparent pointer-events-none" /> */}
       </div>
     </section>
   );

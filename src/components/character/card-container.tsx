@@ -19,7 +19,7 @@ export function CardContainer({ children, index, isSelected }: CardContainerProp
         "rounded-lg overflow-hidden bg-stone-900/80 border border-stone-800/60",
         "shadow-lg w-[240px] shrink-0 snap-center",
         "transform transition-all duration-300",
-        "group isolate flex flex-col h-auto",
+        "group isolate flex flex-col h-auto  m-auto",
         isSelected ? "ring-2 ring-yellow-500" : "hover:border-yellow-500/30"
       )}
     >

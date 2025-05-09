@@ -23,11 +23,11 @@ export function ChainSelection() {
               : "bg-yellow-950/20 border-yellow-800/30 text-yellow-400"
           }`}
         >
-          <div
+          {/* <div
             className={`w-2 h-2 rounded-full mr-2 ${
               !isWrongNetwork ? "bg-green-500" : "bg-yellow-500"
             }`}
-          />
+          /> */}
           {/* <span>{currentChainName}</span> */}
 
           {/* Show switch link if on wrong network */}
