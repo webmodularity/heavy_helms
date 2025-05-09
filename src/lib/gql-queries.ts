@@ -809,11 +809,7 @@ export const GET_PLAYER_GAUNTLETS_PAGINATED = gql`
         startedTx
         completedAt
         completedTx
-        # We might not need all participants here if the list is large and only for player check
-        # Consider if a derived field on Gauntlet like 'playerParticipated' could be useful if performance is an issue
-        # For now, fetching participants to confirm involvement is okay if the count is reasonable.
-        # Alternatively, we trust the primary filter on gauntletParticipants.
-        finalParticipantIds # Good for seeing who actually ended up in the gauntlet
+        finalParticipantIds
         roundWinners
       }
       player { # To confirm, though primary filter is on this
@@ -824,4 +820,13 @@ export const GET_PLAYER_GAUNTLETS_PAGINATED = gql`
       # stance used by player in this gauntlet if needed
     }
   }
+`;
+
+export const GET_QUEUED_GAUNTLET_PLAYERS = gql`
+  query GetQueuedGauntletPlayers {
+    players(where: { gauntletStatus: QUEUED, isRetired: false }) {
+      ...FighterCompleteFields
+    }
+  }
+  ${FIGHTER_COMPLETE_FRAGMENT}
 `;

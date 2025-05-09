@@ -66,6 +66,3 @@ if (!EQUIPMENT_REQUIREMENTS_ADDRESS) {
     "NEXT_PUBLIC_EQUIPMENT_REQUIREMENTS_ADDRESS not set, using fallback address",
   );
 }
-
-export const DEFAULT_CHARACTER_IMAGE =
-  "https://ipfs.io/ipfs/bafkreifk4hrfa4vq3kti45yyblwuuzfjbi7gjena7ns5hlq6cxtgeda2ku";

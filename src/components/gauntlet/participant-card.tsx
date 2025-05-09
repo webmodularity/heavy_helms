@@ -2,7 +2,6 @@ import type { Fighter } from "@/types/fighter-types"; // Changed from ProcessedF
 // Skin type is part of Fighter.currentSkin
 import Image from "next/image";
 import Link from "next/link";
-import { DEFAULT_CHARACTER_IMAGE } from "@/config";
 import {
   Tooltip,
   TooltipContent,
@@ -12,8 +11,8 @@ import {
 
 interface ParticipantCardProps {
   fighter: Pick<
-    Fighter, // Changed from ProcessedFighter
-    "id" | "fullName" | "currentSkin" | "fighterId"
+    Fighter,
+    "id" | "fullName" | "currentSkin" | "fighterId" | "name" // Ensure 'name' is picked
   >;
   isChampion?: boolean;
   isSelectedCharacter?: boolean;
@@ -24,15 +23,32 @@ export function ParticipantCard({
   isChampion,
   isSelectedCharacter,
 }: ParticipantCardProps) {
-  // fighter.fighterId is now potentially undefined or bigint | string from Fighter type
-  // The mapRawFighterToDomainFighter ensures it's bigint | undefined
-  const fighterIdString = fighter.fighterId
-    ? fighter.fighterId.toString()
-    : "N/A";
-  const displayName = fighter.fullName || `Fighter #${fighterIdString}`;
+  // Attempt to get a clean numeric-like ID string for display if fighterId is complex
+  const fighterIdForDisplay =
+    fighter.fighterId?.toString() ||
+    fighter.id?.split(":").pop() || // Fallback to extracting from "Player:123"
+    "N/A";
 
-  // fighter.currentSkin is now guaranteed to be a Skin object (non-null)
-  const imageAvailable = fighter.currentSkin.imageURL; // No more optional chaining needed here
+  // Try to get the best available name, allowing it to be undefined initially.
+  let bestAttemptName: string | undefined;
+
+  if (fighter.name?.fullName && fighter.name.fullName.trim() !== "") {
+    bestAttemptName = fighter.name.fullName.trim();
+  } else if (fighter.fullName && fighter.fullName.trim() !== "") {
+    // Fallback to top-level fullName if name.fullName was not satisfactory
+    bestAttemptName = fighter.fullName.trim();
+  }
+  // At this point, bestAttemptName is either a non-empty string or undefined.
+
+  // displayName is guaranteed to be a string for card text and image alt.
+  const displayName: string =
+    bestAttemptName || `Fighter #${fighterIdForDisplay}`;
+
+  // nameForTooltip is also guaranteed to be a string for the tooltip.
+  const nameForTooltip: string = bestAttemptName || "Unnamed Fighter";
+
+  // Assuming currentSkin is always present after convertRawFighterToFighter
+  const imageAvailable = fighter.currentSkin?.imageURL;
 
   // Base classes for the main card div
   const cardBaseClasses =
@@ -85,9 +101,7 @@ export function ParticipantCard({
           side="bottom"
           className="bg-stone-800 border-stone-700 text-stone-200"
         >
-          <p className="font-semibold">
-            {fighter.fullName || "Unnamed Fighter"}
-          </p>
+          <p className="font-semibold">{nameForTooltip}</p>
           <p className="text-xs text-stone-400">ID: {fighter.id}</p>
         </TooltipContent>
       </Tooltip>

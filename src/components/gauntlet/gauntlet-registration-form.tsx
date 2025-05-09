@@ -28,6 +28,7 @@ import {
 import { PlayerGauntletStatus } from "@/types/player.types";
 import { useGauntletQueue } from "@/hooks/use-gauntlet-queue";
 import { useAccount } from "wagmi";
+import { ViewGauntletQueueModal } from "@/components/dialogs/view-gauntlet-queue-modal";
 
 interface GameStats {
   stats: {
@@ -107,52 +108,33 @@ export function GauntletRegistrationForm({
   );
   const [hasLoadedInitialData, setHasLoadedInitialData] = useState(false);
   const justUpdatedOptimistically = useRef(false);
+  const [isQueueModalOpen, setIsQueueModalOpen] = useState(false);
 
   // Refs to track previous stats values for targeted invalidation
   const prevQueueSizeRef = useRef<number | null>(null);
   const prevLastUpdatedRef = useRef<string | null>(null);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
-    console.log(
-      `Effect 1 Check: justUpdatedOptimistically=${justUpdatedOptimistically.current}, charId=${character.id}, charStatus=${character.gauntletStatus}, localStatus=${localIsInQueue}`,
-    );
     if (justUpdatedOptimistically.current) {
-      console.log(
-        "Effect 1: Skipping sync for localIsInQueue due to optimistic update flag.",
-      );
       return;
     }
 
     const propIsInQueue =
       character.gauntletStatus !== PlayerGauntletStatus.NONE;
     if (propIsInQueue !== localIsInQueue) {
-      console.log(
-        `GauntletForm (Effect 1 - Prop Sync): Syncing localIsInQueue (${propIsInQueue}) from prop for character ${character.id}. Was: ${localIsInQueue}`,
-      );
       setLocalIsInQueue(propIsInQueue);
     }
   }, [character.id, character.gauntletStatus, localIsInQueue]);
 
   useEffect(() => {
-    console.log(
-      `Effect 2 Check: justUpdatedOptimistically=${justUpdatedOptimistically.current}, statsSuccess=${isStatsSuccess}, localQueueSize=${localQueueSize}`,
-    );
     if (justUpdatedOptimistically.current) {
-      console.log(
-        "Effect 2: Skipping sync for localQueueSize due to optimistic update flag.",
-      );
       return;
     }
 
     if (isStatsSuccess && statsData?.stats) {
       const newQueueSize = statsData.stats.currentGauntletQueueSize;
-      console.log(
-        `Effect 2 Stats: newQueueSize=${newQueueSize}, localQueueSize=${localQueueSize}`,
-      );
       if (localQueueSize === null || localQueueSize !== newQueueSize) {
-        console.log(
-          `GauntletForm (Effect 2 - Query Sync): ${localQueueSize === null ? "Initial" : "Updating"} queue size (${newQueueSize}) from stats. Was: ${localQueueSize}`,
-        );
         setLocalQueueSize(newQueueSize);
       }
       if (!hasLoadedInitialData) {
@@ -163,9 +145,9 @@ export function GauntletRegistrationForm({
 
   // Effect 3: Invalidate owned-players query if global gauntlet stats change
   // significantly while the current player is thought to be in the queue.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     if (!address || !isStatsSuccess || !statsData?.stats) {
-      // console.log("Effect 3: Skipping invalidation (no address or stats not ready).");
       return;
     }
 
@@ -182,9 +164,6 @@ export function GauntletRegistrationForm({
         prevLastUpdatedRef.current !== currentLastUpdated;
 
       if (localIsInQueue && (queueSizeChanged || lastUpdatedChanged)) {
-        console.log(
-          `GauntletForm (Effect 3 - Invalidation Trigger): Player ${character.id} (localIsInQueue=${localIsInQueue}). Global Gauntlet stats changed. Invalidating owned-players. PrevQ: ${prevQueueSizeRef.current}, NewQ: ${currentQueueSize}. PrevLU: ${prevLastUpdatedRef.current}, NewLU: ${currentLastUpdated}`,
-        );
         queryClient.invalidateQueries({
           queryKey: ["owned-players", address],
         });
@@ -203,16 +182,11 @@ export function GauntletRegistrationForm({
     character.id, // Re-evaluate if the character context changes
   ]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     // This effect runs after every render.
     if (justUpdatedOptimistically.current) {
-      console.log(
-        "End-of-render cycle Effect: Scheduling reset of justUpdatedOptimistically flag.",
-      );
       const timerId = setTimeout(() => {
-        console.log(
-          "setTimeout: Resetting justUpdatedOptimistically flag now.",
-        );
         justUpdatedOptimistically.current = false;
       }, 0);
       return () => clearTimeout(timerId); // Cleanup timer if component unmounts
@@ -253,19 +227,12 @@ export function GauntletRegistrationForm({
       character,
       entryFeeWei: currentEntryFeeWei,
       onSuccess: () => {
-        console.log(
-          "Register Success: Setting optimistic state & flag. Invalidating gameStats.",
-        );
         justUpdatedOptimistically.current = true;
         setLocalQueueSize((prev) => {
           const nextSize = prev !== null ? prev + 1 : 1;
-          console.log(
-            `Register Optimistic: prevSize=${prev}, nextSize=${nextSize}`,
-          );
           return nextSize;
         });
         setLocalIsInQueue(true);
-        console.log("Register Optimistic: localIsInQueue set to true");
         queryClient.invalidateQueries({ queryKey: ["gameStats"] });
         onRegister();
       },
@@ -281,19 +248,12 @@ export function GauntletRegistrationForm({
     withdrawPlayer({
       playerId: Number.parseInt(character.id, 10),
       onSuccess: () => {
-        console.log(
-          "Withdraw Success: Setting optimistic state & flag. Invalidating gameStats.",
-        );
         justUpdatedOptimistically.current = true;
         setLocalQueueSize((prev) => {
           const nextSize = prev !== null ? Math.max(0, prev - 1) : 0;
-          console.log(
-            `Withdraw Optimistic: prevSize=${prev}, nextSize=${nextSize}`,
-          );
           return nextSize;
         });
         setLocalIsInQueue(false);
-        console.log("Withdraw Optimistic: localIsInQueue set to false");
         queryClient.invalidateQueries({ queryKey: ["gameStats"] });
       },
       onError: (err) => {
@@ -303,11 +263,6 @@ export function GauntletRegistrationForm({
       },
     });
   };
-
-  // Add a log before returning the JSX to see the state values for the render
-  console.log(
-    `RENDER: charId=${character.id}, localIsInQueue=${localIsInQueue}, localQueueSize=${localQueueSize}, isProcessing=${isProcessing}, isReady=${isReady}, propGauntletStatus=${character.gauntletStatus}`,
-  );
 
   return (
     <TooltipProvider delayDuration={100}>
@@ -373,15 +328,14 @@ export function GauntletRegistrationForm({
                 </div>
                 <YellowButton
                   type="button"
-                  onClick={() =>
-                    alert("Feature coming soon: View queue details!")
-                  }
-                  title="View Current Queue (Coming Soon)"
+                  onClick={() => setIsQueueModalOpen(true)}
+                  title="View Current Queue"
                   disabled={
                     !isReady ||
                     isProcessing ||
                     !!errorStats ||
-                    requiredSize === 0
+                    requiredSize === 0 ||
+                    (localQueueSize ?? 0) === 0
                   }
                 >
                   <Users className="h-4 w-4" />
@@ -469,6 +423,10 @@ export function GauntletRegistrationForm({
           </YellowButton>
         </div>
       </motion.div>
+      <ViewGauntletQueueModal
+        isOpen={isQueueModalOpen}
+        onClose={() => setIsQueueModalOpen(false)}
+      />
     </TooltipProvider>
   );
 }
