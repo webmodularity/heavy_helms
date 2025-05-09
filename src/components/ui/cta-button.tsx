@@ -5,10 +5,12 @@ export function CTAButton({
   onClick,
   title,
   size = "default",
+  disabled = false,
 }: {
   onClick: () => void;
   title: string;
   size?: "default" | "sm" | "lg" | "icon" | null;
+  disabled?: boolean;
 }) {
   return (
     <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.98 }}>
@@ -16,7 +18,9 @@ export function CTAButton({
         type="button"
         onClick={onClick}
         size={size}
-        className="bg-gradient-to-b from-amber-700/40 to-stone-900/80 backdrop-blur-sm rounded border border-yellow-600/30 shadow-lg group relative overflow-hidden"
+        className={`bg-gradient-to-b from-amber-700/40 to-stone-900/80 backdrop-blur-sm rounded border border-yellow-600/30 shadow-lg group relative overflow-hidden ${
+          disabled ? "opacity-50 cursor-not-allowed" : ""
+        }`}
       >
         <div className="absolute inset-0 bg-gradient-to-r from-yellow-600/0 via-yellow-400/20 to-yellow-600/0 transform translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000" />
         <span className="text-yellow-400/90 text-lg font-bold uppercase tracking-widest group-hover:text-yellow-300 relative z-10 font-bokor">

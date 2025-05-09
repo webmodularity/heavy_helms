@@ -6,7 +6,7 @@ import { ChevronUp } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { CTAButton } from "../ui/cta-button";
 import { SectionHeader } from "../ui/section-header";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CreateChallengeForm } from "@/components/duel/create-challenge-form";
 import { formatEther } from "viem";
 import { AnimatePresence } from "framer-motion";
@@ -107,9 +107,16 @@ function BattleCard({
   const router = useRouter();
   const [showChallengeForm, setShowChallengeForm] = useState(false);
   const [showGauntletRegister, setShowGauntletRegister] = useState(false);
+  const [isNavigating, setIsNavigating] = useState(false);
 
-  const handleAction = () => {
-    if (!selectedCharacter || !battleType.available) return;
+  useEffect(() => {
+    if (battleType.id === "practice" && battleType.route) {
+      router.prefetch(battleType.route);
+    }
+  }, [router, battleType.id, battleType.route]);
+
+  const handleAction = async () => {
+    if (!selectedCharacter || !battleType.available || isNavigating) return;
 
     if (battleType.id === "duel") {
       setShowChallengeForm(true);
@@ -118,6 +125,7 @@ function BattleCard({
       setShowGauntletRegister(true);
       setShowChallengeForm(false);
     } else {
+      setIsNavigating(true);
       router.push(`${battleType.route}?player1Id=${selectedCharacter.id}`);
     }
   };
@@ -208,7 +216,7 @@ function BattleCard({
             : selectedCharacter
               ? "cursor-pointer hover:border-yellow-600/50"
               : "cursor-default"
-        }`}
+        } ${isNavigating ? "opacity-70 pointer-events-none" : ""}`}
         initial={{ opacity: 0, y: 40 }}
         animate={{
           opacity: 1,
@@ -216,7 +224,7 @@ function BattleCard({
           transition: { duration: 0.7, delay: animationDelay },
         }}
         whileHover={
-          battleType.available && selectedCharacter
+          battleType.available && selectedCharacter && !isNavigating
             ? {
                 scale: 1.02,
                 borderColor: "rgba(202, 138, 4, 0.5)",
@@ -224,7 +232,9 @@ function BattleCard({
               }
             : {}
         }
-        onClick={battleType.available ? handleAction : undefined}
+        onClick={
+          battleType.available && !isNavigating ? handleAction : undefined
+        }
       >
         {/* Battle card content */}
         <div className="p-6 h-full flex flex-col">
@@ -274,9 +284,16 @@ function BattleCard({
           >
             {battleType.available ? (
               <CTAButton
-                onClick={selectedCharacter ? handleAction : () => {}}
-                title={battleType.actionLabel}
+                onClick={
+                  selectedCharacter && !isNavigating ? handleAction : () => {}
+                }
+                title={
+                  isNavigating && battleType.id === "practice"
+                    ? "Loading..."
+                    : battleType.actionLabel
+                }
                 size="default"
+                disabled={isNavigating}
               />
             ) : (
               <span className="block text-center py-2 text-sm text-yellow-500/70 border border-yellow-600/20 rounded-md bg-yellow-900/10">
