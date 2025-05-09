@@ -15,7 +15,7 @@ export default function Home() {
   const selectedCharacterId = searchParams.get("selectedCharacter");
   console.log("address", address);
   return (
-    <div className="min-h-screen w-full overflow-y-auto">
+    <div className="min-h-screen w-full overflow-y-auto overflow-x-hidden">
       {address ? (
         <AuthenticatedView initialSelectedCharacterId={selectedCharacterId} />
       ) : (
