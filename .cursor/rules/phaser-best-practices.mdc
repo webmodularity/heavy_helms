@@ -1,0 +1,183 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Phaser Development Rules and Best Practices
+
+## Version Information
+- Phaser Version: 3.87.0
+- Rex Plugins: Latest from https://rexrainbow.github.io/phaser3-rex-notes/docs/site/
+
+## General Rules
+
+### 0. Resources
+- You can check for rex plugin resources at https://rexrainbow.github.io/phaser3-rex-notes/docs/site/
+- You can check latest phaser documentation at https://docs.phaser.io/api-documentation/api-documentation/
+
+### 1. Project Structure
+- Keep game scenes in `src/scenes/`
+- Store game assets in `public/assets/`
+- Place Rex plugin configurations in `src/plugins/`
+- Maintain game configuration in `src/config/`
+
+### 2. Scene Management
+- Use `rexSceneManager` for scene transitions
+- Implement proper scene lifecycle methods:
+  ```javascript
+  class GameScene extends Phaser.Scene {
+    preload() {
+      // Load assets
+    }
+    create() {
+      // Initialize game objects
+    }
+    update() {
+      // Game loop
+    }
+  }
+  ```
+
+### 3. Asset Loading
+- Use `rexAwaitLoader` for asynchronous asset loading
+- Implement loading progress with `rexLoadingProgress`
+- Group related assets in texture atlases
+- Use WebFontLoader for custom fonts
+
+### 4. UI Components
+- Use Rex UI plugins for consistent UI elements:
+  - `rexUI` for base UI components
+  - `rexButtons` for button management
+  - `rexDialog` for dialog boxes
+  - `rexTextArea` for text input
+  - `rexGridTable` for grid layouts
+
+### 5. Game Objects
+- Keep in mind that we are developing for a mobile first experience
+- Use Rex plugins for enhanced game objects:
+  - `rexSpinner` for loading indicators
+  - `rexRoundRectangle` for rounded rectangles
+  - `rexProgressBar` for progress indicators
+  - `rexNinePatch` for scalable UI elements
+
+### 6. Input Handling
+- Implement `rexGestures` for touch/mouse gestures
+- Use `rexVirtualJoystick` for mobile controls
+- Configure `rexInputText` for text input fields
+
+### 7. State Management
+- Use `rexDataManager` for game state
+- Implement `rexFSM` for finite state machines
+- Use `rexEventEmitter` for event handling
+
+### 8. Performance Optimization
+- Enable WebGL rendering when possible
+- Use sprite batching
+- Implement object pooling with `rexObjectPool`
+- Optimize physics calculations
+
+### 9. Code Organization
+- Use TypeScript for better type safety
+- Implement proper error handling
+- Document complex game logic
+- Follow SOLID principles
+
+### 10. Testing and Debugging
+- Use Phaser's debug tools
+- Implement proper logging
+- Test on multiple devices
+- Use `rexDebug` for debugging
+
+## Rex Plugin Integration
+
+### 1. Installation
+```javascript
+// In your game config
+const config = {
+  plugins: {
+    scene: [
+      {
+        key: 'rexUI',
+        plugin: rexUI,
+        mapping: 'rexUI'
+      },
+      // Add other Rex plugins here
+    ]
+  }
+}
+```
+
+### 2. Common Patterns
+```javascript
+// UI Component Creation
+const button = this.rexUI.add.buttons({
+  x: 400,
+  y: 300,
+  buttons: [
+    createButton(this, 'Button 1'),
+    createButton(this, 'Button 2')
+  ],
+  expand: true,
+  align: 'center',
+  space: { item: 8 }
+});
+
+// State Machine
+const fsm = this.rexFSM.add({
+  states: {
+    IDLE: {
+      next: 'WALK',
+      enter: function() {
+        // Enter idle state
+      }
+    },
+    WALK: {
+      next: 'IDLE',
+      enter: function() {
+        // Enter walk state
+      }
+    }
+  },
+  init: 'IDLE'
+});
+```
+
+## Best Practices
+
+1. **Modularity**
+   - Break down complex scenes into smaller components
+   - Use factory patterns for object creation
+   - Implement proper inheritance
+
+2. **Memory Management**
+   - Clean up resources in scene shutdown
+   - Use object pooling for frequently created/destroyed objects
+   - Properly dispose of event listeners
+
+3. **Cross-Platform Support**
+   - Test on multiple devices
+   - Implement responsive design
+   - Handle different input methods
+
+4. **Documentation**
+   - Document complex game logic
+   - Maintain clear API documentation
+   - Keep changelog updated
+
+5. **Version Control**
+   - Use semantic versioning
+   - Maintain proper branching strategy
+   - Document breaking changes
+
+## Common Pitfalls to Avoid
+
+1. Not cleaning up resources
+2. Overusing global variables
+3. Ignoring performance optimization
+4. Not handling errors properly
+5. Not testing on multiple devices
+6. Not using proper state management
+7. Not implementing proper scene transitions
+8. Not optimizing asset loading
+9. Not using proper input handling
+10. Not following consistent coding standards 

@@ -61,7 +61,7 @@ export class FightScene extends Scene {
   // UI Configurations
   private countdownConfig = {
     fontSize: "120px",
-    fontFamily: "Bokor",
+    fontFamily: "PixeloidMono",
     color: "#ffffff",
     stroke: "#000000",
     strokeThickness: 8,
@@ -72,7 +72,7 @@ export class FightScene extends Scene {
 
   private titleTextConfig = {
     main: {
-      fontFamily: "Bokor",
+      fontFamily: "PixeloidMono",
       fontSize: "140px",
       color: "#ffd700",
       stroke: "#8b0000",
@@ -87,13 +87,13 @@ export class FightScene extends Scene {
       },
     },
     shadow: {
-      fontFamily: "Bokor",
+      fontFamily: "PixeloidMono",
       fontSize: "144px",
       color: "#000000",
       alpha: 0.7,
     },
     metallic: {
-      fontFamily: "Bokor",
+      fontFamily: "PixeloidMono",
       fontSize: "140px",
       color: "#ffffff",
     },
@@ -1173,7 +1173,7 @@ export class FightScene extends Scene {
         this.cameras.main.centerY - 90,
         "Victory",
         {
-          fontFamily: "Bokor",
+          fontFamily: "PixeloidMono",
           fontSize: "120px",
           color: "#ff3333",
           stroke: "#000000",
@@ -1200,7 +1200,7 @@ export class FightScene extends Scene {
             // biome-ignore lint/style/noNonNullAssertion: <explanation>
             winnerName!,
             {
-              fontFamily: "Bokor",
+              fontFamily: "PixeloidMono",
               fontSize: "60px",
               color: "#ff3333",
               stroke: "#000000",

@@ -37,7 +37,7 @@ export class DamageNumbers {
         damage: "64px",
         text: "52px",
       },
-      fontFamily: "Bokor",
+      fontFamily: "PixeloidMono",
       duration: 1500,
       rise: 200,
       colors: {

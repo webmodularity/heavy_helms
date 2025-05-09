@@ -27,6 +27,18 @@ export class AssetManager {
   }
 
   /**
+   * Load font assets (remains synchronous for queuing)
+   */
+  loadFontAssets(): void {
+    this.scene.load.rexWebFont({
+      custom: {
+        families: ["PixeloidMono"],
+        urls: ["/fonts/custom-fonts.css"],
+      },
+    });
+  }
+
+  /**
    * Load all UI assets
    */
   loadUIAssets(): void {

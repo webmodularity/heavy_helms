@@ -190,12 +190,12 @@ export class HealthManager {
     this.updateBarDisplays();
 
     // Load fonts and create player labels
-    WebFont.load({
-      google: {
-        families: ["Bokor", "Montserrat:700"],
-      },
-      active: () => this.createPlayerLabels(),
-    });
+    // WebFont.load({
+    //   google: {
+    //     families: ["PixeloidMono", "Montserrat:700"],
+    //   },
+    //   active: () => this.createPlayerLabels(),
+    // });
   }
 
   createPlayerLabels() {
@@ -209,7 +209,7 @@ export class HealthManager {
         this.barConfig.y - this.barConfig.labelPadding - 10,
         p1Name,
         {
-          fontFamily: "Bokor",
+          fontFamily: "PixeloidMono",
           fontSize: "24px",
           color: "#ffffff",
           stroke: "#000000",
@@ -225,7 +225,7 @@ export class HealthManager {
         this.barConfig.y - this.barConfig.labelPadding - 10,
         p2Name,
         {
-          fontFamily: "Bokor",
+          fontFamily: "PixeloidMono",
           fontSize: "24px",
           color: "#ffffff",
           stroke: "#000000",

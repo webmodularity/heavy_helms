@@ -114,7 +114,7 @@ export class PlayerStatsDisplay {
         shadowBlur: 15
       },
       header: {
-        fontFamily: "Bokor",
+        fontFamily: "PixeloidMono",
         fontSize: "24px",
         color: "#ffd700",
       },

@@ -1,6 +1,11 @@
+import { AssetManager } from "../services/AssetManager";
+
 export class Boot extends Phaser.Scene {
+  private assetManager: AssetManager;
+
   constructor() {
     super("Boot");
+    this.assetManager = new AssetManager(this);
   }
 
   init() {
@@ -9,6 +14,8 @@ export class Boot extends Phaser.Scene {
   }
 
   preload() {
+    this.assetManager.loadFontAssets();
+
     const loadingText = this.add
       .text(
         this.cameras.main.width / 2,
