@@ -4,8 +4,11 @@ import { GameWrapper } from "@/components/game/game-wrapper";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { usePlayerById } from "@/hooks/use-player-by-id";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
+import { GameEvents } from "@/game/EventBus";
+import { FightEndDialog } from "@/components/dialogs/FightEndDialog";
+import { usePhaserBridge } from "@/hooks/usePhaserBridge";
 
 // Fallback component for when the game fails to load
 function GameErrorFallback() {
@@ -38,6 +41,11 @@ function PracticeGame() {
   // const player2Id = searchParams.get("player2Id") ?? undefined;
   const router = useRouter();
 
+  const [isFightEndDialogOpen, setIsFightEndDialogOpen] = useState(false);
+  const [fightWinnerName, setFightWinnerName] = useState<string | undefined>(
+    undefined,
+  );
+
   useEffect(() => {
     // Redirect if no character ID is provided
     if (!player1Id) {
@@ -46,20 +54,40 @@ function PracticeGame() {
     }
   }, [player1Id, router]);
 
+  usePhaserBridge<{ winnerName: string }>(
+    GameEvents.FIGHT_ENDED,
+    ({ winnerName }) => {
+      setFightWinnerName(winnerName);
+      setIsFightEndDialogOpen(true);
+    },
+  );
+
+  const handleReturnToMenu = () => {
+    router.push("/");
+  };
+
   if (!player1Id) {
     return <LoadingSpinner size="lg" text="Loading game..." />;
   }
 
   return (
-    <ErrorBoundary FallbackComponent={GameErrorFallback}>
-      <GameWrapper
-        // player1Id={player1Id}
-        // player2Id={player2Id}
-        // biome-ignore lint/style/noNonNullAssertion: <explanation>
-        player1={player1!}
-        // player2={player2}
+    <>
+      <ErrorBoundary FallbackComponent={GameErrorFallback}>
+        <GameWrapper
+          // player1Id={player1Id}
+          // player2Id={player2Id}
+          // biome-ignore lint/style/noNonNullAssertion: <explanation>
+          player1={player1!}
+          // player2={player2}
+        />
+      </ErrorBoundary>
+      <FightEndDialog
+        isOpen={isFightEndDialogOpen}
+        onClose={() => setIsFightEndDialogOpen(false)}
+        winnerName={fightWinnerName}
+        onReturnToMenu={handleReturnToMenu}
       />
-    </ErrorBoundary>
+    </>
   );
 }
 

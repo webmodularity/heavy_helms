@@ -1,5 +1,5 @@
 import { Scene } from "phaser";
-import { EventBus } from "../EventBus";
+import { EventBus, GameEvents } from "../EventBus";
 
 import { DamageNumbers } from "../systems/damage-numbers";
 import { CombatAnimator } from "../systems/combat-animator";
@@ -1270,6 +1270,12 @@ export class FightScene extends Scene {
 
     if (currentTauntCount >= MAX_TAUNTS) {
       this.animator.playAnimation(winner, "idle", isPlayer2);
+      // Determine winner name
+      const winnerName = isPlayer2
+        ? this.player2.name.fullName
+        : this.player1.name.fullName;
+      // Emit the FIGHT_ENDED event
+      EventBus.emit(GameEvents.FIGHT_ENDED, { winnerName: winnerName ?? "Unknown Winner" });
       return;
     }
 
@@ -1281,6 +1287,12 @@ export class FightScene extends Scene {
         this.playTauntSequence(winner, isPlayer2, nextTauntCount);
       } else {
         this.animator.playAnimation(winner, "idle", isPlayer2);
+        // Determine winner name
+        const winnerName = isPlayer2
+          ? this.player2.name.fullName
+          : this.player1.name.fullName;
+        // Emit the FIGHT_ENDED event
+        EventBus.emit(GameEvents.FIGHT_ENDED, { winnerName: winnerName ?? "Unknown Winner" });
       }
     });
   }

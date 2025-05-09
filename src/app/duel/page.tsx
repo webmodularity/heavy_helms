@@ -3,9 +3,12 @@
 import { GameWrapper } from "@/components/game/game-wrapper";
 import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { useDuelActions } from "@/stores/duel-store";
+import { GameEvents } from "@/game/EventBus";
+import { FightEndDialog } from "@/components/dialogs/FightEndDialog";
+import { usePhaserBridge } from "@/hooks/usePhaserBridge";
 
 // Fallback component for when the game fails to load
 function GameErrorFallback() {
@@ -36,6 +39,11 @@ function DuelGame() {
   const router = useRouter();
   const { clearState } = useDuelActions();
 
+  const [isFightEndDialogOpen, setIsFightEndDialogOpen] = useState(false);
+  const [fightWinnerName, setFightWinnerName] = useState<string | undefined>(
+    undefined,
+  );
+
   useEffect(() => {
     // Redirect if no transaction ID is provided
     if (!txId) {
@@ -49,14 +57,34 @@ function DuelGame() {
     };
   }, [txId, router, clearState]);
 
+  usePhaserBridge<{ winnerName: string }>(
+    GameEvents.FIGHT_ENDED,
+    ({ winnerName }) => {
+      setFightWinnerName(winnerName);
+      setIsFightEndDialogOpen(true);
+    },
+  );
+
+  const handleReturnToMenu = () => {
+    router.push("/");
+  };
+
   if (!txId) {
     return <LoadingSpinner size="lg" text="Loading game..." />;
   }
 
   return (
-    <ErrorBoundary FallbackComponent={GameErrorFallback}>
-      <GameWrapper />
-    </ErrorBoundary>
+    <>
+      <ErrorBoundary FallbackComponent={GameErrorFallback}>
+        <GameWrapper />
+      </ErrorBoundary>
+      <FightEndDialog
+        isOpen={isFightEndDialogOpen}
+        onClose={() => setIsFightEndDialogOpen(false)}
+        winnerName={fightWinnerName}
+        onReturnToMenu={handleReturnToMenu}
+      />
+    </>
   );
 }
 

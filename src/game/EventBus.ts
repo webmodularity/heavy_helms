@@ -15,4 +15,5 @@ export enum GameEvents {
   PLAYER_DAMAGED = "player-damaged",
   PLAYER_HEALED = "player-healed",
   GAME_OVER = "game-over",
+  FIGHT_ENDED = "fight-ended",
 }
