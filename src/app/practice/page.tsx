@@ -38,9 +38,7 @@ function PracticeGame() {
   const player1Id = searchParams.get("player1Id") ?? undefined;
   // biome-ignore lint/style/noNonNullAssertion: <explanation>
   const { data: player1 } = usePlayerById(player1Id!);
-  // const player2Id = searchParams.get("player2Id") ?? undefined;
   const router = useRouter();
-
   const [isFightEndDialogOpen, setIsFightEndDialogOpen] = useState(false);
   const [fightWinnerName, setFightWinnerName] = useState<string | undefined>(
     undefined,
@@ -63,7 +61,7 @@ function PracticeGame() {
   );
 
   const handleReturnToMenu = () => {
-    router.push("/");
+    router.push(`/${player1Id ? `?selectedCharacter=${player1Id}` : ""}`);
   };
 
   if (!player1Id) {

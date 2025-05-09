@@ -36,6 +36,7 @@ function GameErrorFallback() {
 function DuelGame() {
   const searchParams = useSearchParams();
   const txId = searchParams.get("txId") ?? undefined;
+  const selectedCharacterId = searchParams.get("player1Id") ?? undefined;
   const router = useRouter();
   const { clearState } = useDuelActions();
 
@@ -47,7 +48,9 @@ function DuelGame() {
   useEffect(() => {
     // Redirect if no transaction ID is provided
     if (!txId) {
-      router.push("/");
+      router.push(
+        `/${selectedCharacterId ? `?selectedCharacter=${selectedCharacterId}` : ""}`,
+      );
       return;
     }
 
@@ -55,9 +58,9 @@ function DuelGame() {
     return () => {
       clearState(); // Clear duel state when leaving the page
     };
-  }, [txId, router, clearState]);
+  }, [txId, router, clearState, selectedCharacterId]);
 
-  usePhaserBridge<{ winnerName: string }>(
+  usePhaserBridge<{ winnerName: string; selectedCharacterId: string }>(
     GameEvents.FIGHT_ENDED,
     ({ winnerName }) => {
       setFightWinnerName(winnerName);
@@ -66,7 +69,9 @@ function DuelGame() {
   );
 
   const handleReturnToMenu = () => {
-    router.push("/");
+    router.push(
+      `/${selectedCharacterId ? `?selectedCharacter=${selectedCharacterId}` : ""}`,
+    );
   };
 
   if (!txId) {

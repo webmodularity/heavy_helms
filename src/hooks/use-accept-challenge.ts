@@ -235,7 +235,7 @@ export function useAcceptChallenge() {
     }
 
     // Navigate to the loading screen
-    router.push("/duel/loading");
+    router.push(`/duel/loading?player1Id=${characterId}`);
   };
 
   const acceptChallenge = async (params: AcceptChallengeParams) => {

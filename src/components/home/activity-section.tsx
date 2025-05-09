@@ -348,7 +348,7 @@ function RecentDuelsTabContent({
   const handleDuelNavigation = (duelId: string) => {
     if (navigatingToDuelId) return;
     setNavigatingToDuelId(duelId);
-    router.push(`/duel?txId=${duelId}`);
+    router.push(`/duel?txId=${duelId}&player1Id=${selectedCharacter?.id}`);
   };
 
   useEffect(() => {

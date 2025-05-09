@@ -3,20 +3,28 @@
 import type { Player } from "@/types/player.types";
 import { motion } from "framer-motion";
 import { ChevronDown, ChartBar } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import React from "react";
 import { useInView } from "react-intersection-observer";
 import { BattleSection } from "../battle/battle-section";
 import { WarriorSelection } from "../character/warrior-selection";
 import { ActivitySection } from "./activity-section";
 import type { StanceType } from "@/types/equipment.types";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { useOwnPlayers } from "@/hooks/use-own-players";
+import { useRouter } from "next/navigation";
 
-export function AuthenticatedView() {
+interface AuthenticatedViewProps {
+  initialSelectedCharacterId: string | null;
+}
+
+export function AuthenticatedView({
+  initialSelectedCharacterId,
+}: AuthenticatedViewProps) {
   const [selectedCharacter, setSelectedCharacter] = useState<Player | null>(
     null,
   );
+  const { players, isLoading: isLoadingPlayers } = useOwnPlayers();
+  const router = useRouter();
 
   const battleSectionRef = useRef<HTMLElement>(null);
   const { ref: inViewRef, inView } = useInView({
@@ -24,30 +32,55 @@ export function AuthenticatedView() {
   });
   const [hasBattleInView, setHasBattleInView] = useState(false);
 
+  const scrollToBattleSection = useCallback(() => {
+    battleSectionRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, []);
+
+  // Function to select a character - memoized
+  // This is defined before the useEffect that might call it for initial selection
+  const handleSelectCharacter = useCallback(
+    (character: Player, stance?: StanceType) => {
+      setSelectedCharacter({
+        ...character,
+        stance: stance ?? character.stance,
+      });
+      router.push(`/?selectedCharacter=${character.id}`, { scroll: false });
+    },
+    [router],
+  ); // router is stable
+
+  // Effect to handle initial character selection from query param
+  useEffect(() => {
+    if (
+      initialSelectedCharacterId &&
+      players &&
+      players.length > 0 &&
+      !selectedCharacter
+    ) {
+      const playerFromQuery = players.find(
+        (p) => p.id.toString() === initialSelectedCharacterId,
+      );
+      if (playerFromQuery) {
+        handleSelectCharacter(playerFromQuery as Player, undefined);
+      }
+    }
+  }, [
+    initialSelectedCharacterId,
+    players,
+    selectedCharacter,
+    handleSelectCharacter,
+  ]); // Added handleSelectCharacter as a dependency
+
   // Update hasBattleInView state when inView changes
   useEffect(() => {
     setHasBattleInView(inView);
   }, [inView]);
 
-  // Function to select a character
-  const handleSelectCharacter = (character: Player, stance?: StanceType) => {
-    setSelectedCharacter({ ...character, stance: stance ?? character.stance });
-
-    // // Add a small delay to allow the UI to update before scrolling
-    // setTimeout(() => {
-    //   scrollToBattleSection();
-    // }, 300);
-  };
-
-  // Function to deselect a character
-  const handleDeselectCharacter = () => {
+  // Function to deselect a character - memoized
+  const handleDeselectCharacter = useCallback(() => {
     setSelectedCharacter(null);
-  };
-
-  // Function to scroll to battle section
-  const scrollToBattleSection = () => {
-    battleSectionRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
+    router.push("/", { scroll: false }); // Corrected template literal
+  }, [router]); // router is stable
 
   // Set up the ref for the battle section
   useEffect(() => {
@@ -55,6 +88,16 @@ export function AuthenticatedView() {
       inViewRef(battleSectionRef.current);
     }
   }, [inViewRef]);
+
+  // Automatically scroll to battle section if a character is selected and it's not in view
+  // useEffect(() => {
+  //   if (selectedCharacter && !hasBattleInView) {
+  //     const timer = setTimeout(() => {
+  //       scrollToBattleSection();
+  //     }, 300);
+  //     return () => clearTimeout(timer);
+  //   }
+  // }, [selectedCharacter, hasBattleInView, scrollToBattleSection]);
 
   return (
     <>

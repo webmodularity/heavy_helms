@@ -6,12 +6,14 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { ArrowLeft, Swords } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 
 export default function DuelLoadingPage() {
   const { isListening, isTimeout, duelTxHash } = useDuelLoadingState();
   const { clearState } = useDuelActions();
   const router = useRouter();
   const [isNavigating, setIsNavigating] = useState(false);
+  const player1Id = useSearchParams().get("player1Id") ?? undefined;
 
   // If we already have a txHash, show a success message but DON'T navigate
   // (the callback in startListening will handle navigation with delay)
@@ -19,9 +21,9 @@ export default function DuelLoadingPage() {
     if (duelTxHash && !isNavigating) {
       setIsNavigating(true);
 
-      router.push(`/duel?txId=${duelTxHash}`);
+      router.push(`/duel?txId=${duelTxHash}&player1Id=${player1Id}`);
     }
-  }, [duelTxHash, isNavigating, router]);
+  }, [duelTxHash, isNavigating, router, player1Id]);
 
   // If we're not listening anymore and we don't have a duel txHash, go back to challenges
   useEffect(() => {
