@@ -63,23 +63,15 @@ export function PlayerSelectionTable({
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [globalFilter, setGlobalFilter] = useState("");
 
-  // Calculate filteredPlayers using useMemo instead of useEffect and useState
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   const filteredPlayers = useMemo(() => {
     if (isOwnPlayersLoading || isLoading || !allPlayers) {
       return [];
     }
 
-    const ownPlayerIds = ownPlayers?.map((player) => player.id) || []; // Ensure ownPlayerIds is an array
+    const ownPlayerIds = ownPlayers?.map((player) => player.id) || [];
 
-    if (currentPlayerId) {
-      return allPlayers.filter((player) => !ownPlayerIds.includes(player.id));
-    } else {
-      // If no currentPlayerId, decide if you still want to filter out ownPlayers or show all 'allPlayers'
-      // Assuming here you might still want to filter them out if 'ownPlayers' is available
-      return allPlayers.filter((player) => !ownPlayerIds.includes(player.id));
-      // Or, if you want to show all 'allPlayers' when no currentPlayerId:
-      // return allPlayers;
-    }
+    return allPlayers.filter((player) => !ownPlayerIds.includes(player.id));
   }, [allPlayers, currentPlayerId, isLoading, isOwnPlayersLoading, ownPlayers]);
 
   // Define columns for the table
