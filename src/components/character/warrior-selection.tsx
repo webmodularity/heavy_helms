@@ -2,7 +2,7 @@
 
 import type { Player } from "@/types/player.types";
 import { useRouter } from "next/navigation";
-import { useRef, useMemo, useEffect } from "react";
+import { useRef, useMemo, useEffect, useState } from "react";
 import { SectionHeader } from "../ui/section-header";
 import { CharacterCard } from "./playable-character-card";
 import { NewCharacterCard } from "./new-character-card";
@@ -36,6 +36,7 @@ export function WarriorSelection({
   const { createCharacter, isCreatingCharacter, txHash } = useCreateCharacter();
   const queryClient = useQueryClient();
   const { address } = useAccount();
+  const [activeIndex, setActiveIndex] = useState(0);
 
   // Effect to refresh selectedCharacter if its underlying data changes
   useEffect(() => {
@@ -70,6 +71,49 @@ export function WarriorSelection({
         .map((_, i) => `skeleton-${i}`),
     [],
   );
+
+  const numPlayerCards = players?.length ?? 0;
+  const showNewCharacterCard = players && players.length < MAX_PLAYERS;
+  const totalScrollItems = numPlayerCards + (showNewCharacterCard ? 1 : 0);
+
+  useEffect(() => {
+    if (isLoading || !characterListRef.current || totalScrollItems <= 1) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
+            // Find the index of the intersecting element
+            const elementNode = entry.target as HTMLElement;
+            const index = Array.from(
+              characterListRef.current?.children ?? [],
+            ).indexOf(elementNode);
+            if (index !== -1) {
+              setActiveIndex(index);
+            }
+          }
+        }
+      },
+      {
+        root: characterListRef.current,
+        threshold: 0.5, // Trigger when 50% of the item is visible
+      },
+    );
+
+    const children = characterListRef.current.children;
+    for (let i = 0; i < children.length; i++) {
+      observer.observe(children[i]);
+    }
+
+    return () => {
+      for (let i = 0; i < children.length; i++) {
+        observer.unobserve(children[i]);
+      }
+      observer.disconnect();
+    };
+  }, [isLoading, totalScrollItems]);
 
   // Render skeleton loaders while characters are loading
   const renderSkeletons = () => {
@@ -145,6 +189,20 @@ export function WarriorSelection({
             </>
           )}
         </div>
+
+        {/* Scroll Dots Indicator */}
+        {!isLoading && totalScrollItems > 1 && (
+          <div className="flex justify-center items-center pt-3 space-x-2">
+            {Array.from({ length: totalScrollItems }).map((_, index) => (
+              <div
+                key={`dot-${index}`}
+                className={`w-2 h-2 rounded-full transition-colors duration-150 ${
+                  index === activeIndex ? "bg-yellow-400" : "bg-gray-600"
+                }`}
+              />
+            ))}
+          </div>
+        )}
 
         {/* Scroll Indicators - Optional enhancement */}
         {/* The following div will be removed as it's md:block and desktop is not a priority */}
