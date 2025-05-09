@@ -3,7 +3,12 @@
 @plugin 'tailwindcss-animate';
 
 @custom-variant dark (&:is(.dark *));
-
+@theme inline {
+  --font-pixeloid: var(--font-pixeloid);
+  --font-bokor: var(--font-bokor);
+  --font-cormorant-unicase: var(--font-cormorant-unicase);
+  --font-cinzel: var(--font-cinzel);
+}
 /* Custom styles below */
 body {
   margin: 0;

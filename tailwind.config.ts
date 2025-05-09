@@ -1,4 +1,7 @@
 /** @type {import('tailwindcss').Config} */
+const Unfonts = require("unplugin-fonts");
+const { fontFamily } = require("tailwindcss/defaultTheme");
+
 module.exports = {
   content: ["./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
@@ -44,7 +47,10 @@ module.exports = {
         sm: "calc(var(--radius) - 4px)",
       },
       fontFamily: {
-        sans: ["Inter", "sans-serif"],
+        sans: ["Inter", ...fontFamily.sans],
+        pixeloid: ["var(--font-pixeloid)"],
+        bokor: ["var(--font-bokor)"],
+        cormorant: ["var(--font-cormorant-unicase)"],
       },
       fontSize: {
         xs: ["0.75rem", { lineHeight: "1rem" }],
@@ -123,6 +129,7 @@ module.exports = {
     require("@tailwindcss/typography"),
     require("@tailwindcss/forms"),
     require("tailwindcss-animate"),
+    require("@tailwindcss/typography"),
   ],
   future: {
     hoverOnlyWhenSupported: true,

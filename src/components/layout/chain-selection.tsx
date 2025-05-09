@@ -28,7 +28,7 @@ export function ChainSelection() {
               !isWrongNetwork ? "bg-green-500" : "bg-yellow-500"
             }`}
           />
-          <span>{currentChainName}</span>
+          {/* <span>{currentChainName}</span> */}
 
           {/* Show switch link if on wrong network */}
           {isWrongNetwork && (

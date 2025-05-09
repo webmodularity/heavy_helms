@@ -32,9 +32,11 @@ export function FightEndDialog({
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-[425px] bg-stone-800 border-yellow-600">
         <DialogHeader>
-          <DialogTitle className="text-yellow-400">Fight Over!</DialogTitle>
+          <DialogTitle className="text-yellow-400 font-pixeloid">
+            Fight Over!
+          </DialogTitle>
           {winnerName && (
-            <DialogDescription className="text-stone-300 pt-2">
+            <DialogDescription className="text-stone-300 pt-2 font-pixeloid">
               Winner: {winnerName}
             </DialogDescription>
           )}
@@ -44,14 +46,14 @@ export function FightEndDialog({
             type="button"
             variant="outline"
             onClick={onClose}
-            className="border-stone-600 hover:bg-stone-700 hover:text-stone-100"
+            className="border-stone-600 hover:bg-stone-700 hover:text-stone-100 font-pixeloid"
           >
             Close
           </Button>
           <Button
             type="button"
             onClick={handleReturnToMenu}
-            className="bg-gradient-to-r from-amber-700 to-yellow-600 hover:from-amber-600 hover:to-yellow-500 text-stone-100"
+            className="bg-gradient-to-r from-amber-700 to-yellow-600 hover:from-amber-600 hover:to-yellow-500 text-stone-100 font-pixeloid"
           >
             Return to Menu
           </Button>
@@ -59,4 +61,4 @@ export function FightEndDialog({
       </DialogContent>
     </Dialog>
   );
-} 
+}

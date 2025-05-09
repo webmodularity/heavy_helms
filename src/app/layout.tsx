@@ -26,6 +26,11 @@ const cinzel = Cinzel({
   variable: "--font-cinzel",
 });
 
+const pixeloid = localFont({
+  src: "../../public/fonts/PixeloidMono.ttf",
+  variable: "--font-pixeloid",
+});
+
 // Load Cormorant Unicase (for headings)
 const cormorantUnicase = Cormorant_Unicase({
   subsets: ["latin"],
@@ -58,7 +63,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body
-        className={`${cinzel.variable} ${bokor.variable} ${cormorantUnicase.variable} ${cinzel.className} min-h-screen flex flex-col`}
+        className={`${cinzel.variable} ${bokor.variable} ${cormorantUnicase.variable} ${cinzel.className} ${pixeloid.variable} min-h-screen flex flex-col`}
       >
         {/* Background with reduced opacity */}
         <div className="fixed inset-0 -z-1">
