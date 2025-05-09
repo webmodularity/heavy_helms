@@ -103,5 +103,5 @@ export class LoadingProgressManager {
 
 interface StageConfig {
   weight: number;
-  message: string;
+  // message: string;
 }

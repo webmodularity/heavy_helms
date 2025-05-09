@@ -66,7 +66,8 @@ export class LoadingUI {
 
       // Add a status text
       this.statusText = this.scene.add
-        .text(width / 2, barY + barHeight + 20, "Loading game assets...", {
+        .text(width / 2, barY + barHeight + 20, "Initializing...", {
+          // Default initial text
           fontSize: "18px",
           fontFamily: "Arial",
           color: "#ffffff",
@@ -86,27 +87,28 @@ export class LoadingUI {
     this.progressManager.configureStages({
       initialAssets: {
         weight: 0.2,
-        message: "Loading game assets...",
+        // message: "Loading game assets...", // Removed
       },
       fighterData: {
         weight: 0.2,
-        message: "Loading fighter data...",
+        // message: "Loading fighter data...", // Removed
       },
       combatData: {
         weight: 0.2,
-        message: "Loading combat data...",
+        // message: "Loading combat data...", // Removed
       },
       fighterAssets: {
         weight: 0.3,
-        message: "Loading fighter assets...",
+        // message: "Loading fighter assets...", // Removed
       },
       finalizing: {
         weight: 0.1,
-        message: "Finalizing...",
+        // message: "Finalizing...", // Removed
       },
     });
   }
 
+  /**
   /**
    * Set up event listeners for loading progress and status updates
    */

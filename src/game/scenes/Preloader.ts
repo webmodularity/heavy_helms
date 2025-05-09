@@ -31,7 +31,7 @@ export class Preloader extends Scene {
     // Load loading background image first - needed for the UI
     this.load.image(
       "loading-background",
-      "/backgrounds/loading-background.jpg",
+      "/backgrounds/loading_bg.jpg", // Updated path
     );
 
     // Register complete callback for this initial load
@@ -54,12 +54,10 @@ export class Preloader extends Scene {
 
     // Start the initial assets loading stage
     this.loadingUI.startStage("initialAssets");
+    this.loadingUI.updateStatus("Loading game assets..."); // Direct call
 
     // Set up loading events for the main assets
     this.assetManager.onLoadComplete(this.onMainAssetsComplete, this);
-
-    // Emit status update
-    this.events.emit("status-update", "Loading game assets...");
 
     // Queue all initial assets
     this.assetManager.loadInitialAssets();
@@ -75,7 +73,7 @@ export class Preloader extends Scene {
 
       // Start the fighter data loading stage
       this.loadingUI.startStage("fighterData");
-      this.events.emit("status-update", "Loading fighter data...");
+      this.loadingUI.updateStatus("Loading fighter data..."); // Direct call
 
       // Load player data using the selected strategy
       const { player1, player2 } = await this.strategy.loadPlayerData();
@@ -87,7 +85,7 @@ export class Preloader extends Scene {
 
       // Start the combat data loading stage
       this.loadingUI.startStage("combatData");
-      this.events.emit("status-update", "Loading combat data...");
+      this.loadingUI.updateStatus("Loading combat data..."); // Direct call
 
       // Load combat data using the selected strategy
       this.decodedCombatBytes = await this.strategy.loadCombatData();
@@ -97,7 +95,7 @@ export class Preloader extends Scene {
 
       // Start the fighter assets loading stage
       this.loadingUI.startStage("fighterAssets");
-      this.events.emit("status-update", "Loading fighter assets...");
+      this.loadingUI.updateStatus("Loading fighter assets..."); // Direct call
 
       // Load player spritesheets
       this.assetManager.loadFighterAssets(this.player1, this.player2);
@@ -115,7 +113,7 @@ export class Preloader extends Scene {
 
         // Start the finalizing stage
         this.loadingUI.startStage("finalizing");
-        this.events.emit("status-update", "Finalizing...");
+        this.loadingUI.updateStatus("Finalizing..."); // Direct call
 
         // Simulate a small delay for final preparations
         // This prevents the jarring transition if everything loads instantly
