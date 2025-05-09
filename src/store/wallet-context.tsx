@@ -41,7 +41,6 @@ export const WalletContext = createContext<WalletContextType>({
 });
 
 export function WalletProvider({ children }: { children: ReactNode }) {
-
   const [checking, setChecking] = useState(false);
   // const { setActiveWallet } = useSetActiveWallet();
 
@@ -79,9 +78,6 @@ export function WalletProvider({ children }: { children: ReactNode }) {
   // Switch network function
   const switchToPrimaryNetwork = async () => {
     switchChain(wagmiConfig, { chainId: baseSepolia.id });
-    toast("Network switched", {
-      description: `Successfully connected to ${process.env.NEXT_PUBLIC_ALCHEMY_NETWORK === "base-sepolia" ? "Base Sepolia" : "Shape"}`,
-    });
   };
 
   // Calculate derived state

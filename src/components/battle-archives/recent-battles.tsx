@@ -67,9 +67,18 @@ export function RecentBattles() {
   const router = useRouter();
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
+  const [navigatingToDuelId, setNavigatingToDuelId] = useState<string | null>(
+    null,
+  );
 
   const handleRefetch = async () => {
     await refetch();
+  };
+
+  const handleDuelNavigation = (duelId: string) => {
+    if (navigatingToDuelId) return;
+    setNavigatingToDuelId(duelId);
+    router.push(`/duel?txId=${duelId}`);
   };
 
   // Format timestamp to a readable date
@@ -165,6 +174,7 @@ export function RecentBattles() {
         <>
           <div className="divide-y divide-stone-800">
             {duels.map((duel, index) => {
+              const isNavigatingThisDuel = navigatingToDuelId === duel.id;
               const isChallenger =
                 duel.winnerId === duel.challenge.challengerId;
               const winner = isChallenger
@@ -185,10 +195,23 @@ export function RecentBattles() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="cursor-pointer p-4 hover:bg-amber-900/10 transition-colors"
-                  onClick={() => {
-                    router.push(`/duel?txId=${duel.id}`);
+                  className={`p-4 transition-colors ${
+                    isNavigatingThisDuel
+                      ? "opacity-60 pointer-events-none"
+                      : "cursor-pointer hover:bg-amber-900/10"
+                  }`}
+                  onClick={() =>
+                    !isNavigatingThisDuel && handleDuelNavigation(duel.id)
+                  }
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      if (!isNavigatingThisDuel) handleDuelNavigation(duel.id);
+                    }
                   }}
+                  // biome-ignore lint/a11y/useSemanticElements: <explanation>
+                  role="link"
+                  tabIndex={isNavigatingThisDuel ? -1 : 0}
+                  aria-busy={isNavigatingThisDuel}
                 >
                   <div className="flex flex-col md:flex-row items-start md:items-center">
                     <div className="flex-1 flex items-center mb-2 md:mb-0">
@@ -282,8 +305,11 @@ export function RecentBattles() {
                     </div>
 
                     {/* Timestamp */}
-                    <div className="text-xs text-stone-500 mt-2 md:mt-0">
+                    <div className="text-xs text-stone-500 mt-2 md:mt-0 relative">
                       {formatDate(duel.blockTimestamp)}
+                      {isNavigatingThisDuel && (
+                        <Loader2 className="h-4 w-4 text-yellow-500 animate-spin absolute -right-5 top-0" />
+                      )}
                     </div>
                   </div>
 
@@ -311,7 +337,8 @@ export function RecentBattles() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => fetchNextPage()}
+                onClick={() => !isFetchingNextPage && fetchNextPage()}
+                disabled={isFetchingNextPage}
                 className="border-yellow-600/20 hover:bg-yellow-500/10 hover:text-yellow-400 text-stone-400"
               >
                 Load More Battles

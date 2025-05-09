@@ -6,16 +6,16 @@ import { SectionHeader } from "@/components/ui/section-header";
 import { motion } from "framer-motion";
 import { useCancelChallenge } from "@/hooks/use-cancel-challenge";
 import { useAcceptChallenge } from "@/hooks/use-accept-challenge";
-import { Loader2, Shield, Swords, Trophy } from "lucide-react";
+import { Loader2, Shield, Swords, Trophy, ChevronRight } from "lucide-react";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { formatEther } from "viem";
 import { YellowButton } from "@/components/ui/yellow-button";
-import { ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import type { Player } from "@/types/player.types";
 import { type Challenge, useChallenges } from "@/hooks/use-challenges";
 import { useRecentDuels } from "@/hooks/use-recent-duels";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ChallengeCard } from "@/components/home/challenge-card";
 import {
   useRecentGauntlets,
@@ -336,9 +336,19 @@ function RecentDuelsTabContent({
   } = useRecentDuels(selectedCharacter?.id || "");
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+  const [navigatingToDuelId, setNavigatingToDuelId] = useState<string | null>(
+    null,
+  );
 
   const handleRefetch = async () => {
     await refetch();
+  };
+
+  const handleDuelNavigation = (duelId: string) => {
+    if (navigatingToDuelId) return;
+    setNavigatingToDuelId(duelId);
+    router.push(`/duel?txId=${duelId}`);
   };
 
   useEffect(() => {
@@ -387,6 +397,7 @@ function RecentDuelsTabContent({
           className="mt-4"
           size="sm"
           variant="default"
+          disabled={isRefetching || isLoading}
         >
           <Loader2
             className={`mr-2 h-4 w-4 ${isRefetching ? "animate-spin" : ""}`}
@@ -420,6 +431,7 @@ function RecentDuelsTabContent({
           className="mt-4"
           size="sm"
           variant="default"
+          disabled={isRefetching || isLoading}
         >
           <Loader2
             className={`mr-2 h-4 w-4 ${isRefetching ? "animate-spin" : ""}`}
@@ -437,7 +449,7 @@ function RecentDuelsTabContent({
           onClick={handleRefetch}
           size="sm"
           variant="default"
-          disabled={isRefetching}
+          disabled={isRefetching || isLoading}
         >
           {isRefetching ? (
             <>
@@ -452,7 +464,7 @@ function RecentDuelsTabContent({
       </div>
 
       {duels.map((duel) => {
-        // Existing duel card rendering code...
+        const isNavigatingThisDuel = navigatingToDuelId === duel.id;
         const isChallenger =
           duel.challenge.challengerId.toString() ===
           selectedCharacter.id.toString();
@@ -464,20 +476,27 @@ function RecentDuelsTabContent({
           ? duel.challenge.defenderSnapshot
           : duel.challenge.challengerSnapshot;
 
-        console.log({
-          winnerId: duel.winnerId,
-          winnerId_type: typeof duel.winnerId,
-          challenger_id: duel.challenge.challengerSnapshot.fighterId,
-          challenger_id_type:
-            typeof duel.challenge.challengerSnapshot.fighterId,
-          defender_id: duel.challenge.defenderSnapshot.fighterId,
-          defender_id_type: typeof duel.challenge.defenderSnapshot.fighterId,
-          isChallenger,
-        });
-
         return (
-          <Link href={`/duel?txId=${duel.id}`} key={duel.id} className="block">
-            <div className="p-4 border-b border-stone-700/50 hover:bg-yellow-600/10 transition-colors">
+          <div
+            key={duel.id}
+            className={`block border-b border-stone-700/50 transition-colors ${
+              isNavigatingThisDuel
+                ? "opacity-70 pointer-events-none"
+                : "hover:bg-yellow-600/10 cursor-pointer"
+            }`}
+            onClick={() =>
+              !isNavigatingThisDuel && handleDuelNavigation(duel.id)
+            }
+            onKeyDown={(e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                if (!isNavigatingThisDuel) handleDuelNavigation(duel.id);
+              }
+            }}
+            // biome-ignore lint/a11y/useSemanticElements: <explanation>
+            role="button"
+            tabIndex={isNavigatingThisDuel ? -1 : 0}
+          >
+            <div className="p-4">
               <div className="flex justify-between mb-1">
                 <span
                   className={`font-medium ${isVictory ? "text-yellow-400" : "text-red-400"}`}
@@ -489,24 +508,26 @@ function RecentDuelsTabContent({
                     Number.parseInt(duel.blockTimestamp) * 1000,
                   ).toLocaleDateString()}
                 </span>
+              </div>
+              <div className="flex justify-between items-center">
+                <p className="text-stone-300 text-sm">
+                  Your warrior {userFighter.fullName}{" "}
+                  {isVictory ? "defeated" : "was defeated by"}{" "}
+                  {opponentFighter.fullName}
+                </p>
                 <div className="flex items-center gap-2">
-                  <div className="flex items-center">
-                    <span className="text-yellow-500 font-medium mr-3">
-                      {formatEther(BigInt(duel.challenge.wagerAmount))} ETH
-                    </span>
-                    <ChevronRight
-                      className={"h-5 w-5 text-yellow-500 transition-transform"}
-                    />
-                  </div>
+                  <span className="text-yellow-500 font-medium">
+                    {formatEther(BigInt(duel.challenge.wagerAmount))} ETH
+                  </span>
+                  {isNavigatingThisDuel ? (
+                    <Loader2 className="h-5 w-5 text-yellow-500 animate-spin" />
+                  ) : (
+                    <ChevronRight className="h-5 w-5 text-yellow-500" />
+                  )}
                 </div>
               </div>
-              <p className="text-stone-300 text-sm">
-                Your warrior {userFighter.fullName}{" "}
-                {isVictory ? "defeated" : "was defeated by"}{" "}
-                {opponentFighter.fullName}
-              </p>
             </div>
-          </Link>
+          </div>
         );
       })}
 
