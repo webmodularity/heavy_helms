@@ -776,6 +776,52 @@ export const GET_LEADERBOARD_PLAYERS = gql`
   ${PLAYER_DATA_FRAGMENT}
 `;
 
+// Fragment for Gauntlet fields based on the provided Gauntlet entity schema
+export const ARCHIVED_GAUNTLET_FIELDS_FRAGMENT = gql`
+  fragment ArchivedGauntletFields on Gauntlet {
+    id
+    size
+    entryFee
+    state # GauntletState! (PENDING, COMPLETED)
+    vrfRequestTimestamp # BigInt!
+    completionTimestamp # BigInt
+    champion { # Fighter
+      id # Fighter's entity ID
+      fighterId # Fighter's numerical ID
+      fullName
+    }
+    prizeAwarded # BigInt!
+    feeCollected # BigInt!
+    startedAt # BigInt!
+    startedTx # Bytes!
+    completedAt # BigInt
+    completedTx # Bytes
+    finalParticipantIds # [String!]
+    roundWinners # [String!]
+    # Fields NOT on Gauntlet entity (will be handled in processing or removed from types):
+    # - gauntletNumericId (derived from id)
+    # - isPublic (does not exist)
+  }
+`;
+
+// Query for fetching all recent gauntlets, paginated
+export const GET_ARCHIVED_GAUNTLETS_PAGINATED = gql`
+  query GetArchivedGauntletsPaginated(
+    $limit: Int!
+    $skip: Int!
+  ) {
+    gauntlets(
+      first: $limit
+      skip: $skip
+      orderBy: startedAt
+      orderDirection: desc
+    ) {
+      ...ArchivedGauntletFields
+    }
+  }
+  ${ARCHIVED_GAUNTLET_FIELDS_FRAGMENT}
+`;
+
 export const GET_PLAYER_GAUNTLETS_PAGINATED = gql`
   query GetPlayerGauntletsPaginated(
     $playerId: String!

@@ -53,7 +53,7 @@ function BattleCardSkeleton() {
   );
 }
 
-export function RecentBattles() {
+export function RecentDuels() {
   const {
     duels,
     isLoading,
@@ -111,7 +111,7 @@ export function RecentBattles() {
       <div className="p-4 bg-gradient-to-r from-amber-900/50 to-stone-900 border-b border-yellow-600/20 flex items-center justify-between">
         <div className="flex items-center">
           <Sword className="h-5 w-5 text-yellow-500 mr-2" />
-          <h2 className="text-xl font-bold text-yellow-400">Recent Battles</h2>
+          <h2 className="text-xl font-bold text-yellow-400">Recent Duels</h2>
         </div>
         <div className="flex items-center gap-2">
           <span className="text-sm text-stone-400 flex items-center">
@@ -195,7 +195,7 @@ export function RecentBattles() {
                       {/* Challenger */}
                       <div className="flex flex-col items-center mr-4">
                         <div
-                          className={`h-10 w-10 rounded-full overflow-hidden bg-stone-800 relative ${isChallenger ? "ring-2 ring-green-500" : ""}`}
+                          className={`h-10 w-10 rounded-full overflow-hidden bg-stone-800 relative ${isChallenger ? "border-2 border-yellow-400 ring-2 ring-yellow-500/60" : ""}`}
                         >
                           {challengerImageUrl ? (
                             <Image
@@ -232,7 +232,7 @@ export function RecentBattles() {
                       {/* Defender */}
                       <div className="flex flex-col items-center ml-4">
                         <div
-                          className={`h-10 w-10 rounded-full overflow-hidden bg-stone-800 relative ${!isChallenger ? "ring-2 ring-green-500" : ""}`}
+                          className={`h-10 w-10 rounded-full overflow-hidden bg-stone-800 relative ${!isChallenger ? "border-2 border-yellow-400 ring-2 ring-yellow-500/60" : ""}`}
                         >
                           {defenderImageUrl ? (
                             <Image
@@ -314,7 +314,7 @@ export function RecentBattles() {
                 onClick={() => fetchNextPage()}
                 className="border-yellow-600/20 hover:bg-yellow-500/10 hover:text-yellow-400 text-stone-400"
               >
-                Load More Battles
+                Load More Duels
               </Button>
             ) : duels.length > 0 ? (
               <span className="text-sm text-stone-400">

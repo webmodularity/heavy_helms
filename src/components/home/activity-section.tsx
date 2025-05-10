@@ -18,16 +18,8 @@ import { type Challenge, useChallenges } from "@/hooks/use-challenges";
 import { useRecentDuels } from "@/hooks/use-recent-duels";
 import Link from "next/link";
 import { ChallengeCard } from "@/components/home/challenge-card";
-import {
-  useRecentGauntlets,
-  type GauntletChronicle,
-} from "@/hooks/use-recent-gauntlets";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+import { useRecentGauntlets } from "@/hooks/use-recent-gauntlets";
+import { Accordion } from "@/components/ui/accordion";
 import { GauntletAccordionItem } from "@/components/gauntlet/gauntlet-accordion-item";
 
 interface ActivitySectionProps {
@@ -468,17 +460,6 @@ function RecentDuelsTabContent({
         const opponentFighter = isChallenger
           ? duel.challenge.defenderSnapshot
           : duel.challenge.challengerSnapshot;
-
-        console.log({
-          winnerId: duel.winnerId,
-          winnerId_type: typeof duel.winnerId,
-          challenger_id: duel.challenge.challengerSnapshot.fighterId,
-          challenger_id_type:
-            typeof duel.challenge.challengerSnapshot.fighterId,
-          defender_id: duel.challenge.defenderSnapshot.fighterId,
-          defender_id_type: typeof duel.challenge.defenderSnapshot.fighterId,
-          isChallenger,
-        });
 
         return (
           <Link href={`/duel?txId=${duel.id}`} key={duel.id} className="block">

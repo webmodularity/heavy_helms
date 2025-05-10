@@ -1,44 +1,44 @@
 import { SUBGRAPH_URL } from "@/config";
 import { GET_PLAYER_GAUNTLETS_PAGINATED } from "@/lib/gql-queries";
 import type { Fighter } from "@/types/fighter-types"; // Assuming Fighter type is generic enough
-import { useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, type InfiniteData } from "@tanstack/react-query";
 import request from "graphql-request";
 import { useAccount } from "wagmi";
 
 // --- Inline Type Definitions ---
 
-// Raw Gauntlet structure from Subgraph
-// (Define based on the fields selected in GET_PLAYER_GAUNTLETS_PAGINATED)
-export interface RawSubgraphGauntlet {
+// Raw Gauntlet structure from Subgraph for this specific hook's query
+export interface RawSubgraphGauntletForPlayer {
   id: string;
-  size: number;
+  size: number; // Comes as number from subgraph
   entryFee: string;
-  state: string; // "PENDING" | "COMPLETED"
+  state: string;
+  isPublic?: boolean | null; // Assuming GQL query for player gauntlets can fetch this
   vrfRequestTimestamp: string;
   completionTimestamp: string | null;
   champion: {
     id: string;
     fighterId: string;
     fullName?: string | null;
-    // Add other relevant champion fields
   } | null;
   prizeAwarded: string;
   feeCollected: string;
   startedAt: string;
-  startedTx: string;
+  startedTx: string | null; // Ensure type matches schema
   completedAt: string | null;
   completedTx: string | null;
   finalParticipantIds: string[];
   roundWinners: string[] | null;
+  gauntletNumericId?: number | null; // If GQL provides it directly
 }
 
 // The GauntletParticipant structure from the GQL response
 interface RawGauntletParticipant {
-  id: string; // Participant ID
-  gauntlet: RawSubgraphGauntlet;
+  id: string;
+  gauntlet: RawSubgraphGauntletForPlayer; // Use the more specific raw type
   player: {
-    id: string; // Player's entity ID (e.g., address or composite)
-    fighterId: string; // Player's numerical fighter ID
+    id: string;
+    fighterId: string;
   };
 }
 
@@ -47,47 +47,120 @@ interface RawGauntletParticipantsQueryResult {
   gauntletParticipants: RawGauntletParticipant[];
 }
 
-// Transformed Gauntlet type for UI consumption (can be expanded)
-export interface GauntletChronicle extends RawSubgraphGauntlet {
-  // Add any transformed or additional UI-specific fields here if needed
-  // For example, formatted dates, derived states, etc.
+// Transformed Gauntlet type for UI consumption - THIS IS THE KEY TYPE TO ALIGN
+export interface GauntletChronicle {
+  id: string;
+  gauntletNumericId: number; // Non-optional after processing
+  size: 4 | 8 | 16 | 32; // Strict size type
+  entryFee: string;
+  state: string;
+  isPublic?: boolean | null; // Optional
+  displayTimestamp: string;
+  champion: {
+    id: string;
+    fighterId: string;
+    fullName?: string | null;
+  } | null;
+  prizeAwarded: string;
+  completedTx: string | null;
+  finalParticipantIds: string[];
   isCompleted: boolean;
-  displayTimestamp: string; // To show completedAt or startedAt
+  // Add other fields from RawSubgraphGauntletForPlayer if they are passed through directly
+  vrfRequestTimestamp: string;
+  completionTimestamp: string | null;
+  feeCollected: string;
+  startedAt: string;
+  startedTx: string | null;
+  completedAt: string | null;
+  roundWinners: string[] | null;
 }
 
 // --- Helper Functions ---
+
+// Helper function to validate and cast gauntlet size
+function isValidGauntletSize(size: number): size is 4 | 8 | 16 | 32 {
+  return [4, 8, 16, 32].includes(size);
+}
+
 function processGauntletData(
-  rawGauntlet: RawSubgraphGauntlet,
-): GauntletChronicle {
+  rawGauntlet: RawSubgraphGauntletForPlayer,
+): GauntletChronicle | null {
+  // Can return null if data is invalid
   const isCompleted = rawGauntlet.state === "COMPLETED";
   const displayTimestamp =
-    rawGauntlet.completionTimestamp || rawGauntlet.startedAt;
+    (isCompleted && rawGauntlet.completionTimestamp) || rawGauntlet.startedAt;
 
+  let numericId = rawGauntlet.gauntletNumericId;
+  if (numericId === null || numericId === undefined) {
+    const parts = rawGauntlet.id.split("-");
+    const numPart = Number.parseInt(parts[parts.length - 1], 10);
+    if (!Number.isNaN(numPart)) {
+      numericId = numPart;
+    } else {
+      console.warn(
+        `Could not derive numeric ID for gauntlet: ${rawGauntlet.id}`,
+      );
+      return null; // Gauntlet is invalid without a numeric ID
+    }
+  }
+
+  if (!isValidGauntletSize(rawGauntlet.size)) {
+    console.warn(
+      `Invalid size (${rawGauntlet.size}) for gauntlet: ${rawGauntlet.id}`,
+    );
+    return null; // Filter out gauntlets with invalid sizes
+  }
+
+  // Ensure all properties of GauntletChronicle are mapped
   return {
-    ...rawGauntlet,
-    isCompleted,
+    // Raw fields that are directly compatible
+    id: rawGauntlet.id,
+    entryFee: rawGauntlet.entryFee,
+    state: rawGauntlet.state,
+    champion: rawGauntlet.champion,
+    prizeAwarded: rawGauntlet.prizeAwarded,
+    completedTx: rawGauntlet.completedTx,
+    finalParticipantIds: rawGauntlet.finalParticipantIds,
+    vrfRequestTimestamp: rawGauntlet.vrfRequestTimestamp,
+    completionTimestamp: rawGauntlet.completionTimestamp,
+    feeCollected: rawGauntlet.feeCollected,
+    startedAt: rawGauntlet.startedAt,
+    startedTx: rawGauntlet.startedTx,
+    completedAt: rawGauntlet.completedAt,
+    roundWinners: rawGauntlet.roundWinners,
+
+    // Processed/validated fields
+    gauntletNumericId: numericId as number, // Cast as it's validated
+    size: rawGauntlet.size, // Cast as it's validated by isValidGauntletSize
+    isPublic: rawGauntlet.isPublic, // Pass through if exists
     displayTimestamp,
-    // Potentially format more fields here:
-    // entryFee: formatEther(BigInt(rawGauntlet.entryFee)),
-    // prizeAwarded: formatEther(BigInt(rawGauntlet.prizeAwarded)),
+    isCompleted,
   };
 }
 
 // --- Hook Implementation ---
 
 export function useRecentGauntlets(playerId?: string, pageSize = 10) {
-  const { address: connectedWalletAddress } = useAccount(); // For query key if needed, though playerId is primary
+  const { address: connectedWalletAddress } = useAccount();
 
-  const queryResult = useInfiniteQuery({
-    queryKey: ["recent-gauntlets", playerId, pageSize],
+  const queryResult = useInfiniteQuery<
+    GauntletChronicle[],
+    Error,
+    InfiniteData<GauntletChronicle[], number>,
+    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+    any,
+    number
+  >({
+    queryKey: ["recent-gauntlets", playerId, pageSize, connectedWalletAddress],
     queryFn: async ({ pageParam = 0 }) => {
       if (!SUBGRAPH_URL) {
         console.error("Subgraph URL is not configured.");
         throw new Error("Subgraph URL is not configured.");
       }
       if (!playerId) {
-        // console.log("useRecentGauntlets: No playerId provided, returning empty.");
-        return []; // Return empty array if no playerId
+        // If no playerId, return an empty array of GauntletChronicle
+        // This satisfies the expected return type of Promise<GauntletChronicle[]>
+        return [];
       }
 
       try {
@@ -95,21 +168,20 @@ export function useRecentGauntlets(playerId?: string, pageSize = 10) {
           SUBGRAPH_URL,
           GET_PLAYER_GAUNTLETS_PAGINATED,
           {
-            playerId: playerId.toString(), // Ensure playerId is a string for the query
+            playerId: playerId.toString(),
             limit: pageSize,
             skip: pageParam,
           },
         );
 
         const rawParticipants = response.gauntletParticipants || [];
-        // Extract the gauntlet data and process it
         const processedGauntlets: GauntletChronicle[] = rawParticipants
-          .map((participant) => participant.gauntlet)
-          .map(processGauntletData)
-          // Sort by Gauntlet ID (numeric part) descending after processing
-          .sort(
-            (a, b) => Number.parseInt(b.id, 10) - Number.parseInt(a.id, 10),
-          );
+          .map((participant) => processGauntletData(participant.gauntlet))
+          .filter((g): g is GauntletChronicle => g !== null);
+
+        processedGauntlets.sort(
+          (a, b) => b.gauntletNumericId - a.gauntletNumericId,
+        );
 
         return processedGauntlets;
       } catch (error) {
@@ -120,13 +192,11 @@ export function useRecentGauntlets(playerId?: string, pageSize = 10) {
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) => {
       if (!lastPage || lastPage.length < pageSize) return undefined;
-      return allPages.reduce((acc, page) => acc + page.length, 0); // Next skip is total items fetched
+      return allPages.reduce((acc, page) => acc + page.length, 0);
     },
-    enabled: !!playerId, // Only run query if playerId is available
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    refetchInterval: 5 * 60 * 1000, // 5 minutes
-    refetchOnMount: true, // Keep true for auto-refresh on tab switch
-    refetchOnWindowFocus: true,
+    enabled: !!playerId,
+    staleTime: 5 * 60 * 1000,
+    refetchInterval: 5 * 60 * 1000,
   });
 
   const {
@@ -140,12 +210,12 @@ export function useRecentGauntlets(playerId?: string, pageSize = 10) {
     isRefetching,
   } = queryResult;
 
-  // Flatten pages and then re-sort the entire flat list to ensure consistent global order
-  // This is important because infinite scroll fetches pages, and each page was sorted,
-  // but the combined list might not be if not re-sorted here.
   const allGauntlets = data?.pages.flat() || [];
+  // The re-sorting of the flattened list can be intensive if the list is very long.
+  // If GQL sorts reliably, or if the per-page sort in queryFn is sufficient, this might be optimized.
+  // For now, keeping the existing logic for consistent global order.
   const sortedAllGauntlets = [...allGauntlets].sort(
-    (a, b) => Number.parseInt(b.id, 10) - Number.parseInt(a.id, 10),
+    (a, b) => b.gauntletNumericId - a.gauntletNumericId,
   );
 
   return {
