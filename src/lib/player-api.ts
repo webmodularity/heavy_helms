@@ -8,11 +8,12 @@ import {
   GET_NAMES_BY_INDICES,
   GET_SKIN_BY_INDICES,
 } from "./gql-queries";
-import type {
-  RawPlayerData,
-  PlayerName,
-  DefaultPlayer,
-  Player,
+import {
+  type RawPlayerData,
+  type PlayerName,
+  type DefaultPlayer,
+  type Player,
+  PlayerGauntletStatus,
 } from "@/types/player.types";
 import type {
   WeaponType,
@@ -356,34 +357,43 @@ export async function convertRawFighterToFighter(
     record,
     isRetired: rawFighter.isRetired || false,
     isImmortal: false,
-    battleRating: rawFighter.battleRating || 0,
+    battleRating: 0,
+    gauntletStatus: PlayerGauntletStatus.NONE,
   };
 
   // Add type-specific properties based on fighterType
   switch (rawFighter.fighterType) {
-    case FighterType.Player:
+    case FighterType.Player: {
+      const playerGauntletStatus =
+        (rawFighter.gauntletStatus as PlayerGauntletStatus) ||
+        PlayerGauntletStatus.NONE;
       return {
         ...baseFighter,
         fighterType: FighterType.Player,
         name: name as PlayerName,
         isImmortal: rawFighter.isImmortal || false,
         owner: rawFighter.owner,
+        battleRating: rawFighter.battleRating || 0,
+        gauntletStatus: playerGauntletStatus,
       } as Player;
+    }
 
-    case FighterType.DefaultPlayer:
+    case FighterType.DefaultPlayer: {
       return {
         ...baseFighter,
         fighterType: FighterType.DefaultPlayer,
         name: name as PlayerName,
       } as DefaultPlayer;
+    }
 
-    case FighterType.Monster:
+    case FighterType.Monster: {
       return {
         ...baseFighter,
         fighterType: FighterType.Monster,
         name: name as FighterName,
         tier: rawFighter.tier || 1,
       } as Monster;
+    }
 
     default:
       console.warn(

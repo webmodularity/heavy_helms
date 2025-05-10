@@ -78,7 +78,12 @@ export function WalletProvider({ children }: { children: ReactNode }) {
 
   // Switch network function
   const switchToPrimaryNetwork = async () => {
-    switchChain(wagmiConfig, { chainId: shape.id });
+    switchChain(wagmiConfig, {
+      chainId:
+        process.env.NEXT_PUBLIC_ALCHEMY_NETWORK === "base-sepolia"
+          ? baseSepolia.id
+          : shape.id,
+    });
     toast("Network switched", {
       description: `Successfully connected to ${process.env.NEXT_PUBLIC_ALCHEMY_NETWORK === "base-sepolia" ? "Base Sepolia" : "Shape"}`,
     });

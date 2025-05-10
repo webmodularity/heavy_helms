@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 import { useCancelChallenge } from "@/hooks/use-cancel-challenge";
 import { useAcceptChallenge } from "@/hooks/use-accept-challenge";
 import { usePrivy } from "@privy-io/react-auth";
-import { Loader2, Shield, Swords } from "lucide-react";
+import { Loader2, Shield, Swords, Trophy } from "lucide-react";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { formatEther } from "viem";
 import { YellowButton } from "@/components/ui/yellow-button";
@@ -18,6 +18,9 @@ import { type Challenge, useChallenges } from "@/hooks/use-challenges";
 import { useRecentDuels } from "@/hooks/use-recent-duels";
 import Link from "next/link";
 import { ChallengeCard } from "@/components/home/challenge-card";
+import { useRecentGauntlets } from "@/hooks/use-recent-gauntlets";
+import { Accordion } from "@/components/ui/accordion";
+import { GauntletAccordionItem } from "@/components/gauntlet/gauntlet-accordion-item";
 
 interface ActivitySectionProps {
   selectedCharacter: Player | null;
@@ -54,7 +57,7 @@ export function ActivitySection({ selectedCharacter }: ActivitySectionProps) {
 function BattleTabs({
   selectedCharacter,
 }: { selectedCharacter: Player | null }) {
-  const [activeTab, setActiveTab] = useState("recent");
+  const [activeTab, setActiveTab] = useState("gauntlets");
   const { challenges } = useChallenges(selectedCharacter?.id || "");
 
   // Filter challenges for the selected character
@@ -89,52 +92,233 @@ function BattleTabs({
 
   return (
     <Tabs
-      defaultValue="recent"
+      defaultValue="gauntlets"
       value={activeTab}
       onValueChange={setActiveTab}
       className="w-full"
     >
-      <div className="flex items-center justify-between mb-6">
-        <TabsList className="bg-stone-800/50 border border-yellow-600/20">
+      <div className="flex items-center justify-between mb-0">
+        <TabsList className="bg-transparent p-0 border-b border-stone-600 rounded-none w-full">
           <TabsTrigger
-            value="recent"
-            className="data-[state=active]:bg-yellow-600/20 data-[state=active]:text-yellow-400"
+            value="gauntlets"
+            className="px-5 py-3 text-stone-400 border-b-2 border-transparent 
+                       data-[state=active]:text-yellow-500 data-[state=active]:border-b-yellow-500/50 data-[state=active]:bg-yellow-500/5 data-[state=active]:rounded-tl-md data-[state=active]:rounded-tr-md
+                       data-[state=inactive]:hover:text-yellow-400 data-[state=inactive]:hover:bg-yellow-500/10 data-[state=inactive]:hover:border-b-yellow-400/50
+                       rounded-none focus-visible:ring-offset-0 focus-visible:ring-0"
           >
-            Recent Battles
+            Recent Gauntlets
+          </TabsTrigger>
+          <TabsTrigger
+            value="duels"
+            className="px-5 py-3 text-stone-400 border-b-2 border-transparent 
+                       data-[state=active]:text-yellow-500 data-[state=active]:border-b-yellow-500/50 data-[state=active]:bg-yellow-500/5 data-[state=active]:rounded-tl-md data-[state=active]:rounded-tr-md
+                       data-[state=inactive]:hover:text-yellow-400 data-[state=inactive]:hover:bg-yellow-500/10 data-[state=inactive]:hover:border-b-yellow-400/50
+                       rounded-none focus-visible:ring-offset-0 focus-visible:ring-0"
+          >
+            Recent Duels
           </TabsTrigger>
           <TabsTrigger
             value="challenges"
-            className="data-[state=active]:bg-yellow-600/20 data-[state=active]:text-yellow-400 relative"
+            className="px-5 py-3 text-stone-400 border-b-2 border-transparent 
+                       data-[state=active]:text-yellow-500 data-[state=active]:border-b-yellow-500/50 data-[state=active]:bg-yellow-500/5 data-[state=active]:rounded-tl-md data-[state=active]:rounded-tr-md
+                       data-[state=inactive]:hover:text-yellow-400 data-[state=inactive]:hover:bg-yellow-500/10 data-[state=inactive]:hover:border-b-yellow-400/50
+                       rounded-none focus-visible:ring-offset-0 focus-visible:ring-0 relative"
           >
             Active Challenges
             {activeCharacterChallenges.length > 0 && (
-              <span className="absolute -top-2 -right-2 bg-yellow-500 text-black text-xs font-bold rounded-full min-w-5 h-5 px-1.5 flex items-center justify-center">
+              <span className="absolute top-1.5 right-1.5 bg-amber-600 text-amber-50 text-xs font-bold rounded-full min-w-[20px] h-5 px-1.5 flex items-center justify-center">
                 {activeCharacterChallenges.length}
               </span>
             )}
           </TabsTrigger>
         </TabsList>
-
-        {/* <Button
-          variant="ghost"
-          className="text-yellow-500 hover:text-yellow-400"
-        >
-          View All
-        </Button> */}
       </div>
 
-      <TabsContent value="recent" className="space-y-4">
-        <RecentBattles selectedCharacter={selectedCharacter} />
-      </TabsContent>
+      <div className="mt-0 pt-6 pb-0 px-0">
+        <TabsContent value="gauntlets" className="space-y-4 mt-0">
+          <RecentGauntletsTabContent selectedCharacter={selectedCharacter} />
+        </TabsContent>
 
-      <TabsContent value="challenges">
-        <ActiveChallenges selectedCharacter={selectedCharacter} />
-      </TabsContent>
+        <TabsContent value="duels" className="space-y-4 mt-0">
+          <RecentDuelsTabContent selectedCharacter={selectedCharacter} />
+        </TabsContent>
+
+        <TabsContent value="challenges" className="mt-0">
+          <ActiveChallenges selectedCharacter={selectedCharacter} />
+        </TabsContent>
+      </div>
     </Tabs>
   );
 }
 
-function RecentBattles({
+function RecentGauntletsTabContent({
+  selectedCharacter,
+}: { selectedCharacter: Player | null }) {
+  const {
+    gauntlets,
+    isLoading,
+    error,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isRefetching,
+  } = useRecentGauntlets(selectedCharacter?.id);
+
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+
+  // State to track the currently expanded accordion item's value
+  const [expandedItemValue, setExpandedItemValue] = useState<
+    string | undefined
+  >();
+
+  const handleRefetch = async () => {
+    await refetch();
+  };
+
+  useEffect(() => {
+    if (observerRef.current) observerRef.current.disconnect();
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && hasNextPage && !isFetchingNextPage) {
+          void fetchNextPage();
+        }
+      },
+      { rootMargin: "200px" },
+    );
+    if (loadMoreRef.current) observerRef.current.observe(loadMoreRef.current);
+    return () => {
+      if (observerRef.current) observerRef.current.disconnect();
+    };
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+
+  if (isLoading && gauntlets.length === 0) {
+    return (
+      <div className="flex justify-center py-8">
+        <Loader2 className="h-8 w-8 text-yellow-500 animate-spin" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-8 text-red-400">
+        <p>Failed to load recent gauntlets</p>
+        <p className="text-sm text-red-300 mt-2">Please try again later</p>
+        <YellowButton
+          onClick={handleRefetch}
+          className="mt-4"
+          size="sm"
+          variant="default"
+        >
+          <Loader2
+            className={`mr-2 h-4 w-4 ${isRefetching ? "animate-spin" : ""}`}
+          />
+          Refresh
+        </YellowButton>
+      </div>
+    );
+  }
+
+  if (!selectedCharacter) {
+    return (
+      <div className="text-center py-8 text-stone-300">
+        <Trophy className="h-12 w-12 mx-auto mb-4 text-yellow-600/50" />
+        <h3 className="text-lg font-medium text-yellow-500 mb-2">
+          Please select a warrior to view recent gauntlets.
+        </h3>
+      </div>
+    );
+  }
+
+  if (gauntlets.length === 0) {
+    return (
+      <div className="text-center py-8 text-stone-300">
+        <Trophy className="h-12 w-12 mx-auto mb-4 text-yellow-600/50" />
+        <h3 className="text-lg font-medium text-yellow-500 mb-2">
+          This warrior has no recent gauntlets.
+        </h3>
+        <YellowButton
+          onClick={handleRefetch}
+          className="mt-4"
+          size="sm"
+          variant="default"
+        >
+          <Loader2
+            className={`mr-2 h-4 w-4 ${isRefetching ? "animate-spin" : ""}`}
+          />
+          Refresh
+        </YellowButton>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="flex justify-end mb-4">
+        <YellowButton
+          onClick={handleRefetch}
+          size="sm"
+          variant="default"
+          disabled={isRefetching}
+        >
+          {isRefetching ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Refreshing...
+            </>
+          ) : (
+            <>
+              <Loader2 className="mr-2 h-4 w-4" /> Refresh
+            </>
+          )}
+        </YellowButton>
+      </div>
+
+      <Accordion
+        type="single"
+        collapsible
+        className="w-full space-y-2"
+        value={expandedItemValue}
+        onValueChange={setExpandedItemValue}
+      >
+        {gauntlets.map((gauntlet, index) => {
+          const currentItemValue = `gauntlet-${gauntlet.id}-${index}`;
+          return (
+            <GauntletAccordionItem
+              key={currentItemValue}
+              itemValue={currentItemValue}
+              gauntlet={gauntlet}
+              selectedCharacter={selectedCharacter}
+              isExpanded={expandedItemValue === currentItemValue}
+            />
+          );
+        })}
+      </Accordion>
+
+      {/* Loading more indicator */}
+      <div ref={loadMoreRef} className="py-6 flex justify-center">
+        {isFetchingNextPage ? (
+          <Loader2 className="h-6 w-6 text-yellow-500 animate-spin" />
+        ) : hasNextPage ? (
+          <Button
+            variant="link"
+            onClick={() => fetchNextPage()}
+            className="text-yellow-500 hover:text-yellow-400"
+          >
+            Load More Gauntlets
+          </Button>
+        ) : gauntlets.length > 0 ? (
+          <span className="text-sm text-stone-400">
+            End of gauntlet history
+          </span>
+        ) : null}
+      </div>
+    </div>
+  );
+}
+
+function RecentDuelsTabContent({
   selectedCharacter,
 }: { selectedCharacter: Player | null }) {
   const {
@@ -193,9 +377,9 @@ function RecentBattles({
   if (error) {
     return (
       <div className="text-center py-8 text-red-400">
-        <p>Failed to load recent battles</p>
+        <p>Failed to load recent duels</p>
         <p className="text-sm text-red-300 mt-2">Please try again later</p>
-        <Button
+        <YellowButton
           onClick={handleRefetch}
           className="mt-4"
           size="sm"
@@ -205,7 +389,7 @@ function RecentBattles({
             className={`mr-2 h-4 w-4 ${isRefetching ? "animate-spin" : ""}`}
           />
           Refresh
-        </Button>
+        </YellowButton>
       </div>
     );
   }
@@ -215,7 +399,7 @@ function RecentBattles({
       <div className="text-center py-8 text-stone-300">
         <Swords className="h-12 w-12 mx-auto mb-4 text-yellow-600/50" />
         <h3 className="text-lg font-medium text-yellow-500 mb-2">
-          Please select a warrior to view your recent battles
+          Please select a warrior to view your recent duels.
         </h3>
       </div>
     );
@@ -224,7 +408,10 @@ function RecentBattles({
   if (duels.length === 0) {
     return (
       <div className="text-center py-8 text-stone-300">
-        <p>No recent battles found for this warrior</p>
+        <Swords className="h-12 w-12 mx-auto mb-4 text-yellow-600/50" />
+        <h3 className="text-lg font-medium text-yellow-500 mb-2">
+          No recent duels found for this warrior
+        </h3>
         <YellowButton
           onClick={handleRefetch}
           className="mt-4"
@@ -274,17 +461,6 @@ function RecentBattles({
           ? duel.challenge.defenderSnapshot
           : duel.challenge.challengerSnapshot;
 
-        console.log({
-          winnerId: duel.winnerId,
-          winnerId_type: typeof duel.winnerId,
-          challenger_id: duel.challenge.challengerSnapshot.fighterId,
-          challenger_id_type:
-            typeof duel.challenge.challengerSnapshot.fighterId,
-          defender_id: duel.challenge.defenderSnapshot.fighterId,
-          defender_id_type: typeof duel.challenge.defenderSnapshot.fighterId,
-          isChallenger,
-        });
-
         return (
           <Link href={`/duel?txId=${duel.id}`} key={duel.id} className="block">
             <div className="p-4 border-b border-stone-700/50 hover:bg-yellow-600/10 transition-colors">
@@ -327,7 +503,7 @@ function RecentBattles({
         ) : hasNextPage ? (
           <span className="text-sm text-stone-400">Scroll for more</span>
         ) : duels.length > 0 ? (
-          <span className="text-sm text-stone-400">End of battle history</span>
+          <span className="text-sm text-stone-400">End of duel history</span>
         ) : null}
       </div>
     </div>
@@ -442,7 +618,7 @@ function ActiveChallenges({
   if (characterChallenges.length === 0) {
     return (
       <div className="text-center py-8 text-stone-300">
-        <Swords className="h-12 w-12 mx-auto mb-4 text-yellow-600/50" />
+        <Shield className="h-12 w-12 mx-auto mb-4 text-yellow-600/50" />
         <h3 className="text-lg font-medium text-yellow-500 mb-2">
           This warrior has no active challenges
         </h3>

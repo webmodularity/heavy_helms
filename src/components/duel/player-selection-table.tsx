@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import { useActivePlayers } from "@/hooks/use-active-players";
 import { ArmorType, StanceType, WeaponType } from "@/types/equipment.types";
@@ -63,30 +63,15 @@ export function PlayerSelectionTable({
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [globalFilter, setGlobalFilter] = useState("");
 
-  // Filter out current player
-  const [filteredPlayers, setFilteredPlayers] = useState<Fighter[]>([]);
-
-  // Update filtered players only when players or currentPlayerId changes
-  useEffect(() => {
-    if (isOwnPlayersLoading || isLoading) {
-      setFilteredPlayers([]);
-      return;
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+  const filteredPlayers = useMemo(() => {
+    if (isOwnPlayersLoading || isLoading || !allPlayers) {
+      return [];
     }
 
-    if (!allPlayers) {
-      setFilteredPlayers([]);
-      return;
-    }
-    // Filter out own players
-    const ownPlayerIds = ownPlayers?.map((player) => player.id);
+    const ownPlayerIds = ownPlayers?.map((player) => player.id) || [];
 
-    if (currentPlayerId) {
-      setFilteredPlayers(
-        allPlayers.filter((player) => !ownPlayerIds?.includes(player.id)),
-      );
-    } else {
-      setFilteredPlayers(allPlayers);
-    }
+    return allPlayers.filter((player) => !ownPlayerIds.includes(player.id));
   }, [allPlayers, currentPlayerId, isLoading, isOwnPlayersLoading, ownPlayers]);
 
   // Define columns for the table
@@ -311,7 +296,7 @@ export function PlayerSelectionTable({
     },
   });
 
-  if (isLoading) {
+  if (isLoading || isOwnPlayersLoading) {
     return (
       <div className="flex justify-center items-center h-64">
         <Loader2 className="h-8 w-8 text-yellow-500 animate-spin" />
@@ -330,14 +315,15 @@ export function PlayerSelectionTable({
     );
   }
 
-  if (filteredPlayers.length === 0) {
+  if (filteredPlayers.length === 0 && !isLoading && !isOwnPlayersLoading) {
     return (
       <div className="text-center text-stone-300 h-64 flex flex-col justify-center">
         <h3 className="text-lg font-medium text-yellow-500 mb-2">
           No challengers found
         </h3>
         <p className="text-sm max-w-md mx-auto">
-          There are no active players available to challenge at the moment.
+          There are no active players available to challenge at the moment, or
+          they have all been filtered out.
         </p>
       </div>
     );
@@ -471,7 +457,7 @@ export function PlayerSelectionTable({
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={table.getAllColumns().length}
+                  colSpan={columns.length}
                   className="h-24 text-center"
                 >
                   No results found.
@@ -489,7 +475,6 @@ export function PlayerSelectionTable({
           {table.getPageCount()}
         </div>
         <Button
-          // variant="outline"
           size="sm"
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
@@ -498,7 +483,6 @@ export function PlayerSelectionTable({
           Previous
         </Button>
         <Button
-          // variant="outline"
           size="sm"
           onClick={() => table.nextPage()}
           disabled={!table.getCanNextPage()}

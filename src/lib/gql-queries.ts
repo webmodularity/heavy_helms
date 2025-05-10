@@ -122,6 +122,7 @@ export const PLAYER_SPECIFIC_FRAGMENT = gql`
     battleRating
     uniqueWins
     uniqueLosses
+    gauntletStatus
   }
 `;
 
@@ -305,15 +306,39 @@ export const GET_OWNED_PLAYERS_QUERY = gql`
 `;
 
 export const GET_COMBAT_RESULT = gql`
-  query GetCombatResult($txHash: ID!) {
-    combatResult(id: $txHash) {
+  query GetCombatResult($txHash: Bytes!) {
+    combatResults(
+      where: { transactionHash: $txHash },
+      first: 1
+    ) {
       id
+      transactionHash
       player1Data
       player2Data
       winningPlayerId
       packedResults
       blockTimestamp
       blockNumber
+    }
+  }
+`;
+
+export const GET_COMBAT_RESULTS = gql`
+  query GetCombatResultsByTxHash($txHash: Bytes!) {
+    combatResults(
+      where: { transactionHash: $txHash }
+      orderBy: logIndex
+      orderDirection: asc
+    ) {
+      id
+      transactionHash
+      logIndex
+      player1Data
+      player2Data
+      winningPlayerId
+      blockNumber
+      blockTimestamp
+      packedResults
     }
   }
 `;
@@ -551,6 +576,18 @@ export const GET_GAME_STATS = gql`
       
       # Timestamps
       lastUpdated
+
+      # Gauntlet statistics
+      totalGauntletsStarted
+      totalGauntletsCompleted
+      totalGauntletsRecovered
+      totalGauntletPrizeMoneyAwarded
+      totalGauntletFeesCollected
+      currentGauntletQueueSize
+      currentGauntletEntryFee
+      currentGauntletSize
+      currentGauntletFeePercentage
+      currentMinTimeBetweenGauntlets
     }
   }
 `;
@@ -737,4 +774,105 @@ export const GET_LEADERBOARD_PLAYERS = gql`
     }
   }
   ${PLAYER_DATA_FRAGMENT}
+`;
+
+// Fragment for Gauntlet fields based on the provided Gauntlet entity schema
+export const ARCHIVED_GAUNTLET_FIELDS_FRAGMENT = gql`
+  fragment ArchivedGauntletFields on Gauntlet {
+    id
+    size
+    entryFee
+    state # GauntletState! (PENDING, COMPLETED)
+    vrfRequestTimestamp # BigInt!
+    completionTimestamp # BigInt
+    champion { # Fighter
+      id # Fighter's entity ID
+      fighterId # Fighter's numerical ID
+      fullName
+    }
+    prizeAwarded # BigInt!
+    feeCollected # BigInt!
+    startedAt # BigInt!
+    startedTx # Bytes!
+    completedAt # BigInt
+    completedTx # Bytes
+    finalParticipantIds # [String!]
+    roundWinners # [String!]
+    # Fields NOT on Gauntlet entity (will be handled in processing or removed from types):
+    # - gauntletNumericId (derived from id)
+    # - isPublic (does not exist)
+  }
+`;
+
+// Query for fetching all recent gauntlets, paginated
+export const GET_ARCHIVED_GAUNTLETS_PAGINATED = gql`
+  query GetArchivedGauntletsPaginated(
+    $limit: Int!
+    $skip: Int!
+  ) {
+    gauntlets(
+      first: $limit
+      skip: $skip
+      orderBy: startedAt
+      orderDirection: desc
+    ) {
+      ...ArchivedGauntletFields
+    }
+  }
+  ${ARCHIVED_GAUNTLET_FIELDS_FRAGMENT}
+`;
+
+export const GET_PLAYER_GAUNTLETS_PAGINATED = gql`
+  query GetPlayerGauntletsPaginated(
+    $playerId: String!
+    $limit: Int!
+    $skip: Int!
+  ) {
+    gauntletParticipants(
+      first: $limit
+      skip: $skip
+      where: { player: $playerId }
+      orderBy: id
+      orderDirection: desc
+    ) {
+      id # GauntletParticipant ID
+      gauntlet {
+        id # Gauntlet ID
+        size
+        entryFee
+        state
+        vrfRequestTimestamp
+        completionTimestamp
+        champion {
+          id
+          fighterId
+          fullName
+          # Add other Fighter fields if needed for display
+        }
+        prizeAwarded
+        feeCollected
+        startedAt
+        startedTx
+        completedAt
+        completedTx
+        finalParticipantIds
+        roundWinners
+      }
+      player { # To confirm, though primary filter is on this
+        id
+        fighterId
+      }
+      # skin used by player in this gauntlet if needed
+      # stance used by player in this gauntlet if needed
+    }
+  }
+`;
+
+export const GET_QUEUED_GAUNTLET_PLAYERS = gql`
+  query GetQueuedGauntletPlayers {
+    players(where: { gauntletStatus: QUEUED, isRetired: false }) {
+      ...FighterCompleteFields
+    }
+  }
+  ${FIGHTER_COMPLETE_FRAGMENT}
 `;
