@@ -3,9 +3,8 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import type { GauntletChronicle } from "@/hooks/use-recent-gauntlets";
 import type { Player } from "@/types/player.types";
-import { Trophy, Loader2, ChevronRight } from "lucide-react";
+import { Trophy, Loader2, ChevronRight, Info } from "lucide-react";
 import { formatEther } from "viem";
 import { ParticipantCard } from "./participant-card";
 import { useQuery } from "@tanstack/react-query";
@@ -15,21 +14,16 @@ import type { RawFighterData } from "@/types/fighter-types";
 import { decodePlayerIdFromPackedData } from "@/lib/utils";
 import { SUBGRAPH_URL } from "@/config";
 import Link from "next/link";
-import type {
-  Fighter,
-  FighterType,
-  FighterAttributes,
-  FighterName,
-  FighterRecord,
-} from "@/types/fighter-types";
+import type { Fighter } from "@/types/fighter-types";
 import { convertRawFighterToFighter } from "@/lib/player-api";
-
-interface GauntletAccordionItemProps {
-  gauntlet: GauntletChronicle;
-  selectedCharacter: Player | null;
-  itemValue: string;
-  isExpanded: boolean;
-}
+import { getFantasyGauntletName } from "@/lib/gauntlet-naming";
+import type { GauntletChronicle } from "@/hooks/use-recent-gauntlets";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger as TooltipTriggerPrimitive,
+} from "@/components/ui/tooltip";
 
 interface FightersQueryResponse {
   fighters: RawFighterData[];
@@ -63,6 +57,13 @@ const formatDate = (timestamp: string) => {
   });
 };
 
+interface GauntletAccordionItemProps {
+  gauntlet: GauntletChronicle;
+  selectedCharacter: Player | null;
+  itemValue: string;
+  isExpanded: boolean;
+}
+
 export function GauntletAccordionItem({
   gauntlet,
   selectedCharacter,
@@ -91,7 +92,9 @@ export function GauntletAccordionItem({
       return Promise.all(response.fighters.map(convertRawFighterToFighter));
     },
     enabled:
-      !!gauntlet.finalParticipantIds && gauntlet.finalParticipantIds.length > 0,
+      isExpanded &&
+      !!gauntlet.finalParticipantIds &&
+      gauntlet.finalParticipantIds.length > 0,
     staleTime: Number.POSITIVE_INFINITY,
   });
 
@@ -116,12 +119,17 @@ export function GauntletAccordionItem({
         }
         return response.combatResults;
       } catch (error) {
+        console.error("Failed to fetch combat results:", error);
         return [];
       }
     },
     enabled: gauntlet.isCompleted && !!gauntlet.completedTx && isExpanded,
     staleTime: Number.POSITIVE_INFINITY,
   });
+
+  const displayGauntletName = getFantasyGauntletName(
+    gauntlet.gauntletNumericId,
+  );
 
   const renderRoundsAndFights = () => {
     if (!gauntlet.isCompleted) {
@@ -132,65 +140,15 @@ export function GauntletAccordionItem({
       );
     }
 
-    if (isLoadingParticipants || isLoadingCombatResults) {
-      const numRoundsSkel = Math.max(1, Math.log2(gauntlet.size));
-      const totalFightsSkel = Math.max(1, gauntlet.size - 1);
-      const skeletonRoundsArr = [];
-      let fightsRenderedForSkel = 0;
-
-      for (let i = 0; i < numRoundsSkel; i++) {
-        if (fightsRenderedForSkel >= totalFightsSkel && numRoundsSkel > 1)
-          break;
-
-        const roundNumSkel = i + 1;
-        const fightsInThisRoundSkel =
-          numRoundsSkel === 1
-            ? totalFightsSkel
-            : Math.max(1, gauntlet.size / 2 ** roundNumSkel);
-        const skeletonFightsArr = [];
-
-        for (let j = 0; j < fightsInThisRoundSkel; j++) {
-          if (fightsRenderedForSkel >= totalFightsSkel) break;
-          skeletonFightsArr.push(
-            <div
-              key={`skeleton-fight-${i}-${j}`}
-              className="bg-stone-700/30 p-3 rounded-md mb-2 animate-pulse"
-            >
-              <div className="h-4 bg-stone-600/50 rounded w-3/4" />
-            </div>,
-          );
-          fightsRenderedForSkel++;
-        }
-
-        if (skeletonFightsArr.length > 0) {
-          skeletonRoundsArr.push(
-            <div key={`skeleton-round-${roundNumSkel}`} className="mb-3">
-              <div className="h-5 bg-stone-600/50 rounded w-1/4 mb-1.5 animate-pulse" />
-              {skeletonFightsArr}
-            </div>,
-          );
-        }
-      }
-
-      if (skeletonRoundsArr.length === 0 && totalFightsSkel > 0) {
-        skeletonRoundsArr.push(
-          <div
-            key="skeleton-fallback-fight"
-            className="bg-stone-700/30 p-3 rounded-md mb-2 animate-pulse"
-          >
-            <div className="h-4 bg-stone-600/50 rounded w-3/4" />
-          </div>,
+    if (!isExpanded || isLoadingParticipants || isLoadingCombatResults) {
+      if (isExpanded && isLoadingCombatResults) {
+        return (
+          <div className="flex items-center justify-center text-xs text-stone-400 py-2">
+            <Loader2 className="h-4 w-4 mr-2 animate-spin text-yellow-500" />
+            Loading fight details...
+          </div>
         );
       }
-
-      return skeletonRoundsArr.length > 0 ? (
-        <div className="py-2">{skeletonRoundsArr}</div>
-      ) : (
-        <div className="flex items-center justify-center text-xs text-stone-400 py-2">
-          <Loader2 className="h-4 w-4 mr-2 animate-spin text-yellow-500" />
-          Loading fight details...
-        </div>
-      );
     }
 
     if (
@@ -255,7 +213,6 @@ export function GauntletAccordionItem({
                 ? player2
                 : player1;
 
-            // Refined name resolution for winner
             let bestAttemptWinnerName: string | undefined;
             if (winner.name?.fullName && winner.name.fullName.trim() !== "") {
               bestAttemptWinnerName = winner.name.fullName.trim();
@@ -266,7 +223,6 @@ export function GauntletAccordionItem({
               bestAttemptWinnerName ||
               `Fighter ${winner.fighterId?.toString() || winner.id}`;
 
-            // Refined name resolution for loser
             let bestAttemptLoserName: string | undefined;
             if (loser.name?.fullName && loser.name.fullName.trim() !== "") {
               bestAttemptLoserName = loser.name.fullName.trim();
@@ -390,37 +346,60 @@ export function GauntletAccordionItem({
       className="bg-stone-800/30 border border-stone-700/50 rounded-md px-0"
     >
       <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-stone-700/30 rounded-t-md data-[state=open]:rounded-b-none data-[state=open]:border-b data-[state=open]:border-stone-700/50">
-        <div className="flex justify-between items-center w-full">
-          <div className="flex items-center gap-3">
-            <Trophy
-              className={`h-6 w-6 ${
-                isSelectedPlayerTheChampion
-                  ? "text-yellow-400"
-                  : "text-stone-500"
-              }`}
-            />
-            <div className="text-left">
-              <span className="font-medium text-base text-stone-200">
-                Gauntlet #{gauntlet.id.substring(0, 6)}... ({gauntlet.size}
-                -player)
+        <div className="flex justify-between items-start w-full">
+          <div className="flex items-start gap-3">
+            <div className="flex flex-col items-center mr-2 pt-1">
+              <Trophy
+                className={`h-7 w-7 ${
+                  isSelectedPlayerTheChampion
+                    ? "text-yellow-400"
+                    : "text-stone-500"
+                }`}
+              />
+              <span className="text-lg font-bold text-stone-300 mt-1">
+                {gauntlet.size}
               </span>
-              <p className="text-xs text-stone-400">
+            </div>
+            <div className="text-left">
+              <div className="flex items-center">
+                <span className="font-semibold text-lg text-stone-300">
+                  {displayGauntletName}
+                </span>
+                {gauntlet.isPublic && (
+                  <TooltipProvider delayDuration={200}>
+                    <Tooltip>
+                      <TooltipTriggerPrimitive asChild>
+                        <Info className="h-3.5 w-3.5 text-blue-400 ml-2" />
+                      </TooltipTriggerPrimitive>
+                      <TooltipContent
+                        side="top"
+                        className="bg-stone-800 text-stone-200 border-stone-700"
+                      >
+                        <p>This is a public gauntlet.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
+              </div>
+              {gauntlet.isCompleted && gauntlet.champion?.fullName && (
+                <p className="text-sm text-yellow-500 mt-0.5">
+                  Champion: {gauntlet.champion.fullName}
+                </p>
+              )}
+              <p className="text-xs text-stone-400 mt-0.5">
                 {gauntlet.isCompleted ? "Completed" : "Started"}:{" "}
                 {formatDate(gauntlet.displayTimestamp)}
-                {gauntlet.isCompleted && gauntlet.champion?.fullName && (
-                  <span className="ml-2 text-yellow-400">
-                    (Champion: {gauntlet.champion.fullName})
-                  </span>
-                )}
-                {!gauntlet.isCompleted && gauntlet.state !== "PENDING" && (
-                  <span className="ml-2 text-orange-400">
-                    ({gauntlet.state})
-                  </span>
-                )}
               </p>
             </div>
           </div>
-          <div className="text-right">
+          <div className="text-right flex-shrink-0 pl-2">
+            <p className="text-sm font-medium mb-1 text-stone-300">
+              {gauntlet.isCompleted
+                ? "Completed"
+                : gauntlet.state !== "PENDING"
+                  ? gauntlet.state
+                  : "Pending Start"}
+            </p>
             <p className="text-sm text-stone-300">
               Prize: {formatEther(BigInt(gauntlet.prizeAwarded))} ETH
             </p>
@@ -437,7 +416,7 @@ export function GauntletAccordionItem({
             {participants?.length || gauntlet.finalParticipantIds?.length || 0}
             ):
           </h4>
-          {isLoadingParticipants ? (
+          {isExpanded && isLoadingParticipants ? (
             <div className="flex justify-center py-4">
               <Loader2 className="h-6 w-6 animate-spin text-yellow-500" />
             </div>
@@ -456,11 +435,11 @@ export function GauntletAccordionItem({
                 />
               ))}
             </div>
-          ) : (
+          ) : isExpanded ? (
             <p className="text-xs text-stone-400">
               Participant details not available.
             </p>
-          )}
+          ) : null}
         </div>
 
         <div className="mt-4">{renderRoundsAndFights()}</div>

@@ -5,8 +5,9 @@ import { useState } from "react";
 // import { MostDuelsAccepted } from "@/components/battle-archives/most-duels-accepted";
 // import { MostDuelsCreated } from "@/components/battle-archives/most-duels-created";
 import { OpenChallenges } from "@/components/battle-archives/open-challenges";
-import { RecentBattles } from "@/components/battle-archives/recent-battles";
+import { RecentDuels } from "@/components/battle-archives/recent-battles";
 import { ExpiredChallenges } from "@/components/battle-archives/expired-challenges";
+import { RecentGauntlets } from "@/components/battle-archives/recent-gauntlets";
 // import { TopDuelsByWager } from "@/components/battle-archives/top-duels-by-wager";
 // import { WarriorLeaderboard } from "@/components/battle-archives/warrior-leaderboard";
 import {
@@ -15,13 +16,16 @@ import {
   Clock,
   Swords,
   ArchiveX,
+  Trophy,
 } from "lucide-react";
 // Remove Button import if Refresh button is not needed here anymore
 // import { Button } from "@/components/ui/button";
 
+// Removed RecentGauntletsPlaceholder as it's now imported
+
 export default function BattleArchivesPage() {
   // Only need state for the two remaining tabs
-  const [activeTab, setActiveTab] = useState("recent");
+  const [activeTab, setActiveTab] = useState("recent-gauntlets");
 
   const handleTabChange = (tab: string) => {
     setActiveTab(tab);
@@ -47,15 +51,27 @@ export default function BattleArchivesPage() {
         <div className="flex flex-wrap gap-2 justify-center md:justify-start">
           <button
             type="button"
-            onClick={() => handleTabChange("recent")}
+            onClick={() => handleTabChange("recent-gauntlets")}
             className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
-              activeTab === "recent"
+              activeTab === "recent-gauntlets"
+                ? "bg-yellow-500 text-black"
+                : "bg-stone-800 text-stone-300 hover:bg-stone-700 hover:text-stone-100"
+            }`}
+          >
+            <Trophy className="h-4 w-4" />
+            Recent Gauntlets
+          </button>
+          <button
+            type="button"
+            onClick={() => handleTabChange("recent-duels")}
+            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+              activeTab === "recent-duels"
                 ? "bg-yellow-500 text-black"
                 : "bg-stone-800 text-stone-300 hover:bg-stone-700 hover:text-stone-100"
             }`}
           >
             <Clock className="h-4 w-4" />
-            Recent Battles
+            Recent Duels
           </button>
           <button
             type="button"
@@ -87,7 +103,8 @@ export default function BattleArchivesPage() {
 
       {/* Content sections - Reduced to two */}
       <div>
-        {activeTab === "recent" && <RecentBattles />}
+        {activeTab === "recent-gauntlets" && <RecentGauntlets />}
+        {activeTab === "recent-duels" && <RecentDuels />}
         {activeTab === "challenges" && <OpenChallenges />}
         {activeTab === "expired" && <ExpiredChallenges />}
         {/* Removed other content sections */}
