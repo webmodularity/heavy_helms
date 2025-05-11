@@ -19,15 +19,15 @@ interface EquipmentReqs {
   siz?: number;
   agi?: number;
   sta?: number;
-  luc?: number; // Added luck just in case, can be removed if not used
+  luc?: number;
 }
 
 // Update the function signature to use the specific interface
 function formatReqs(reqs: EquipmentReqs): React.ReactNode {
   // Filter out undefined values before mapping
   const parts = Object.entries(reqs)
-    .filter(([, value]) => value !== undefined && value > 0) // Check for undefined and > 0
-    .map(([key, value]) => `${key.toUpperCase()}: ${value}`); // Value is guaranteed number here
+    .filter(([, value]) => value !== undefined && value > 0)
+    .map(([key, value]) => `${key.toUpperCase()}: ${value}`);
 
   if (parts.length === 0) {
     return <span className="italic text-stone-400">None</span>;
@@ -36,7 +36,7 @@ function formatReqs(reqs: EquipmentReqs): React.ReactNode {
     <span className="inline-block">
       {parts.map((part, index) => (
         // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-        <span key={index} className="mr-3 whitespace-nowrap last:mr-0">
+        <span key={index} className="mr-2 whitespace-nowrap last:mr-0 text-[10px] sm:text-xs">
           {part}
         </span>
       ))}
@@ -128,18 +128,18 @@ const faqDataCategorized = {
     {
       question: "What are the attribute requirements for equipment?",
       answer: (
-        <div className="space-y-6">
+        <div className="space-y-4">
           <div>
-            <h4 className="text-lg font-semibold text-yellow-300 mb-3 border-b border-stone-700 pb-1">
+            <h4 className="text-base font-semibold text-yellow-300 mb-2 border-b border-stone-700 pb-0.5">
               Weapons
             </h4>
-            <div className="grid grid-cols-[1fr_auto] gap-x-4 text-sm">
+            <div className="grid grid-cols-[1fr_auto] gap-x-2 text-xs">
               {equipmentRequirements.weapons.map((item) => (
                 <React.Fragment key={item.name}>
-                  <div className="text-stone-100 font-medium pt-1.5 pb-1.5">
+                  <div className="text-stone-100 font-medium pt-1 pb-1">
                     {item.name}
                   </div>
-                  <div className="text-stone-300 pt-1.5 pb-1.5 text-right">
+                  <div className="text-stone-300 pt-1 pb-1 text-right">
                     {formatReqs(item.reqs)}
                   </div>
                   <div className="col-span-2 border-b border-stone-700/50" />
@@ -148,16 +148,16 @@ const faqDataCategorized = {
             </div>
           </div>
           <div>
-            <h4 className="text-lg font-semibold text-yellow-300 mb-3 border-b border-stone-700 pb-1">
+            <h4 className="text-base font-semibold text-yellow-300 mb-2 border-b border-stone-700 pb-0.5">
               Armor
             </h4>
-            <div className="grid grid-cols-[1fr_auto] gap-x-4 text-sm">
+            <div className="grid grid-cols-[1fr_auto] gap-x-2 text-xs">
               {equipmentRequirements.armors.map((item) => (
                 <React.Fragment key={item.name}>
-                  <div className="text-stone-100 font-medium pt-1.5 pb-1.5">
+                  <div className="text-stone-100 font-medium pt-1 pb-1">
                     {item.name}
                   </div>
-                  <div className="text-stone-300 pt-1.5 pb-1.5 text-right">
+                  <div className="text-stone-300 pt-1 pb-1 text-right">
                     {formatReqs(item.reqs)}
                   </div>
                   <div className="col-span-2 border-b border-stone-700/50" />
@@ -234,31 +234,31 @@ const faqDataCategorized = {
 
 export default function FaqPage() {
   return (
-    <div className="space-y-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="space-y-6">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 pt-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
           <div>
-            <h1 className="text-3xl font-bold text-yellow-500">
+            <h1 className="text-xl sm:text-2xl font-bold text-yellow-500">
               Frequently Asked Questions
             </h1>
-            <p className="text-sm text-stone-400 mt-1">
+            <p className="text-xs text-stone-400 mt-0.5">
               Find answers to common questions about Heavy Helms.
             </p>
           </div>
         </div>
       </div>
 
-      <div className="relative mt-8">
+      <div className="relative mt-4">
         <div className="absolute inset-0 bg-stone-900/60" />
-        <div className="absolute inset-0 shadow-[inset_0_0_100px_rgba(30,20,10,0.6)]" />
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-700/30 via-yellow-500/50 to-amber-700/30" />
-        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-700/30 via-yellow-500/50 to-amber-700/30" />
+        <div className="absolute inset-0 shadow-[inset_0_0_60px_rgba(30,20,10,0.6)]" />
+        <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-700/30 via-yellow-500/50 to-amber-700/30" />
+        <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gradient-to-r from-amber-700/30 via-yellow-500/50 to-amber-700/30" />
 
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-12">
+        <div className="relative max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-6">
           {Object.entries(faqDataCategorized).map(
             ([category, questions], categoryIndex) => (
-              <div key={category} className={categoryIndex > 0 ? "mt-10" : ""}>
-                <h3 className="text-2xl font-bold text-stone-100 tracking-wide mb-4 border-b border-stone-600/50 pb-2">
+              <div key={category} className={categoryIndex > 0 ? "mt-6" : ""}>
+                <h3 className="text-lg font-bold text-stone-100 tracking-wide mb-2 border-b border-stone-600/50 pb-1">
                   {category}
                 </h3>
                 <Accordion type="single" collapsible className="w-full">
@@ -268,10 +268,10 @@ export default function FaqPage() {
                       value={`item-${categoryIndex}-${questionIndex}`}
                       className="border-stone-700/50"
                     >
-                      <AccordionTrigger className="text-lg hover:no-underline text-left font-semibold text-yellow-400">
+                      <AccordionTrigger className="text-sm sm:text-base hover:no-underline text-left font-semibold text-yellow-400 py-3">
                         {faq.question}
                       </AccordionTrigger>
-                      <AccordionContent className="text-stone-300 pt-2 pb-4 leading-relaxed text-base font-sans">
+                      <AccordionContent className="text-stone-300 pt-1 pb-3 leading-relaxed text-xs sm:text-sm font-sans">
                         {faq.answer}
                       </AccordionContent>
                     </AccordionItem>
@@ -283,14 +283,14 @@ export default function FaqPage() {
         </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
-        <div className="text-center mt-8 pt-8 border-t border-stone-800/60">
-          <p className="text-stone-400 mb-3">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 pb-6">
+        <div className="text-center mt-4 pt-4 border-t border-stone-800/60">
+          <p className="text-xs text-stone-400 mb-2">
             Can't find the answer you're looking for?
           </p>
           <a
             href="https://discord.gg/5XHu76FmpJ"
-            className="text-yellow-500 hover:text-yellow-400 underline font-medium"
+            className="text-yellow-500 hover:text-yellow-400 underline font-medium text-sm"
           >
             Join our Discord
           </a>
