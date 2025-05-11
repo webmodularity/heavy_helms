@@ -252,9 +252,9 @@ export function GauntletAccordionItem({
           skeletonFightsArr.push(
             <div
               key={`skeleton-fight-${i}-${j}`}
-              className="bg-stone-700/30 p-3 rounded-md mb-2 animate-pulse"
+              className="bg-stone-700/30 p-1.5 rounded-md mb-1.5 animate-pulse"
             >
-              <div className="h-4 bg-stone-600/50 rounded w-3/4" />
+              <div className="h-3 bg-stone-600/50 rounded w-3/4" />
             </div>,
           );
           fightsRenderedForSkel++;
@@ -262,8 +262,8 @@ export function GauntletAccordionItem({
 
         if (skeletonFightsArr.length > 0) {
           skeletonRoundsArr.push(
-            <div key={`skeleton-round-${roundNumSkel}`} className="mb-3">
-              <div className="h-5 bg-stone-600/50 rounded w-1/4 mb-1.5 animate-pulse" />
+            <div key={`skeleton-round-${roundNumSkel}`} className="mb-2">
+              <div className="h-4 bg-stone-600/50 rounded w-1/4 mb-1 animate-pulse" />
               {skeletonFightsArr}
             </div>,
           );
@@ -274,18 +274,18 @@ export function GauntletAccordionItem({
         skeletonRoundsArr.push(
           <div
             key="skeleton-fallback-fight"
-            className="bg-stone-700/30 p-3 rounded-md mb-2 animate-pulse"
+            className="bg-stone-700/30 p-1.5 rounded-md mb-1.5 animate-pulse"
           >
-            <div className="h-4 bg-stone-600/50 rounded w-3/4" />
+            <div className="h-3 bg-stone-600/50 rounded w-3/4" />
           </div>,
         );
       }
 
       return skeletonRoundsArr.length > 0 ? (
-        <div className="py-2">{skeletonRoundsArr}</div>
+        <div className="py-1">{skeletonRoundsArr}</div>
       ) : (
-        <div className="flex items-center justify-center text-xs text-stone-400 py-2">
-          <Loader2 className="h-4 w-4 mr-2 animate-spin text-yellow-500" />
+        <div className="flex items-center justify-center text-xs text-stone-400 py-1">
+          <Loader2 className="h-3 w-3 mr-1.5 animate-spin text-yellow-500" />
           Loading fight details...
         </div>
       );
@@ -403,11 +403,11 @@ export function GauntletAccordionItem({
               href={`/gauntlet?txId=${gauntlet.completedTx}&logIndex=${fightCounter}`}
               className="block"
             >
-              <div className="bg-stone-700/40 p-3 rounded-md mb-2 flex justify-between items-center group hover:bg-stone-600/60 transition-colors duration-150 ease-in-out cursor-pointer">
-                <span className="text-sm text-stone-300 group-hover:text-stone-100 transition-colors duration-150 ease-in-out">
+              <div className="bg-stone-700/40 p-2 rounded-md mb-1.5 flex justify-between items-center group hover:bg-stone-600/60 transition-colors duration-150 ease-in-out cursor-pointer">
+                <span className="text-xs text-stone-300 group-hover:text-stone-100 transition-colors duration-150 ease-in-out">
                   {fightDescription}
                 </span>
-                <ChevronRight className="h-5 w-5 text-stone-400 group-hover:text-stone-200 group-hover:translate-x-0.5 transition-all duration-150 ease-in-out" />
+                <ChevronRight className="h-3.5 w-3.5 text-stone-400 group-hover:text-stone-200 group-hover:translate-x-0.5 transition-all duration-150 ease-in-out" />
               </div>
             </Link>,
           );
@@ -416,8 +416,8 @@ export function GauntletAccordionItem({
 
         if (roundFightsJsx.length > 0) {
           roundsJsx.push(
-            <div key={`round-${roundNum}`} className="mb-3">
-              <h5 className="text-sm font-semibold text-stone-300 mb-1.5">
+            <div key={`round-${roundNum}`} className="mb-2">
+              <h5 className="text-xs font-semibold text-stone-300 mb-1">
                 Round {roundNum}
               </h5>
               {roundFightsJsx}
@@ -457,31 +457,31 @@ export function GauntletAccordionItem({
       value={itemValue}
       className="bg-stone-800/30 border border-stone-700/50 rounded-md px-0"
     >
-      <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-stone-700/30 rounded-t-md data-[state=open]:rounded-b-none data-[state=open]:border-b data-[state=open]:border-stone-700/50">
+      <AccordionTrigger className="px-3 py-2 hover:no-underline hover:bg-stone-700/30 rounded-t-md data-[state=open]:rounded-b-none data-[state=open]:border-b data-[state=open]:border-stone-700/50">
         <div className="flex justify-between items-center w-full">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <Trophy
-              className={`h-6 w-6 ${
+              className={`h-4 w-4 ${
                 isSelectedPlayerTheChampion
                   ? "text-yellow-400"
                   : "text-stone-500"
               }`}
             />
             <div className="text-left">
-              <span className="font-medium text-base text-stone-200">
+              <span className="font-medium text-xs text-stone-200">
                 Gauntlet #{gauntlet.id.substring(0, 6)}... ({gauntlet.size}
                 -player)
               </span>
-              <p className="text-xs text-stone-400">
+              <p className="text-[10px] text-stone-400">
                 {gauntlet.isCompleted ? "Completed" : "Started"}:{" "}
                 {formatDate(gauntlet.displayTimestamp)}
                 {gauntlet.isCompleted && gauntlet.champion?.fullName && (
-                  <span className="ml-2 text-yellow-400">
+                  <span className="ml-1 text-yellow-400">
                     (Champion: {gauntlet.champion.fullName})
                   </span>
                 )}
                 {!gauntlet.isCompleted && gauntlet.state !== "PENDING" && (
-                  <span className="ml-2 text-orange-400">
+                  <span className="ml-1 text-orange-400">
                     ({gauntlet.state})
                   </span>
                 )}
@@ -489,28 +489,28 @@ export function GauntletAccordionItem({
             </div>
           </div>
           <div className="text-right">
-            <p className="text-sm text-stone-300">
+            <p className="text-xs text-stone-300">
               Prize: {formatEther(BigInt(gauntlet.prizeAwarded))} ETH
             </p>
-            <p className="text-xs text-stone-500">
+            <p className="text-[10px] text-stone-500">
               Entry: {formatEther(BigInt(gauntlet.entryFee))} ETH
             </p>
           </div>
         </div>
       </AccordionTrigger>
-      <AccordionContent className="px-4 py-3 text-sm text-stone-300 border-t border-stone-700/50 space-y-3">
+      <AccordionContent className="px-3 py-2 text-xs text-stone-300 border-t border-stone-700/50 space-y-2">
         <div>
-          <h4 className="font-semibold text-stone-200 mb-2">
+          <h4 className="font-semibold text-xs text-stone-200 mb-1.5">
             Participants (
             {participants?.length || gauntlet.finalParticipantIds?.length || 0}
             ):
           </h4>
           {isLoadingParticipants ? (
-            <div className="flex justify-center py-4">
-              <Loader2 className="h-6 w-6 animate-spin text-yellow-500" />
+            <div className="flex justify-center py-2">
+              <Loader2 className="h-4 w-4 animate-spin text-yellow-500" />
             </div>
           ) : participants && participants.length > 0 ? (
-            <div className="flex flex-wrap gap-3 justify-center sm:justify-start">
+            <div className="flex flex-wrap gap-2 justify-center sm:justify-start">
               {participants.map((fighter) => (
                 <ParticipantCard
                   key={fighter.id}
@@ -524,13 +524,13 @@ export function GauntletAccordionItem({
               ))}
             </div>
           ) : (
-            <p className="text-xs text-stone-400">
+            <p className="text-[10px] text-stone-400">
               Participant details not available.
             </p>
           )}
         </div>
 
-        <div className="mt-4">{renderRoundsAndFights()}</div>
+        <div className="mt-2">{renderRoundsAndFights()}</div>
       </AccordionContent>
     </AccordionItem>
   );

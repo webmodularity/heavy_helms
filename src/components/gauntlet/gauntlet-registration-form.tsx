@@ -113,46 +113,25 @@ export function GauntletRegistrationForm({
   const prevLastUpdatedRef = useRef<string | null>(null);
 
   useEffect(() => {
-    console.log(
-      `Effect 1 Check: justUpdatedOptimistically=${justUpdatedOptimistically.current}, charId=${character.id}, charStatus=${character.gauntletStatus}, localStatus=${localIsInQueue}`,
-    );
     if (justUpdatedOptimistically.current) {
-      console.log(
-        "Effect 1: Skipping sync for localIsInQueue due to optimistic update flag.",
-      );
       return;
     }
 
     const propIsInQueue =
       character.gauntletStatus !== PlayerGauntletStatus.NONE;
     if (propIsInQueue !== localIsInQueue) {
-      console.log(
-        `GauntletForm (Effect 1 - Prop Sync): Syncing localIsInQueue (${propIsInQueue}) from prop for character ${character.id}. Was: ${localIsInQueue}`,
-      );
       setLocalIsInQueue(propIsInQueue);
     }
   }, [character.id, character.gauntletStatus, localIsInQueue]);
 
   useEffect(() => {
-    console.log(
-      `Effect 2 Check: justUpdatedOptimistically=${justUpdatedOptimistically.current}, statsSuccess=${isStatsSuccess}, localQueueSize=${localQueueSize}`,
-    );
     if (justUpdatedOptimistically.current) {
-      console.log(
-        "Effect 2: Skipping sync for localQueueSize due to optimistic update flag.",
-      );
       return;
     }
 
     if (isStatsSuccess && statsData?.stats) {
       const newQueueSize = statsData.stats.currentGauntletQueueSize;
-      console.log(
-        `Effect 2 Stats: newQueueSize=${newQueueSize}, localQueueSize=${localQueueSize}`,
-      );
       if (localQueueSize === null || localQueueSize !== newQueueSize) {
-        console.log(
-          `GauntletForm (Effect 2 - Query Sync): ${localQueueSize === null ? "Initial" : "Updating"} queue size (${newQueueSize}) from stats. Was: ${localQueueSize}`,
-        );
         setLocalQueueSize(newQueueSize);
       }
       if (!hasLoadedInitialData) {
@@ -161,11 +140,9 @@ export function GauntletRegistrationForm({
     }
   }, [statsData, isStatsSuccess, localQueueSize, hasLoadedInitialData]);
 
-  // Effect 3: Invalidate owned-players query if global gauntlet stats change
-  // significantly while the current player is thought to be in the queue.
+  // Effect for invalidating owned-players query if global gauntlet stats change
   useEffect(() => {
     if (!address || !isStatsSuccess || !statsData?.stats) {
-      // console.log("Effect 3: Skipping invalidation (no address or stats not ready).");
       return;
     }
 
@@ -182,9 +159,6 @@ export function GauntletRegistrationForm({
         prevLastUpdatedRef.current !== currentLastUpdated;
 
       if (localIsInQueue && (queueSizeChanged || lastUpdatedChanged)) {
-        console.log(
-          `GauntletForm (Effect 3 - Invalidation Trigger): Player ${character.id} (localIsInQueue=${localIsInQueue}). Global Gauntlet stats changed. Invalidating owned-players. PrevQ: ${prevQueueSizeRef.current}, NewQ: ${currentQueueSize}. PrevLU: ${prevLastUpdatedRef.current}, NewLU: ${currentLastUpdated}`,
-        );
         queryClient.invalidateQueries({
           queryKey: ["owned-players", address],
         });
@@ -200,24 +174,17 @@ export function GauntletRegistrationForm({
     localIsInQueue,
     queryClient,
     address,
-    character.id, // Re-evaluate if the character context changes
+    character.id,
   ]);
 
   useEffect(() => {
-    // This effect runs after every render.
     if (justUpdatedOptimistically.current) {
-      console.log(
-        "End-of-render cycle Effect: Scheduling reset of justUpdatedOptimistically flag.",
-      );
       const timerId = setTimeout(() => {
-        console.log(
-          "setTimeout: Resetting justUpdatedOptimistically flag now.",
-        );
         justUpdatedOptimistically.current = false;
       }, 0);
-      return () => clearTimeout(timerId); // Cleanup timer if component unmounts
+      return () => clearTimeout(timerId);
     }
-  }, [justUpdatedOptimistically.current]); // Add dependency to re-run if flag changes
+  }, [justUpdatedOptimistically.current]);
 
   const requiredSize = statsData?.stats?.currentGauntletSize ?? 0;
   const currentEntryFeeWei = BigInt(
@@ -253,19 +220,12 @@ export function GauntletRegistrationForm({
       character,
       entryFeeWei: currentEntryFeeWei,
       onSuccess: () => {
-        console.log(
-          "Register Success: Setting optimistic state & flag. Invalidating gameStats.",
-        );
         justUpdatedOptimistically.current = true;
         setLocalQueueSize((prev) => {
           const nextSize = prev !== null ? prev + 1 : 1;
-          console.log(
-            `Register Optimistic: prevSize=${prev}, nextSize=${nextSize}`,
-          );
           return nextSize;
         });
         setLocalIsInQueue(true);
-        console.log("Register Optimistic: localIsInQueue set to true");
         queryClient.invalidateQueries({ queryKey: ["gameStats"] });
         onRegister();
       },
@@ -281,38 +241,24 @@ export function GauntletRegistrationForm({
     withdrawPlayer({
       playerId: Number.parseInt(character.id, 10),
       onSuccess: () => {
-        console.log(
-          "Withdraw Success: Setting optimistic state & flag. Invalidating gameStats.",
-        );
         justUpdatedOptimistically.current = true;
         setLocalQueueSize((prev) => {
           const nextSize = prev !== null ? Math.max(0, prev - 1) : 0;
-          console.log(
-            `Withdraw Optimistic: prevSize=${prev}, nextSize=${nextSize}`,
-          );
           return nextSize;
         });
         setLocalIsInQueue(false);
-        console.log("Withdraw Optimistic: localIsInQueue set to false");
         queryClient.invalidateQueries({ queryKey: ["gameStats"] });
       },
       onError: (err) => {
         console.error("Withdraw TX Error:", err.message);
-        // Potentially reset optimistic state here
-        // justUpdatedOptimistically.current = false;
       },
     });
   };
 
-  // Add a log before returning the JSX to see the state values for the render
-  console.log(
-    `RENDER: charId=${character.id}, localIsInQueue=${localIsInQueue}, localQueueSize=${localQueueSize}, isProcessing=${isProcessing}, isReady=${isReady}, propGauntletStatus=${character.gauntletStatus}`,
-  );
-
   return (
     <TooltipProvider delayDuration={100}>
       <motion.div
-        className="space-y-4 bg-gradient-to-b from-amber-900/10 to-stone-900/40 rounded-lg border border-yellow-600/20 p-6 h-full flex flex-col justify-between"
+        className="space-y-3 bg-gradient-to-b from-amber-900/10 to-stone-900/40 rounded-lg border border-yellow-600/20 p-3 h-full flex flex-col justify-between"
         initial={{ opacity: 0, y: 40 }}
         animate={{
           opacity: 1,
@@ -321,14 +267,17 @@ export function GauntletRegistrationForm({
         }}
         exit={{ opacity: 0, y: 40, transition: { duration: 0.3 } }}
       >
-        <div className="space-y-4">
-          <h2 className="text-xl font-bold text-yellow-400 mb-4">
+        <div className="space-y-3">
+          <h2 className="text-base font-bold text-yellow-400 mb-2">
             Gauntlet Registration
           </h2>
 
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <div className="flex items-center gap-1">
-              <Label htmlFor="gauntletStatus" className="text-stone-300">
+              <Label
+                htmlFor="gauntletStatus"
+                className="text-xs text-stone-300"
+              >
                 Status
               </Label>
               {!isLoadingStats &&
@@ -337,20 +286,20 @@ export function GauntletRegistrationForm({
                 requiredSize > 0 && (
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Info size={14} className="text-stone-400 cursor-help" />
+                      <Info size={12} className="text-stone-400 cursor-help" />
                     </TooltipTrigger>
                     <TooltipContent
                       side="top"
                       className="max-w-xs text-center space-y-1"
                     >
                       {numberOfRounds && (
-                        <p className="flex items-center justify-center gap-1">
-                          <Swords size={12} /> {numberOfRounds} Rounds
+                        <p className="flex items-center justify-center gap-1 text-xs">
+                          <Swords size={10} /> {numberOfRounds} Rounds
                         </p>
                       )}
                       {formattedMinInterval && (
-                        <p className="flex items-center justify-center gap-1">
-                          <Clock size={12} /> Max {formattedMinInterval}{" "}
+                        <p className="flex items-center justify-center gap-1 text-xs">
+                          <Clock size={10} /> Max {formattedMinInterval}{" "}
                           cooldown after full queue.
                         </p>
                       )}
@@ -360,15 +309,15 @@ export function GauntletRegistrationForm({
             </div>
 
             {!isReady ? (
-              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-8 w-full" />
             ) : (
-              <div className="grid grid-cols-5 gap-2">
+              <div className="grid grid-cols-5 gap-1.5">
                 <div className="relative col-span-4">
                   <Input
                     id="gauntletStatus"
                     readOnly
                     value={`${localQueueSize ?? "??"} / ${requiredSize} REGISTERED`}
-                    className="bg-stone-900/50 border-yellow-600/20 text-stone-200 text-center font-medium tracking-wider"
+                    className="bg-stone-900/50 border-yellow-600/20 text-stone-200 text-center font-medium tracking-wider h-8 text-xs"
                   />
                 </div>
                 <YellowButton
@@ -383,43 +332,50 @@ export function GauntletRegistrationForm({
                     !!errorStats ||
                     requiredSize === 0
                   }
+                  className="h-8 p-0"
                 >
-                  <Users className="h-4 w-4" />
+                  <Users className="h-3.5 w-3.5" />
                 </YellowButton>
               </div>
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4 pt-0">
-            <div className="space-y-2">
-              <Label htmlFor="gauntletEntryFee" className="text-stone-300">
+          <div className="grid grid-cols-2 gap-3 pt-0">
+            <div className="space-y-1.5">
+              <Label
+                htmlFor="gauntletEntryFee"
+                className="text-xs text-stone-300"
+              >
                 Entry Fee
               </Label>
               {!isReady ? (
-                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-8 w-full" />
               ) : (
                 <Input
                   id="gauntletEntryFee"
                   readOnly
                   value={`${formattedEntryFee} ETH`}
-                  className="bg-stone-900/50 border-yellow-600/20 text-stone-200 text-center font-medium"
+                  className="bg-stone-900/50 border-yellow-600/20 text-stone-200 text-center font-medium h-8 text-xs"
                   aria-label="Gauntlet entry fee"
                 />
               )}
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="gauntletPayout" className="text-stone-300">
+            <div className="space-y-1.5">
+              <Label
+                htmlFor="gauntletPayout"
+                className="text-xs text-stone-300"
+              >
                 Gauntlet Prize
               </Label>
               {!isReady || requiredSize === 0 ? (
-                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-8 w-full" />
               ) : (
                 <Input
                   id="gauntletPayout"
                   readOnly
                   value={`${formattedPrecisePayout} ETH`}
-                  className="bg-stone-900/50 border-yellow-600/20 text-stone-200 text-center font-medium"
+                  className="bg-stone-900/50 border-yellow-600/20 text-stone-200 text-center font-medium h-8 text-xs"
                   aria-label="Calculated gauntlet prize"
                 />
               )}
@@ -427,8 +383,8 @@ export function GauntletRegistrationForm({
           </div>
 
           {errorStats && !isProcessing && (
-            <div className="flex items-center gap-2 p-2 text-sm text-red-400 bg-red-900/20 border border-red-500/30 rounded-md">
-              <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+            <div className="flex items-center gap-1.5 p-1.5 text-xs text-red-400 bg-red-900/20 border border-red-500/30 rounded-md">
+              <AlertTriangle className="h-3 w-3 flex-shrink-0" />
               <span>
                 Error fetching gauntlet data. {(errorStats as Error)?.message}
               </span>
@@ -436,10 +392,10 @@ export function GauntletRegistrationForm({
           )}
         </div>
 
-        <div className="flex gap-3 pt-2">
+        <div className="flex gap-2 pt-1.5">
           <YellowButton
             onClick={isInQueue ? handleWithdrawClick : handleRegisterClick}
-            className={`w-full ${
+            className={`w-full text-xs py-1.5 h-auto ${
               isInQueue
                 ? "bg-red-700 hover:bg-red-800 border-red-700 hover:border-red-800 text-white"
                 : ""
@@ -449,7 +405,7 @@ export function GauntletRegistrationForm({
             }
           >
             {(isQueuing || isWithdrawing) && (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />
             )}
             {isInQueue
               ? isWithdrawing
@@ -462,7 +418,7 @@ export function GauntletRegistrationForm({
           <YellowButton
             onClick={onCancel}
             variant="outline"
-            className="w-full"
+            className="w-full text-xs py-1.5 h-auto"
             disabled={isProcessing}
           >
             Cancel
