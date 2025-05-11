@@ -2,7 +2,6 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { SectionHeader } from "@/components/ui/section-header";
 import { motion } from "framer-motion";
 import { useCancelChallenge } from "@/hooks/use-cancel-challenge";
 import { useAcceptChallenge } from "@/hooks/use-accept-challenge";
@@ -14,7 +13,6 @@ import { toast } from "sonner";
 import type { Player } from "@/types/player.types";
 import { type Challenge, useChallenges } from "@/hooks/use-challenges";
 import { useRecentDuels } from "@/hooks/use-recent-duels";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChallengeCard } from "@/components/home/challenge-card";
 import {
@@ -38,14 +36,19 @@ export function ActivitySection({ selectedCharacter }: ActivitySectionProps) {
   const { isConnected } = useAccount();
 
   return (
-    <section className="mb-8" id="activity-section">
-      <SectionHeader title="Battle Chronicles" subtitle="YOUR SAGA" />
+    <section className="mb-6" id="activity-section">
+      <div className="text-center mb-3">
+        <h2 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-600 uppercase tracking-wider">
+          Battle Chronicles
+        </h2>
+        <div className="text-yellow-400/90 text-xs font-medium">YOUR SAGA</div>
+      </div>
 
       <motion.div
-        className="bg-gradient-to-b from-amber-900/5 to-stone-900/30 rounded-lg border border-yellow-600/10 p-6"
+        className="bg-gradient-to-b from-amber-900/5 to-stone-900/30 rounded-lg border border-yellow-600/10 p-3"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.7, delay: 0.7 }}
+        transition={{ duration: 0.5, delay: 0.5 }}
       >
         {isConnected ? (
           <BattleTabs selectedCharacter={selectedCharacter} />
@@ -101,35 +104,35 @@ function BattleTabs({
       className="w-full"
     >
       <div className="flex items-center justify-between mb-0">
-        <TabsList className="bg-transparent p-0 border-b border-stone-600 rounded-none w-full">
+        <TabsList className="bg-transparent p-0 border-b border-stone-600 rounded-none w-full h-8">
           <TabsTrigger
             value="gauntlets"
-            className="px-5 py-3 text-stone-400 border-b-2 border-transparent 
+            className="px-3 py-1.5 text-xs text-stone-400 border-b-2 border-transparent 
                        data-[state=active]:text-yellow-500 data-[state=active]:border-b-yellow-500/50 data-[state=active]:bg-yellow-500/5 data-[state=active]:rounded-tl-md data-[state=active]:rounded-tr-md
                        data-[state=inactive]:hover:text-yellow-400 data-[state=inactive]:hover:bg-yellow-500/10 data-[state=inactive]:hover:border-b-yellow-400/50
                        rounded-none focus-visible:ring-offset-0 focus-visible:ring-0"
           >
-            Recent Gauntlets
+            Gauntlets
           </TabsTrigger>
           <TabsTrigger
             value="duels"
-            className="px-5 py-3 text-stone-400 border-b-2 border-transparent 
+            className="px-3 py-1.5 text-xs text-stone-400 border-b-2 border-transparent 
                        data-[state=active]:text-yellow-500 data-[state=active]:border-b-yellow-500/50 data-[state=active]:bg-yellow-500/5 data-[state=active]:rounded-tl-md data-[state=active]:rounded-tr-md
                        data-[state=inactive]:hover:text-yellow-400 data-[state=inactive]:hover:bg-yellow-500/10 data-[state=inactive]:hover:border-b-yellow-400/50
                        rounded-none focus-visible:ring-offset-0 focus-visible:ring-0"
           >
-            Recent Duels
+            Duels
           </TabsTrigger>
           <TabsTrigger
             value="challenges"
-            className="px-5 py-3 text-stone-400 border-b-2 border-transparent 
+            className="px-3 py-1.5 text-xs text-stone-400 border-b-2 border-transparent 
                        data-[state=active]:text-yellow-500 data-[state=active]:border-b-yellow-500/50 data-[state=active]:bg-yellow-500/5 data-[state=active]:rounded-tl-md data-[state=active]:rounded-tr-md
                        data-[state=inactive]:hover:text-yellow-400 data-[state=inactive]:hover:bg-yellow-500/10 data-[state=inactive]:hover:border-b-yellow-400/50
                        rounded-none focus-visible:ring-offset-0 focus-visible:ring-0 relative"
           >
-            Active Challenges
+            Challenges
             {activeCharacterChallenges.length > 0 && (
-              <span className="absolute top-1.5 right-1.5 bg-amber-600 text-amber-50 text-xs font-bold rounded-full min-w-[20px] h-5 px-1.5 flex items-center justify-center">
+              <span className="absolute top-0.5 right-0.5 bg-amber-600 text-amber-50 text-[10px] font-bold rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center">
                 {activeCharacterChallenges.length}
               </span>
             )}
@@ -137,12 +140,12 @@ function BattleTabs({
         </TabsList>
       </div>
 
-      <div className="mt-0 pt-6 pb-0 px-0">
-        <TabsContent value="gauntlets" className="space-y-4 mt-0">
+      <div className="mt-0 pt-3 pb-0 px-0">
+        <TabsContent value="gauntlets" className="space-y-2 mt-0">
           <RecentGauntletsTabContent selectedCharacter={selectedCharacter} />
         </TabsContent>
 
-        <TabsContent value="duels" className="space-y-4 mt-0">
+        <TabsContent value="duels" className="space-y-2 mt-0">
           <RecentDuelsTabContent selectedCharacter={selectedCharacter} />
         </TabsContent>
 
@@ -198,84 +201,81 @@ function RecentGauntletsTabContent({
 
   if (isLoading && gauntlets.length === 0) {
     return (
-      <div className="flex justify-center py-8">
-        <Loader2 className="h-8 w-8 text-yellow-500 animate-spin" />
+      <div className="flex justify-center py-4">
+        <Loader2 className="h-6 w-6 text-yellow-500 animate-spin" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="text-center py-8 text-red-400">
-        <p>Failed to load recent gauntlets</p>
-        <p className="text-sm text-red-300 mt-2">Please try again later</p>
-        <YellowButton
+      <div className="text-center py-4 text-red-400">
+        <p className="text-sm">Failed to load recent gauntlets</p>
+        <button
           onClick={handleRefetch}
-          className="mt-4"
-          size="sm"
-          variant="default"
+          className="mt-2 py-1 px-2 text-xs border border-yellow-500 text-yellow-500 rounded hover:bg-yellow-500/10 inline-flex items-center"
+          type="button"
         >
           <Loader2
-            className={`mr-2 h-4 w-4 ${isRefetching ? "animate-spin" : ""}`}
+            className={`mr-1 h-3 w-3 ${isRefetching ? "animate-spin" : ""}`}
           />
           Refresh
-        </YellowButton>
+        </button>
       </div>
     );
   }
 
   if (!selectedCharacter) {
     return (
-      <div className="text-center py-8 text-stone-300">
-        <Trophy className="h-12 w-12 mx-auto mb-4 text-yellow-600/50" />
-        <h3 className="text-lg font-medium text-yellow-500 mb-2">
-          Please select a warrior to view recent gauntlets.
-        </h3>
+      <div className="text-center py-4 text-stone-300">
+        <Trophy className="h-8 w-8 mx-auto mb-2 text-yellow-600/50" />
+        <p className="text-sm text-yellow-500">
+          Please select a warrior to view gauntlets
+        </p>
       </div>
     );
   }
 
   if (gauntlets.length === 0) {
     return (
-      <div className="text-center py-8 text-stone-300">
-        <Trophy className="h-12 w-12 mx-auto mb-4 text-yellow-600/50" />
-        <h3 className="text-lg font-medium text-yellow-500 mb-2">
+      <div className="text-center py-4 text-stone-300">
+        <Trophy className="h-8 w-8 mx-auto mb-2 text-yellow-600/50" />
+        <p className="text-sm text-yellow-500 mb-2">
           This warrior has no recent gauntlets.
-        </h3>
-        <YellowButton
+        </p>
+        <button
           onClick={handleRefetch}
-          className="mt-4"
-          size="sm"
-          variant="default"
+          className="mt-2 py-1 px-2 text-xs border border-yellow-500 text-yellow-500 rounded hover:bg-yellow-500/10 inline-flex items-center"
+          type="button"
         >
           <Loader2
-            className={`mr-2 h-4 w-4 ${isRefetching ? "animate-spin" : ""}`}
+            className={`mr-1 h-3 w-3 ${isRefetching ? "animate-spin" : ""}`}
           />
           Refresh
-        </YellowButton>
+        </button>
       </div>
     );
   }
 
   return (
     <div className="space-y-2">
-      <div className="flex justify-end mb-4">
-        <YellowButton
+      <div className="flex justify-end mb-2">
+        <button
           onClick={handleRefetch}
-          size="sm"
-          variant="default"
+          className="py-1 px-2 text-xs border border-yellow-500 text-yellow-500 rounded hover:bg-yellow-500/10 inline-flex items-center"
           disabled={isRefetching}
+          type="button"
         >
           {isRefetching ? (
             <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Refreshing...
+              <Loader2 className="mr-1 h-3 w-3 animate-spin" /> Refreshing...
             </>
           ) : (
             <>
-              <Loader2 className="mr-2 h-4 w-4" /> Refresh
+              <Loader2 className="mr-1 h-3 w-3" /> Refresh
             </>
           )}
-        </YellowButton>
+        </button>
       </div>
 
       <Accordion
@@ -300,19 +300,19 @@ function RecentGauntletsTabContent({
       </Accordion>
 
       {/* Loading more indicator */}
-      <div ref={loadMoreRef} className="py-6 flex justify-center">
+      <div ref={loadMoreRef} className="py-3 flex justify-center">
         {isFetchingNextPage ? (
-          <Loader2 className="h-6 w-6 text-yellow-500 animate-spin" />
+          <Loader2 className="h-5 w-5 text-yellow-500 animate-spin" />
         ) : hasNextPage ? (
-          <Button
-            variant="link"
+          <button
             onClick={() => fetchNextPage()}
-            className="text-yellow-500 hover:text-yellow-400"
+            className="text-xs text-yellow-500 hover:text-yellow-400"
+            type="button"
           >
-            Load More Gauntlets
-          </Button>
+            Load More
+          </button>
         ) : gauntlets.length > 0 ? (
-          <span className="text-sm text-stone-400">
+          <span className="text-xs text-stone-400">
             End of gauntlet history
           </span>
         ) : null}
@@ -352,22 +352,19 @@ function RecentDuelsTabContent({
   };
 
   useEffect(() => {
-    // Disconnect previous observer if it exists
     if (observerRef.current) {
       observerRef.current.disconnect();
     }
 
-    // Create a new IntersectionObserver
     observerRef.current = new IntersectionObserver(
       (entries) => {
         if (entries[0]?.isIntersecting && hasNextPage && !isFetchingNextPage) {
           void fetchNextPage();
         }
       },
-      { rootMargin: "200px" }, // Load more before user reaches the bottom
+      { rootMargin: "200px" },
     );
 
-    // Observe the load more element
     if (loadMoreRef.current) {
       observerRef.current.observe(loadMoreRef.current);
     }
@@ -381,86 +378,83 @@ function RecentDuelsTabContent({
 
   if (isLoading && duels.length === 0) {
     return (
-      <div className="flex justify-center py-8">
-        <Loader2 className="h-8 w-8 text-yellow-500 animate-spin" />
+      <div className="flex justify-center py-4">
+        <Loader2 className="h-6 w-6 text-yellow-500 animate-spin" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="text-center py-8 text-red-400">
-        <p>Failed to load recent duels</p>
-        <p className="text-sm text-red-300 mt-2">Please try again later</p>
-        <YellowButton
+      <div className="text-center py-4 text-red-400">
+        <p className="text-sm">Failed to load recent duels</p>
+        <button
           onClick={handleRefetch}
-          className="mt-4"
-          size="sm"
-          variant="default"
+          className="mt-2 py-1 px-2 text-xs border border-yellow-500 text-yellow-500 rounded hover:bg-yellow-500/10 inline-flex items-center"
           disabled={isRefetching || isLoading}
+          type="button"
         >
           <Loader2
-            className={`mr-2 h-4 w-4 ${isRefetching ? "animate-spin" : ""}`}
+            className={`mr-1 h-3 w-3 ${isRefetching ? "animate-spin" : ""}`}
           />
           Refresh
-        </YellowButton>
+        </button>
       </div>
     );
   }
 
   if (!selectedCharacter) {
     return (
-      <div className="text-center py-8 text-stone-300">
-        <Swords className="h-12 w-12 mx-auto mb-4 text-yellow-600/50" />
-        <h3 className="text-lg font-medium text-yellow-500 mb-2">
-          Please select a warrior to view your recent duels.
-        </h3>
+      <div className="text-center py-4 text-stone-300">
+        <Swords className="h-8 w-8 mx-auto mb-2 text-yellow-600/50" />
+        <p className="text-sm text-yellow-500">
+          Please select a warrior to view duels
+        </p>
       </div>
     );
   }
 
   if (duels.length === 0) {
     return (
-      <div className="text-center py-8 text-stone-300">
-        <Swords className="h-12 w-12 mx-auto mb-4 text-yellow-600/50" />
-        <h3 className="text-lg font-medium text-yellow-500 mb-2">
+      <div className="text-center py-4 text-stone-300">
+        <Swords className="h-8 w-8 mx-auto mb-2 text-yellow-600/50" />
+        <p className="text-sm text-yellow-500 mb-2">
           No recent duels found for this warrior
-        </h3>
-        <YellowButton
+        </p>
+        <button
           onClick={handleRefetch}
-          className="mt-4"
-          size="sm"
-          variant="default"
+          className="mt-2 py-1 px-2 text-xs border border-yellow-500 text-yellow-500 rounded hover:bg-yellow-500/10 inline-flex items-center"
           disabled={isRefetching || isLoading}
+          type="button"
         >
           <Loader2
-            className={`mr-2 h-4 w-4 ${isRefetching ? "animate-spin" : ""}`}
+            className={`mr-1 h-3 w-3 ${isRefetching ? "animate-spin" : ""}`}
           />
           Refresh
-        </YellowButton>
+        </button>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       <div className="flex justify-end mb-2">
-        <YellowButton
+        <button
           onClick={handleRefetch}
-          size="sm"
-          variant="default"
+          className="py-1 px-2 text-xs border border-yellow-500 text-yellow-500 rounded hover:bg-yellow-500/10 inline-flex items-center"
           disabled={isRefetching || isLoading}
+          type="button"
         >
           {isRefetching ? (
             <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Refreshing...
+              <Loader2 className="mr-1 h-3 w-3 animate-spin" /> Refreshing...
             </>
           ) : (
             <>
-              <Loader2 className="mr-2 h-4 w-4" /> Refresh
+              <Loader2 className="mr-1 h-3 w-3" /> Refresh
             </>
           )}
-        </YellowButton>
+        </button>
       </div>
 
       {duels.map((duel) => {
@@ -496,33 +490,31 @@ function RecentDuelsTabContent({
             role="button"
             tabIndex={isNavigatingThisDuel ? -1 : 0}
           >
-            <div className="p-4">
+            <div className="p-2">
               <div className="flex justify-between mb-1">
                 <span
-                  className={`font-medium ${isVictory ? "text-yellow-400" : "text-red-400"}`}
+                  className={`text-xs font-medium ${isVictory ? "text-yellow-400" : "text-red-400"}`}
                 >
-                  {isVictory ? "Victory in Duel" : "Defeat in Duel"}
+                  {isVictory ? "Victory" : "Defeat"}
                 </span>
-                <span className="text-stone-400 text-sm">
+                <span className="text-stone-400 text-[10px]">
                   {new Date(
                     Number.parseInt(duel.blockTimestamp) * 1000,
                   ).toLocaleDateString()}
                 </span>
               </div>
               <div className="flex justify-between items-center">
-                <p className="text-stone-300 text-sm">
-                  Your warrior {userFighter.fullName}{" "}
-                  {isVictory ? "defeated" : "was defeated by"}{" "}
-                  {opponentFighter.fullName}
+                <p className="text-stone-300 text-xs truncate max-w-[60%]">
+                  vs {opponentFighter.fullName}
                 </p>
-                <div className="flex items-center gap-2">
-                  <span className="text-yellow-500 font-medium">
+                <div className="flex items-center gap-1">
+                  <span className="text-yellow-500 text-xs font-medium">
                     {formatEther(BigInt(duel.challenge.wagerAmount))} ETH
                   </span>
                   {isNavigatingThisDuel ? (
-                    <Loader2 className="h-5 w-5 text-yellow-500 animate-spin" />
+                    <Loader2 className="h-3 w-3 text-yellow-500 animate-spin" />
                   ) : (
-                    <ChevronRight className="h-5 w-5 text-yellow-500" />
+                    <ChevronRight className="h-3 w-3 text-yellow-500" />
                   )}
                 </div>
               </div>
@@ -532,13 +524,13 @@ function RecentDuelsTabContent({
       })}
 
       {/* Loading more indicator */}
-      <div ref={loadMoreRef} className="py-4 flex justify-center">
+      <div ref={loadMoreRef} className="py-2 flex justify-center">
         {isFetchingNextPage ? (
-          <Loader2 className="h-6 w-6 text-yellow-500 animate-spin" />
+          <Loader2 className="h-5 w-5 text-yellow-500 animate-spin" />
         ) : hasNextPage ? (
-          <span className="text-sm text-stone-400">Scroll for more</span>
+          <span className="text-xs text-stone-400">Scroll for more</span>
         ) : duels.length > 0 ? (
-          <span className="text-sm text-stone-400">End of duel history</span>
+          <span className="text-xs text-stone-400">End of duel history</span>
         ) : null}
       </div>
     </div>
@@ -584,22 +576,19 @@ function ActiveChallenges({
 
   // Set up infinite scroll
   useEffect(() => {
-    // Disconnect previous observer if it exists
     if (observerRef.current) {
       observerRef.current.disconnect();
     }
 
-    // Create a new IntersectionObserver
     observerRef.current = new IntersectionObserver(
       (entries) => {
         if (entries[0]?.isIntersecting && hasNextPage && !isFetchingNextPage) {
           void fetchNextPage();
         }
       },
-      { rootMargin: "200px" }, // Load more before user reaches the bottom
+      { rootMargin: "200px" },
     );
 
-    // Observe the load more element
     if (loadMoreRef.current) {
       observerRef.current.observe(loadMoreRef.current);
     }
@@ -613,61 +602,58 @@ function ActiveChallenges({
 
   if (isLoading && characterChallenges.length === 0) {
     return (
-      <div className="flex justify-center py-8">
-        <Loader2 className="h-8 w-8 text-yellow-500 animate-spin" />
+      <div className="flex justify-center py-4">
+        <Loader2 className="h-6 w-6 text-yellow-500 animate-spin" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="text-center py-8 text-red-400">
-        <p>Failed to load challenges</p>
-        <p className="text-sm text-red-300 mt-2">Please try again later</p>
-        <YellowButton
-          variant="default"
+      <div className="text-center py-4 text-red-400">
+        <p className="text-sm">Failed to load challenges</p>
+        <button
           onClick={handleRefetch}
-          className="mt-4"
-          size="sm"
+          className="mt-2 py-1 px-2 text-xs border border-yellow-500 text-yellow-500 rounded hover:bg-yellow-500/10 inline-flex items-center"
+          type="button"
         >
           <Loader2
-            className={`mr-2 h-4 w-4 ${isRefetching ? "animate-spin" : ""}`}
+            className={`mr-1 h-3 w-3 ${isRefetching ? "animate-spin" : ""}`}
           />
           Refresh
-        </YellowButton>
+        </button>
       </div>
     );
   }
 
   if (!selectedCharacter) {
     return (
-      <div className="text-center py-8 text-stone-300">
-        <Shield className="h-12 w-12 mx-auto mb-4 text-yellow-600/50" />
-        <h3 className="text-lg font-medium text-yellow-500 mb-2">
-          Please select a warrior to view your active challenges
-        </h3>
+      <div className="text-center py-4 text-stone-300">
+        <Shield className="h-8 w-8 mx-auto mb-2 text-yellow-600/50" />
+        <p className="text-sm text-yellow-500">
+          Please select a warrior to view your challenges
+        </p>
       </div>
     );
   }
 
   if (characterChallenges.length === 0) {
     return (
-      <div className="text-center py-8 text-stone-300">
-        <Shield className="h-12 w-12 mx-auto mb-4 text-yellow-600/50" />
-        <h3 className="text-lg font-medium text-yellow-500 mb-2">
+      <div className="text-center py-4 text-stone-300">
+        <Shield className="h-8 w-8 mx-auto mb-2 text-yellow-600/50" />
+        <p className="text-sm text-yellow-500 mb-2">
           This warrior has no active challenges
-        </h3>
-        <YellowButton
+        </p>
+        <button
           onClick={handleRefetch}
-          className="mt-4"
-          size="sm"
-          variant="default"
+          className="mt-2 py-1 px-2 text-xs border border-yellow-500 text-yellow-500 rounded hover:bg-yellow-500/10 inline-flex items-center"
+          type="button"
         >
           <Loader2
-            className={`mr-2 h-4 w-4 ${isRefetching ? "animate-spin" : ""}`}
+            className={`mr-1 h-3 w-3 ${isRefetching ? "animate-spin" : ""}`}
           />
           Refresh
-        </YellowButton>
+        </button>
       </div>
     );
   }
@@ -705,24 +691,24 @@ function ActiveChallenges({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-2">
       <div className="flex justify-end mb-2">
-        <YellowButton
+        <button
           onClick={handleRefetch}
-          size="sm"
-          variant="default"
+          className="py-1 px-2 text-xs border border-yellow-500 text-yellow-500 rounded hover:bg-yellow-500/10 inline-flex items-center"
           disabled={isRefetching}
+          type="button"
         >
           {isRefetching ? (
             <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Refreshing...
+              <Loader2 className="mr-1 h-3 w-3 animate-spin" /> Refreshing...
             </>
           ) : (
             <>
-              <Loader2 className="mr-2 h-4 w-4" /> Refresh
+              <Loader2 className="mr-1 h-3 w-3" /> Refresh
             </>
           )}
-        </YellowButton>
+        </button>
       </div>
 
       {characterChallenges.map((challenge) => (
@@ -745,13 +731,13 @@ function ActiveChallenges({
       ))}
 
       {/* Loading more indicator */}
-      <div ref={loadMoreRef} className="py-4 flex justify-center">
+      <div ref={loadMoreRef} className="py-3 flex justify-center">
         {isFetchingNextPage ? (
-          <Loader2 className="h-6 w-6 text-yellow-500 animate-spin" />
+          <Loader2 className="h-5 w-5 text-yellow-500 animate-spin" />
         ) : hasNextPage ? (
-          <span className="text-sm text-stone-400">Scroll for more</span>
+          <span className="text-xs text-stone-400">Scroll for more</span>
         ) : characterChallenges.length > 0 ? (
-          <span className="text-sm text-stone-400">End of challenges</span>
+          <span className="text-xs text-stone-400">End of challenges</span>
         ) : null}
       </div>
     </div>
