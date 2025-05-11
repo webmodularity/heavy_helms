@@ -3,7 +3,6 @@
 import { CardContainer } from "@/components/character/card-container";
 import type { Player } from "@/types/player.types";
 import Image from "next/image";
-import { YellowButton } from "@/components/ui/yellow-button";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Dumbbell,
@@ -12,11 +11,14 @@ import {
   HeartPulse,
   Ruler,
   Dices,
+  Check,
+  Shield,
+  Swords,
+  Flame,
 } from "lucide-react";
-import { Check } from "lucide-react";
 import { StanceSelector } from "./stance-selector";
-import type { StanceType } from "@/types/equipment.types";
-
+import { StanceType } from "@/types/equipment.types";
+import { useState } from "react";
 interface CharacterCardProps {
   character: Player;
   index: number;
@@ -36,15 +38,15 @@ function AttributeBar({
   const percentage = ((value - minValue) / (maxValue - minValue)) * 100;
 
   return (
-    <div className="space-y-1.5">
-      <div className="flex justify-between items-center text-xs">
+    <div className="space-y-1">
+      <div className="flex justify-between items-center text-[10px]">
         <span className="flex items-center text-zinc-400">
           {icon}
-          <span className="ml-1.5">{label}</span>
+          <span className="ml-1">{label}</span>
         </span>
         <span className="font-medium text-white">{value}</span>
       </div>
-      <div className="h-1.5 w-full bg-stone-800/80 rounded-full overflow-hidden">
+      <div className="h-1 w-full bg-stone-800/80 rounded-full overflow-hidden">
         <motion.div
           className="h-full bg-gradient-to-r from-amber-700 to-yellow-500 rounded-full"
           initial={{ width: 0 }}
@@ -79,83 +81,87 @@ export function CharacterCard({
           <Image
             src={character.currentSkin.imageURL}
             alt={`Character ${character.name.fullName}`}
-            width={300}
-            height={300}
+            width={210}
+            height={210}
             className="object-cover transition-transform duration-500 group-hover:scale-105"
             priority
           />
 
           {/* Character ID Badge */}
-          <div className="absolute top-3 left-3 bg-black/70 backdrop-blur-sm px-2 py-1 rounded text-xs font-mono text-yellow-500 border border-yellow-500/30 z-20">
+          <div className="absolute top-2 left-2 bg-black/70 backdrop-blur-sm px-1.5 py-0.5 rounded text-[10px] font-mono text-yellow-500 border border-yellow-500/30 z-20">
             ID: {character.id}
           </div>
 
           {/* Selected Badge */}
           {isSelected && (
-            <div className="absolute top-3 right-3 bg-yellow-500 text-black px-2 py-1 rounded-full text-xs font-bold flex items-center gap-1 z-20 font-bokor">
-              <Check size={12} /> Selected
+            <div className="absolute top-2 right-2 bg-yellow-500 text-black px-1.5 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-0.5 z-20">
+              <Check size={8} /> Selected
             </div>
           )}
         </div>
       </div>
 
-      <div className="p-4 space-y-4">
+      <div className="p-2 space-y-2">
         {/* Character Name */}
-        <h3 className="font-bold text-lg text-yellow-500 truncate">
+        <h3 className="font-bold text-sm text-yellow-500 truncate">
           {character.name.fullName}
         </h3>
 
         {/* Attributes */}
-        <div className="space-y-2.5">
+        <div className="space-y-1.5">
           <AttributeBar
             label="Strength"
             value={character.attributes.strength}
-            icon={<Dumbbell className="h-3.5 w-3.5 text-yellow-600" />}
+            icon={<Dumbbell className="h-2.5 w-2.5 text-yellow-600" />}
           />
           <AttributeBar
             label="Constitution"
             value={character.attributes.constitution}
-            icon={<HeartPulse className="h-3.5 w-3.5 text-yellow-600" />}
+            icon={<HeartPulse className="h-2.5 w-2.5 text-yellow-600" />}
           />
           <AttributeBar
             label="Size"
             value={character.attributes.size}
-            icon={<Ruler className="h-3.5 w-3.5 text-yellow-600" />}
+            icon={<Ruler className="h-2.5 w-2.5 text-yellow-600" />}
           />
           <AttributeBar
             label="Agility"
             value={character.attributes.agility}
-            icon={<Footprints className="h-3.5 w-3.5 text-yellow-600" />}
+            icon={<Footprints className="h-2.5 w-2.5 text-yellow-600" />}
           />
           <AttributeBar
             label="Stamina"
             value={character.attributes.stamina}
-            icon={<Heart className="h-3.5 w-3.5 text-yellow-600" />}
+            icon={<Heart className="h-2.5 w-2.5 text-yellow-600" />}
           />
           <AttributeBar
             label="Luck"
             value={character.attributes.luck}
-            icon={<Dices className="h-3.5 w-3.5 text-yellow-600" />}
+            icon={<Dices className="h-2.5 w-2.5 text-yellow-600" />}
           />
         </div>
 
         {/* Action Buttons */}
-        <div className="grid grid-cols-2 gap-2 pt-2">
-          <YellowButton
+        <div className="grid grid-cols-2 gap-1.5 pt-1">
+          <button
+            type="button"
             onClick={isSelected ? onDeselect : () => onSelect()}
-            className="w-full font-bokor text-lg"
-            variant={isSelected ? "outline" : "default"}
+            className={`py-1 px-2 text-xs rounded ${
+              isSelected
+                ? "border border-yellow-500 text-yellow-500 hover:bg-yellow-500/10"
+                : "bg-yellow-500 text-stone-900 hover:bg-yellow-600"
+            }`}
           >
             {isSelected ? "Deselect" : "Select"}
-          </YellowButton>
+          </button>
 
-          <YellowButton
+          <button
+            type="button"
             onClick={onViewDetails}
-            className="w-full font-bokor text-lg"
-            variant="outline"
+            className="py-1 px-2 text-xs border border-yellow-500 text-yellow-500 rounded hover:bg-yellow-500/10"
           >
             Details
-          </YellowButton>
+          </button>
         </div>
 
         {/* Add AnimatePresence for the stance selector */}
@@ -163,7 +169,7 @@ export function CharacterCard({
           {isSelected && (
             <motion.div
               initial={{ opacity: 0, height: 0, marginTop: 0 }}
-              animate={{ opacity: 1, height: "auto", marginTop: 16 }}
+              animate={{ opacity: 1, height: "auto", marginTop: 8 }}
               exit={{ opacity: 0, height: 0, marginTop: 0 }}
               transition={{
                 duration: 0.3,
@@ -171,7 +177,7 @@ export function CharacterCard({
               }}
               className="overflow-hidden"
             >
-              <StanceSelector
+              <CompactStanceSelector
                 character={character}
                 currentStance={character.stance as StanceType}
                 onStanceChange={(newStance) =>
@@ -183,5 +189,72 @@ export function CharacterCard({
         </AnimatePresence>
       </div>
     </CardContainer>
+  );
+}
+
+// Compact version of the stance selector
+function CompactStanceSelector({
+  character,
+  currentStance,
+  onStanceChange,
+}: {
+  character: Player;
+  currentStance: StanceType;
+  onStanceChange: (newStance: StanceType) => void;
+}) {
+  const [stance, setStance] = useState<StanceType>(currentStance);
+
+  // Icons and descriptions for different stances
+  const stanceInfo = {
+    [StanceType.Defensive]: {
+      icon: <Shield className="h-3 w-3" />,
+      label: "Defensive",
+      color: "bg-gradient-to-r from-emerald-700 to-emerald-500",
+    },
+    [StanceType.Balanced]: {
+      icon: <Swords className="h-3 w-3" />,
+      label: "Balanced",
+      color: "bg-gradient-to-r from-blue-700 to-blue-500",
+    },
+    [StanceType.Offensive]: {
+      icon: <Flame className="h-3 w-3" />,
+      label: "Offensive",
+      color: "bg-gradient-to-r from-orange-700 to-orange-500",
+    },
+  };
+
+  const handleStanceChange = (newStance: StanceType) => {
+    setStance(newStance);
+    onStanceChange(newStance);
+  };
+
+  return (
+    <div className="space-y-1.5">
+      <p className="text-[10px] font-medium text-zinc-400">Combat Stance</p>
+      <div className="flex justify-between p-1 bg-stone-800/60 rounded-md border border-yellow-500/20">
+        {Object.entries(stanceInfo).map(([value, info]) => {
+          const stanceValue = Number(value) as StanceType;
+          const isSelected = stance === stanceValue;
+          return (
+            <button
+              type="button"
+              key={value}
+              onClick={() => handleStanceChange(stanceValue)}
+              className={`flex-1 relative py-1 rounded-sm ${isSelected ? "text-white" : "text-zinc-400"}`}
+            >
+              <div className="flex flex-col items-center gap-0.5 relative z-10">
+                <span className="text-yellow-400">{info.icon}</span>
+                <span className="text-[10px] font-medium">{info.label}</span>
+              </div>
+              {isSelected && (
+                <div
+                  className={`absolute inset-0 ${info.color} rounded-sm opacity-20`}
+                />
+              )}
+            </button>
+          );
+        })}
+      </div>
+    </div>
   );
 }

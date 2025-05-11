@@ -2,8 +2,7 @@
 
 import type { Player } from "@/types/player.types";
 import { useRouter } from "next/navigation";
-import { useRef, useMemo, useEffect, useState } from "react";
-import { SectionHeader } from "../ui/section-header";
+import { useRef, useEffect, useState } from "react";
 import { CharacterCard } from "./playable-character-card";
 import { NewCharacterCard } from "./new-character-card";
 import { CharacterCardSkeleton } from "../ui/skeletons/character-card-skeleton";
@@ -63,15 +62,6 @@ export function WarriorSelection({
     router.push(`/character/${character.id}`);
   };
 
-  // Generate stable skeleton keys
-  // const skeletonKeys = useMemo(
-  //   () =>
-  //     Array(4)
-  //       .fill(0)
-  //       .map((_, i) => `skeleton-${i}`),
-  //   [],
-  // );
-
   const numPlayerCards = players?.length ?? 0;
   const showNewCharacterCard = players && players.length < MAX_PLAYERS;
   const totalScrollItems = numPlayerCards + (showNewCharacterCard ? 1 : 0);
@@ -117,21 +107,23 @@ export function WarriorSelection({
 
   // Render skeleton loaders while characters are loading
   const renderSkeletons = () => {
-    // return skeletonKeys.map((key, index) => (
     return <CharacterCardSkeleton index={0} />;
-    // ));
   };
   return (
-    <section className="mt-4">
-      <SectionHeader
-        title="Warriors"
-        subtitle="Select your warrior to enter the battles"
-      />
+    <section className="mt-3">
+      <div className="text-center mb-3">
+        <h2 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-600 uppercase tracking-wider">
+          Warriors
+        </h2>
+        <div className="text-yellow-400/90 text-xs font-medium">
+          Select your warrior to enter the battles
+        </div>
+      </div>
 
-      <div className="relative max-w-full px-4">
+      <div className="relative max-w-full px-3">
         <div
           ref={characterListRef}
-          className="flex gap-2 mt-4 overflow-x-auto pb-4 pt-2 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-yellow-600/20 scrollbar-track-transparent items-start overscroll-x-contain"
+          className="flex gap-2 mt-3 overflow-x-auto pb-3 pt-1 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-yellow-600/20 scrollbar-track-transparent items-start overscroll-x-contain"
         >
           {isLoading ? (
             renderSkeletons()
@@ -183,30 +175,27 @@ export function WarriorSelection({
                     txHash={txHash}
                   />
                 </div>
-              ) : (
-                <></>
-              )}
+              ) : null}
             </>
           )}
         </div>
 
         {/* Scroll Dots Indicator */}
         {!isLoading && totalScrollItems > 1 && (
-          <div className="flex justify-center items-center pt-3 space-x-2">
+          <div className="flex justify-center items-center pt-2 space-x-1.5">
             {Array.from({ length: totalScrollItems }).map((_, index) => (
               <div
-                key={`dot-${index}`}
-                className={`w-2 h-2 rounded-full transition-colors duration-150 ${
+                key={`dot-${
+                  // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+                  index
+                }`}
+                className={`w-1.5 h-1.5 rounded-full transition-colors duration-150 ${
                   index === activeIndex ? "bg-yellow-400" : "bg-gray-600"
                 }`}
               />
             ))}
           </div>
         )}
-
-        {/* Scroll Indicators - Optional enhancement */}
-        {/* The following div will be removed as it's md:block and desktop is not a priority */}
-        {/* <div className="hidden md:block absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-black/40 to-transparent pointer-events-none" /> */}
       </div>
     </section>
   );

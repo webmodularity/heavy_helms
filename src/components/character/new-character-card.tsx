@@ -3,7 +3,6 @@
 import { motion } from "framer-motion";
 import { PlusIcon } from "lucide-react";
 import { useState } from "react";
-import { Button } from "@/components/ui/button";
 
 type NamePreference = 'male' | 'female';
 
@@ -30,7 +29,7 @@ export function NewCharacterCard({
 
   return (
     <motion.div
-      className={`min-w-[220px] relative rounded-lg overflow-hidden border-2 border-dashed border-yellow-700/40 bg-gradient-to-b from-black/30 to-black/10 flex flex-col justify-center items-center p-5 h-[350px] cursor-pointer transition-colors hover:bg-black/20 hover:border-yellow-700/60 snap-start ${
+      className={`min-w-[210px] relative rounded-lg overflow-hidden border-2 border-dashed border-yellow-700/40 bg-gradient-to-b from-black/30 to-black/10 flex flex-col justify-center items-center p-3 h-auto aspect-[1/1.5] cursor-pointer transition-colors hover:bg-black/20 hover:border-yellow-700/60 snap-start ${
         isCreating ? "pointer-events-none opacity-70" : ""
       }`}
       initial={{ opacity: 0, y: 20 }}
@@ -39,12 +38,12 @@ export function NewCharacterCard({
       onClick={handleCardClick}
     >
       {isCreating ? (
-        <div className="flex flex-col items-center justify-center space-y-4 text-center">
-          <div className="relative w-16 h-16">
+        <div className="flex flex-col items-center justify-center space-y-3 text-center">
+          <div className="relative w-12 h-12">
             <div className="absolute inset-0 rounded-full border-t-2 border-yellow-500 animate-spin" />
             <div className="absolute inset-2 rounded-full border-t-2 border-yellow-300 animate-spin-slow" />
           </div>
-          <p className="text-yellow-400 font-medium mt-2 text-center">
+          <p className="text-yellow-400 font-medium text-xs text-center">
             {txHash ? "Creating character..." : "Confirming transaction..."}
           </p>
           {txHash && (
@@ -52,7 +51,7 @@ export function NewCharacterCard({
               href={`${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${txHash}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs text-blue-400 hover:text-blue-300 underline mt-1"
+              className="text-[10px] text-blue-400 hover:text-blue-300 underline"
               onClick={(e) => e.stopPropagation()}
             >
               View in explorer
@@ -61,45 +60,53 @@ export function NewCharacterCard({
         </div>
       ) : (
         <>
-          <div className="rounded-full bg-yellow-800/20 p-3 mb-3">
-            <PlusIcon className="h-10 w-10 text-yellow-600" strokeWidth={1.5} />
+          <div className="rounded-full bg-yellow-800/20 p-2 mb-2">
+            <PlusIcon className="h-6 w-6 text-yellow-600" strokeWidth={1.5} />
           </div>
-          <h3 className="text-lg font-mediugitm text-yellow-500 text-center">
+          <h3 className="text-sm font-medium text-yellow-500 text-center">
             Create New Character
           </h3>
-          <p className="mt-1 text-sm text-center text-zinc-400">
-            Create a new character to join the battle.
+          <p className="mt-1 text-xs text-center text-zinc-400">
+            Create a new warrior to join the battle.
           </p>
 
           <fieldset
-            className="mt-4 flex flex-col items-center space-y-2 border-none p-0 m-0 w-full"
+            className="mt-3 flex flex-col items-center space-y-1 border-none p-0 m-0 w-full"
             onClick={(e) => e.stopPropagation()}
             onKeyDown={(e) => {
               e.stopPropagation();
             }}
           >
-            <legend className="text-xs text-zinc-500 mb-1 text-center">Name Preference</legend>
+            <legend className="text-[10px] text-zinc-500 mb-1 text-center">Name Preference</legend>
             <div className="flex items-center space-x-2">
-              <Button
-                variant={selectedNamePreference === 'male' ? 'default' : 'outline'}
+              <button
+                type="button"
                 onClick={() => setSelectedNamePreference('male')}
-                className={`px-3 py-1 text-sm ${selectedNamePreference === 'male' ? 'bg-yellow-600/80 hover:bg-yellow-600 text-black border-yellow-600' : 'bg-transparent text-zinc-400 border-zinc-600 hover:bg-zinc-800/50 hover:border-zinc-500'}`}
+                className={`px-2 py-0.5 text-[10px] rounded ${
+                  selectedNamePreference === 'male' 
+                    ? 'bg-yellow-600/80 hover:bg-yellow-600 text-black border border-yellow-600' 
+                    : 'bg-transparent text-zinc-400 border border-zinc-600 hover:bg-zinc-800/50 hover:border-zinc-500'
+                }`}
                 aria-pressed={selectedNamePreference === 'male'}
               >
                 Male
-              </Button>
-              <Button
-                variant={selectedNamePreference === 'female' ? 'default' : 'outline'}
+              </button>
+              <button
+                type="button"
                 onClick={() => setSelectedNamePreference('female')}
-                className={`px-3 py-1 text-sm ${selectedNamePreference === 'female' ? 'bg-yellow-600/80 hover:bg-yellow-600 text-black border-yellow-600' : 'bg-transparent text-zinc-400 border-zinc-600 hover:bg-zinc-800/50 hover:border-zinc-500'}`}
+                className={`px-2 py-0.5 text-[10px] rounded ${
+                  selectedNamePreference === 'female' 
+                    ? 'bg-yellow-600/80 hover:bg-yellow-600 text-black border border-yellow-600' 
+                    : 'bg-transparent text-zinc-400 border border-zinc-600 hover:bg-zinc-800/50 hover:border-zinc-500'
+                }`}
                 aria-pressed={selectedNamePreference === 'female'}
               >
                 Female
-              </Button>
+              </button>
             </div>
           </fieldset>
 
-          <div className="mt-4 text-xs text-zinc-500">Cost: 0.002 ETH</div>
+          <div className="mt-3 text-[10px] text-zinc-500">Cost: 0.002 ETH</div>
         </>
       )}
     </motion.div>

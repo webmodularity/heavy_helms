@@ -17,10 +17,10 @@ export function CardContainer({ children, index, isSelected }: CardContainerProp
       transition={{ duration: 0.5, delay: index * 0.1 }}
       className={cn(
         "rounded-lg overflow-hidden bg-stone-900/80 border border-stone-800/60",
-        "shadow-lg w-[240px] shrink-0 snap-center",
+        "shadow-lg w-[210px] shrink-0 snap-center",
         "transform transition-all duration-300",
-        "group isolate flex flex-col h-auto  m-auto",
-        isSelected ? "ring-2 ring-yellow-500" : "hover:border-yellow-500/30"
+        "group isolate flex flex-col h-auto m-auto",
+        isSelected ? "ring-1 ring-yellow-500" : "hover:border-yellow-500/30"
       )}
     >
       {children}
