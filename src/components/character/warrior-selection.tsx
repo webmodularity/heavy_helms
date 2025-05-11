@@ -64,13 +64,13 @@ export function WarriorSelection({
   };
 
   // Generate stable skeleton keys
-  const skeletonKeys = useMemo(
-    () =>
-      Array(4)
-        .fill(0)
-        .map((_, i) => `skeleton-${i}`),
-    [],
-  );
+  // const skeletonKeys = useMemo(
+  //   () =>
+  //     Array(4)
+  //       .fill(0)
+  //       .map((_, i) => `skeleton-${i}`),
+  //   [],
+  // );
 
   const numPlayerCards = players?.length ?? 0;
   const showNewCharacterCard = players && players.length < MAX_PLAYERS;
@@ -117,9 +117,9 @@ export function WarriorSelection({
 
   // Render skeleton loaders while characters are loading
   const renderSkeletons = () => {
-    return skeletonKeys.map((key, index) => (
-      <CharacterCardSkeleton key={key} index={index} />
-    ));
+    // return skeletonKeys.map((key, index) => (
+    return <CharacterCardSkeleton index={0} />;
+    // ));
   };
   return (
     <section className="mt-4">
