@@ -35,7 +35,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Loader2, Search, ArrowUpDown, Filter } from "lucide-react";
+import { Loader2, Search, ArrowUpDown } from "lucide-react";
 import { useOwnPlayers } from "@/hooks/use-own-players";
 import type { Fighter } from "@/types/fighter-types";
 import {
@@ -95,7 +95,7 @@ export function PlayerSelectionTable({
       id: "avatar",
       header: "",
       cell: ({ row }) => (
-        <div className="h-10 w-10 rounded-full overflow-hidden bg-stone-800 relative">
+        <div className="h-8 w-8 rounded-full overflow-hidden bg-stone-800 relative">
           <Image
             src={row.original.currentSkin.imageURL}
             alt={row.original.name.fullName || ""}
@@ -113,15 +113,16 @@ export function PlayerSelectionTable({
       header: ({ column }) => (
         <Button
           variant="ghost"
+          size="sm"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="hover:text-yellow-400 transition-colors"
+          className="hover:text-yellow-400 transition-colors h-7 px-2 text-xs"
         >
           Name
-          <ArrowUpDown className="ml-2 h-4 w-4" />
+          <ArrowUpDown className="ml-1 h-3 w-3" />
         </Button>
       ),
       cell: ({ row }) => (
-        <div className="font-medium text-stone-200">
+        <div className="font-medium text-stone-200 text-xs sm:text-sm">
           {row.original.name.fullName}
         </div>
       ),
@@ -133,15 +134,16 @@ export function PlayerSelectionTable({
       header: ({ column }) => (
         <Button
           variant="ghost"
+          size="sm"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="hover:text-yellow-400 transition-colors"
+          className="hover:text-yellow-400 transition-colors h-7 px-2 text-xs"
         >
           STR
-          <ArrowUpDown className="ml-2 h-4 w-4" />
+          <ArrowUpDown className="ml-1 h-3 w-3" />
         </Button>
       ),
       cell: ({ row }) => (
-        <div className="text-center">{row.original.attributes.strength}</div>
+        <div className="text-center text-xs">{row.original.attributes.strength}</div>
       ),
     },
     {
@@ -150,15 +152,16 @@ export function PlayerSelectionTable({
       header: ({ column }) => (
         <Button
           variant="ghost"
+          size="sm"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="hover:text-yellow-400 transition-colors"
+          className="hover:text-yellow-400 transition-colors h-7 px-2 text-xs"
         >
           AGI
-          <ArrowUpDown className="ml-2 h-4 w-4" />
+          <ArrowUpDown className="ml-1 h-3 w-3" />
         </Button>
       ),
       cell: ({ row }) => (
-        <div className="text-center">{row.original.attributes.agility}</div>
+        <div className="text-center text-xs">{row.original.attributes.agility}</div>
       ),
     },
     {
@@ -167,15 +170,16 @@ export function PlayerSelectionTable({
       header: ({ column }) => (
         <Button
           variant="ghost"
+          size="sm"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="hover:text-yellow-400 transition-colors"
+          className="hover:text-yellow-400 transition-colors h-7 px-2 text-xs"
         >
           STA
-          <ArrowUpDown className="ml-2 h-4 w-4" />
+          <ArrowUpDown className="ml-1 h-3 w-3" />
         </Button>
       ),
       cell: ({ row }) => (
-        <div className="text-center">{row.original.attributes.stamina}</div>
+        <div className="text-center text-xs">{row.original.attributes.stamina}</div>
       ),
     },
     {
@@ -184,15 +188,16 @@ export function PlayerSelectionTable({
       header: ({ column }) => (
         <Button
           variant="ghost"
+          size="sm"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="hover:text-yellow-400 transition-colors"
+          className="hover:text-yellow-400 transition-colors h-7 px-2 text-xs"
         >
           Weapon
-          <ArrowUpDown className="ml-2 h-4 w-4" />
+          <ArrowUpDown className="ml-1 h-3 w-3" />
         </Button>
       ),
       cell: ({ row }) => (
-        <div className="text-center">
+        <div className="text-center text-xs">
           {getWeaponDisplayName(row.original.currentSkin.weapon)}
         </div>
       ),
@@ -204,15 +209,16 @@ export function PlayerSelectionTable({
       header: ({ column }) => (
         <Button
           variant="ghost"
+          size="sm"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="hover:text-yellow-400 transition-colors"
+          className="hover:text-yellow-400 transition-colors h-7 px-2 text-xs"
         >
           Armor
-          <ArrowUpDown className="ml-2 h-4 w-4" />
+          <ArrowUpDown className="ml-1 h-3 w-3" />
         </Button>
       ),
       cell: ({ row }) => (
-        <div className="text-center">
+        <div className="text-center text-xs">
           {getArmorDisplayName(row.original.currentSkin.armor)}
         </div>
       ),
@@ -224,15 +230,16 @@ export function PlayerSelectionTable({
       header: ({ column }) => (
         <Button
           variant="ghost"
+          size="sm"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="hover:text-yellow-400 transition-colors"
+          className="hover:text-yellow-400 transition-colors h-7 px-2 text-xs"
         >
           W
-          <ArrowUpDown className="ml-2 h-4 w-4" />
+          <ArrowUpDown className="ml-1 h-3 w-3" />
         </Button>
       ),
       cell: ({ row }) => (
-        <div className="text-center text-green-400">
+        <div className="text-center text-green-400 text-xs">
           {row.original.record.wins}
         </div>
       ),
@@ -243,36 +250,20 @@ export function PlayerSelectionTable({
       header: ({ column }) => (
         <Button
           variant="ghost"
+          size="sm"
           onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-          className="hover:text-yellow-400 transition-colors"
+          className="hover:text-yellow-400 transition-colors h-7 px-2 text-xs"
         >
           L
-          <ArrowUpDown className="ml-2 h-4 w-4" />
+          <ArrowUpDown className="ml-1 h-3 w-3" />
         </Button>
       ),
       cell: ({ row }) => (
-        <div className="text-center text-red-400">
+        <div className="text-center text-red-400 text-xs">
           {row.original.record.losses}
         </div>
       ),
     },
-    // {
-    //   id: "actions",
-    //   header: "",
-    //   cell: ({ row }) => (
-    //     <div className="text-right">
-    //       <YellowButton
-    //         size="sm"
-    //         onClick={() => onSelectPlayer(row.original)}
-    //         className="opacity-100 group-hover:opacity-100 transition-opacity md:opacity-0 md:group-hover:opacity-100"
-    //       >
-    //         Challenge
-    //       </YellowButton>
-    //     </div>
-    //   ),
-    //   enableSorting: false,
-    //   enableHiding: false,
-    // },
   ];
 
   // Create table instance with proper filtering
@@ -313,17 +304,17 @@ export function PlayerSelectionTable({
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <Loader2 className="h-8 w-8 text-yellow-500 animate-spin" />
+      <div className="flex justify-center items-center h-40">
+        <Loader2 className="h-6 w-6 text-yellow-500 animate-spin" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="text-center text-red-400 h-64 flex flex-col justify-center">
-        <h3 className="text-lg font-medium mb-2">Error loading players</h3>
-        <p className="text-sm text-red-300">
+      <div className="text-center text-red-400 h-40 flex flex-col justify-center">
+        <h3 className="text-base font-medium mb-1.5">Error loading players</h3>
+        <p className="text-xs text-red-300">
           {error instanceof Error ? error.message : "An unknown error occurred"}
         </p>
       </div>
@@ -332,11 +323,11 @@ export function PlayerSelectionTable({
 
   if (filteredPlayers.length === 0) {
     return (
-      <div className="text-center text-stone-300 h-64 flex flex-col justify-center">
-        <h3 className="text-lg font-medium text-yellow-500 mb-2">
+      <div className="text-center text-stone-300 h-40 flex flex-col justify-center">
+        <h3 className="text-base font-medium text-yellow-500 mb-1.5">
           No challengers found
         </h3>
-        <p className="text-sm max-w-md mx-auto">
+        <p className="text-xs max-w-md mx-auto">
           There are no active players available to challenge at the moment.
         </p>
       </div>
@@ -344,21 +335,21 @@ export function PlayerSelectionTable({
   }
 
   return (
-    <div className="space-y-4 h-full flex flex-col">
-      <div className="flex flex-col space-y-4 md:flex-row md:space-y-0 md:space-x-4 md:items-center">
+    <div className="space-y-2.5 h-full flex flex-col">
+      <div className="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2 md:items-center">
         {/* Search input */}
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-stone-400" />
+          <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-stone-400" />
           <Input
             placeholder="Search by name or ID..."
             value={globalFilter}
             onChange={(e) => setGlobalFilter(e.target.value)}
-            className="pl-10 bg-stone-900/50 border-yellow-600/20 focus:border-yellow-500 text-stone-200"
+            className="pl-8 py-1 h-8 text-xs bg-stone-900/50 border-yellow-600/20 focus:border-yellow-500 text-stone-200"
           />
         </div>
 
         {/* Filter dropdowns */}
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-wrap gap-1.5">
           {/* Weapon filter */}
           <Select
             onValueChange={(value) => {
@@ -370,10 +361,10 @@ export function PlayerSelectionTable({
             }}
             defaultValue="all"
           >
-            <SelectTrigger className="w-[130px] border-yellow-600/20 focus:border-yellow-500 bg-stone-900/50 text-stone-200">
+            <SelectTrigger className="w-[110px] h-8 text-xs border-yellow-600/20 focus:border-yellow-500 bg-stone-900/50 text-stone-200">
               <SelectValue placeholder="Weapon" />
             </SelectTrigger>
-            <SelectContent className="bg-stone-900 border-yellow-600/20 text-stone-200">
+            <SelectContent className="bg-stone-900 border-yellow-600/20 text-stone-200 text-xs">
               <SelectItem value="all">All Weapons</SelectItem>
               {Object.entries(WeaponType).map(([value, label]) => (
                 <SelectItem key={value} value={value}>
@@ -394,10 +385,10 @@ export function PlayerSelectionTable({
             }}
             defaultValue="all"
           >
-            <SelectTrigger className="w-[120px] border-yellow-600/20 focus:border-yellow-500 bg-stone-900/50 text-stone-200">
+            <SelectTrigger className="w-[100px] h-8 text-xs border-yellow-600/20 focus:border-yellow-500 bg-stone-900/50 text-stone-200">
               <SelectValue placeholder="Armor" />
             </SelectTrigger>
-            <SelectContent className="bg-stone-900 border-yellow-600/20 text-stone-200">
+            <SelectContent className="bg-stone-900 border-yellow-600/20 text-stone-200 text-xs">
               <SelectItem value="all">All Armor</SelectItem>
               {Object.entries(ArmorType).map(([value, label]) => (
                 <SelectItem key={value} value={value}>
@@ -418,10 +409,10 @@ export function PlayerSelectionTable({
             }}
             defaultValue="all"
           >
-            <SelectTrigger className="w-[120px] border-yellow-600/20 focus:border-yellow-500 bg-stone-900/50 text-stone-200">
+            <SelectTrigger className="w-[100px] h-8 text-xs border-yellow-600/20 focus:border-yellow-500 bg-stone-900/50 text-stone-200">
               <SelectValue placeholder="Stance" />
             </SelectTrigger>
-            <SelectContent className="bg-stone-900 border-yellow-600/20 text-stone-200">
+            <SelectContent className="bg-stone-900 border-yellow-600/20 text-stone-200 text-xs">
               <SelectItem value="all">All Stances</SelectItem>
               {Object.entries(StanceType).map(([value, label]) => (
                 <SelectItem key={value} value={value}>
@@ -435,11 +426,11 @@ export function PlayerSelectionTable({
 
       {/* Players table */}
       <div className="rounded-md flex-1 border border-yellow-600/20 overflow-hidden">
-        <Table className="border-collapse">
+        <Table className="border-collapse text-xs">
           <TableHeader className="bg-stone-100/50">
             <TableRow>
               {table.getHeaderGroups()[0].headers.map((header) => (
-                <TableHead key={header.id} className="text-center">
+                <TableHead key={header.id} className="text-center py-2 px-2">
                   {header.isPlaceholder
                     ? null
                     : flexRender(
@@ -459,7 +450,7 @@ export function PlayerSelectionTable({
                   className="group hover:bg-amber-900/10 hover:border-yellow-600/30 cursor-pointer"
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell key={cell.id} className="py-1.5 px-2">
                       {flexRender(
                         cell.column.columnDef.cell,
                         cell.getContext(),
@@ -472,7 +463,7 @@ export function PlayerSelectionTable({
               <TableRow>
                 <TableCell
                   colSpan={table.getAllColumns().length}
-                  className="h-24 text-center"
+                  className="h-20 text-center text-xs"
                 >
                   No results found.
                 </TableCell>
@@ -483,26 +474,24 @@ export function PlayerSelectionTable({
       </div>
 
       {/* Pagination controls */}
-      <div className="flex items-center justify-end space-x-2 py-4">
-        <div className="text-sm text-stone-400">
+      <div className="flex items-center justify-end space-x-1.5 py-2">
+        <div className="text-xs text-stone-400">
           Page {table.getState().pagination.pageIndex + 1} of{" "}
           {table.getPageCount()}
         </div>
         <Button
-          // variant="outline"
           size="sm"
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
-          className="border-yellow-600/20 hover:bg-yellow-500/10 hover:text-yellow-400 text-stone-200"
+          className="h-7 px-2 text-xs border-yellow-600/20 hover:bg-yellow-500/10 hover:text-yellow-400 text-stone-200"
         >
           Previous
         </Button>
         <Button
-          // variant="outline"
           size="sm"
           onClick={() => table.nextPage()}
           disabled={!table.getCanNextPage()}
-          className="border-yellow-600/20 hover:bg-yellow-500/10 hover:text-yellow-400 text-stone-200"
+          className="h-7 px-2 text-xs border-yellow-600/20 hover:bg-yellow-500/10 hover:text-yellow-400 text-stone-200"
         >
           Next
         </Button>
