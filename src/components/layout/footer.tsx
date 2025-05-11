@@ -13,24 +13,24 @@ export function Footer() {
   ];
 
   return (
-    <footer className="relative mt-20">
+    <footer className="relative mt-12">
       {/* Dark overlay with stone base - matching banner background */}
       <div className="absolute inset-0 bg-stone-900/75" />
 
-      <div className="relative max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="relative max-w-7xl mx-auto py-6 px-3 sm:px-4 lg:px-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {/* About Section - Definition List Style */}
-          <div className="bg-gradient-to-b from-stone-800/60 to-stone-900/60 backdrop-blur-sm p-6 rounded border border-stone-600/30 shadow-lg transform transition-transform hover:scale-[1.01]">
-            <h3 className="text-yellow-400/80 text-lg font-bold mb-4 uppercase tracking-widest">
+          <div className="bg-gradient-to-b from-stone-800/60 to-stone-900/60 backdrop-blur-sm p-3 rounded border border-stone-600/30 shadow-lg transform transition-transform hover:scale-[1.01]">
+            <h3 className="text-yellow-400/80 text-sm font-bold mb-2 uppercase tracking-wider">
               About Heavy Helms
             </h3>
             {/* Changed to definition list (dl, dt, dd) */}
-            <dl className="space-y-3 text-stone-300 text-sm leading-relaxed">
+            <dl className="space-y-2 text-stone-300 text-xs leading-relaxed">
               <div>
                 <dt className="font-semibold text-yellow-500/90 mb-0.5">
                   Web3 Native Auto-Battler:
                 </dt>
-                <dd className="pl-2 text-stone-300/90">
+                <dd className="pl-1.5 text-stone-300/90">
                   {" "}
                   {/* Indent definition slightly */}
                   Where VRF guides the hand of fate!
@@ -40,7 +40,7 @@ export function Footer() {
                 <dt className="font-semibold text-yellow-500/90 mb-0.5">
                   Fair Combat:
                 </dt>
-                <dd className="pl-2 text-stone-300/90">
+                <dd className="pl-1.5 text-stone-300/90">
                   Equal stats, victory forged by strategy, not coin (No P2W!).
                 </dd>
               </div>
@@ -50,7 +50,7 @@ export function Footer() {
                   {/* Corrected 3rd point */}
                   Modular & Open:
                 </dt>
-                <dd className="pl-2 text-stone-300/90">
+                <dd className="pl-1.5 text-stone-300/90">
                   Game engine is onchain and open source.
                 </dd>
               </div>
@@ -58,28 +58,28 @@ export function Footer() {
           </div>
 
           {/* Navigation Links - Removed "Powered by" link */}
-          <div className="bg-gradient-to-b from-stone-800/60 to-stone-900/60 backdrop-blur-sm p-6 rounded border border-stone-600/30 shadow-lg transform transition-transform hover:scale-[1.01]">
-            <h3 className="text-yellow-400/80 text-lg font-bold mb-4 uppercase tracking-widest">
+          <div className="bg-gradient-to-b from-stone-800/60 to-stone-900/60 backdrop-blur-sm p-3 rounded border border-stone-600/30 shadow-lg transform transition-transform hover:scale-[1.01]">
+            <h3 className="text-yellow-400/80 text-sm font-bold mb-2 uppercase tracking-wider">
               Navigation
             </h3>
-            <ul className="space-y-3">
+            <ul className="space-y-1.5">
               {navigationItems.map((item) => {
                 // Assign the icon component to a variable for easier use
                 const IconComponent = item.icon;
                 return (
                   <li key={item.path} className="flex items-center group">
                     {/* Keep the dot */}
-                    <div className="w-1.5 h-1.5 rounded-full bg-stone-600/50 mr-2 group-hover:bg-yellow-400 transition-colors" />
+                    <div className="w-1 h-1 rounded-full bg-stone-600/50 mr-1.5 group-hover:bg-yellow-400 transition-colors" />
                     <Link
                       href={item.path}
-                      className="text-stone-200 text-sm hover:text-yellow-400 transition-colors flex items-center"
+                      className="text-stone-200 text-xs hover:text-yellow-400 transition-colors flex items-center"
                     >
                       {/* Render the icon before the label */}
-                      <IconComponent className="mr-1.5 h-4 w-4 text-stone-400 group-hover:text-yellow-400 transition-colors" />
+                      <IconComponent className="mr-1 h-3 w-3 text-stone-400 group-hover:text-yellow-400 transition-colors" />
                       {item.label}
                       {/* Keep the arrow SVG */}
                       <svg
-                        className="w-4 h-4 ml-1 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-yellow-400"
+                        className="w-3 h-3 ml-1 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-yellow-400"
                         viewBox="0 0 24 24"
                         fill="none"
                         xmlns="http://www.w3.org/2000/svg"
@@ -102,24 +102,24 @@ export function Footer() {
           </div>
 
           {/* Smart Contracts */}
-          <div className="bg-gradient-to-b from-stone-800/60 to-stone-900/60 backdrop-blur-sm p-6 rounded border border-stone-600/30 shadow-lg transform transition-transform hover:scale-[1.01]">
-            <h3 className="text-yellow-400/80 text-lg font-bold mb-4 uppercase tracking-widest">
+          <div className="bg-gradient-to-b from-stone-800/60 to-stone-900/60 backdrop-blur-sm p-3 rounded border border-stone-600/30 shadow-lg transform transition-transform hover:scale-[1.01]">
+            <h3 className="text-yellow-400/80 text-sm font-bold mb-2 uppercase tracking-wider">
               Smart Contracts
             </h3>
-            <ul className="space-y-3">
+            <ul className="space-y-1.5">
               <li className="flex items-center group">
-                <div className="w-1.5 h-1.5 rounded-full bg-stone-600/50 mr-2 group-hover:bg-yellow-400 transition-colors"></div>
+                <div className="w-1 h-1 rounded-full bg-stone-600/50 mr-1.5 group-hover:bg-yellow-400 transition-colors" />
                 <a
                   href={
                     "https://shapescan.xyz/address/0x75B4750D41A9a04e989FAD58544C37930AEf2e5B"
                   }
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-stone-200 text-sm hover:text-yellow-400 transition-colors flex items-center"
+                  className="text-stone-200 text-xs hover:text-yellow-400 transition-colors flex items-center"
                 >
                   Player Contract
                   <svg
-                    className="w-4 h-4 ml-1 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-yellow-400"
+                    className="w-3 h-3 ml-1 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-yellow-400"
                     viewBox="0 0 24 24"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
@@ -135,18 +135,18 @@ export function Footer() {
                 </a>
               </li>
               <li className="flex items-center group">
-                <div className="w-1.5 h-1.5 rounded-full bg-stone-600/50 mr-2 group-hover:bg-yellow-400 transition-colors" />
+                <div className="w-1 h-1 rounded-full bg-stone-600/50 mr-1.5 group-hover:bg-yellow-400 transition-colors" />
                 <a
                   href={
                     "https://shapescan.xyz/address/0x60567795F7a60986204A5507538600b53adeE42a"
                   }
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-stone-200 text-sm hover:text-yellow-400 transition-colors flex items-center"
+                  className="text-stone-200 text-xs hover:text-yellow-400 transition-colors flex items-center"
                 >
                   Game Engine Contract (v0.22)
                   <svg
-                    className="w-4 h-4 ml-1 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-yellow-400"
+                    className="w-3 h-3 ml-1 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-yellow-400"
                     viewBox="0 0 24 24"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
@@ -162,18 +162,18 @@ export function Footer() {
                 </a>
               </li>
               <li className="flex items-center group">
-                <div className="w-1.5 h-1.5 rounded-full bg-stone-600/50 mr-2 group-hover:bg-yellow-400 transition-colors" />
+                <div className="w-1 h-1 rounded-full bg-stone-600/50 mr-1.5 group-hover:bg-yellow-400 transition-colors" />
                 <a
                   href={
                     "https://shapescan.xyz/address/0xee5Ccf602AA0E5ff1C6F78CAB3AaC0dA317aF0b3"
                   }
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-stone-200 text-sm hover:text-yellow-400 transition-colors flex items-center"
+                  className="text-stone-200 text-xs hover:text-yellow-400 transition-colors flex items-center"
                 >
                   Practice Game Contract
                   <svg
-                    className="w-4 h-4 ml-1 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-yellow-400"
+                    className="w-3 h-3 ml-1 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-yellow-400"
                     viewBox="0 0 24 24"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
@@ -189,18 +189,18 @@ export function Footer() {
                 </a>
               </li>
               <li className="flex items-center group">
-                <div className="w-1.5 h-1.5 rounded-full bg-stone-600/50 mr-2 group-hover:bg-yellow-400 transition-colors" />
+                <div className="w-1 h-1 rounded-full bg-stone-600/50 mr-1.5 group-hover:bg-yellow-400 transition-colors" />
                 <a
                   href={
                     "https://shapescan.xyz/address/0x805b44fadbCBA7a65b37875551820593a45a8716"
                   }
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-stone-200 text-sm hover:text-yellow-400 transition-colors flex items-center"
+                  className="text-stone-200 text-xs hover:text-yellow-400 transition-colors flex items-center"
                 >
                   Duel Game Contract
                   <svg
-                    className="w-4 h-4 ml-1 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-yellow-400"
+                    className="w-3 h-3 ml-1 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-yellow-400"
                     viewBox="0 0 24 24"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
@@ -216,18 +216,18 @@ export function Footer() {
                 </a>
               </li>
               <li className="flex items-center group">
-                <div className="w-1.5 h-1.5 rounded-full bg-stone-600/50 mr-2 group-hover:bg-yellow-400 transition-colors" />
+                <div className="w-1 h-1 rounded-full bg-stone-600/50 mr-1.5 group-hover:bg-yellow-400 transition-colors" />
                 <a
                   href={
                     "https://shapescan.xyz/address/0x70FA59BA4FbD253850c76B6d1A12a7DFaC744072"
                   }
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-stone-200 text-sm hover:text-yellow-400 transition-colors flex items-center"
+                  className="text-stone-200 text-xs hover:text-yellow-400 transition-colors flex items-center"
                 >
                   Player Skin Registry
                   <svg
-                    className="w-4 h-4 ml-1 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-yellow-400"
+                    className="w-3 h-3 ml-1 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-yellow-400"
                     viewBox="0 0 24 24"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
@@ -247,17 +247,17 @@ export function Footer() {
         </div>
 
         {/* Social Links */}
-        <div className="mt-8 pt-8 border-t border-stone-600/30">
-          <div className="flex justify-center space-x-6">
+        <div className="mt-4 pt-4 border-t border-stone-600/30">
+          <div className="flex justify-center space-x-3">
             <a
               href="https://discord.gg/5XHu76FmpJ"
               target="_blank"
               rel="noopener noreferrer"
               className="group"
             >
-              <div className="bg-gradient-to-b from-stone-800/60 to-stone-900/60 backdrop-blur-sm p-3 rounded-full transform transition-all duration-200 hover:scale-110 border border-stone-600/30 shadow-lg">
+              <div className="bg-gradient-to-b from-stone-800/60 to-stone-900/60 backdrop-blur-sm p-2 rounded-full transform transition-all duration-200 hover:scale-110 border border-stone-600/30 shadow-lg">
                 <svg
-                  className="h-6 w-6 text-stone-400 group-hover:text-yellow-400 transition-colors"
+                  className="h-4 w-4 text-stone-400 group-hover:text-yellow-400 transition-colors"
                   fill="currentColor"
                   viewBox="0 0 24 24"
                 >
@@ -272,9 +272,9 @@ export function Footer() {
               className="group"
               aria-label="Heavy Helms on X (formerly Twitter)"
             >
-              <div className="bg-gradient-to-b from-stone-800/60 to-stone-900/60 backdrop-blur-sm p-3 rounded-full transform transition-all duration-200 hover:scale-110 border border-stone-600/30 shadow-lg">
+              <div className="bg-gradient-to-b from-stone-800/60 to-stone-900/60 backdrop-blur-sm p-2 rounded-full transform transition-all duration-200 hover:scale-110 border border-stone-600/30 shadow-lg">
                 <svg
-                  className="h-6 w-6 text-stone-400 group-hover:text-yellow-400 transition-colors"
+                  className="h-4 w-4 text-stone-400 group-hover:text-yellow-400 transition-colors"
                   fill="currentColor"
                   viewBox="0 0 24 24"
                   aria-hidden="true"
@@ -291,9 +291,9 @@ export function Footer() {
               className="group"
               aria-label="Shape Network"
             >
-              <div className="bg-gradient-to-b from-stone-800/60 to-stone-900/60 backdrop-blur-sm p-3 rounded-full transform transition-all duration-200 hover:scale-110 border border-stone-600/30 shadow-lg">
+              <div className="bg-gradient-to-b from-stone-800/60 to-stone-900/60 backdrop-blur-sm p-2 rounded-full transform transition-all duration-200 hover:scale-110 border border-stone-600/30 shadow-lg">
                 <svg
-                  className="h-6 w-6 text-stone-400 group-hover:text-yellow-400 transition-colors"
+                  className="h-4 w-4 text-stone-400 group-hover:text-yellow-400 transition-colors"
                   fill="currentColor"
                   viewBox="0 0 24 24"
                   aria-hidden="true"
@@ -310,9 +310,9 @@ export function Footer() {
               className="group"
               aria-label="Heavy Helms Contracts on GitHub"
             >
-              <div className="bg-gradient-to-b from-stone-800/60 to-stone-900/60 backdrop-blur-sm p-3 rounded-full transform transition-all duration-200 hover:scale-110 border border-stone-600/30 shadow-lg">
+              <div className="bg-gradient-to-b from-stone-800/60 to-stone-900/60 backdrop-blur-sm p-2 rounded-full transform transition-all duration-200 hover:scale-110 border border-stone-600/30 shadow-lg">
                 <svg
-                  className="h-6 w-6 text-stone-400 group-hover:text-yellow-400 transition-colors"
+                  className="h-4 w-4 text-stone-400 group-hover:text-yellow-400 transition-colors"
                   fill="currentColor"
                   viewBox="0 0 24 24"
                   aria-hidden="true"
