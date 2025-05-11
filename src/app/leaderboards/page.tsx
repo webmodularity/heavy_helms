@@ -3,7 +3,7 @@
 import { useState } from "react";
 // Import only the needed component and icons
 import { WarriorLeaderboard } from "@/components/leaderboards/warrior-leaderboard"; // Assuming it's reusable
-import { Trophy, RefreshCw } from "lucide-react";
+import { Trophy } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export default function LeaderboardsPage() {
@@ -20,12 +20,12 @@ export default function LeaderboardsPage() {
   // };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-6 space-y-6">
+      {/* Header - Smaller and more compact */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
         <div>
-          <h1 className="text-3xl font-bold text-yellow-500">Leaderboards</h1>
-          <p className="text-sm text-stone-400 mt-1">
+          <h1 className="text-xl sm:text-2xl font-bold text-yellow-500">Leaderboards</h1>
+          <p className="text-xs text-stone-400 mt-0.5">
             Rankings of the mightiest warriors and wealthiest participants.
           </p>
         </div>
@@ -41,19 +41,19 @@ export default function LeaderboardsPage() {
         */}
       </div>
 
-      {/* Tabs navigation - Initially just one tab */}
-      <div className="sticky top-4 z-10 bg-stone-950/80 backdrop-blur-md p-4 rounded-lg border border-stone-800/60 shadow-lg">
-        <div className="flex flex-wrap gap-2 justify-center md:justify-start">
+      {/* Tabs navigation - More compact */}
+      <div className="sticky top-2 z-10 bg-stone-950/80 backdrop-blur-md p-2.5 rounded-lg border border-stone-800/60 shadow-md">
+        <div className="flex flex-wrap gap-1.5 justify-center md:justify-start">
           <button
             type="button"
             onClick={() => handleTabChange("warriors")}
-            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
+            className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium transition-colors ${
               activeTab === "warriors"
                 ? "bg-yellow-500 text-black"
                 : "bg-stone-800 text-stone-300 hover:bg-stone-700 hover:text-stone-100"
             }`}
           >
-            <Trophy className="h-4 w-4" />
+            <Trophy className="h-3 w-3" />
             Warrior Leaderboard
           </button>
           {/* Add placeholders for future tabs if desired */}
