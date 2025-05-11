@@ -53,30 +53,23 @@ export function GameIntroduction() {
   };
 
   return (
-    // Outer section: Handles spacing, relative positioning (Matches CommunityStats)
-    <section className="relative mt-8 md:mt-12 py-16">
-      {/* Background, Shadow, Borders - Placed directly inside, NO Z-INDEX */}
+    <section className="relative mt-4 md:mt-8 py-8 md:py-12">
+      {/* Background, Shadow, Borders */}
       <div className="absolute inset-0 bg-stone-900/60" />
       <div className="absolute inset-0 shadow-[inset_0_0_100px_rgba(30,20,10,0.6)]" />
       <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-700/30 via-yellow-500/50 to-amber-700/30" />
       <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-700/30 via-yellow-500/50 to-amber-700/30" />
 
-      {/* Single Inner container: Constrains width, adds padding, holds ALL content */}
-      {/* Added relative positioning (Matches CommunityStats) */}
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* SectionHeader is INSIDE this constrained, relative container */}
+      {/* Inner container */}
+      <div className="relative max-w-7xl mx-auto px-3 sm:px-4 lg:px-6">
         <SectionHeader
           title="Enter The Arena"
           subtitle="The fully on-chain strategy auto battler where bragging rights are on the line."
-          className="mb-12"
+          className="mb-6 md:mb-8"
         />
 
-        {/* The actual content flex container */}
-        <div
-          className="
-            flex flex-col md:flex-row gap-8 items-center
-          "
-        >
+        {/* Content flex container */}
+        <div className="flex flex-col md:flex-row gap-4 md:gap-6 items-center">
           {/* Left side: Image showcase */}
           <motion.div
             className="w-full md:w-1/2 aspect-video relative rounded-md overflow-hidden bg-stone-900"
@@ -84,7 +77,6 @@ export function GameIntroduction() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.7 }}
           >
-            {/* Use Next/Image component */}
             {gameSteps.map((step, index) => (
               <motion.div
                 key={step.title}
@@ -109,12 +101,12 @@ export function GameIntroduction() {
             ))}
 
             {/* Step title overlay */}
-            <div className="absolute bottom-0 left-0 right-0 p-4 z-20">
-              <div className="min-h-[6rem] flex flex-col justify-end">
-                <h3 className="text-2xl font-bold text-yellow-400 mb-1">
+            <div className="absolute bottom-0 left-0 right-0 p-3 z-20">
+              <div className="min-h-[5rem] flex flex-col justify-end">
+                <h3 className="text-lg md:text-xl font-bold text-yellow-400 mb-0.5">
                   {gameSteps[activeStep].title}
                 </h3>
-                <p className="text-stone-200 text-sm min-h-[2.5rem]">
+                <p className="text-stone-200 text-xs min-h-[2rem]">
                   {gameSteps[activeStep].description}
                 </p>
               </div>
@@ -128,22 +120,22 @@ export function GameIntroduction() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.7 }}
           >
-            <div className="space-y-6">
+            <div className="space-y-3 md:space-y-4">
               {gameSteps.map((step) => (
                 <motion.div
                   key={`step-${step.title}`}
-                  className={`p-4 rounded-md cursor-pointer transition-all duration-300 border ${
+                  className={`p-2.5 rounded-md cursor-pointer transition-all duration-300 border ${
                     activeStep === gameSteps.indexOf(step)
                       ? "bg-gradient-to-r from-amber-900/30 to-stone-900/70 border-yellow-600/30"
                       : "border-transparent hover:bg-stone-800/50 hover:border-yellow-600/10"
                   }`}
                   onClick={() => handleStepClick(gameSteps.indexOf(step))}
-                  whileHover={{ scale: 1.02 }}
+                  whileHover={{ scale: 1.01 }}
                 >
                   <div className="flex items-start">
                     <div
                       className={`
-                      w-10 h-10 flex items-center justify-center rounded-full text-xl border transition-all duration-300
+                      w-7 h-7 flex items-center justify-center rounded-full text-sm border transition-all duration-300
                       ${
                         activeStep === gameSteps.indexOf(step)
                           ? "bg-yellow-600 text-stone-900 border-transparent"
@@ -153,9 +145,9 @@ export function GameIntroduction() {
                     >
                       {gameSteps.indexOf(step) + 1}
                     </div>
-                    <div className="ml-4">
+                    <div className="ml-3">
                       <h3
-                        className={`font-bold text-lg ${
+                        className={`font-bold text-sm md:text-base ${
                           activeStep === gameSteps.indexOf(step)
                             ? "text-yellow-400"
                             : "text-stone-200"
@@ -164,7 +156,7 @@ export function GameIntroduction() {
                         {step.title}
                       </h3>
                       <p
-                        className={`${
+                        className={`text-xs ${
                           activeStep === gameSteps.indexOf(step)
                             ? "text-stone-200"
                             : "text-stone-400"
@@ -179,12 +171,12 @@ export function GameIntroduction() {
             </div>
 
             {/* Step indicators */}
-            <div className="flex justify-center mt-8 space-x-2">
+            <div className="flex justify-center mt-4 space-x-1.5">
               {gameSteps.map((step) => (
                 <Button
                   key={`indicator-${step.title}`}
                   onClick={() => handleStepClick(gameSteps.indexOf(step))}
-                  className={`w-3 h-3 rounded-full transition-colors ${
+                  className={`w-2 h-2 rounded-full transition-colors ${
                     activeStep === gameSteps.indexOf(step)
                       ? "bg-yellow-500"
                       : "bg-stone-700 hover:bg-stone-600"
