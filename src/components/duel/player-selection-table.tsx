@@ -335,8 +335,8 @@ export function PlayerSelectionTable({
   }
 
   return (
-    <div className="space-y-2.5 h-full flex flex-col">
-      <div className="flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2 md:items-center">
+    <div className="flex flex-col h-full gap-2.5">
+      <div className="flex-none flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2 md:items-center">
         {/* Search input */}
         <div className="relative flex-1">
           <Search className="absolute left-2.5 top-1/2 transform -translate-y-1/2 h-3.5 w-3.5 text-stone-400" />
@@ -424,57 +424,59 @@ export function PlayerSelectionTable({
         </div>
       </div>
 
-      {/* Players table */}
-      <div className="rounded-md flex-1 border border-yellow-600/20 overflow-hidden">
-        <Table className="border-collapse text-xs">
-          <TableHeader className="bg-stone-100/50">
-            <TableRow>
-              {table.getHeaderGroups()[0].headers.map((header) => (
-                <TableHead key={header.id} className="text-center py-2 px-2">
-                  {header.isPlaceholder
-                    ? null
-                    : flexRender(
-                        header.column.columnDef.header,
-                        header.getContext(),
-                      )}
-                </TableHead>
-              ))}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {table.getRowModel().rows.length > 0 ? (
-              table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
-                  onClick={() => onSelectPlayer(row.original)}
-                  className="group hover:bg-amber-900/10 hover:border-yellow-600/30 cursor-pointer"
-                >
-                  {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="py-1.5 px-2">
-                      {flexRender(
-                        cell.column.columnDef.cell,
-                        cell.getContext(),
-                      )}
-                    </TableCell>
-                  ))}
-                </TableRow>
-              ))
-            ) : (
+      {/* Players table with scrolling container */}
+      <div className="flex-grow min-h-0 rounded-md border border-yellow-600/20 overflow-hidden">
+        <div className="h-full overflow-auto">
+          <Table className="border-collapse text-xs">
+            <TableHeader className="bg-stone-100/50 sticky top-0 z-10">
               <TableRow>
-                <TableCell
-                  colSpan={table.getAllColumns().length}
-                  className="h-20 text-center text-xs"
-                >
-                  No results found.
-                </TableCell>
+                {table.getHeaderGroups()[0].headers.map((header) => (
+                  <TableHead key={header.id} className="text-center py-2 px-2">
+                    {header.isPlaceholder
+                      ? null
+                      : flexRender(
+                          header.column.columnDef.header,
+                          header.getContext(),
+                        )}
+                  </TableHead>
+                ))}
               </TableRow>
-            )}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {table.getRowModel().rows.length > 0 ? (
+                table.getRowModel().rows.map((row) => (
+                  <TableRow
+                    key={row.id}
+                    onClick={() => onSelectPlayer(row.original)}
+                    className="group hover:bg-amber-900/10 hover:border-yellow-600/30 cursor-pointer"
+                  >
+                    {row.getVisibleCells().map((cell) => (
+                      <TableCell key={cell.id} className="py-1.5 px-2">
+                        {flexRender(
+                          cell.column.columnDef.cell,
+                          cell.getContext(),
+                        )}
+                      </TableCell>
+                    ))}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={table.getAllColumns().length}
+                    className="h-20 text-center text-xs"
+                  >
+                    No results found.
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
       </div>
 
       {/* Pagination controls */}
-      <div className="flex items-center justify-end space-x-1.5 py-2">
+      <div className="flex-none flex items-center justify-end space-x-1.5 py-2">
         <div className="text-xs text-stone-400">
           Page {table.getState().pagination.pageIndex + 1} of{" "}
           {table.getPageCount()}
