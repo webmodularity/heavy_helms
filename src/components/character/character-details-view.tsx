@@ -3,7 +3,7 @@
 import { usePlayerById } from "@/hooks/use-player-by-id";
 import { useRetirePlayer } from "@/hooks/use-retire-player";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, Swords, Trash2 } from "lucide-react";
+import { ChevronDown, Dumbbell, Shield, Swords, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -83,7 +83,7 @@ export function CharacterDetailsView({
         {/* Key Info - stacked in compact format */}
         <div className="col-span-1 md:col-span-3 space-y-3">
           {/* Character Name - more compact */}
-          <div className="p-2 bg-gradient-to-b from-amber-900/10 to-stone-900/40 rounded-lg border border-yellow-600/20 relative overflow-hidden">
+          <div className="p-2 bg-gradient-to-b from-amber-900/10 to-stone-900/40 rounded-lg  border-yellow-600/20 relative overflow-hidden">
             <div className="flex flex-col items-center">
               <h2 className="text-xl md:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-600 uppercase tracking-wider">
                 {character.name.fullName || "Warrior Details"}
@@ -126,10 +126,13 @@ export function CharacterDetailsView({
         {/* Attributes Section */}
         <AccordionItem
           value="attributes"
-          className="border-0 rounded-lg overflow-hidden bg-gradient-to-b from-amber-900/10 to-stone-900/40 border border-yellow-600/20"
+          className="rounded-lg overflow-hidden bg-gradient-to-b from-amber-900/10 to-stone-900/40 border border-yellow-600/20"
         >
           <AccordionTrigger className="px-3 py-2 hover:no-underline text-yellow-500 font-semibold">
-            Attributes
+            <span className="flex items-center">
+              <Dumbbell className="mr-2 h-3 w-3" />
+              Attributes
+            </span>
           </AccordionTrigger>
           <AccordionContent className="px-3">
             <AttributesSection character={character as Player} />
@@ -139,10 +142,12 @@ export function CharacterDetailsView({
         {/* Equipment Section */}
         <AccordionItem
           value="equipment"
-          className="border-0 rounded-lg overflow-hidden bg-gradient-to-b from-amber-900/10 to-stone-900/40 border border-yellow-600/20"
+          className="rounded-lg overflow-hidden bg-gradient-to-b from-amber-900/10 to-stone-900/40 border border-yellow-600/20"
         >
           <AccordionTrigger className="px-3 py-2 hover:no-underline text-yellow-500 font-semibold">
-            Equipment
+            <span className="flex items-center">
+              <Shield className="mr-1 h-3 w-3" /> Equipment
+            </span>
           </AccordionTrigger>
           <AccordionContent className="px-3">
             <EquipmentSection character={character as Player} />
@@ -153,7 +158,7 @@ export function CharacterDetailsView({
         {isOwner && !character.isRetired && (
           <AccordionItem
             value="skins"
-            className="border-0 rounded-lg overflow-hidden bg-gradient-to-b from-amber-900/10 to-stone-900/40 border border-yellow-600/20"
+            className="rounded-lg overflow-hidden bg-gradient-to-b from-amber-900/10 to-stone-900/40 border border-yellow-600/20"
           >
             <AccordionTrigger className="px-3 py-2 hover:no-underline text-yellow-500 font-semibold">
               <div className="flex items-center">

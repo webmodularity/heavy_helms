@@ -30,7 +30,7 @@ export default function CharacterPage({ params }: CharacterPageProps) {
       <div className="hidden lg:block absolute -right-20 top-2/3 w-64 h-64 rounded-full bg-amber-700/5 blur-3xl z-0" />
 
       {/* Main Content */}
-      <main className="container max-w-6xl mx-auto px-4 py-8 relative z-10">
+      <main className="container max-w-6xl mx-auto px-4 py-4 md:py-8 relative z-10">
         <CharacterDetailsView characterId={params.id} />
       </main>
     </div>

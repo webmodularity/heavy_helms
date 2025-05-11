@@ -3,10 +3,8 @@
 import { useState, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { fetchVerifiedSkinCollections } from "@/lib/player-api";
-import { SectionHeader } from "@/components/ui/section-header";
-
 import { SkinType } from "@/types/skin.types";
-import type { Player, PlayerAttributes } from "@/types/player.types";
+import type { Player } from "@/types/player.types";
 import { Shield, Swords } from "lucide-react";
 import { motion } from "framer-motion";
 import { SkinCard } from "./skin-card";
@@ -14,6 +12,7 @@ import { SkinTypeFilter } from "./skin-type-filter";
 import { SkinDetailsDialog } from "../dialogs/skin-details-dialog";
 import { useEquipSkin } from "@/hooks/use-equip-skin";
 import type { StanceType } from "@/types/equipment.types";
+
 export interface SkinWithMetadataURI {
   id: string;
   tokenId: number;
@@ -40,13 +39,9 @@ export function SkinsBrowser({ character }: SkinsBrowserProps) {
     null,
   );
   const [selectedSkinId, setSelectedSkinId] = useState<string | null>(null);
-
-  // State for the details dialog
   const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
   const [selectedSkinForDetails, setSelectedSkinForDetails] =
     useState<SkinWithMetadataURI | null>(null);
-
-  // For equipping the selected skin
   const { equipSkin, isEquipping } = useEquipSkin(character.id);
 
   // Fetch verified skin collections
@@ -75,6 +70,7 @@ export function SkinsBrowser({ character }: SkinsBrowserProps) {
         })),
       )
       .filter((skin) => skin.collection.skinType !== SkinType.Monster);
+
     // Filter by skin type if selected
     return selectedSkinType !== null
       ? allSkins.filter((skin) => skin.collection.skinType === selectedSkinType)
@@ -126,24 +122,29 @@ export function SkinsBrowser({ character }: SkinsBrowserProps) {
     character.currentSkin.tokenId === skin.tokenId;
 
   return (
-    <section className="mt-12 mb-16">
-      <SectionHeader
-        title="Character Skins"
-        subtitle="Choose wisely, adventurer - your chosen skin dictates your warrior's equipment and combat path!"
-        icon={<Swords className="h-5 w-5 text-yellow-500" />}
-      />
+    <section className="mt-3 mb-4">
+      <div className="flex flex-col space-y-2">
+        {/* <h3 className="text-sm font-semibold text-yellow-500 flex items-center">
+          <Swords className="h-3 w-3 mr-1 text-yellow-500" />
+          Character Skins
+        </h3> */}
+        <p className="text-xs text-stone-400 mb-2">
+          Choose wisely, adventurer - your chosen skin dictates your warrior's
+          equipment and combat path!
+        </p>
+      </div>
 
-      {/* Skin Type Filter */}
-      <div className="mb-6">
-        <SkinTypeFilter
+      {/* Skin Type Filter - more compact */}
+      <div className="mb-3">
+        <CompactSkinTypeFilter
           selectedType={selectedSkinType}
           onChange={handleFilterChange}
         />
       </div>
 
-      {/* Skins Grid */}
+      {/* Skins Grid - more compact */}
       {isLoading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
           {Array(8)
             .fill(0)
             .map((_, index) => (
@@ -155,7 +156,7 @@ export function SkinsBrowser({ character }: SkinsBrowserProps) {
         </div>
       ) : filteredSkins.length > 0 ? (
         <motion.div
-          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"
+          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.5 }}
@@ -171,8 +172,8 @@ export function SkinsBrowser({ character }: SkinsBrowserProps) {
           ))}
         </motion.div>
       ) : (
-        <div className="text-center py-12 bg-stone-800/20 rounded-lg border border-yellow-600/10">
-          <p className="text-stone-400">
+        <div className="text-center py-3 bg-stone-800/20 rounded-lg border border-yellow-600/10">
+          <p className="text-stone-400 text-xs">
             {selectedSkinType !== null
               ? `No ${SkinType[selectedSkinType]} skins available`
               : "No skins available"}
@@ -193,5 +194,40 @@ export function SkinsBrowser({ character }: SkinsBrowserProps) {
         />
       )}
     </section>
+  );
+}
+
+// More compact skin type filter
+function CompactSkinTypeFilter({
+  selectedType,
+  onChange,
+}: {
+  selectedType: SkinType | null;
+  onChange: (type: SkinType | null) => void;
+}) {
+  // Filter options
+  const filterOptions = [
+    { label: "All", value: null },
+    { label: "Default", value: SkinType.DefaultPlayer },
+    { label: "Verified", value: SkinType.Player },
+  ];
+
+  return (
+    <div className="flex flex-wrap gap-1">
+      {filterOptions.map((option) => (
+        <button
+          key={`filter-${option.label}`}
+          onClick={() => onChange(option.value)}
+          className={`px-2 py-1 text-xs rounded-md ${
+            selectedType === option.value
+              ? "bg-yellow-600 text-stone-900"
+              : "border border-yellow-600/20 text-yellow-500 hover:bg-yellow-900/20"
+          }`}
+          type="button"
+        >
+          {option.label}
+        </button>
+      ))}
+    </div>
   );
 }
