@@ -5,13 +5,9 @@ import { motion } from "framer-motion";
 import { ChevronUp } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { CTAButton } from "../ui/cta-button";
-import { SectionHeader } from "../ui/section-header";
 import { useState, useEffect } from "react";
 import { CreateChallengeForm } from "@/components/duel/create-challenge-form";
-import { formatEther } from "viem";
 import { AnimatePresence } from "framer-motion";
-import { Label } from "@/components/ui/label";
-import { YellowButton } from "@/components/ui/yellow-button";
 import { GauntletRegistrationForm } from "@/components/gauntlet/gauntlet-registration-form";
 
 interface BattleSectionProps {
@@ -32,7 +28,7 @@ export function BattleSection({
       icon: "🏹",
       title: "Practice Mode",
       description:
-        "Hone your skills in risk-free battles. Test strategies and fighting styles without consequence.",
+        "Hone your skills in risk-free battles. Test strategies without consequence.",
       actionLabel: "Train",
       route: "/practice",
       available: true,
@@ -42,7 +38,7 @@ export function BattleSection({
       icon: "🏆",
       title: "Gauntlet Mode",
       description:
-        "On-demand elimination tournaments await. Queue up, defeat all challengers, and prove your might.",
+        "On-demand tournaments await. Queue up and prove your might.",
       actionLabel: "Register",
       route: "/duel",
       available: true,
@@ -52,7 +48,7 @@ export function BattleSection({
       icon: "⚔️",
       title: "Duel Mode",
       description:
-        "Challenge warriors across the realm. Victory brings glory and rewards - defeat leaves scars.",
+        "Challenge warriors across the realm. Victory brings glory and rewards.",
       actionLabel: "Challenge",
       route: "/duel",
       available: true,
@@ -60,9 +56,17 @@ export function BattleSection({
   ];
 
   return (
-    <section ref={battleSectionRef} className="mb-12 scroll-mt-4 mt-8">
-      <SectionHeader title="Choose Your Battle" subtitle="GLORY AWAITS" />
-      <div className="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    <section ref={battleSectionRef} className="mb-6 scroll-mt-4 mt-4">
+      <div className="text-center mb-4">
+        <h2 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-600 uppercase tracking-wider">
+          Choose Your Battle
+        </h2>
+        <div className="text-yellow-400/90 text-xs font-medium">
+          GLORY AWAITS
+        </div>
+      </div>
+
+      <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3">
         {battleTypes.map((battleType, index) => (
           <BattleCard
             key={battleType.id}
@@ -70,8 +74,8 @@ export function BattleSection({
             selectedCharacter={selectedCharacter}
             hasBattleInView={hasBattleInView}
             animationDelay={index * 0.1}
-            contentDelay={index * 0.1 + 0.3}
-            glowDelay={index * 0.1 + 0.6}
+            contentDelay={index * 0.1 + 0.2}
+            glowDelay={index * 0.1 + 0.3}
           />
         ))}
       </div>
@@ -151,9 +155,8 @@ function BattleCard({
   };
 
   const handleGauntletRegister = () => {
-    // TODO: Implement gauntlet registration logic
+    // Implementation would go here
     console.log("Registering for Gauntlet:", selectedCharacter?.id);
-    // handleCancel(); // Close on success?
   };
 
   // Conditionally render the forms OR the default card view
@@ -163,16 +166,15 @@ function BattleCard({
       return (
         <motion.div
           key="duel-form"
-          className="h-full" // Let inner form control padding/style
-          initial={{ opacity: 0, y: 40 }}
+          className="h-full"
+          initial={{ opacity: 0, y: 20 }}
           animate={{
             opacity: 1,
             y: 0,
-            transition: { duration: 0.7, delay: animationDelay },
+            transition: { duration: 0.4, delay: animationDelay },
           }}
-          exit={{ opacity: 0, y: 40, transition: { duration: 0.3 } }}
+          exit={{ opacity: 0, y: 20, transition: { duration: 0.2 } }}
         >
-          {/* Form now applies the border/bg/padding */}
           <CreateChallengeForm
             character={selectedCharacter}
             onSuccess={handleChallengeSuccess}
@@ -182,26 +184,29 @@ function BattleCard({
       );
     }
 
-    // Render Gauntlet Registration Form (New Component)
+    // Render Gauntlet Registration Form
     if (
       showGauntletRegister &&
       selectedCharacter &&
       battleType.id === "gauntlet"
     ) {
       return (
-        <motion.div // Keep a motion div wrapper for consistent key/animation handling if needed, or potentially integrate animation into GauntletRegistrationForm itself
+        <motion.div
           key="gauntlet-form"
-          className="h-full" // Ensure wrapper takes full height
-          // Animations might be better handled *inside* GauntletRegistrationForm now
-          // initial={{ opacity: 0, y: 40 }}
-          // animate={{ opacity: 1, y: 0, transition: { duration: 0.7, delay: animationDelay } }}
-          // exit={{ opacity: 0, y: 40, transition: { duration: 0.3 } }}
+          className="h-full"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{
+            opacity: 1,
+            y: 0,
+            transition: { duration: 0.4, delay: animationDelay },
+          }}
+          exit={{ opacity: 0, y: 20, transition: { duration: 0.2 } }}
         >
           <GauntletRegistrationForm
             character={selectedCharacter}
-            onRegister={handleGauntletRegister} // Pass register handler
-            onCancel={handleCancel} // Pass cancel handler
-            animationDelay={animationDelay} // Pass delay for internal animation
+            onRegister={handleGauntletRegister}
+            onCancel={handleCancel}
+            animationDelay={animationDelay}
           />
         </motion.div>
       );
@@ -217,16 +222,16 @@ function BattleCard({
               ? "cursor-pointer hover:border-yellow-600/50"
               : "cursor-default"
         } ${isNavigating ? "opacity-70 pointer-events-none" : ""}`}
-        initial={{ opacity: 0, y: 40 }}
+        initial={{ opacity: 0, y: 20 }}
         animate={{
           opacity: 1,
           y: 0,
-          transition: { duration: 0.7, delay: animationDelay },
+          transition: { duration: 0.5, delay: animationDelay },
         }}
         whileHover={
           battleType.available && selectedCharacter && !isNavigating
             ? {
-                scale: 1.02,
+                scale: 1.01,
                 borderColor: "rgba(202, 138, 4, 0.5)",
                 transition: { duration: 0.2 },
               }
@@ -236,54 +241,54 @@ function BattleCard({
           battleType.available && !isNavigating ? handleAction : undefined
         }
       >
-        {/* Battle card content */}
-        <div className="p-6 h-full flex flex-col">
+        {/* Battle card content - more compact */}
+        <div className="p-3 h-full flex flex-col">
           <motion.div
-            className="mb-4 text-3xl"
+            className="mb-2 text-xl"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{
               opacity: 1,
               scale: 1,
-              transition: { duration: 0.5, delay: contentDelay },
+              transition: { duration: 0.4, delay: contentDelay },
             }}
           >
             {battleType.icon}
           </motion.div>
 
           <motion.h3
-            className="text-xl font-bold text-yellow-400 mb-2"
-            initial={{ opacity: 0, y: 20 }}
+            className="text-sm font-bold text-yellow-400 mb-1"
+            initial={{ opacity: 0, y: 10 }}
             animate={{
               opacity: 1,
               y: 0,
-              transition: { duration: 0.5, delay: contentDelay + 0.1 },
+              transition: { duration: 0.4, delay: contentDelay + 0.1 },
             }}
           >
             {battleType.title}
           </motion.h3>
 
           <motion.p
-            className="text-sm text-stone-300 mb-6 flex-grow"
-            initial={{ opacity: 0, y: 20 }}
+            className="text-xs text-stone-300 mb-3 flex-grow"
+            initial={{ opacity: 0, y: 10 }}
             animate={{
               opacity: 1,
               y: 0,
-              transition: { duration: 0.5, delay: contentDelay + 0.2 },
+              transition: { duration: 0.4, delay: contentDelay + 0.1 },
             }}
           >
             {battleType.description}
           </motion.p>
 
           <motion.div
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{
               opacity: 1,
               y: 0,
-              transition: { duration: 0.5, delay: contentDelay + 0.3 },
+              transition: { duration: 0.4, delay: contentDelay + 0.2 },
             }}
           >
             {battleType.available ? (
-              <CTAButton
+              <CompactCTAButton
                 onClick={
                   selectedCharacter && !isNavigating ? handleAction : () => {}
                 }
@@ -292,11 +297,10 @@ function BattleCard({
                     ? "Loading..."
                     : battleType.actionLabel
                 }
-                size="default"
                 disabled={isNavigating}
               />
             ) : (
-              <span className="block text-center py-2 text-sm text-yellow-500/70 border border-yellow-600/20 rounded-md bg-yellow-900/10">
+              <span className="block text-center py-1 text-xs text-yellow-500/70 border border-yellow-600/20 rounded-md bg-yellow-900/10">
                 Coming Soon
               </span>
             )}
@@ -308,8 +312,8 @@ function BattleCard({
           className="absolute inset-0 bg-gradient-to-r from-amber-600/10 to-yellow-600/5"
           initial={{ opacity: 0 }}
           animate={{
-            opacity: hasBattleInView ? 0.3 : 0,
-            transition: { duration: 0.5, delay: glowDelay },
+            opacity: hasBattleInView ? 0.2 : 0,
+            transition: { duration: 0.4, delay: glowDelay },
           }}
         />
 
@@ -319,17 +323,17 @@ function BattleCard({
             className="absolute inset-0 bg-black/60 backdrop-blur-sm flex flex-col items-center justify-center z-10"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: contentDelay + 0.4 }}
+            transition={{ duration: 0.4, delay: contentDelay + 0.2 }}
           >
             <div className="relative">
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-yellow-600 to-amber-500 rounded-md blur-sm opacity-70 animate-pulse" />
-              <div className="relative px-6 py-3 bg-black rounded-md border border-yellow-500/30">
-                <span className="text-lg font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-500">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-yellow-600 to-amber-500 rounded-md blur-sm opacity-50 animate-pulse" />
+              <div className="relative px-3 py-1 bg-black rounded-md border border-yellow-500/30">
+                <span className="text-sm font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-500">
                   COMING SOON
                 </span>
               </div>
             </div>
-            <p className="text-yellow-400/60 text-sm mt-4 max-w-[80%] text-center">
+            <p className="text-yellow-400/60 text-xs mt-2 max-w-[80%] text-center">
               Our warriors are training for this challenge
             </p>
           </motion.div>
@@ -341,26 +345,54 @@ function BattleCard({
             className="absolute inset-0 bg-black/50 backdrop-blur-sm flex flex-col items-center justify-center z-10"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, delay: contentDelay + 0.4 }}
+            transition={{ duration: 0.4, delay: contentDelay + 0.2 }}
           >
-            <div className="relative mb-2">
-              <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-cyan-400 rounded-md blur opacity-70 animate-pulse" />
-              <div className="relative px-5 py-2 bg-black rounded-md border border-blue-400/30">
-                <span className="text-md font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">
+            <div className="relative mb-1">
+              <div className="absolute -inset-0.5 bg-gradient-to-r from-blue-500 to-cyan-400 rounded-md blur opacity-50 animate-pulse" />
+              <div className="relative px-3 py-1 bg-black rounded-md border border-blue-400/30">
+                <span className="text-xs font-bold text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">
                   SELECT WARRIOR
                 </span>
               </div>
             </div>
-            <p className="text-blue-300/70 text-sm mt-2 max-w-[80%] text-center">
-              Choose your champion above to enter this battle
+            <p className="text-blue-300/70 text-xs mt-1 max-w-[80%] text-center">
+              Choose your champion above
             </p>
-            <ChevronUp className="h-6 w-6 text-blue-400/60 mt-4 animate-bounce" />
+            <ChevronUp className="h-4 w-4 text-blue-400/60 mt-2 animate-bounce" />
           </motion.div>
         )}
       </motion.div>
     );
   };
 
-  // Use AnimatePresence
   return <AnimatePresence mode="wait">{renderContent()}</AnimatePresence>;
+}
+
+// Compact version of the CTA Button
+function CompactCTAButton({
+  onClick,
+  title,
+  disabled = false,
+}: {
+  onClick: () => void;
+  title: string;
+  disabled?: boolean;
+}) {
+  return (
+    <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
+      <button
+        type="button"
+        onClick={onClick}
+        className={`w-full py-1 px-2 bg-gradient-to-b from-amber-700/40 to-stone-900/80 rounded border border-yellow-600/30 ${
+          disabled ? "opacity-50 cursor-not-allowed" : ""
+        }`}
+        disabled={disabled}
+      >
+        <div className="absolute inset-0 bg-gradient-to-r from-yellow-600/0 via-yellow-400/20 to-yellow-600/0 transform translate-x-[-100%] hover:translate-x-[100%] transition-transform duration-1000" />
+        <span className="text-yellow-400/90 text-xs font-medium uppercase tracking-wider relative z-10">
+          {title}
+        </span>
+      </button>
+    </motion.div>
+  );
 }
