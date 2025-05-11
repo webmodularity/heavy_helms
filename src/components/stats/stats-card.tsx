@@ -25,19 +25,19 @@ export function StatsCard({
   return (
     <div
       className={cn(
-        "bg-stone-900/80 border border-stone-800/60 rounded-lg p-4 shadow-lg flex flex-col hover:border-yellow-500/30 transition-all",
+        "bg-stone-900/80 border border-stone-800/60 rounded-lg p-2.5 shadow-md flex flex-col hover:border-yellow-500/30 transition-all",
         className,
       )}
     >
       <div className="flex justify-between items-start">
-        <h3 className="text-sm font-medium text-stone-400">{title}</h3>
+        <h3 className="text-xs font-medium text-stone-400">{title}</h3>
         {icon && <div className="text-yellow-500">{icon}</div>}
       </div>
 
-      <div className="mt-2 flex items-baseline">
+      <div className="mt-1.5 flex items-baseline">
         <span
           className={cn(
-            "text-2xl font-semibold text-yellow-500",
+            "text-lg font-semibold text-yellow-500",
             valueClassName,
           )}
         >
@@ -46,16 +46,15 @@ export function StatsCard({
       </div>
 
       {description && (
-        <p className="mt-2 text-xs text-stone-500">{description}</p>
+        <p className="mt-1 text-[10px] text-stone-500">{description}</p>
       )}
 
       {trend && (
-        <div className="mt-2">
+        <div className="mt-1">
           {trend === "up" && (
-            <span className="inline-flex items-center text-xs text-green-500">
-              {/* biome-ignore lint/a11y/noSvgWithoutTitle: <explanation> */}
+            <span className="inline-flex items-center text-[10px] text-green-500">
               <svg
-                className="w-3 h-3 mr-1"
+                className="w-2 h-2 mr-0.5"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -72,10 +71,9 @@ export function StatsCard({
             </span>
           )}
           {trend === "down" && (
-            <span className="inline-flex items-center text-xs text-red-500">
-              {/* biome-ignore lint/a11y/noSvgWithoutTitle: <explanation> */}
+            <span className="inline-flex items-center text-[10px] text-red-500">
               <svg
-                className="w-3 h-3 mr-1"
+                className="w-2 h-2 mr-0.5"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -92,10 +90,9 @@ export function StatsCard({
             </span>
           )}
           {trend === "neutral" && (
-            <span className="inline-flex items-center text-xs text-blue-500">
-              {/* biome-ignore lint/a11y/noSvgWithoutTitle: <explanation> */}
+            <span className="inline-flex items-center text-[10px] text-blue-500">
               <svg
-                className="w-3 h-3 mr-1"
+                className="w-2 h-2 mr-0.5"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"

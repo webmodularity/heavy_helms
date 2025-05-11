@@ -15,8 +15,7 @@ export function ConditionalBackButtonWrapper({
     <>
       {/* Conditionally render the BackButton based on the path */}
       {showBackButton && (
-        <div className="w-full">
-          {/* Optional wrapper for positioning */}
+        <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 pt-2 pb-1">
           <BackButton />
         </div>
       )}

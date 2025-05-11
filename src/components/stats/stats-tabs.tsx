@@ -23,44 +23,44 @@ export function StatsTabs({ activeSection, onSectionChange }: StatsTabsProps) {
     {
       id: "owners",
       label: "Owners",
-      icon: <User className="h-4 w-4" />,
+      icon: <User className="h-3 w-3" />,
     },
     {
       id: "fighters",
       label: "Fighters",
-      icon: <Shield className="h-4 w-4" />,
+      icon: <Shield className="h-3 w-3" />,
     },
     {
       id: "combat",
       label: "Combat",
-      icon: <Swords className="h-4 w-4" />,
+      icon: <Swords className="h-3 w-3" />,
     },
     {
       id: "duels",
       label: "Duels",
-      icon: <Swords className="h-4 w-4" />,
+      icon: <Swords className="h-3 w-3" />,
     },
     {
       id: "wagers",
       label: "Wagers",
-      icon: <CircleDollarSign className="h-4 w-4" />,
+      icon: <CircleDollarSign className="h-3 w-3" />,
     },
     {
       id: "skins",
       label: "Skins",
-      icon: <Palette className="h-4 w-4" />,
+      icon: <Palette className="h-3 w-3" />,
     },
   ];
 
   return (
-    <div className="flex flex-wrap gap-2 justify-center md:justify-start">
+    <div className="flex flex-wrap gap-1.5 justify-center md:justify-start">
       {tabs.map((tab) => (
         <button
           key={tab.id}
           type="button"
           onClick={() => onSectionChange(tab.id)}
           className={cn(
-            "inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors",
+            "inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium transition-colors",
             activeSection === tab.id
               ? "bg-yellow-500 text-black"
               : "bg-stone-800 text-stone-300 hover:bg-stone-700 hover:text-stone-100",

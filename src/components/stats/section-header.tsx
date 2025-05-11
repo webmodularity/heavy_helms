@@ -15,15 +15,15 @@ export function SectionHeader({
   className,
 }: SectionHeaderProps) {
   return (
-    <div className={cn("mb-6", className)}>
-      <div className="flex items-center gap-2">
+    <div className={cn("mb-3", className)}>
+      <div className="flex items-center gap-1.5">
         {icon && <div className="text-yellow-500">{icon}</div>}
-        <h2 className="text-2xl font-bold text-yellow-500">{title}</h2>
+        <h2 className="text-lg font-bold text-yellow-500">{title}</h2>
       </div>
       {description && (
-        <p className="mt-2 text-sm text-stone-400">{description}</p>
+        <p className="mt-1 text-xs text-stone-400">{description}</p>
       )}
-      <div className="mt-4 h-px bg-gradient-to-r from-transparent via-yellow-600/30 to-transparent" />
+      <div className="mt-2 h-px bg-gradient-to-r from-transparent via-yellow-600/30 to-transparent" />
     </div>
   );
 }

@@ -102,83 +102,83 @@ export function WagerStatsSection({ stats }: WagerStatsSectionProps) {
       <SectionHeader
         title="Wager Statistics"
         description="Overview of wagers placed on duels in Heavy Helms."
-        icon={<CircleDollarSign className="h-6 w-6" />}
+        icon={<CircleDollarSign className="h-4 w-4" />}
       />
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
         <StatsCard
           title="Total Wagered"
-          value={formatAndRoundEther(stats.totalWageredAmount)} // Uses helper with conversion
-          icon={<CreditCard className="h-5 w-5" />}
+          value={formatAndRoundEther(stats.totalWageredAmount)}
+          icon={<CreditCard className="h-4 w-4" />}
           className="bg-gradient-to-br from-stone-900/80 to-emerald-950/20 border-emerald-900/20"
           valueClassName="text-emerald-500"
         />
 
         <StatsCard
           title="Winner Payouts"
-          value={formatAndRoundEther(stats.totalWinnerPayouts)} // Uses helper with conversion
-          icon={<Trophy className="h-5 w-5" />}
+          value={formatAndRoundEther(stats.totalWinnerPayouts)}
+          icon={<Trophy className="h-4 w-4" />}
           className="bg-gradient-to-br from-stone-900/80 to-yellow-950/20 border-yellow-900/20"
           valueClassName="text-yellow-500"
         />
 
         <StatsCard
           title="Fees Collected"
-          value={formatAndRoundEther(stats.totalFeesCollected)} // Uses helper with conversion
-          icon={<Percent className="h-5 w-5" />}
+          value={formatAndRoundEther(stats.totalFeesCollected)}
+          icon={<Percent className="h-4 w-4" />}
           className="bg-gradient-to-br from-stone-900/80 to-blue-950/20 border-blue-900/20"
           valueClassName="text-blue-400"
         />
 
         <StatsCard
           title="Average Wager"
-          value={formattedAverageWager} // Use pre-formatted value
+          value={formattedAverageWager}
           className="bg-gradient-to-br from-stone-900/80 to-purple-950/20 border-purple-900/20"
           valueClassName="text-purple-400"
         />
       </div>
 
-      <div className="mt-6 bg-stone-900/80 border border-stone-800/60 rounded-lg p-4 shadow-lg">
-        <h3 className="text-lg font-semibold text-yellow-500 mb-4">
+      <div className="mt-4 bg-stone-900/80 border border-stone-800/60 rounded-lg p-2.5 shadow-md">
+        <h3 className="text-base font-semibold text-yellow-500 mb-2">
           Wager Distribution
         </h3>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-3 gap-3">
           <div className="text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-yellow-900/20 mb-2">
-              <Trophy className="h-8 w-8 text-yellow-500" />
+            <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-yellow-900/20 mb-1">
+              <Trophy className="h-5 w-5 text-yellow-500" />
             </div>
-            <div className="text-xl font-bold text-yellow-500">
+            <div className="text-base font-bold text-yellow-500">
               {formatAndRoundEther(stats.totalWinnerPayouts)}
             </div>
-            <div className="text-xs text-stone-400 mt-1">Winner Payouts</div>
-            <div className="text-xs text-stone-500 mt-1">
-              {`${winnerPayoutPercentage}%`} of total wagered
+            <div className="text-[10px] text-stone-400 mt-0.5">Winner Payouts</div>
+            <div className="text-[9px] text-stone-500 mt-0.5">
+              {`${winnerPayoutPercentage}%`} of total
             </div>
           </div>
 
           <div className="text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-900/20 mb-2">
-              <Percent className="h-8 w-8 text-blue-400" />
+            <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-blue-900/20 mb-1">
+              <Percent className="h-5 w-5 text-blue-400" />
             </div>
-            <div className="text-xl font-bold text-blue-400">
+            <div className="text-base font-bold text-blue-400">
               {formatAndRoundEther(stats.totalFeesCollected)}
             </div>
-            <div className="text-xs text-stone-400 mt-1">Fees Collected</div>
-            <div className="text-xs text-stone-500 mt-1">
-              {`${feesCollectedPercentage}%`} of total wagered
+            <div className="text-[10px] text-stone-400 mt-0.5">Fees Collected</div>
+            <div className="text-[9px] text-stone-500 mt-0.5">
+              {`${feesCollectedPercentage}%`} of total
             </div>
           </div>
 
           <div className="text-center">
-            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-emerald-900/20 mb-2">
-              <CreditCard className="h-8 w-8 text-emerald-500" />
+            <div className="inline-flex items-center justify-center w-10 h-10 rounded-full bg-emerald-900/20 mb-1">
+              <CreditCard className="h-5 w-5 text-emerald-500" />
             </div>
-            <div className="text-xl font-bold text-emerald-500">
+            <div className="text-base font-bold text-emerald-500">
               {formatAndRoundEther(stats.totalWageredAmount)}
             </div>
-            <div className="text-xs text-stone-400 mt-1">Total Wagered</div>
-            <div className="text-xs text-stone-500 mt-1">
+            <div className="text-[10px] text-stone-400 mt-0.5">Total Wagered</div>
+            <div className="text-[9px] text-stone-500 mt-0.5">
               Across all wager duels
             </div>
           </div>

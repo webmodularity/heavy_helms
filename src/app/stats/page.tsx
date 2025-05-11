@@ -58,20 +58,20 @@ export default function StatsPage() {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center h-[70vh]">
-        <Loader2 className="h-12 w-12 text-yellow-500 animate-spin" />
+      <div className="flex justify-center items-center h-[60vh]">
+        <Loader2 className="h-8 w-8 text-yellow-500 animate-spin" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="bg-red-900/20 border border-red-800/30 rounded-lg p-6 text-center">
-          <h2 className="text-xl font-medium text-red-400 mb-2">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-6">
+        <div className="bg-red-900/20 border border-red-800/30 rounded-lg p-4 text-center">
+          <h2 className="text-lg font-medium text-red-400 mb-1">
             Error Loading Stats
           </h2>
-          <p className="text-red-300">{(error as Error).message}</p>
+          <p className="text-sm text-red-300">{(error as Error).message}</p>
         </div>
       </div>
     );
@@ -79,12 +79,12 @@ export default function StatsPage() {
 
   if (!stats) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="bg-stone-900/20 border border-stone-800/30 rounded-lg p-6 text-center">
-          <h2 className="text-xl font-medium text-stone-400 mb-2">
+      <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-6">
+        <div className="bg-stone-900/20 border border-stone-800/30 rounded-lg p-4 text-center">
+          <h2 className="text-lg font-medium text-stone-400 mb-1">
             No Stats Available
           </h2>
-          <p className="text-stone-300">
+          <p className="text-sm text-stone-300">
             Statistics are currently unavailable.
           </p>
         </div>
@@ -93,12 +93,12 @@ export default function StatsPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
+    <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-6 space-y-6">
       {/* Header with last updated time */}
       <StatsHeader lastUpdated={stats.lastUpdated} />
 
       {/* Tabs navigation */}
-      <div className="sticky top-4 z-10 bg-stone-950/80 backdrop-blur-md p-4 rounded-lg border border-stone-800/60 shadow-lg">
+      <div className="sticky top-2 z-10 bg-stone-950/80 backdrop-blur-md p-2.5 rounded-lg border border-stone-800/60 shadow-md">
         <StatsTabs
           activeSection={activeSection}
           onSectionChange={handleSectionChange}
