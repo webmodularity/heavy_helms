@@ -13,6 +13,10 @@ export function useCharacterSubtitle(ownerAddress?: string, id?: string) {
     chainId: mainnet.id,
   });
 
+  const truncateAddress = (address: string) => {
+    return `${address.slice(0, 6)}...${address.slice(-4)}`;
+  };
+
   // Helper to generate the appropriate subtitle element
   const getSubtitle = (): ReactNode | string => {
     // Check if this is a system entity (default player or monster)
@@ -32,7 +36,11 @@ export function useCharacterSubtitle(ownerAddress?: string, id?: string) {
     }
 
     // Show ENS or full address with consistent styling
-    return <span className={subtitleStyle}>{ensName || ownerAddress}</span>;
+    return (
+      <span className={subtitleStyle}>
+        {ensName || truncateAddress(ownerAddress)}
+      </span>
+    );
   };
 
   return { subtitle: getSubtitle() };

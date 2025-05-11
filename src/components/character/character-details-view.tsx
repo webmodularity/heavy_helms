@@ -3,12 +3,11 @@
 import { usePlayerById } from "@/hooks/use-player-by-id";
 import { useRetirePlayer } from "@/hooks/use-retire-player";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Trash2 } from "lucide-react";
+import { ChevronDown, Swords, Trash2 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { RetirementConfirmationDialog } from "../dialogs/retirement-confirmation-dialog";
-import { HeroSection } from "./hero-section";
 import { AttributesSection } from "./attributes-section";
 import { EquipmentSection } from "./equipment-section";
 import {
@@ -22,6 +21,13 @@ import { useAccount } from "wagmi";
 import { CharacterImage } from "./character-image";
 import { WarriorIdentity } from "./warrior-identity";
 import { BattleLegacy } from "./battle-legacy";
+import {
+  Accordion,
+  AccordionContent,
+  AccordionItem,
+  AccordionTrigger,
+} from "@/components/ui/accordion";
+import { useCharacterSubtitle } from "@/hooks/use-character-subtitle";
 
 interface CharacterDetailsViewProps {
   characterId: string;
@@ -35,6 +41,10 @@ export function CharacterDetailsView({
   const { retirePlayer, isRetiring, txHash } = useRetirePlayer(characterId);
   const [showConfirm, setShowConfirm] = useState(false);
   const { address } = useAccount();
+  const { subtitle } = useCharacterSubtitle(
+    character?.owner?.address,
+    character?.id,
+  );
 
   // Handle the retirement process
   const handleRetirement = async () => {
@@ -67,44 +77,102 @@ export function CharacterDetailsView({
     address.toLowerCase() === character.owner.address.toLowerCase();
 
   return (
-    <>
-      {/* New Grid Layout */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-        {/* Left Column: Character Image */}
-        {/* Use col-span-1 for consistency */}
-        <div className="col-span-1">
-          <CharacterImage character={character as Player} />
-        </div>
+    <div className="max-w-full overflow-hidden">
+      {/* Top Compact Grid Layout */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        {/* Key Info - stacked in compact format */}
+        <div className="col-span-1 md:col-span-3 space-y-3">
+          {/* Character Name - more compact */}
+          <div className="p-2 bg-gradient-to-b from-amber-900/10 to-stone-900/40 rounded-lg border border-yellow-600/20 relative overflow-hidden">
+            <div className="flex flex-col items-center">
+              <h2 className="text-xl md:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-600 uppercase tracking-wider">
+                {character.name.fullName || "Warrior Details"}
+              </h2>
+              <div className="text-yellow-400/90 text-xs md:text-sm font-medium">
+                {subtitle}
+              </div>
+            </div>
+          </div>
 
-        {/* Right Column: Stacked Info */}
-        {/* Use col-span-1 md:col-span-2 for consistency */}
-        <div className="col-span-1 md:col-span-2 space-y-6">
-          {/* Section 1: Name/Address (Modified HeroSection) */}
-          {/* Removed margin-bottom from HeroSection internally, rely on space-y-6 */}
-          <HeroSection character={character as Player} />
-          {/* Section 2: Warrior Identity */}
-          <WarriorIdentity character={character as Player} />
-          {/* Section 3: Battle Legacy */}
-          <BattleLegacy character={character as Player} />
+          {/* Character Image - preserve aspect ratio */}
+          <div className="col-span-1 md:col-span-1 aspect-square max-h-[200px] md:max-h-[250px] justify-self-center">
+            <div className="h-full rounded-lg overflow-hidden border border-yellow-600/40 bg-gradient-to-b from-amber-900/20 to-stone-900/40 relative">
+              <img
+                src={character.currentSkin.imageURL}
+                alt={character.name.fullName || "Character"}
+                className="object-contain w-full h-full"
+              />
+              <div className="absolute inset-0 border-4 border-transparent border-b-yellow-600/20 border-r-yellow-600/20 z-20" />
+            </div>
+          </div>
+
+          {/* Identity & Legacy in the same row on larger screens */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {/* Warrior Identity - more compact */}
+            <div className="p-2 bg-gradient-to-b from-amber-900/10 to-stone-900/40 rounded-lg border border-yellow-600/20 relative overflow-hidden">
+              <WarriorIdentity character={character as Player} />
+            </div>
+
+            {/* Battle Legacy - more compact */}
+            <div className="p-2 bg-gradient-to-b from-amber-900/10 to-stone-900/40 rounded-lg border border-yellow-600/20 relative overflow-hidden">
+              <BattleLegacy character={character as Player} />
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* Attributes Section remains below the new grid */}
-      <AttributesSection character={character as Player} />
+      {/* Details Sections - Use Accordion for more compact display */}
+      <Accordion type="single" collapsible className="w-full space-y-3">
+        {/* Attributes Section */}
+        <AccordionItem
+          value="attributes"
+          className="border-0 rounded-lg overflow-hidden bg-gradient-to-b from-amber-900/10 to-stone-900/40 border border-yellow-600/20"
+        >
+          <AccordionTrigger className="px-3 py-2 hover:no-underline text-yellow-500 font-semibold">
+            Attributes
+          </AccordionTrigger>
+          <AccordionContent className="px-3">
+            <AttributesSection character={character as Player} />
+          </AccordionContent>
+        </AccordionItem>
 
-      {/* Equipment Section remains below the new grid */}
-      <EquipmentSection character={character as Player} />
+        {/* Equipment Section */}
+        <AccordionItem
+          value="equipment"
+          className="border-0 rounded-lg overflow-hidden bg-gradient-to-b from-amber-900/10 to-stone-900/40 border border-yellow-600/20"
+        >
+          <AccordionTrigger className="px-3 py-2 hover:no-underline text-yellow-500 font-semibold">
+            Equipment
+          </AccordionTrigger>
+          <AccordionContent className="px-3">
+            <EquipmentSection character={character as Player} />
+          </AccordionContent>
+        </AccordionItem>
 
-      {/* Skins Browser Section - only shown for non-retired characters that the user owns */}
-      {isOwner && !character.isRetired && (
-        <SkinsBrowser character={character as Player} />
-      )}
+        {/* Skins Browser Section - only shown for non-retired characters that the user owns */}
+        {isOwner && !character.isRetired && (
+          <AccordionItem
+            value="skins"
+            className="border-0 rounded-lg overflow-hidden bg-gradient-to-b from-amber-900/10 to-stone-900/40 border border-yellow-600/20"
+          >
+            <AccordionTrigger className="px-3 py-2 hover:no-underline text-yellow-500 font-semibold">
+              <div className="flex items-center">
+                <Swords className="h-4 w-4 mr-2" />
+                Character Skins
+              </div>
+            </AccordionTrigger>
+            <AccordionContent className="px-3">
+              <SkinsBrowser character={character as Player} />
+            </AccordionContent>
+          </AccordionItem>
+        )}
+      </Accordion>
 
       {/* Action Buttons - only shown for non-retired characters that the user owns */}
       {isOwner && !character.isRetired && (
         <>
           <motion.div
-            className="flex flex-wrap gap-4 justify-center md:justify-start mt-6"
+            className="flex flex-wrap gap-3 justify-center md:justify-start mt-4"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.4 }}
@@ -113,9 +181,10 @@ export function CharacterDetailsView({
               variant="destructive"
               onClick={() => setShowConfirm(true)}
               disabled={isRetiring}
-              className="font-bokor text-lg"
+              className="font-bokor text-base"
+              size="sm"
             >
-              <Trash2 className="mr-1 h-4 w-4" />
+              <Trash2 className="mr-1 h-3 w-3" />
               {isRetiring ? "Retiring..." : "Retire Warrior"}
             </Button>
           </motion.div>
@@ -131,6 +200,6 @@ export function CharacterDetailsView({
           />
         </>
       )}
-    </>
+    </div>
   );
 }
