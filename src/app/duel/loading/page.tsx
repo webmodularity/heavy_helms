@@ -15,17 +15,13 @@ export default function DuelLoadingPage() {
   const [isNavigating, setIsNavigating] = useState(false);
   const player1Id = useSearchParams().get("player1Id") ?? undefined;
 
-  // If we already have a txHash, show a success message but DON'T navigate
-  // (the callback in startListening will handle navigation with delay)
   useEffect(() => {
     if (duelTxHash && !isNavigating) {
       setIsNavigating(true);
-
       router.push(`/duel?txId=${duelTxHash}&player1Id=${player1Id}`);
     }
   }, [duelTxHash, isNavigating, router, player1Id]);
 
-  // If we're not listening anymore and we don't have a duel txHash, go back to challenges
   useEffect(() => {
     if (!isListening && !duelTxHash && !isTimeout) {
       router.push("/");
@@ -52,11 +48,11 @@ export default function DuelLoadingPage() {
 
         {/* Animated "stars" effect */}
         <div className="absolute inset-0 overflow-hidden">
-          {[...Array(20)].map((_, i) => (
+          {[...Array(12)].map((_, i) => (
             <motion.div
               // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
               key={i}
-              className="absolute h-1 w-1 bg-yellow-500/30 rounded-full"
+              className="absolute h-0.5 w-0.5 sm:h-1 sm:w-1 bg-yellow-500/30 rounded-full"
               style={{
                 top: `${Math.random() * 100}%`,
                 left: `${Math.random() * 100}%`,
@@ -89,12 +85,12 @@ export default function DuelLoadingPage() {
           ease: "easeInOut",
         }}
       >
-        <div className="w-96 h-96 rounded-full border-4 border-yellow-500/20 blur-sm" />
+        <div className="w-48 h-48 sm:w-72 sm:h-72 rounded-full border-2 sm:border-4 border-yellow-500/20 blur-sm" />
       </motion.div>
 
       {/* Central Content */}
       <motion.div
-        className="z-20 text-center px-4 sm:px-6 max-w-2xl"
+        className="z-20 text-center px-3 sm:px-4 max-w-xs sm:max-w-md"
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.3 }}
@@ -119,13 +115,13 @@ function LoadingContent({ onCancel }: { onCancel: () => void }) {
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ delay: 0.5 }}
-        className="mb-8 flex justify-center"
+        className="mb-4 flex justify-center"
       >
         <BattleAnimatedIcon />
       </motion.div>
 
       <motion.h1
-        className="text-3xl md:text-4xl font-bold text-white mb-4"
+        className="text-xl sm:text-2xl font-bold text-white mb-2"
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.6 }}
@@ -134,23 +130,21 @@ function LoadingContent({ onCancel }: { onCancel: () => void }) {
       </motion.h1>
 
       <motion.p
-        className="text-gray-300 mb-4 text-lg"
+        className="text-gray-300 mb-2 text-sm"
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.7 }}
       >
-        Your challenge has been accepted! We're waiting for the blockchain to
-        process the duel.
+        Challenge accepted! Waiting for the blockchain to process the duel.
       </motion.p>
 
       <motion.p
-        className="text-gray-400 mb-8"
+        className="text-gray-400 mb-4 text-xs"
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.8 }}
       >
-        This usually takes less than a minute, but may take longer during
-        periods of network congestion.
+        This usually takes less than a minute.
       </motion.p>
 
       <motion.div
@@ -161,9 +155,10 @@ function LoadingContent({ onCancel }: { onCancel: () => void }) {
         <Button
           onClick={onCancel}
           variant="outline"
-          className="bg-transparent hover:bg-yellow-500/20 text-yellow-500 border-yellow-500/30 hover:border-yellow-500/50"
+          size="sm"
+          className="bg-transparent hover:bg-yellow-500/20 text-yellow-500 border-yellow-500/30 hover:border-yellow-500/50 h-8 text-xs"
         >
-          <ArrowLeft className="mr-2 h-4 w-4" />
+          <ArrowLeft className="mr-1.5 h-3 w-3" />
           Return to Challenges
         </Button>
       </motion.div>
@@ -183,9 +178,9 @@ function CompletedContent() {
           delay: 0.5,
           ease: "easeOut",
         }}
-        className="mb-8 flex justify-center"
+        className="mb-4 flex justify-center"
       >
-        <div className="h-20 w-20 relative">
+        <div className="h-14 w-14 sm:h-16 sm:w-16 relative">
           <motion.div
             className="absolute inset-0 rounded-full bg-yellow-500/20 backdrop-blur-sm"
             animate={{
@@ -198,12 +193,12 @@ function CompletedContent() {
               ease: "easeInOut",
             }}
           />
-          <Swords className="h-12 w-12 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-yellow-500" />
+          <Swords className="h-8 w-8 sm:h-10 sm:w-10 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-yellow-500" />
         </div>
       </motion.div>
 
       <motion.h1
-        className="text-3xl md:text-4xl font-bold text-white mb-4"
+        className="text-xl sm:text-2xl font-bold text-white mb-2"
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.6 }}
@@ -212,14 +207,14 @@ function CompletedContent() {
       </motion.h1>
 
       <motion.div
-        className="space-y-4"
+        className="space-y-2"
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.7 }}
       >
-        <p className="text-gray-300 text-lg">Preparing the visualization...</p>
+        <p className="text-gray-300 text-sm">Preparing visualization...</p>
         <AnimatedDots />
-        <p className="text-gray-400">You'll be redirected in a few seconds.</p>
+        <p className="text-gray-400 text-xs">Redirecting in a few seconds...</p>
       </motion.div>
     </>
   );
@@ -233,13 +228,13 @@ function TimeoutContent({ onReturn }: { onReturn: () => void }) {
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ delay: 0.5 }}
-        className="mb-8 flex justify-center"
+        className="mb-4 flex justify-center"
       >
-        <div className="h-20 w-20 relative">
+        <div className="h-14 w-14 sm:h-16 sm:w-16 relative">
           <div className="absolute inset-0 rounded-full bg-orange-500/20 backdrop-blur-sm" />
           {/* biome-ignore lint/a11y/noSvgWithoutTitle: <explanation> */}
           <svg
-            className="h-12 w-12 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-orange-500"
+            className="h-8 w-8 sm:h-10 sm:w-10 absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 text-orange-500"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -255,7 +250,7 @@ function TimeoutContent({ onReturn }: { onReturn: () => void }) {
       </motion.div>
 
       <motion.h1
-        className="text-3xl md:text-4xl font-bold text-white mb-4"
+        className="text-xl sm:text-2xl font-bold text-white mb-2"
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.6 }}
@@ -264,27 +259,25 @@ function TimeoutContent({ onReturn }: { onReturn: () => void }) {
       </motion.h1>
 
       <motion.p
-        className="text-gray-300 mb-4 text-lg"
+        className="text-gray-300 mb-2 text-sm"
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.7 }}
       >
-        The duel is taking longer than expected to process. This could be due to
-        network congestion.
+        Duel is taking longer due to network congestion.
       </motion.p>
 
       <motion.p
-        className="text-gray-400 mb-8"
+        className="text-gray-400 mb-4 text-xs"
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.8 }}
       >
-        You can wait longer or check back later. The duel will still be
-        processed by the blockchain.
+        The duel will still be processed by the blockchain.
       </motion.p>
 
       <motion.div
-        className="flex flex-col sm:flex-row gap-4 justify-center"
+        className="flex flex-row gap-2 justify-center"
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.9 }}
@@ -292,15 +285,17 @@ function TimeoutContent({ onReturn }: { onReturn: () => void }) {
         <Button
           onClick={onReturn}
           variant="outline"
-          className="bg-transparent hover:bg-yellow-500/20 text-yellow-500 border-yellow-500/30 hover:border-yellow-500/50"
+          size="sm"
+          className="bg-transparent hover:bg-yellow-500/20 text-yellow-500 border-yellow-500/30 hover:border-yellow-500/50 h-8 text-xs"
         >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Return to Challenges
+          <ArrowLeft className="mr-1.5 h-3 w-3" />
+          Return
         </Button>
 
         <Button
           onClick={() => window.location.reload()}
-          className="bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-500 border border-yellow-500/30"
+          size="sm"
+          className="bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-500 border border-yellow-500/30 h-8 text-xs"
         >
           Try Again
         </Button>
@@ -312,11 +307,11 @@ function TimeoutContent({ onReturn }: { onReturn: () => void }) {
 // Animated dots for "loading" indication
 function AnimatedDots() {
   return (
-    <div className="flex justify-center space-x-2">
+    <div className="flex justify-center space-x-1.5">
       {[0, 1, 2].map((dot) => (
         <motion.div
           key={dot}
-          className="h-2 w-2 bg-yellow-500 rounded-full"
+          className="h-1.5 w-1.5 bg-yellow-500 rounded-full"
           initial={{ opacity: 0.3 }}
           animate={{ opacity: [0.3, 1, 0.3] }}
           transition={{
@@ -334,7 +329,7 @@ function AnimatedDots() {
 // Battle icon animation
 function BattleAnimatedIcon() {
   return (
-    <div className="relative h-24 w-24">
+    <div className="relative h-16 w-16 sm:h-20 sm:w-20">
       {/* Pulsing background */}
       <motion.div
         className="absolute inset-0 rounded-full bg-yellow-500/10"
@@ -365,11 +360,11 @@ function BattleAnimatedIcon() {
         {[0, 60, 120, 180, 240, 300].map((angle) => (
           <motion.div
             key={angle}
-            className="absolute h-1.5 w-1.5 rounded-full bg-yellow-500/80"
+            className="absolute h-1 w-1 rounded-full bg-yellow-500/80"
             style={{
-              top: "calc(50% - 3px)",
-              left: "calc(50% - 3px)",
-              transform: `rotate(${angle}deg) translateX(34px)`,
+              top: "calc(50% - 2px)",
+              left: "calc(50% - 2px)",
+              transform: `rotate(${angle}deg) translateX(22px)`,
             }}
           />
         ))}
@@ -377,7 +372,7 @@ function BattleAnimatedIcon() {
 
       {/* Center element */}
       <div className="absolute inset-0 flex items-center justify-center">
-        <Swords className="h-8 w-8 text-yellow-500 z-10" />
+        <Swords className="h-6 w-6 text-yellow-500 z-10" />
       </div>
     </div>
   );
