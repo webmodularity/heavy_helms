@@ -7,11 +7,11 @@
     "frame": {
       "name": "HeavyHelms",
       "version": "1",
-      "iconUrl": "https://board-stack-optimum-makers.trycloudflare.com/heavy_helms_header_drop_shadow.png",
-      "homeUrl": "https://board-stack-optimum-makers.trycloudflare.com",
-      "imageUrl": "https://board-stack-optimum-makers.trycloudflare.com/heavy_helms_header_drop_shadow.png",
+      "iconUrl": "https://services-dk-addition-pub.trycloudflare.com/heavy_helms_header_drop_shadow.png",
+      "homeUrl": "https://services-dk-addition-pub.trycloudflare.com",
+      "imageUrl": "https://services-dk-addition-pub.trycloudflare.com/heavy_helms_header_drop_shadow.png",
       "buttonTitle": "Play",
-      "splashImageUrl": "https://board-stack-optimum-makers.trycloudflare.com/heavy_helms_header_drop_shadow.png",
+      "splashImageUrl": "https://services-dk-addition-pub.trycloudflare.com/heavy_helms_header_drop_shadow.png",
       "splashBackgroundColor": "#f9c846"
     }
 }

@@ -1,8 +1,10 @@
 import { http, createPublicClient } from "viem";
-import { farcasterFrame as miniAppConnector } from "@farcaster/frame-wagmi-connector";
 import { createConfig } from "wagmi";
 import { baseSepolia, shape } from "wagmi/chains";
 import { shape as viemShape, baseSepolia as viemBaseSepolia } from "viem/chains";
+// import { createConfig } from "@privy-io/wagmi";
+// import { privyWagmiConnector } from "@privy-io/wagmi-connector";
+import { farcasterFrame as miniAppConnector } from "@farcaster/frame-wagmi-connector";
 
 // Export the public viem client for direct blockchain interactions
 export const viemClient = createPublicClient({
@@ -23,9 +25,10 @@ export const wagmiConfig = createConfig({
     process.env.NEXT_PUBLIC_ALCHEMY_NETWORK === "base-sepolia"
       ? [baseSepolia]
       : [shape],
-      
-  connectors: [miniAppConnector()],
-  ssr: true,
+  connectors: [
+    miniAppConnector()
+  ],
+  // ssr: true,
   transports: {
     [baseSepolia.id]: http(),
     // [mainnet.id]: http(),

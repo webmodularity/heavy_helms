@@ -8,7 +8,6 @@ import { Cinzel, Cormorant_Unicase } from "next/font/google";
 import Image from "next/image";
 import { Toaster } from "sonner";
 import { ConditionalBackButtonWrapper } from "@/components/layout/conditional-back-button-wrapper";
-import { FarcasterReady } from "@/components/FarcasterReady";
 
 // Load Bokor
 const bokor = localFont({
@@ -75,20 +74,18 @@ export default function RootLayout({
             priority
           />
         </div>
-        <FarcasterReady>
-          <Providers>
-            <div className="flex flex-col from-slate-900 to-indigo-900">
-              <Header />
-              <main className="container mx-auto flex min-h-screen flex-col px-4 pt-0 pb-8 md:px-6 lg:px-8">
-                <ConditionalBackButtonWrapper>
-                  {children}
-                </ConditionalBackButtonWrapper>
-              </main>
-              <Toaster />
-              <Footer />
-            </div>
-          </Providers>
-        </FarcasterReady>
+        <Providers>
+          <div className="flex flex-col from-slate-900 to-indigo-900">
+            <Header />
+            <main className="container mx-auto flex min-h-screen flex-col px-4 pt-0 pb-8 md:px-6 lg:px-8">
+              <ConditionalBackButtonWrapper>
+                {children}
+              </ConditionalBackButtonWrapper>
+            </main>
+            <Toaster />
+            <Footer />
+          </div>
+        </Providers>
       </body>
     </html>
   );
