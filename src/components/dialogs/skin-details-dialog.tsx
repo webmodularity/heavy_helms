@@ -21,6 +21,7 @@ import { usePlayerById } from "@/hooks/use-player-by-id";
 import { StanceSelector } from "../character/stance-selector";
 import type { StanceType } from "@/types/equipment.types";
 import { useState } from "react";
+import { CompactDialogHeader } from "../ui/compact/CompactDialogHeader";
 
 // Define a more specific type for the skin from the GraphQL query
 interface SkinWithMetadataURI {
@@ -76,9 +77,7 @@ export function SkinDetailsDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-sm bg-stone-900 border-yellow-600/30 text-stone-200 p-3">
-        <DialogHeader className="pb-1">
-          <DialogTitle className="text-yellow-500 text-sm">Skin Details</DialogTitle>
-        </DialogHeader>
+        <CompactDialogHeader title="Skin Details" className="pb-2" />
 
         <div className="space-y-2">
           {/* Skin Image - More compact */}
@@ -123,13 +122,19 @@ export function SkinDetailsDialog({
             <div className="grid grid-cols-2 gap-1">
               <div className="bg-stone-800 p-2 rounded-lg">
                 <p className="text-[10px] text-stone-400">Weapon</p>
-                <p className="text-xs font-medium text-stone-200 truncate" title={getWeaponDisplayName(skin.weapon)}>
+                <p
+                  className="text-xs font-medium text-stone-200 truncate"
+                  title={getWeaponDisplayName(skin.weapon)}
+                >
                   {getWeaponDisplayName(skin.weapon)}
                 </p>
               </div>
               <div className="bg-stone-800 p-2 rounded-lg">
                 <p className="text-[10px] text-stone-400">Armor</p>
-                <p className="text-xs font-medium text-stone-200 truncate" title={getArmorDisplayName(skin.armor)}>
+                <p
+                  className="text-xs font-medium text-stone-200 truncate"
+                  title={getArmorDisplayName(skin.armor)}
+                >
                   {getArmorDisplayName(skin.armor)}
                 </p>
               </div>
@@ -138,7 +143,10 @@ export function SkinDetailsDialog({
             <div className="grid grid-cols-2 gap-1">
               <div className="bg-stone-800 p-2 rounded-lg">
                 <p className="text-[10px] text-stone-400">Collection</p>
-                <p className="text-xs font-medium text-stone-200 truncate" title={skin.collection.contractAddress}>
+                <p
+                  className="text-xs font-medium text-stone-200 truncate"
+                  title={skin.collection.contractAddress}
+                >
                   {skin.collection.contractAddress.substring(0, 8)}...
                 </p>
               </div>
@@ -150,7 +158,7 @@ export function SkinDetailsDialog({
               </div>
             </div>
           </div>
-          
+
           {/* Compact Stance Selector */}
           <div className="py-1">
             <StanceSelector

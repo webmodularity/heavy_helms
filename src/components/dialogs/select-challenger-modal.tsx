@@ -1,16 +1,10 @@
 "use client";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { PlayerSelectionTable } from "@/components/duel/player-selection-table";
-import type { Player } from "@/types/player.types";
 import { useEffect } from "react";
 import type { Fighter } from "@/types/fighter-types";
+import { CompactDialogHeader } from "@/components/ui/compact/CompactDialogHeader";
 
 interface SelectChallengerModalProps {
   isOpen: boolean;
@@ -46,14 +40,10 @@ export function SelectChallengerModal({
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-3xl bg-gradient-to-b from-stone-900 to-stone-950 border-yellow-600/20 h-[90vh] my-2.5 overflow-hidden flex flex-col">
-        <DialogHeader className="space-y-1">
-          <DialogTitle className="text-lg sm:text-xl font-bold text-yellow-500">
-            Select a Challenger
-          </DialogTitle>
-          <DialogDescription className="text-xs text-stone-400">
-            Browse and select a warrior to challenge to a duel.
-          </DialogDescription>
-        </DialogHeader>
+        <CompactDialogHeader
+          title="Select a Challenger"
+          description="Browse and select a warrior to challenge to a duel."
+        />
 
         <div className="mt-2.5 overflow-y-auto pr-1 h-full">
           <PlayerSelectionTable

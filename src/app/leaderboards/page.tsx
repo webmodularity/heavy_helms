@@ -24,7 +24,9 @@ export default function LeaderboardsPage() {
       {/* Header - Smaller and more compact */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
         <div>
-          <h1 className="text-xl sm:text-2xl font-bold text-yellow-500">Leaderboards</h1>
+          <h1 className="text-xl sm:text-2xl font-bold text-yellow-500">
+            Leaderboards
+          </h1>
           <p className="text-xs text-stone-400 mt-0.5">
             Rankings of the mightiest warriors and wealthiest participants.
           </p>

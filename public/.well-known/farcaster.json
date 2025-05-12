@@ -7,11 +7,11 @@
     "frame": {
       "name": "HeavyHelms",
       "version": "1",
-      "iconUrl": "https://meat-wear-utc-folk.trycloudflare.com/heavy_helms_header_drop_shadow.png",
-      "homeUrl": "https://meat-wear-utc-folk.trycloudflare.com",
-      "imageUrl": "https://meat-wear-utc-folk.trycloudflare.com/heavy_helms_header_drop_shadow.png",
+      "iconUrl": "https://board-stack-optimum-makers.trycloudflare.com/heavy_helms_header_drop_shadow.png",
+      "homeUrl": "https://board-stack-optimum-makers.trycloudflare.com",
+      "imageUrl": "https://board-stack-optimum-makers.trycloudflare.com/heavy_helms_header_drop_shadow.png",
       "buttonTitle": "Play",
-      "splashImageUrl": "https://meat-wear-utc-folk.trycloudflare.com/heavy_helms_header_drop_shadow.png",
+      "splashImageUrl": "https://board-stack-optimum-makers.trycloudflare.com/heavy_helms_header_drop_shadow.png",
       "splashBackgroundColor": "#f9c846"
     }
 }

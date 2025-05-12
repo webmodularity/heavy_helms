@@ -3,6 +3,8 @@
 import { Users, Shield, Skull } from "lucide-react";
 import { SectionHeader } from "./section-header";
 import { StatsCard } from "./stats-card";
+import { CompactSectionHeader } from "../ui/compact/CompactSectionHeader";
+import { CompactStatsCard } from "../ui/compact/CompactStatsCard";
 
 interface FighterStats {
   playerCount: number;
@@ -22,34 +24,34 @@ interface FighterStatsSectionProps {
 export function FighterStatsSection({ stats }: FighterStatsSectionProps) {
   return (
     <section>
-      <SectionHeader
+      <CompactSectionHeader
         title="Fighter Statistics"
         description="Overview of all fighters in Heavy Helms, including players and monsters."
         icon={<Shield className="h-4 w-4" />}
       />
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-        <StatsCard
+        <CompactStatsCard
           title="Total Fighters"
           value={stats.totalFightersCount.toLocaleString()}
           icon={<Users className="h-4 w-4" />}
           description="All fighters in the game"
         />
 
-        <StatsCard
+        <CompactStatsCard
           title="Players"
           value={stats.playerCount.toLocaleString()}
           icon={<Users className="h-4 w-4" />}
           description={`${stats.activePlayerCount} active, ${stats.retiredPlayerCount} retired`}
         />
 
-        <StatsCard
+        <CompactStatsCard
           title="Default Players"
           value={stats.defaultPlayerCount.toLocaleString()}
           description="System-generated players"
         />
 
-        <StatsCard
+        <CompactStatsCard
           title="Monsters"
           value={stats.monsterCount.toLocaleString()}
           icon={<Skull className="h-4 w-4" />}

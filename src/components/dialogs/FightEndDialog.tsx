@@ -9,6 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
+import { CompactDialogHeader } from "../ui/compact/CompactDialogHeader";
 
 interface FightEndDialogProps {
   isOpen: boolean;
@@ -30,23 +31,18 @@ export function FightEndDialog({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-[375px] bg-stone-800 border-yellow-600 p-4">
-        <DialogHeader className="space-y-1 pb-2">
-          <DialogTitle className="text-base sm:text-lg text-yellow-400 font-pixeloid">
-            Fight Over!
-          </DialogTitle>
-          {winnerName && (
-            <DialogDescription className="text-xs text-stone-300 pt-1 font-pixeloid">
-              Winner: {winnerName}
-            </DialogDescription>
-          )}
-        </DialogHeader>
+      <DialogContent className="sm:max-w-[375px] bg-stone-800 border-yellow-600 p-4 font-pixeloid">
+        <CompactDialogHeader
+          title="Fight Over!"
+          description={winnerName && `Winner: ${winnerName}`}
+          className="pb-2 font-pixeloid"
+        />
         <DialogFooter className="gap-1.5 sm:justify-end pt-2">
           <Button
             type="button"
-            variant="outline"
+            variant="ghost"
             onClick={onClose}
-            className="h-8 px-3 text-xs border-stone-600 hover:bg-stone-700 hover:text-stone-100 font-pixeloid"
+            className="h-8 px-3 text-xs border-stone-600 font-pixeloid"
           >
             Close
           </Button>
