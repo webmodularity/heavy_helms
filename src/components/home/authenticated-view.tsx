@@ -12,6 +12,7 @@ import { ActivitySection } from "./activity-section";
 import type { StanceType } from "@/types/equipment.types";
 import { useOwnPlayers } from "@/hooks/use-own-players";
 import { useRouter } from "next/navigation";
+import { useIdentityToken, usePrivy } from "@privy-io/react-auth";
 
 interface AuthenticatedViewProps {
   initialSelectedCharacterId: string | null;
@@ -20,6 +21,9 @@ interface AuthenticatedViewProps {
 export function AuthenticatedView({
   initialSelectedCharacterId,
 }: AuthenticatedViewProps) {
+  const { identityToken } = useIdentityToken();
+  const { getAccessToken } = usePrivy();
+
   const [selectedCharacter, setSelectedCharacter] = useState<Player | null>(
     null,
   );
@@ -34,6 +38,32 @@ export function AuthenticatedView({
 
   const scrollToBattleSection = useCallback(() => {
     battleSectionRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, []);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const accessToken = await getAccessToken();
+      console.log("accessToken", accessToken);
+      // const response = await fetch("/api/test", {
+      //   method: "GET",
+      //   headers: {
+      //     "privy-id-token": identityToken,
+      //   },
+      // });
+      // const data = await response.json();
+      // console.log("data", data);
+      // For HTTP-only cookies approach
+      const response = await fetch("/api/test", {
+        method: "GET",
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      });
+      const data = await response.json();
+      console.log("data", data);
+    };
+    fetchData();
   }, []);
 
   // Function to select a character - memoized
