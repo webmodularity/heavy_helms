@@ -11,19 +11,18 @@ import { WarriorSelection } from "../character/warrior-selection";
 import { ActivitySection } from "./activity-section";
 import type { StanceType } from "@/types/equipment.types";
 import { useOwnPlayers } from "@/hooks/use-own-players";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useIdentityToken, usePrivy } from "@privy-io/react-auth";
+import { getChainId } from "@wagmi/core";
+import { wagmiConfig } from "@/config";
 
-interface AuthenticatedViewProps {
-  initialSelectedCharacterId: string | null;
-}
-
-export function AuthenticatedView({
-  initialSelectedCharacterId,
-}: AuthenticatedViewProps) {
+export function AuthenticatedView() {
   const { identityToken } = useIdentityToken();
   const { getAccessToken } = usePrivy();
-
+  const searchParams = useSearchParams();
+  const initialSelectedCharacterId = searchParams.get("selectedCharacter");
+  // const chainId = getChainId(wagmiConfig);
+  // console.log("chainId", chainId);
   const [selectedCharacter, setSelectedCharacter] = useState<Player | null>(
     null,
   );
@@ -40,31 +39,31 @@ export function AuthenticatedView({
     battleSectionRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const accessToken = await getAccessToken();
-      console.log("accessToken", accessToken);
-      // const response = await fetch("/api/test", {
-      //   method: "GET",
-      //   headers: {
-      //     "privy-id-token": identityToken,
-      //   },
-      // });
-      // const data = await response.json();
-      // console.log("data", data);
-      // For HTTP-only cookies approach
-      const response = await fetch("/api/test", {
-        method: "GET",
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
-        },
-      });
-      const data = await response.json();
-      console.log("data", data);
-    };
-    fetchData();
-  }, []);
+  // useEffect(() => {
+  //   const fetchData = async () => {
+  //     const accessToken = await getAccessToken();
+  //     console.log("accessToken", accessToken);
+  //     // const response = await fetch("/api/test", {
+  //     //   method: "GET",
+  //     //   headers: {
+  //     //     "privy-id-token": identityToken,
+  //     //   },
+  //     // });
+  //     // const data = await response.json();
+  //     // console.log("data", data);
+  //     // For HTTP-only cookies approach
+  //     const response = await fetch("/api/test", {
+  //       method: "GET",
+  //       headers: {
+  //         Authorization: `Bearer ${accessToken}`,
+  //         "Content-Type": "application/json",
+  //       },
+  //     });
+  //     const data = await response.json();
+  //     console.log("data", data);
+  //   };
+  //   fetchData();
+  // }, []);
 
   // Function to select a character - memoized
   // This is defined before the useEffect that might call it for initial selection

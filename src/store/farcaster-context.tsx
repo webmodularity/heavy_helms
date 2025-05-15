@@ -2,7 +2,7 @@
 "use client";
 
 import { sdk } from "@farcaster/frame-sdk";
-import { usePrivy, useWallets } from "@privy-io/react-auth";
+import { usePrivy, useWallets, useIdentityToken } from "@privy-io/react-auth";
 import { useLoginToFrame } from "@privy-io/react-auth/farcaster";
 import { useSetActiveWallet } from "@privy-io/wagmi";
 import {
@@ -90,7 +90,12 @@ interface ConnectedWallet {
 /**
  * Authentication status for Farcaster
  */
-type AuthStatus = "loading" | "authenticated" | "unauthenticated" | "error";
+type AuthStatus =
+  | "loading"
+  | "authenticated"
+  | "unauthenticated"
+  | "error"
+  | "processed";
 
 /**
  * Farcaster context interface exposed to consumers
@@ -156,44 +161,176 @@ export function FarcasterProvider({ children }: { children: ReactNode }) {
   const [sdkContext, setSdkContext] = useState<FarcasterContextData | null>(
     null,
   );
+  const { setActiveWallet } = useSetActiveWallet();
   const [authStatus, setAuthStatus] = useState<AuthStatus>("loading");
   // Get Privy hooks for authentication and wallet management
-  const { ready, authenticated, user, linkWallet, connectWallet } = usePrivy();
+  const { ready, authenticated, user } = usePrivy();
   const { initLoginToFrame, loginToFrame } = useLoginToFrame();
   const { wallets, ready: readyWallets } = useWallets();
-
+  const { identityToken } = useIdentityToken();
+  const [isRegisteredInBackend, setIsRegisteredInBackend] = useState(false);
+  console.log("wallets: ", wallets);
   // Login to Mini App with Privy automatically
   useEffect(() => {
-    if (ready && !authenticated) {
-      console.log("should login");
-      const login = async () => {
-        // Initialize a new login attempt to get a nonce for the Farcaster wallet to sign
-        const { nonce } = await initLoginToFrame();
-
-        // Request a signature from Warpcast
-        const result = await sdk.actions.signIn({ nonce: nonce });
-        // Send the received signature from Warpcast to Privy for authentication
-        await loginToFrame({
-          message: result.message,
-          signature: result.signature,
-        });
+    if (ready && !authenticated && !user && authStatus === "loading") {
+      console.log(
+        "FarcasterProvider: Attempting Farcaster login via Mini App SDK",
+      );
+      setAuthStatus("loading");
+      const performLogin = async () => {
+        try {
+          const { nonce } = await initLoginToFrame();
+          const result = await sdk.actions.signIn({ nonce: nonce });
+          await loginToFrame({
+            message: result.message,
+            signature: result.signature,
+          });
+          console.log("FarcasterProvider: Privy loginToFrame successful");
+        } catch (error) {
+          console.error(
+            "FarcasterProvider: Error during Farcaster login flow:",
+            error,
+          );
+          toast.error("Farcaster login failed.");
+          setAuthStatus("error");
+        }
       };
-      login();
+      performLogin();
+    } else if (
+      ready &&
+      !authenticated &&
+      authStatus !== "error" &&
+      authStatus !== "loading"
+    ) {
+      setAuthStatus("unauthenticated");
     }
-  }, [ready, authenticated, initLoginToFrame, loginToFrame]);
+  }, [ready, authenticated, user, initLoginToFrame, loginToFrame, authStatus]);
 
+  // Effect to register user with backend
   useEffect(() => {
-    if (ready && authenticated && readyWallets) {
-      signalReady();
+    const registerUserWithBackend = async (token: string) => {
+      console.log(
+        "FarcasterProvider: Attempting to register/login user with backend.",
+      );
+      try {
+        // Find the Warpcast injected wallet
+        const warpcastWallet = wallets.find(
+          (w) => w.walletClientType === "warpcast",
+        );
+        if (warpcastWallet) {
+          console.log("WARPCAST WALLET FOUND: ", warpcastWallet);
+          setActiveWallet(warpcastWallet);
+          console.log(
+            "FarcasterProvider: Found Warpcast wallet to send as active:",
+            warpcastWallet.address,
+            "Chain ID:",
+            warpcastWallet.chainId,
+          );
+        } else {
+          console.log(
+            "FarcasterProvider: No Warpcast injected wallet found in useWallets().",
+          );
+        }
+
+        const response = await fetch("/api/user/register-or-login", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        });
+
+        setIsRegisteredInBackend(true);
+
+        if (!response.ok) {
+          const errorData = await response
+            .json()
+            .catch(() => ({ message: `HTTP error ${response.status}` }));
+          toast.error(
+            `Backend sync failed: ${errorData.message || "Unknown error"}`,
+          );
+          setAuthStatus("error");
+          return;
+        }
+
+        const data = await response.json();
+        console.log(
+          "FarcasterProvider: Backend registration/login successful:",
+          data,
+        );
+        setAuthStatus("authenticated");
+      } catch (error: any) {
+        console.error(
+          "FarcasterProvider: Error registering user with backend (catch block):",
+          error.message,
+        );
+        const responseFromError = (error as any).response as
+          | Response
+          | undefined;
+        if (!responseFromError) {
+          toast.error("Network error during backend sync.");
+        }
+        setAuthStatus("error");
+      }
+    };
+
+    if (
+      ready &&
+      authenticated &&
+      user &&
+      identityToken &&
+      !isRegisteredInBackend
+    ) {
+      const farcasterAccount = user.linkedAccounts.find(
+        (acc) => acc.type === "farcaster" && acc.firstVerifiedAt,
+      );
+
+      if (farcasterAccount) {
+        console.log(
+          "FarcasterProvider: Farcaster account linked and verified, proceeding with backend registration.",
+        );
+        registerUserWithBackend(identityToken);
+      } else {
+        console.log(
+          "FarcasterProvider: User authenticated with Privy, but no verified Farcaster account for backend registration. Marking as processed.",
+        );
+        setIsRegisteredInBackend(true);
+        setAuthStatus("processed");
+      }
+    } else if (
+      ready &&
+      authenticated &&
+      user &&
+      !identityToken &&
+      !isRegisteredInBackend &&
+      authStatus !== "loading"
+    ) {
+      console.log(
+        "FarcasterProvider: Authenticated, waiting for identity token to attempt backend registration...",
+      );
+    } else if (
+      ready &&
+      !authenticated &&
+      !isRegisteredInBackend &&
+      authStatus !== "error" &&
+      authStatus !== "loading"
+    ) {
+      setAuthStatus("unauthenticated");
     }
-  }, [ready, authenticated, readyWallets]);
+  }, [
+    ready,
+    authenticated,
+    user,
+    identityToken,
+    isRegisteredInBackend,
+    authStatus,
+    wallets,
+  ]);
 
   /**
    * Signal to the Farcaster client that the app is ready to be displayed
    */
   const signalReady = useCallback(async (): Promise<void> => {
-    // if (!isInFarcasterClient) return;
-
     try {
       await sdk.actions.ready();
       console.log("Signaled ready to Farcaster client");
@@ -202,6 +339,14 @@ export function FarcasterProvider({ children }: { children: ReactNode }) {
       toast.error("Failed to signal ready to Farcaster client");
     }
   }, []);
+
+  useEffect(() => {
+    if (ready && authenticated && isRegisteredInBackend) {
+      if (authStatus === "authenticated" || authStatus === "processed") {
+        signalReady();
+      }
+    }
+  }, [ready, authenticated, isRegisteredInBackend, signalReady, authStatus]);
 
   /**
    * Request the user to add this frame to their favorites
@@ -286,7 +431,11 @@ export function FarcasterProvider({ children }: { children: ReactNode }) {
   const contextValue: FarcasterContextType = {
     authStatus,
     isInFarcasterClient,
-    isReady: ready && authenticated,
+    isReady:
+      ready &&
+      authenticated &&
+      isRegisteredInBackend &&
+      (authStatus === "authenticated" || authStatus === "processed"),
     // farcasterUser,
     // connectedWallets,
     // primaryWallet,

@@ -8,6 +8,7 @@ import { Cinzel, Cormorant_Unicase } from "next/font/google";
 import Image from "next/image";
 import { Toaster } from "sonner";
 import { ConditionalBackButtonWrapper } from "@/components/layout/conditional-back-button-wrapper";
+import { usersService } from "@/services/users";
 
 // Load Bokor
 const bokor = localFont({
@@ -54,11 +55,13 @@ export const viewport: Viewport = {
   userScalable: false,
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // const users = await usersService.getUsers();
+  // console.log("users", users);
   return (
     <html lang="en" suppressHydrationWarning>
       <body

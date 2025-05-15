@@ -229,10 +229,10 @@ export const GET_USER_CHALLENGES = gql`
 export const GET_ACTIVE_PLAYERS_QUERY = gql`
   query GetActivePlayers {
     players(where: { isRetired: false }) {
-      ...FighterBaseFields
+      ...FighterCompleteFields
     }
   }
-  ${FIGHTER_BASE_FRAGMENT}
+  ${FIGHTER_COMPLETE_FRAGMENT}
 `;
 
 export const GET_ACTIVE_IDS_QUERY = gql`

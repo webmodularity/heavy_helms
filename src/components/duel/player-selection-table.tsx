@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import Image from "next/image";
 import { useActivePlayers } from "@/hooks/use-active-players";
 import { ArmorType, StanceType, WeaponType } from "@/types/equipment.types";
@@ -55,7 +55,7 @@ export function PlayerSelectionTable({
   const { players: allPlayers, isLoading, error } = useActivePlayers();
   const { players: ownPlayers, isLoading: isOwnPlayersLoading } =
     useOwnPlayers();
-
+  console.log("allPlayers", allPlayers);
   const [sorting, setSorting] = useState<SortingState>([
     { id: "name", desc: false },
   ]);
@@ -63,30 +63,21 @@ export function PlayerSelectionTable({
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [globalFilter, setGlobalFilter] = useState("");
 
-  // Filter out current player
-  const [filteredPlayers, setFilteredPlayers] = useState<Fighter[]>([]);
-
-  // Update filtered players only when players or currentPlayerId changes
-  useEffect(() => {
-    if (isOwnPlayersLoading || isLoading) {
-      setFilteredPlayers([]);
-      return;
+  // Replace useState and useEffect for filteredPlayers with useMemo
+  const filteredPlayers = useMemo(() => {
+    if (isLoading || isOwnPlayersLoading || !allPlayers) {
+      return [];
     }
 
-    if (!allPlayers) {
-      setFilteredPlayers([]);
-      return;
-    }
-    // Filter out own players
-    const ownPlayerIds = ownPlayers?.map((player) => player.id);
-
+    // Filter out own players if currentPlayerId is provided
     if (currentPlayerId) {
-      setFilteredPlayers(
-        allPlayers.filter((player) => !ownPlayerIds?.includes(player.id)),
+      const ownPlayerIdsSet = new Set(
+        ownPlayers?.map((player) => player.id) ?? [],
       );
-    } else {
-      setFilteredPlayers(allPlayers);
+      return allPlayers.filter((player) => !ownPlayerIdsSet.has(player.id));
     }
+    // If no currentPlayerId, return all active players (original logic)
+    return allPlayers;
   }, [allPlayers, currentPlayerId, isLoading, isOwnPlayersLoading, ownPlayers]);
 
   // Define columns for the table
@@ -143,7 +134,9 @@ export function PlayerSelectionTable({
         </Button>
       ),
       cell: ({ row }) => (
-        <div className="text-center text-xs">{row.original.attributes.strength}</div>
+        <div className="text-center text-xs">
+          {row.original.attributes.strength}
+        </div>
       ),
     },
     {
@@ -161,7 +154,9 @@ export function PlayerSelectionTable({
         </Button>
       ),
       cell: ({ row }) => (
-        <div className="text-center text-xs">{row.original.attributes.agility}</div>
+        <div className="text-center text-xs">
+          {row.original.attributes.agility}
+        </div>
       ),
     },
     {
@@ -179,7 +174,9 @@ export function PlayerSelectionTable({
         </Button>
       ),
       cell: ({ row }) => (
-        <div className="text-center text-xs">{row.original.attributes.stamina}</div>
+        <div className="text-center text-xs">
+          {row.original.attributes.stamina}
+        </div>
       ),
     },
     {

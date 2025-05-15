@@ -1,11 +1,15 @@
-import { http, createPublicClient } from "viem";
+import { http, createPublicClient, createClient } from "viem";
 import { createConfig } from "wagmi";
 import { baseSepolia, shape } from "wagmi/chains";
-import { shape as viemShape, baseSepolia as viemBaseSepolia } from "viem/chains";
+import {
+  shape as viemShape,
+  baseSepolia as viemBaseSepolia,
+} from "viem/chains";
 // import { createConfig } from "@privy-io/wagmi";
 // import { privyWagmiConnector } from "@privy-io/wagmi-connector";
 import { farcasterFrame as miniAppConnector } from "@farcaster/frame-wagmi-connector";
-
+import type { Database } from "./types/supabase.types";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 // Export the public viem client for direct blockchain interactions
 export const viemClient = createPublicClient({
   chain:
@@ -25,9 +29,7 @@ export const wagmiConfig = createConfig({
     process.env.NEXT_PUBLIC_ALCHEMY_NETWORK === "base-sepolia"
       ? [baseSepolia]
       : [shape],
-  connectors: [
-    miniAppConnector()
-  ],
+  connectors: [miniAppConnector()],
   // ssr: true,
   transports: {
     [baseSepolia.id]: http(),
@@ -37,6 +39,11 @@ export const wagmiConfig = createConfig({
     ),
   },
 });
+console.log("supabase service role key", process.env.SUPABASE_SERVICE_ROLE_KEY);
+export const supabaseClient = createSupabaseClient<Database>(
+  process.env.NEXT_PUBLIC_SUPABASE_URL as string,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string,
+);
 
 // Use environment variable for Subgraph URL
 export const SUBGRAPH_URL = process.env.NEXT_PUBLIC_SUBGRAPH_URL as string;
