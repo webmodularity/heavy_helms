@@ -14,134 +14,25 @@ import {
   useContext,
 } from "react";
 import { toast } from "sonner";
-import { useAccount, useConnect, useDisconnect } from "wagmi";
-
-/**
- * Farcaster user profile information
- */
-interface FarcasterUserProfile {
-  fid: number;
-  username?: string;
-  displayName?: string;
-  pfpUrl?: string;
-  bio?: string;
-  verified?: boolean;
-}
-
-/**
- * Screen safe area insets to avoid UI elements being covered
- */
-interface SafeAreaInsets {
-  top?: number;
-  bottom?: number;
-  left?: number;
-  right?: number;
-}
-
-/**
- * Notification details for sending notifications to the user
- */
-interface FrameNotificationDetails {
-  url: string;
-  token: string;
-}
-
-/**
- * Information about the current frame location/context
- */
-interface FrameLocationContext {
-  type: string;
-  cast?: {
-    fid: number;
-    hash: string;
-  };
-  // Other location contexts as needed (channel, user, etc.)
-}
-
-/**
- * Information about the Farcaster client
- */
-interface FarcasterClientInfo {
-  clientFid: number;
-  added: boolean;
-  safeAreaInsets?: SafeAreaInsets;
-  notificationDetails?: FrameNotificationDetails;
-}
-
-/**
- * Complete Farcaster SDK context information
- */
-interface FarcasterContextData {
-  user?: FarcasterUserProfile;
-  location?: FrameLocationContext;
-  client?: FarcasterClientInfo;
-}
-
-/**
- * Wallet information associated with the Farcaster user
- */
-interface ConnectedWallet {
-  address: string;
-  type: string; // ethereum, solana, etc.
-  chainId?: string;
-  isPrimary: boolean;
-}
-
-/**
- * Authentication status for Farcaster
- */
-type AuthStatus =
-  | "loading"
-  | "authenticated"
-  | "unauthenticated"
-  | "error"
-  | "processed";
 
 /**
  * Farcaster context interface exposed to consumers
  */
 interface FarcasterContextType {
-  // Authentication state
-  authStatus: AuthStatus;
   isInFarcasterClient: boolean;
   isReady: boolean;
-
-  // User data
-  // farcasterUser: FarcasterUserProfile | null;
-  // connectedWallets: ConnectedWallet[];
-  // primaryWallet: ConnectedWallet | null;
-
-  // Raw SDK context
-  // sdkContext: FarcasterContextData | null;
-
-  // Authentication methods
-  // signIn: () => Promise<boolean>;
-
-  // Wallet management
-  // setActivePrimaryWallet: (walletAddress: string) => Promise<boolean>;
-
   // Frame actions
   signalReady: () => Promise<void>;
   addFrame: () => Promise<void>;
   closeFrame: () => Promise<void>;
   openUrl: (url: string) => Promise<void>;
   viewProfile: (fid: number) => Promise<void>;
-
-  // Raw access to Privy objects (for advanced use cases)
-  privyUser: any;
 }
 
 // Create the context with default values
 export const FarcasterContext = createContext<FarcasterContextType>({
-  authStatus: "loading",
   isInFarcasterClient: false,
   isReady: false,
-  //   farcasterUser: null,
-  //   connectedWallets: [],
-  //   primaryWallet: null,
-  privyUser: null,
-  //   signIn: async () => false,
-  //   setActivePrimaryWallet: async () => false,
   signalReady: async () => {},
   addFrame: async () => {},
   closeFrame: async () => {},
@@ -160,21 +51,26 @@ export function FarcasterProvider({ children }: { children: ReactNode }) {
 
   // const { address } = useAccount();
   const { setActiveWallet } = useSetActiveWallet();
-  const [authStatus, setAuthStatus] = useState<AuthStatus>("loading");
+  const [isBackendSynced, setIsBackendSynced] = useState<boolean>(false);
+  const [hasAttemptedBackendRegistration, setHasAttemptedBackendRegistration] =
+    useState(false);
+
   // Get Privy hooks for authentication and wallet management
-  const { ready, authenticated, user } = usePrivy();
+  const {
+    ready: privyReady,
+    authenticated: privyAuthenticated,
+    user: privyUser,
+  } = usePrivy();
   const { initLoginToFrame, loginToFrame } = useLoginToFrame();
   const { wallets, ready: readyWallets } = useWallets();
   const { identityToken } = useIdentityToken();
-  const [isRegisteredInBackend, setIsRegisteredInBackend] = useState(false);
   console.log("wallets: ", wallets);
   // Login to Mini App with Privy automatically
   useEffect(() => {
-    if (ready && !authenticated && !user && authStatus === "loading") {
+    if (privyReady && !privyAuthenticated && !privyUser) {
       console.log(
         "FarcasterProvider: Attempting Farcaster login via Mini App SDK",
       );
-      setAuthStatus("loading");
       const performLogin = async () => {
         try {
           const { nonce } = await initLoginToFrame();
@@ -190,36 +86,22 @@ export function FarcasterProvider({ children }: { children: ReactNode }) {
             error,
           );
           toast.error("Farcaster login failed.");
-          setAuthStatus("error");
         }
       };
       performLogin();
-    } else if (
-      ready &&
-      !authenticated &&
-      authStatus !== "error" &&
-      authStatus !== "loading"
-    ) {
-      setAuthStatus("unauthenticated");
     }
-  }, [ready, authenticated, user, initLoginToFrame, loginToFrame, authStatus]);
-
-  // useEffect(() => {
-  //   console.log("FarcasterProvider: wallets", wallets);
-  //   if (!address) {
-  //     console.log("FarcasterProvider: No address found, setting active wallet.");
-  //     const warpcastWallet = wallets.find(
-  //       (w) => w.walletClientType === "warpcast",
-  //     );
-  //     if (warpcastWallet) {
-  //       setActiveWallet(warpcastWallet);
-  //     }
-  //   }
-  // }, [wallets, address]);
+  }, [
+    privyReady,
+    privyAuthenticated,
+    privyUser,
+    initLoginToFrame,
+    loginToFrame,
+  ]);
 
   // Effect to register user with backend
   useEffect(() => {
     const registerUserWithBackend = async (token: string) => {
+      setHasAttemptedBackendRegistration(true);
       console.log(
         "FarcasterProvider: Attempting to register/login user with backend.",
       );
@@ -251,8 +133,6 @@ export function FarcasterProvider({ children }: { children: ReactNode }) {
           },
         });
 
-        setIsRegisteredInBackend(true);
-
         if (!response.ok) {
           const errorData = await response
             .json()
@@ -260,7 +140,7 @@ export function FarcasterProvider({ children }: { children: ReactNode }) {
           toast.error(
             `Backend sync failed: ${errorData.message || "Unknown error"}`,
           );
-          setAuthStatus("error");
+          setIsBackendSynced(false);
           return;
         }
 
@@ -269,31 +149,34 @@ export function FarcasterProvider({ children }: { children: ReactNode }) {
           "FarcasterProvider: Backend registration/login successful:",
           data,
         );
-        setAuthStatus("authenticated");
+        setIsBackendSynced(true);
+        // biome-ignore lint/suspicious/noExplicitAny: <explanation>
       } catch (error: any) {
         console.error(
           "FarcasterProvider: Error registering user with backend (catch block):",
           error.message,
         );
+        // biome-ignore lint/suspicious/noExplicitAny: <explanation>
         const responseFromError = (error as any).response as
           | Response
           | undefined;
         if (!responseFromError) {
           toast.error("Network error during backend sync.");
         }
-        setAuthStatus("error");
+        setIsBackendSynced(false);
       }
     };
 
     if (
-      ready &&
-      authenticated &&
-      user &&
+      privyReady &&
+      privyAuthenticated &&
+      privyUser &&
       identityToken &&
-      !isRegisteredInBackend
+      !hasAttemptedBackendRegistration
     ) {
-      const farcasterAccount = user.linkedAccounts.find(
-        (acc) => acc.type === "farcaster" && acc.firstVerifiedAt,
+      const farcasterAccount = privyUser.linkedAccounts.find(
+        // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+        (acc: any) => acc.type === "farcaster" && acc.firstVerifiedAt,
       );
 
       if (farcasterAccount) {
@@ -303,39 +186,19 @@ export function FarcasterProvider({ children }: { children: ReactNode }) {
         registerUserWithBackend(identityToken);
       } else {
         console.log(
-          "FarcasterProvider: User authenticated with Privy, but no verified Farcaster account for backend registration. Marking as processed.",
+          "FarcasterProvider: User authenticated with Privy, but no verified Farcaster account for backend registration. No backend sync performed.",
         );
-        setIsRegisteredInBackend(true);
-        setAuthStatus("processed");
+        setHasAttemptedBackendRegistration(true);
       }
-    } else if (
-      ready &&
-      authenticated &&
-      user &&
-      !identityToken &&
-      !isRegisteredInBackend &&
-      authStatus !== "loading"
-    ) {
-      console.log(
-        "FarcasterProvider: Authenticated, waiting for identity token to attempt backend registration...",
-      );
-    } else if (
-      ready &&
-      !authenticated &&
-      !isRegisteredInBackend &&
-      authStatus !== "error" &&
-      authStatus !== "loading"
-    ) {
-      setAuthStatus("unauthenticated");
     }
   }, [
-    ready,
-    authenticated,
-    user,
+    privyReady,
+    privyAuthenticated,
+    privyUser,
     identityToken,
-    isRegisteredInBackend,
-    authStatus,
+    hasAttemptedBackendRegistration,
     wallets,
+    setActiveWallet,
   ]);
 
   /**
@@ -352,12 +215,10 @@ export function FarcasterProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (ready && authenticated && isRegisteredInBackend) {
-      if (authStatus === "authenticated" || authStatus === "processed") {
-        signalReady();
-      }
+    if (privyReady && privyAuthenticated && isBackendSynced) {
+      signalReady();
     }
-  }, [ready, authenticated, isRegisteredInBackend, signalReady, authStatus]);
+  }, [privyReady, privyAuthenticated, isBackendSynced, signalReady]);
 
   /**
    * Request the user to add this frame to their favorites
@@ -366,18 +227,7 @@ export function FarcasterProvider({ children }: { children: ReactNode }) {
     if (!isInFarcasterClient) return;
 
     try {
-      const result = await sdk.actions.addFrame();
-      console.log("Add frame result:", result);
-
-      //   if (result) {
-      //     toast.success("App added successfully");
-      //   } else {
-      //     toast.error(
-      //       result && result.reason
-      //         ? `Failed to add app: ${result.reason}`
-      //         : "User declined to add app",
-      //     );
-      //   }
+      await sdk.actions.addFrame();
     } catch (error) {
       console.error("Error in sdk.actions.addFrame():", error);
       toast.error("Failed to add app");
@@ -440,20 +290,8 @@ export function FarcasterProvider({ children }: { children: ReactNode }) {
 
   // Construct the context value
   const contextValue: FarcasterContextType = {
-    authStatus,
     isInFarcasterClient,
-    isReady:
-      ready &&
-      authenticated &&
-      isRegisteredInBackend &&
-      (authStatus === "authenticated" || authStatus === "processed"),
-    // farcasterUser,
-    // connectedWallets,
-    // primaryWallet,
-    // sdkContext,
-    privyUser: user,
-    // signIn,
-    // setActivePrimaryWallet,
+    isReady: privyReady && privyAuthenticated && isBackendSynced,
     signalReady,
     addFrame,
     closeFrame,
