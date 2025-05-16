@@ -3,6 +3,7 @@
 import { CardContainer } from "@/components/character/card-container";
 import type { Player } from "@/types/player.types";
 import Image from "next/image";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Dumbbell,
@@ -18,6 +19,7 @@ import {
 } from "lucide-react";
 import { StanceType } from "@/types/equipment.types";
 import { useState } from "react";
+
 interface CharacterCardProps {
   character: Player;
   index: number;
@@ -63,117 +65,131 @@ export function CharacterCard({
   onSelect,
   onViewDetails,
 }: CharacterCardProps) {
+  const characterDetailsUrl = `/character/${character.id}`;
+
   const handleCardClick = (e: React.MouseEvent) => {
     // Don't navigate if clicking on the stance selector
     if ((e.target as HTMLElement).closest(".stance-selector")) {
+      e.preventDefault();
       return;
     }
     onViewDetails();
   };
 
   return (
-    <CardContainer index={index} isSelected={isSelected}>
-      {/* biome-ignore lint/a11y/useKeyWithClickEvents: <explanation> */}
-      <div className="relative cursor-pointer" onClick={handleCardClick}>
-        {/* Character Image */}
-        <div className="aspect-square relative bg-gradient-to-b from-stone-800/30 to-stone-900/30 overflow-hidden group">
-          <motion.div
-            className="absolute inset-0 bg-gradient-radial from-yellow-500/10 to-transparent opacity-0 z-10"
-            initial={false}
-            animate={isSelected ? { opacity: 0.4 } : { opacity: 0 }}
-            transition={{ duration: 0.6 }}
-          />
+    <Link
+      href={characterDetailsUrl}
+      prefetch={true}
+      onClick={handleCardClick}
+      legacyBehavior
+      passHref
+    >
+      <div className="cursor-pointer">
+        <CardContainer index={index} isSelected={isSelected}>
+          <div className="relative">
+            {/* Character Image */}
+            <div className="aspect-square relative bg-gradient-to-b from-stone-800/30 to-stone-900/30 overflow-hidden group">
+              <motion.div
+                className="absolute inset-0 bg-gradient-radial from-yellow-500/10 to-transparent opacity-0 z-10"
+                initial={false}
+                animate={isSelected ? { opacity: 0.4 } : { opacity: 0 }}
+                transition={{ duration: 0.6 }}
+              />
 
-          <Image
-            src={character.currentSkin.imageURL}
-            alt={`Character ${character.name.fullName}`}
-            width={210}
-            height={210}
-            className="object-cover transition-transform duration-500 group-hover:scale-105"
-            priority
-          />
+              <Image
+                src={character.currentSkin.imageURL}
+                alt={`Character ${character.name.fullName}`}
+                width={210}
+                height={210}
+                className="object-cover transition-transform duration-500 group-hover:scale-105"
+                priority
+              />
 
-          {/* Character ID Badge */}
-          <div className="absolute top-2 left-2 bg-black/70 backdrop-blur-sm px-1.5 py-0.5 rounded text-[10px] font-mono text-yellow-500 border border-yellow-500/30 z-20">
-            ID: {character.id}
+              {/* Character ID Badge */}
+              <div className="absolute top-2 left-2 bg-black/70 backdrop-blur-sm px-1.5 py-0.5 rounded text-[10px] font-mono text-yellow-500 border border-yellow-500/30 z-20">
+                ID: {character.id}
+              </div>
+
+              {/* Selected Badge */}
+              {isSelected && (
+                <div className="absolute top-2 right-2 bg-yellow-500 text-black px-1.5 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-0.5 z-20">
+                  <Check size={8} /> Selected
+                </div>
+              )}
+            </div>
           </div>
 
-          {/* Selected Badge */}
-          {isSelected && (
-            <div className="absolute top-2 right-2 bg-yellow-500 text-black px-1.5 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-0.5 z-20">
-              <Check size={8} /> Selected
-            </div>
-          )}
-        </div>
-      </div>
+          <div className="p-2 space-y-2">
+            {/* Character Name */}
+            <h3 className="font-bold text-sm text-yellow-500 truncate">
+              {character.name.fullName}
+            </h3>
 
-      {/* biome-ignore lint/a11y/useKeyWithClickEvents: <explanation> */}
-      <div className="p-2 space-y-2 cursor-pointer" onClick={handleCardClick}>
-        {/* Character Name */}
-        <h3 className="font-bold text-sm text-yellow-500 truncate">
-          {character.name.fullName}
-        </h3>
-
-        {/* Attributes */}
-        <div className="space-y-1.5">
-          <AttributeBar
-            label="Strength"
-            value={character.attributes.strength}
-            icon={<Dumbbell className="h-2.5 w-2.5 text-yellow-600" />}
-          />
-          <AttributeBar
-            label="Constitution"
-            value={character.attributes.constitution}
-            icon={<HeartPulse className="h-2.5 w-2.5 text-yellow-600" />}
-          />
-          <AttributeBar
-            label="Size"
-            value={character.attributes.size}
-            icon={<Ruler className="h-2.5 w-2.5 text-yellow-600" />}
-          />
-          <AttributeBar
-            label="Agility"
-            value={character.attributes.agility}
-            icon={<Footprints className="h-2.5 w-2.5 text-yellow-600" />}
-          />
-          <AttributeBar
-            label="Stamina"
-            value={character.attributes.stamina}
-            icon={<Heart className="h-2.5 w-2.5 text-yellow-600" />}
-          />
-          <AttributeBar
-            label="Luck"
-            value={character.attributes.luck}
-            icon={<Dices className="h-2.5 w-2.5 text-yellow-600" />}
-          />
-        </div>
-
-        {/* Add AnimatePresence for the stance selector */}
-        <AnimatePresence>
-          {isSelected && (
-            <motion.div
-              initial={{ opacity: 0, height: 0, marginTop: 0 }}
-              animate={{ opacity: 1, height: "auto", marginTop: 8 }}
-              exit={{ opacity: 0, height: 0, marginTop: 0 }}
-              transition={{
-                duration: 0.3,
-                ease: "easeInOut",
-              }}
-              className="overflow-hidden stance-selector"
-              onClick={(e) => e.stopPropagation()} // Prevent click from bubbling up
-            >
-              <CompactStanceSelector
-                character={character}
-                currentStance={character.stance as StanceType}
-                onStanceChange={(newStance) =>
-                  onSelect(newStance as unknown as StanceType)
-                }
+            {/* Attributes */}
+            <div className="space-y-1.5">
+              <AttributeBar
+                label="Strength"
+                value={character.attributes.strength}
+                icon={<Dumbbell className="h-2.5 w-2.5 text-yellow-600" />}
               />
-            </motion.div>
-          )}
-        </AnimatePresence>
+              <AttributeBar
+                label="Constitution"
+                value={character.attributes.constitution}
+                icon={<HeartPulse className="h-2.5 w-2.5 text-yellow-600" />}
+              />
+              <AttributeBar
+                label="Size"
+                value={character.attributes.size}
+                icon={<Ruler className="h-2.5 w-2.5 text-yellow-600" />}
+              />
+              <AttributeBar
+                label="Agility"
+                value={character.attributes.agility}
+                icon={<Footprints className="h-2.5 w-2.5 text-yellow-600" />}
+              />
+              <AttributeBar
+                label="Stamina"
+                value={character.attributes.stamina}
+                icon={<Heart className="h-2.5 w-2.5 text-yellow-600" />}
+              />
+              <AttributeBar
+                label="Luck"
+                value={character.attributes.luck}
+                icon={<Dices className="h-2.5 w-2.5 text-yellow-600" />}
+              />
+            </div>
+
+            {/* Add AnimatePresence for the stance selector */}
+            <AnimatePresence>
+              {isSelected && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0, marginTop: 0 }}
+                  animate={{ opacity: 1, height: "auto", marginTop: 8 }}
+                  exit={{ opacity: 0, height: 0, marginTop: 0 }}
+                  transition={{
+                    duration: 0.3,
+                    ease: "easeInOut",
+                  }}
+                  className="overflow-hidden stance-selector"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    e.preventDefault();
+                  }}
+                >
+                  <CompactStanceSelector
+                    character={character}
+                    currentStance={character.stance as StanceType}
+                    onStanceChange={(newStance) =>
+                      onSelect(newStance as unknown as StanceType)
+                    }
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </CardContainer>
       </div>
-    </CardContainer>
+    </Link>
   );
 }
 
@@ -225,7 +241,8 @@ function CompactStanceSelector({
               type="button"
               key={value}
               onClick={(e) => {
-                e.stopPropagation(); // Prevent click from bubbling up
+                e.stopPropagation();
+                e.preventDefault(); // Prevent link navigation
                 handleStanceChange(stanceValue);
               }}
               className={`flex-1 relative py-1 rounded-sm ${isSelected ? "text-white" : "text-zinc-400"}`}
