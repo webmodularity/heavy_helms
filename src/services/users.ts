@@ -23,27 +23,50 @@ class UsersService {
       console.error("Error fetching users", error);
       throw error;
     }
-    console.log("data", data);
     return data;
   }
 
-  async getAddressToUserMap() {
-    const { data: walletData, error: walletError } = await supabaseClient
-      .from("user_wallets")
-      .select("*, users(*)")
-      // .eq("users.id", "user_wallets.user_id");
+  async getAddressToUserMap(targetAddress?: string) {
+    let query = supabaseClient.from("user_wallets").select("*, users(*)");
+    console.log("targetAddress", targetAddress);
+    if (targetAddress) {
+      query = query.eq("address", targetAddress); // Filter by address in the database query
+    }
+    const { data: walletData, error: walletError } = await query;
+    console.log("walletData", walletData);
     if (walletError) {
       console.error("Error fetching users with addresses", walletError);
       throw walletError;
     }
-    const addressToUserMap = walletData.reduce((acc, user) => {
-      acc[user.address] = {
-        ...user.users,
-        addresses: [...(acc[user.address]?.addresses || []), user.address],
-      };
-      return acc;
-    }, {} as Record<string, UserWithAddresses>);
+    // If a targetAddress was provided and no data was found,
+    // you might want to return null or an empty object early.
+    if (targetAddress && (!walletData || walletData.length === 0)) {
+      return null; // Or {}
+    }
+
+    const addressToUserMap = walletData.reduce(
+      (acc, userWallet) => {
+        // Ensure userWallet.users is not null. If it can be null based on your DB schema, handle that.
+        if (userWallet.users) {
+          acc[userWallet.address] = {
+            ...userWallet.users,
+            addresses: [
+              ...(acc[userWallet.address]?.addresses || []),
+              userWallet.address,
+            ],
+          };
+        }
+        return acc;
+      },
+      {} as Record<string, UserWithAddresses>,
+    );
     return addressToUserMap;
+    // If a targetAddress was specified, return only that entry
+    // if (targetAddress) {
+    //   return addressToUserMap[targetAddress] || null;
+    // }
+
+    // return addressToUserMap;
   }
 }
 
