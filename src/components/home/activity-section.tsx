@@ -1,30 +1,20 @@
 "use client";
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { useCancelChallenge } from "@/hooks/use-cancel-challenge";
 import { useAcceptChallenge } from "@/hooks/use-accept-challenge";
 import { Loader2, Shield, Swords, Trophy, ChevronRight } from "lucide-react";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { formatEther } from "viem";
-import { YellowButton } from "@/components/ui/yellow-button";
 import { toast } from "sonner";
 import type { Player } from "@/types/player.types";
 import { type Challenge, useChallenges } from "@/hooks/use-challenges";
 import { useRecentDuels } from "@/hooks/use-recent-duels";
 import { useRouter } from "next/navigation";
 import { ChallengeCard } from "@/components/home/challenge-card";
-import {
-  useRecentGauntlets,
-  type GauntletChronicle,
-} from "@/hooks/use-recent-gauntlets";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
+import { useRecentGauntlets } from "@/hooks/use-recent-gauntlets";
+import { Accordion } from "@/components/ui/accordion";
 import { GauntletAccordionItem } from "@/components/gauntlet/gauntlet-accordion-item";
 import { useAccount } from "wagmi";
 

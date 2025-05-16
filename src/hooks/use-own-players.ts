@@ -4,34 +4,45 @@ import {
   convertRawFighterToFighter,
 } from "@/lib/player-api";
 import { useAccount } from "wagmi";
+import type { Fighter } from "@/types/fighter-types";
+
+// --- Query Keys ---
+const playerKeys = {
+  all: ["players"] as const,
+  lists: () => [...playerKeys.all, "list"] as const,
+  own: (address?: string) => [...playerKeys.lists(), "owned", address] as const,
+};
 
 export function useOwnPlayers() {
-  // Get the connected wallet address
   const { address } = useAccount();
-  // Query the subgraph
+
   const {
     data: players,
     isLoading,
     error,
     refetch,
   } = useQuery({
-    queryKey: ["owned-players", address],
-    queryFn: async () => {
+    queryKey: playerKeys.own(address),
+    queryFn: async (): Promise<Fighter[]> => {
       if (!address) return [];
-      const rawPlayers = await fetchFightersByOwner(address);
-      const playersWithMetadata = await Promise.all(
-        rawPlayers.map((rawPlayer) => convertRawFighterToFighter(rawPlayer)),
-      );
-      return playersWithMetadata;
-    },
 
+      try {
+        const rawPlayers = await fetchFightersByOwner(address);
+        return await Promise.all(rawPlayers.map(convertRawFighterToFighter));
+      } catch (error) {
+        console.error("Error fetching owned players:", error);
+        throw error;
+      }
+    },
     enabled: !!address,
-    staleTime: 1000 * 60 * 10, // 10 minutes
+    staleTime: 10 * 60 * 1000, // 10 minutes
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
 
   return {
     players,
-    isLoading: isLoading,
+    isLoading,
     error,
     refetch,
   };
