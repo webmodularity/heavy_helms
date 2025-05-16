@@ -1,17 +1,16 @@
 import { SUBGRAPH_URL } from "@/config";
-import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery, type InfiniteData } from "@tanstack/react-query";
 import { request } from "graphql-request";
 import {
-  GET_USER_CHALLENGES,
-  GET_FIGHTER_CHALLENGES,
   GET_FIGHTER_CHALLENGES_PAGINATED,
-  GET_USER_CHALLENGES_PAGINATED,
   GET_ALL_OPEN_CHALLENGES,
 } from "@/lib/gql-queries";
 import { useAccount } from "wagmi";
-import type { StanceType } from "@/types/equipment.types";
-import type { ArmorType } from "@/types/equipment.types";
-import type { WeaponType } from "@/types/equipment.types";
+import type {
+  StanceType,
+  ArmorType,
+  WeaponType,
+} from "@/types/equipment.types";
 
 // GraphQL response type
 export interface SubgraphChallenge {
@@ -78,9 +77,71 @@ export interface Challenge {
   isSentByMe: boolean;
 }
 
+// Query key factory
+const challengeKeys = {
+  all: ["challenges"] as const,
+  lists: () => [...challengeKeys.all, "list"] as const,
+  list: (filters: { address?: string; fighterId?: string; pageSize: number }) =>
+    [...challengeKeys.lists(), filters] as const,
+  infiniteList: (filters: {
+    address?: string;
+    fighterId?: string;
+    pageSize: number;
+  }) => [...challengeKeys.list(filters), "infinite"] as const,
+};
+
+// Helper function to process challenge data consistently
+function processChallenges(
+  challenges: SubgraphChallenge[],
+  isSentByMe: boolean,
+): Challenge[] {
+  return challenges.map((challenge) => {
+    const challengerName =
+      challenge.challengerSnapshot.fullName ||
+      `${challenge.challengerSnapshot.firstName || ""} ${challenge.challengerSnapshot.surname || ""}`.trim() ||
+      `Fighter #${challenge.challengerSnapshot.fighterId}`;
+
+    const defenderName =
+      challenge.defenderSnapshot.fullName ||
+      `${challenge.defenderSnapshot.firstName || ""} ${challenge.defenderSnapshot.surname || ""}`.trim() ||
+      `Fighter #${challenge.defenderSnapshot.fighterId}`;
+
+    return {
+      id: BigInt(challenge.id),
+      challengerId: Number(challenge.challengerSnapshot.fighterId),
+      defenderId: Number(challenge.defenderSnapshot.fighterId),
+      wagerAmount: BigInt(challenge.wagerAmount),
+      createdBlock: BigInt(challenge.createdAt),
+      fulfilled: challenge.state !== "OPEN",
+      challengerLoadout: {
+        playerId: Number(challenge.challengerSnapshot.fighterId),
+        armor: challenge.challengerSnapshot.currentSkin.armor,
+        weapon: challenge.challengerSnapshot.currentSkin.weapon,
+        stance: challenge.challengerSnapshot.stance,
+      },
+      defenderLoadout: {
+        playerId: Number(challenge.defenderSnapshot.fighterId),
+        armor: challenge.defenderSnapshot.currentSkin.armor,
+        weapon: challenge.defenderSnapshot.currentSkin.weapon,
+        stance: challenge.defenderSnapshot.stance,
+      },
+      challengerName,
+      defenderName,
+      isSentByMe,
+    };
+  });
+}
+
 export function useChallenges(fighterId?: string, pageSize = 10) {
-  const { isConnected } = useAccount();
-  const { address } = useAccount();
+  const { isConnected, address } = useAccount();
+
+  // Build query parameters object for consistent key structure
+  const queryParams = {
+    address: address || undefined,
+    fighterId: fighterId || undefined,
+    pageSize,
+  };
+
   const {
     data,
     isLoading,
@@ -91,22 +152,24 @@ export function useChallenges(fighterId?: string, pageSize = 10) {
     isFetchingNextPage,
     isRefetching,
   } = useInfiniteQuery({
-    initialPageParam: 0,
-
-    queryKey:
-      // ? ["fighter-challenges", fighterId]
-      fighterId
-        ? ["active-challenges", address, fighterId, pageSize]
-        : ["active-challenges", address, pageSize],
+    queryKey: challengeKeys.infiniteList(queryParams),
     queryFn: async ({ pageParam = 0 }) => {
       // Don't fetch if not authenticated
       if (!isConnected) {
-        return [];
+        return {
+          sentChallenges: [],
+          receivedChallenges: [],
+          duelChallenges: [],
+        };
       }
 
       // Ensure we have either a fighter ID or wallet address
       if (!fighterId && !address) {
-        return [];
+        return {
+          sentChallenges: [],
+          receivedChallenges: [],
+          duelChallenges: [],
+        };
       }
 
       try {
@@ -131,78 +194,53 @@ export function useChallenges(fighterId?: string, pageSize = 10) {
                 skip: pageParam,
               },
             );
-        const sentChallenges = processChallenges(
-          data.sentChallenges || [],
-          true,
-        );
-        const receivedChallenges = processChallenges(
-          data.receivedChallenges || [],
-          false,
-        );
-        // Return combined challenges for this page
-        return fighterId
-          ? [...sentChallenges, ...receivedChallenges]
-          : [...processChallenges(data.duelChallenges || [], false)];
+
+        // Return the raw GraphQL data for transformation with select
+        return data;
       } catch (error) {
         console.error("Error fetching challenges from subgraph:", error);
         throw error;
       }
     },
+    initialPageParam: 0,
+    select: (data: InfiniteData<GraphQLResponse>) => {
+      // Transform data after it's fetched
+      return data.pages.map((page) => {
+        const sentChallenges = processChallenges(
+          page.sentChallenges || [],
+          true,
+        );
+        const receivedChallenges = processChallenges(
+          page.receivedChallenges || [],
+          false,
+        );
+
+        return fighterId
+          ? [...sentChallenges, ...receivedChallenges]
+          : [...processChallenges(page.duelChallenges || [], false)];
+      });
+    },
     getNextPageParam: (lastPage, allPages) => {
       // If we got fewer items than requested, we've reached the end
-      if (lastPage.length < pageSize) return undefined;
+      const combinedChallenges = [
+        ...(lastPage.sentChallenges || []),
+        ...(lastPage.receivedChallenges || []),
+        ...(lastPage.duelChallenges || []),
+      ];
+
+      if (combinedChallenges.length < pageSize) return undefined;
 
       // Otherwise, calculate the next offset
       return allPages.length * pageSize;
     },
-    // enabled: !!fighterId && !!address,
-    refetchInterval: 300 * 1000, // 5m refetch interval
+    enabled: isConnected && (!!fighterId || !!address),
+    staleTime: 2 * 60 * 1000, // 2 minutes
+    refetchInterval: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: true,
   });
 
-  // Helper function to process challenge data consistently
-  function processChallenges(
-    challenges: SubgraphChallenge[],
-    isSentByMe: boolean,
-  ) {
-    return challenges.map((challenge) => {
-      const challengerName =
-        challenge.challengerSnapshot.fullName ||
-        `${challenge.challengerSnapshot.firstName || ""} ${challenge.challengerSnapshot.surname || ""}`.trim() ||
-        `Fighter #${challenge.challengerSnapshot.fighterId}`;
-
-      const defenderName =
-        challenge.defenderSnapshot.fullName ||
-        `${challenge.defenderSnapshot.firstName || ""} ${challenge.defenderSnapshot.surname || ""}`.trim() ||
-        `Fighter #${challenge.defenderSnapshot.fighterId}`;
-
-      return {
-        id: BigInt(challenge.id),
-        challengerId: Number(challenge.challengerSnapshot.fighterId),
-        defenderId: Number(challenge.defenderSnapshot.fighterId),
-        wagerAmount: BigInt(challenge.wagerAmount),
-        createdBlock: BigInt(challenge.createdAt),
-        fulfilled: challenge.state !== "OPEN",
-        challengerLoadout: {
-          playerId: Number(challenge.challengerSnapshot.fighterId),
-          armor: challenge.challengerSnapshot.currentSkin.armor,
-          weapon: challenge.challengerSnapshot.currentSkin.weapon,
-          stance: challenge.challengerSnapshot.stance,
-        },
-        defenderLoadout: {
-          playerId: Number(challenge.defenderSnapshot.fighterId),
-          armor: challenge.defenderSnapshot.currentSkin.armor,
-          weapon: challenge.defenderSnapshot.currentSkin.weapon,
-          stance: challenge.defenderSnapshot.stance,
-        },
-        challengerName,
-        defenderName,
-        isSentByMe,
-      };
-    });
-  }
-
-  // Flatten pages of data
-  const challenges = data?.pages.flat() || [];
+  // Flatten pages of data for easier consumption
+  const challenges = data?.flat() || [];
 
   return {
     challenges,

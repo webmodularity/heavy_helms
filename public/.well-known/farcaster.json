@@ -7,11 +7,11 @@
     "frame": {
       "name": "HeavyHelms",
       "version": "1",
-      "iconUrl": "https://laboratory-calling-participant-passive.trycloudflare.com/heavy_helms_header_drop_shadow.png",
-      "homeUrl": "https://laboratory-calling-participant-passive.trycloudflare.com",
-      "imageUrl": "https://laboratory-calling-participant-passive.trycloudflare.com/heavy_helms_header_drop_shadow.png",
+      "iconUrl": "https://exp-pan-springfield-back.trycloudflare.com/heavy_helms_header_drop_shadow.png",
+      "homeUrl": "https://exp-pan-springfield-back.trycloudflare.com",
+      "imageUrl": "https://exp-pan-springfield-back.trycloudflare.com/heavy_helms_header_drop_shadow.png",
       "buttonTitle": "Play",
-      "splashImageUrl": "https://laboratory-calling-participant-passive.trycloudflare.com/heavy_helms_header_drop_shadow.png",
+      "splashImageUrl": "https://exp-pan-springfield-back.trycloudflare.com/heavy_helms_header_drop_shadow.png",
       "splashBackgroundColor": "#f9c846"
     }
 }
