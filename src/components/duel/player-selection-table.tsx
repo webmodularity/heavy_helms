@@ -42,7 +42,9 @@ import {
   getWeaponDisplayName,
   getArmorDisplayName,
 } from "@/lib/equipment-utils";
-
+import { useSupabaseAddressToUserMap } from "@/hooks/use-supabase-players";
+import { getAddress } from "viem";
+import { useFarcaster } from "@/store/farcaster-context";
 interface PlayerSelectionTableProps {
   onSelectPlayer: (player: Fighter) => void;
   currentPlayerId?: string;
@@ -53,16 +55,17 @@ export function PlayerSelectionTable({
   currentPlayerId,
 }: PlayerSelectionTableProps) {
   const { players: allPlayers, isLoading, error } = useActivePlayers();
+  const { openUrl } = useFarcaster();
   const { players: ownPlayers, isLoading: isOwnPlayersLoading } =
     useOwnPlayers();
-  console.log("allPlayers", allPlayers);
   const [sorting, setSorting] = useState<SortingState>([
     { id: "name", desc: false },
   ]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [globalFilter, setGlobalFilter] = useState("");
-
+  const { data: addressToUserMap, isLoading: isAddressToUserMapLoading } =
+    useSupabaseAddressToUserMap();
   // Replace useState and useEffect for filteredPlayers with useMemo
   const filteredPlayers = useMemo(() => {
     if (isLoading || isOwnPlayersLoading || !allPlayers) {
@@ -118,6 +121,51 @@ export function PlayerSelectionTable({
         </div>
       ),
       enableHiding: false,
+    },
+    {
+      id: "farcaster",
+      header: () => (
+        <div style={{ width: "16px", height: "16px", margin: "0 auto" }}>
+          <Image
+            src="/logos/farcaster-logo.svg"
+            alt="Farcaster"
+            width={16}
+            height={16}
+          />
+        </div>
+      ),
+      cell: ({ row }) => {
+        // biome-ignore lint/style/noNonNullAssertion: <explanation>
+        const playerAddress = row.original.owner?.address!;
+        const user = addressToUserMap?.[getAddress(playerAddress)];
+        const farcasterUsername = user?.username;
+
+        if (farcasterUsername) {
+          return (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                openUrl(`https://warpcast.com/${farcasterUsername}`);
+              }}
+              className="flex justify-center items-center"
+              title={`View ${farcasterUsername} on Farcaster`}
+            >
+              <Image
+                src="/logos/farcaster-logo.svg"
+                alt={`${farcasterUsername} on Farcaster`}
+                width={20}
+                height={20}
+                className="rounded-sm"
+              />
+            </button>
+          );
+        }
+        // Render a placeholder if no Farcaster link is available or if addressToUserMap is still loading
+        return <div className="w-[20px] h-[20px] mx-auto" />;
+      },
+      enableSorting: false,
+      enableHiding: false, // Consistent with avatar column
     },
     {
       accessorFn: (row) => row.attributes.strength,

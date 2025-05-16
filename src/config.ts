@@ -39,7 +39,6 @@ export const wagmiConfig = createConfig({
     ),
   },
 });
-console.log("supabase service role key", process.env.SUPABASE_SERVICE_ROLE_KEY);
 export const supabaseClient = createSupabaseClient<Database>(
   process.env.NEXT_PUBLIC_SUPABASE_URL as string,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY as string,

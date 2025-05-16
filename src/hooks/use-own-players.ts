@@ -8,7 +8,6 @@ import { useAccount } from "wagmi";
 export function useOwnPlayers() {
   // Get the connected wallet address
   const { address } = useAccount();
-
   // Query the subgraph
   const {
     data: players,
@@ -25,6 +24,7 @@ export function useOwnPlayers() {
       );
       return playersWithMetadata;
     },
+
     enabled: !!address,
     staleTime: 1000 * 60 * 10, // 10 minutes
   });

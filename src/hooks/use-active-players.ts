@@ -22,7 +22,6 @@ export function useActivePlayers() {
           SUBGRAPH_URL,
           GET_ACTIVE_PLAYERS_QUERY,
         );
-        console.log("players", players);
         // If no players found, return empty array
         if (!players || players.length === 0) {
           return [];

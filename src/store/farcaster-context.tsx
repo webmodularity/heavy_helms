@@ -112,7 +112,7 @@ interface FarcasterContextType {
   // primaryWallet: ConnectedWallet | null;
 
   // Raw SDK context
-  sdkContext: FarcasterContextData | null;
+  // sdkContext: FarcasterContextData | null;
 
   // Authentication methods
   // signIn: () => Promise<boolean>;
@@ -139,7 +139,6 @@ export const FarcasterContext = createContext<FarcasterContextType>({
   //   farcasterUser: null,
   //   connectedWallets: [],
   //   primaryWallet: null,
-  sdkContext: null,
   privyUser: null,
   //   signIn: async () => false,
   //   setActivePrimaryWallet: async () => false,
@@ -158,9 +157,8 @@ export function FarcasterProvider({ children }: { children: ReactNode }) {
   // State for Farcaster client detection
   const [isInFarcasterClient, setIsInFarcasterClient] =
     useState<boolean>(false);
-  const [sdkContext, setSdkContext] = useState<FarcasterContextData | null>(
-    null,
-  );
+
+  // const { address } = useAccount();
   const { setActiveWallet } = useSetActiveWallet();
   const [authStatus, setAuthStatus] = useState<AuthStatus>("loading");
   // Get Privy hooks for authentication and wallet management
@@ -205,6 +203,19 @@ export function FarcasterProvider({ children }: { children: ReactNode }) {
       setAuthStatus("unauthenticated");
     }
   }, [ready, authenticated, user, initLoginToFrame, loginToFrame, authStatus]);
+
+  // useEffect(() => {
+  //   console.log("FarcasterProvider: wallets", wallets);
+  //   if (!address) {
+  //     console.log("FarcasterProvider: No address found, setting active wallet.");
+  //     const warpcastWallet = wallets.find(
+  //       (w) => w.walletClientType === "warpcast",
+  //     );
+  //     if (warpcastWallet) {
+  //       setActiveWallet(warpcastWallet);
+  //     }
+  //   }
+  // }, [wallets, address]);
 
   // Effect to register user with backend
   useEffect(() => {
@@ -439,7 +450,7 @@ export function FarcasterProvider({ children }: { children: ReactNode }) {
     // farcasterUser,
     // connectedWallets,
     // primaryWallet,
-    sdkContext,
+    // sdkContext,
     privyUser: user,
     // signIn,
     // setActivePrimaryWallet,

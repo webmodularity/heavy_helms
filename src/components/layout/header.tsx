@@ -46,7 +46,7 @@ export function Header() {
     <header className="relative w-full flex flex-col items-center pt-2 sm:pt-4 pb-0">
       {/* Top right corner group */}
       <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-50 flex items-center gap-2">
-        <AuthButton />
+        {/* <AuthButton /> */}
         <ChainSelection />
 
         {/* Navigation Dropdown Menu */}
