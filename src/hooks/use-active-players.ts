@@ -3,10 +3,27 @@ import { GET_ACTIVE_PLAYERS_QUERY } from "@/lib/gql-queries";
 import { convertRawFighterToFighter } from "@/lib/player-api";
 import { useQuery } from "@tanstack/react-query";
 import request from "graphql-request";
-import type { RawFighterData } from "@/types/fighter-types";
+import type { Fighter, RawFighterData } from "@/types/fighter-types";
 import { useAccount } from "wagmi";
-export function useActivePlayers() {
+
+// --- Type Definitions ---
+interface ActivePlayersResult {
+  players: Fighter[];
+  isLoading: boolean;
+  error: Error | null;
+  refetch: () => Promise<unknown>;
+}
+
+// --- Query Keys ---
+const playerKeys = {
+  all: ['players'] as const,
+  lists: () => [...playerKeys.all, 'list'] as const,
+  active: () => [...playerKeys.lists(), 'active'] as const,
+};
+
+export function useActivePlayers(): ActivePlayersResult {
   const { isConnected } = useAccount();
+  
   // Fetch all active players
   const {
     data: players,
@@ -14,25 +31,24 @@ export function useActivePlayers() {
     error,
     refetch,
   } = useQuery({
-    queryKey: ["active-players"],
-    queryFn: async () => {
+    queryKey: playerKeys.active(),
+    queryFn: async (): Promise<Fighter[]> => {
       try {
-        // Fetch the active players from the GraphQL API
+        // Fetch active players from the GraphQL API
         const { players } = await request<{ players: RawFighterData[] }>(
           SUBGRAPH_URL,
           GET_ACTIVE_PLAYERS_QUERY,
         );
+        
         // If no players found, return empty array
         if (!players || players.length === 0) {
           return [];
         }
 
-        // Convert the raw player data to Player objects
-        const convertedPlayers = await Promise.all(
-          players.map((player) => convertRawFighterToFighter(player)),
+        // Convert raw player data to Fighter objects
+        return await Promise.all(
+          players.map(convertRawFighterToFighter)
         );
-
-        return convertedPlayers;
       } catch (error) {
         console.error("Error fetching active players:", error);
         throw error;
@@ -40,6 +56,8 @@ export function useActivePlayers() {
     },
     enabled: !!isConnected,
     staleTime: 5 * 60 * 1000, // 5 minutes
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
 
   return {

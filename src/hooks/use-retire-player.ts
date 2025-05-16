@@ -10,10 +10,63 @@ import {
 } from "wagmi";
 import { useState, useEffect } from "react";
 
+// --- Constants ---
+const PLAYER_CONTRACT_ADDRESS = process.env
+  .NEXT_PUBLIC_PLAYER_CONTRACT_ADDRESS as `0x${string}`;
+
+// --- Type Definitions ---
 interface RetirePlayerResult {
   success: boolean;
   txHash?: string;
   error?: string;
+}
+
+interface RetirePlayerStatus {
+  retirePlayer: () => Promise<RetirePlayerResult>;
+  isRetiring: boolean;
+  isSuccess: boolean;
+  error: Error | null;
+  txHash: `0x${string}` | string | null;
+}
+
+// --- Mutation Keys ---
+const playerKeys = {
+  all: ["players"] as const,
+  mutations: () => [...playerKeys.all, "mutations"] as const,
+  retire: (playerId: string) =>
+    [...playerKeys.mutations(), "retire", playerId] as const,
+};
+
+// --- Helper Functions ---
+function showTransactionToast(
+  title: string,
+  description: string,
+  txHash?: string,
+) {
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+  const toastOptions: any = {
+    description,
+    duration: 5000,
+  };
+
+  if (txHash) {
+    const isTestnet =
+      process.env.NEXT_PUBLIC_ALCHEMY_NETWORK === "base-sepolia";
+    const explorerLabel = isTestnet
+      ? "View on BaseSepoliaScan"
+      : "View on ShapeScan";
+
+    toastOptions.action = {
+      label: explorerLabel,
+      onClick: () =>
+        window.open(
+          `${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${txHash}`,
+          "_blank",
+        ),
+    };
+  }
+
+  toast.success(title, toastOptions);
 }
 
 /**
@@ -21,18 +74,13 @@ interface RetirePlayerResult {
  * @param playerId The ID of the player to retire
  * @returns Object containing retirement function and state
  */
-export function useRetirePlayer(playerId: string) {
-  const { isConnected } = useAccount();
+export function useRetirePlayer(playerId: string): RetirePlayerStatus {
+  const { isConnected, address } = useAccount();
   const { isWrongNetwork, switchToPrimaryNetwork } = useWallet();
   const queryClient = useQueryClient();
-  const { address } = useAccount();
   const [pendingRetirement, setPendingRetirement] = useState<boolean>(false);
 
-  // Contract address from environment
-  const playerContractAddress = process.env
-    .NEXT_PUBLIC_PLAYER_CONTRACT_ADDRESS as `0x${string}`;
-
-  // Using wagmi's useWriteContract hook
+  // Using wagmi's contract hooks
   const {
     writeContractAsync,
     data: writeData,
@@ -41,7 +89,7 @@ export function useRetirePlayer(playerId: string) {
     isPending: isWritePending,
   } = useWriteContract();
 
-  // Use useWaitForTransactionReceipt to track when the transaction is mined
+  // Track transaction status
   const {
     data: txReceipt,
     isLoading: isWaitingForTx,
@@ -50,32 +98,22 @@ export function useRetirePlayer(playerId: string) {
     hash: writeData,
   });
 
-  // Effect to handle player retirement when transaction is confirmed
+  // Process player retirement when transaction is confirmed
   useEffect(() => {
     async function processRetirement() {
       if (!pendingRetirement || !txReceipt || !address) return;
 
       try {
-        // Update the UI
-        toast.success("Warrior retired successfully!", {
-          description: "Your warrior has been retired from battle.",
-          duration: 3000,
-        });
-
-        // Invalidate specific queries
-        await queryClient.invalidateQueries({
-          queryKey: ["player", playerId],
-        });
-
-        // Update the owned-players cache to remove the retired player
-        queryClient.setQueryData(
-          ["owned-players", address],
-          (oldData: Fighter[] = []) => {
-            return oldData.filter((player) => player.id !== playerId);
-          },
+        // Show success notification
+        showTransactionToast(
+          "Warrior retired successfully!",
+          "Your warrior has been retired from battle.",
         );
 
-        // Clear the pending state
+        // Update cache to remove the retired player
+        updatePlayerCache(address, playerId);
+
+        // Clear pending state
         setPendingRetirement(false);
       } catch (error) {
         console.error("Error processing player retirement:", error);
@@ -87,9 +125,27 @@ export function useRetirePlayer(playerId: string) {
     }
 
     processRetirement();
-  }, [txReceipt, pendingRetirement, address, playerId, queryClient]);
+  }, [txReceipt, pendingRetirement, address, playerId]);
 
+  // Helper function to update the player cache
+  function updatePlayerCache(address: string, playerId: string) {
+    // Invalidate specific queries
+    queryClient.invalidateQueries({
+      queryKey: ["player", playerId],
+    });
+
+    // Update owned-players cache to remove the retired player
+    queryClient.setQueryData(
+      ["owned-players", address],
+      (oldData: Fighter[] = []) => {
+        return oldData.filter((player) => player.id !== playerId);
+      },
+    );
+  }
+
+  // Create mutation for retiring player
   const mutation = useMutation<RetirePlayerResult, Error, void>({
+    mutationKey: playerKeys.retire(playerId),
     mutationFn: async (): Promise<RetirePlayerResult> => {
       if (!isConnected) {
         throw new Error("Authentication required");
@@ -103,69 +159,37 @@ export function useRetirePlayer(playerId: string) {
         throw new Error("No wallet address found");
       }
 
-      if (!playerContractAddress) {
+      if (!PLAYER_CONTRACT_ADDRESS) {
         throw new Error("Player contract address not configured");
       }
 
-      // Execute the contract write with wagmi
-      const txHash = await writeContractAsync({
-        account: address,
-        address: playerContractAddress,
-        abi: PlayerABI,
-        functionName: "retireOwnPlayer",
-        args: [Number(playerId)],
-      });
+      try {
+        // Execute contract transaction
+        const txHash = await writeContractAsync({
+          account: address,
+          address: PLAYER_CONTRACT_ADDRESS,
+          abi: PlayerABI,
+          functionName: "retireOwnPlayer",
+          args: [Number(playerId)],
+        });
 
-      // Return success result
-      return { success: true, txHash };
+        return { success: true, txHash };
+      } catch (error) {
+        console.error("Contract error:", error);
+        throw error;
+      }
     },
 
-    onSuccess: async (data) => {
-      // Find embedded wallet
+    onSuccess: (result) => {
+      // Set pending retirement to process after confirmation
+      setPendingRetirement(true);
 
-      if (data.txHash) {
-        toast.success("Retirement request submitted", {
-          description:
-            "Your warrior retirement request has been submitted to the blockchain.",
-          action: {
-            label:
-              process.env.NEXT_PUBLIC_ALCHEMY_NETWORK === "base-sepolia"
-                ? "View on BaseSepoliaScan"
-                : "View on ShapeScan",
-            onClick: () =>
-              window.open(
-                `${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${data.txHash}`,
-                "_blank",
-              ),
-          },
-          duration: 5000,
-        });
-
-        // Invalidate specific queries
-        await queryClient.invalidateQueries({
-          queryKey: ["player", playerId],
-        });
-
-        // if (embeddedWallet?.address) {
-        //   await queryClient.invalidateQueries({
-        //     queryKey: ["owned-players", embeddedWallet.address],
-        //   });
-        // }
-        console.log("Retiring from address:", address);
-        queryClient.setQueryData(
-          ["owned-players", address],
-          (oldData: Fighter[]) => {
-            console.log("Old data:", oldData);
-            return oldData?.filter((player) => player.id !== playerId);
-          },
-        );
-
-        // Show success toast after refetch
-        toast.success("Warrior retired successfully!", {
-          description: "Your warrior has been retired from battle.",
-          duration: 3000,
-        });
-      }
+      // Show transaction submitted toast
+      showTransactionToast(
+        "Retirement request submitted",
+        "Your warrior retirement request has been submitted to the blockchain.",
+        result.txHash,
+      );
     },
 
     onError: (error) => {
@@ -173,7 +197,7 @@ export function useRetirePlayer(playerId: string) {
 
       let errorMessage = "Failed to retire warrior";
 
-      // Extract a user-friendly error message if possible
+      // Extract user-friendly error message
       if (error.message.includes("insufficient funds")) {
         errorMessage = "Insufficient funds to complete the transaction";
       } else if (error.message.includes("user rejected")) {
@@ -185,10 +209,7 @@ export function useRetirePlayer(playerId: string) {
           "This character doesn't exist or has already been retired";
       }
 
-      toast.error(errorMessage, {
-        description:
-          error instanceof Error ? error.message : "An unknown error occurred",
-      });
+      toast.error(errorMessage);
     },
   });
 
