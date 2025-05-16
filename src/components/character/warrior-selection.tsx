@@ -80,8 +80,33 @@ export function WarriorSelection({
             const index = Array.from(
               characterListRef.current?.children ?? [],
             ).indexOf(elementNode);
+
             if (index !== -1) {
               setActiveIndex(index);
+
+              // Auto-select the character when scrolled into view
+              // Only select if it's a character card (not the new character card)
+              if (players && index < players.length) {
+                const character = players[index] as Player;
+
+                // Prevent unnecessary re-selection
+                if (selectedCharacter?.id !== character.id) {
+                  onSelectCharacter(character, character.stance);
+
+                  if (address) {
+                    queryClient.invalidateQueries({
+                      queryKey: ["owned-players", address],
+                    });
+                  }
+                }
+              } else if (
+                players &&
+                index === players.length &&
+                selectedCharacter
+              ) {
+                // If we scrolled to the new character card, deselect the current character
+                onDeselectCharacter();
+              }
             }
           }
         }
@@ -103,7 +128,16 @@ export function WarriorSelection({
       }
       observer.disconnect();
     };
-  }, [isLoading, totalScrollItems]);
+  }, [
+    isLoading,
+    totalScrollItems,
+    players,
+    selectedCharacter,
+    onSelectCharacter,
+    onDeselectCharacter,
+    address,
+    queryClient,
+  ]);
 
   // Render skeleton loaders while characters are loading
   const renderSkeletons = () => {
@@ -144,14 +178,6 @@ export function WarriorSelection({
                         (newStance as unknown as StanceType) ??
                           character.stance,
                       );
-                      if (address) {
-                        queryClient.invalidateQueries({
-                          queryKey: ["owned-players", address],
-                        });
-                      }
-                    }}
-                    onDeselect={() => {
-                      onDeselectCharacter();
                       if (address) {
                         queryClient.invalidateQueries({
                           queryKey: ["owned-players", address],

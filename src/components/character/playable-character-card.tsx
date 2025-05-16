@@ -16,7 +16,6 @@ import {
   Swords,
   Flame,
 } from "lucide-react";
-import { StanceSelector } from "./stance-selector";
 import { StanceType } from "@/types/equipment.types";
 import { useState } from "react";
 interface CharacterCardProps {
@@ -24,7 +23,6 @@ interface CharacterCardProps {
   index: number;
   isSelected: boolean;
   onSelect: (newStance?: StanceType) => void;
-  onDeselect: () => void;
   onViewDetails: () => void;
 }
 
@@ -63,12 +61,20 @@ export function CharacterCard({
   index,
   isSelected,
   onSelect,
-  onDeselect,
   onViewDetails,
 }: CharacterCardProps) {
+  const handleCardClick = (e: React.MouseEvent) => {
+    // Don't navigate if clicking on the stance selector
+    if ((e.target as HTMLElement).closest(".stance-selector")) {
+      return;
+    }
+    onViewDetails();
+  };
+
   return (
     <CardContainer index={index} isSelected={isSelected}>
-      <div className="relative">
+      {/* biome-ignore lint/a11y/useKeyWithClickEvents: <explanation> */}
+      <div className="relative cursor-pointer" onClick={handleCardClick}>
         {/* Character Image */}
         <div className="aspect-square relative bg-gradient-to-b from-stone-800/30 to-stone-900/30 overflow-hidden group">
           <motion.div
@@ -101,7 +107,8 @@ export function CharacterCard({
         </div>
       </div>
 
-      <div className="p-2 space-y-2">
+      {/* biome-ignore lint/a11y/useKeyWithClickEvents: <explanation> */}
+      <div className="p-2 space-y-2 cursor-pointer" onClick={handleCardClick}>
         {/* Character Name */}
         <h3 className="font-bold text-sm text-yellow-500 truncate">
           {character.name.fullName}
@@ -141,29 +148,6 @@ export function CharacterCard({
           />
         </div>
 
-        {/* Action Buttons */}
-        <div className="grid grid-cols-2 gap-1.5 pt-1">
-          <button
-            type="button"
-            onClick={isSelected ? onDeselect : () => onSelect()}
-            className={`py-1 px-2 text-xs rounded ${
-              isSelected
-                ? "border border-yellow-500 text-yellow-500 hover:bg-yellow-500/10"
-                : "bg-yellow-500 text-stone-900 hover:bg-yellow-600"
-            }`}
-          >
-            {isSelected ? "Deselect" : "Select"}
-          </button>
-
-          <button
-            type="button"
-            onClick={onViewDetails}
-            className="py-1 px-2 text-xs border border-yellow-500 text-yellow-500 rounded hover:bg-yellow-500/10"
-          >
-            Details
-          </button>
-        </div>
-
         {/* Add AnimatePresence for the stance selector */}
         <AnimatePresence>
           {isSelected && (
@@ -175,7 +159,8 @@ export function CharacterCard({
                 duration: 0.3,
                 ease: "easeInOut",
               }}
-              className="overflow-hidden"
+              className="overflow-hidden stance-selector"
+              onClick={(e) => e.stopPropagation()} // Prevent click from bubbling up
             >
               <CompactStanceSelector
                 character={character}
@@ -239,7 +224,10 @@ function CompactStanceSelector({
             <button
               type="button"
               key={value}
-              onClick={() => handleStanceChange(stanceValue)}
+              onClick={(e) => {
+                e.stopPropagation(); // Prevent click from bubbling up
+                handleStanceChange(stanceValue);
+              }}
               className={`flex-1 relative py-1 rounded-sm ${isSelected ? "text-white" : "text-zinc-400"}`}
             >
               <div className="flex flex-col items-center gap-0.5 relative z-10">
