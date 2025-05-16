@@ -2,40 +2,43 @@ import { useQuery } from "@tanstack/react-query";
 import { usersService } from "@/services/users";
 import { getAddress } from "viem";
 
-export const useSupabasePlayers = () => {
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["supabase-players"],
-    queryFn: async () => {
-      const users = await usersService.getUsers();
-      return users;
-    },
-  });
-
-  return { data, isLoading, error };
+// Use a consistent query key structure with arrays
+const userKeys = {
+  all: ["users"] as const,
+  addressMap: () => [...userKeys.all, "address-map"] as const,
+  addressRecord: (address: string) =>
+    [...userKeys.addressMap(), address] as const,
 };
 
-export const useSupabaseAddressToUserMap = () => {
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["supabase-address-to-user-map"],
+export function useSupabaseAddressToUserMap() {
+  return useQuery({
+    queryKey: userKeys.addressMap(),
     queryFn: async () => {
       const addressToUserMap = await usersService.getAddressToUserMap();
       return addressToUserMap;
     },
+    staleTime: 5 * 60 * 1000, // Data stays fresh for 5 minutes
   });
+}
 
-  return { data, isLoading, error };
-};
+export function useSupabaseSingleAddressToUserMap(address: string) {
+  const normalizedAddress = address ? getAddress(address) : null;
+  const addressMapQuery = useSupabaseAddressToUserMap();
 
-export const useSupabaseSingleAddressToUserMap = (address: string) => {
-  const _address = getAddress(address);
-  const { data, isLoading, error } = useQuery({
-    queryKey: ["supabase-address-to-user-map", _address],
+  return useQuery({
+    queryKey: userKeys.addressRecord(normalizedAddress as string),
     queryFn: async () => {
-      console.log("will be executing query");
-      const addressToUserMap = await usersService.getAddressToUserMap(_address);
-      return addressToUserMap?.[_address];
+      // Only fetch individually if we don't already have the data
+      // biome-ignore lint/style/noNonNullAssertion: <explanation>
+      if (addressMapQuery.data && normalizedAddress! in addressMapQuery.data) {
+        return addressMapQuery.data[normalizedAddress as string];
+      }
+      const addressToUserMap = await usersService.getAddressToUserMap(
+        normalizedAddress as string,
+      );
+      return addressToUserMap?.[normalizedAddress as string];
     },
+    enabled: !!normalizedAddress,
+    staleTime: 5 * 60 * 1000,
   });
-
-  return { data, isLoading, error };
-};
+}
