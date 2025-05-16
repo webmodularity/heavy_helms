@@ -146,22 +146,6 @@ function LoadingContent({ onCancel }: { onCancel: () => void }) {
       >
         This usually takes less than a minute.
       </motion.p>
-
-      <motion.div
-        initial={{ y: 20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.9 }}
-      >
-        <Button
-          onClick={onCancel}
-          variant="outline"
-          size="sm"
-          className="bg-transparent hover:bg-yellow-500/20 text-yellow-500 border-yellow-500/30 hover:border-yellow-500/50 h-8 text-xs"
-        >
-          <ArrowLeft className="mr-1.5 h-3 w-3" />
-          Return to Challenges
-        </Button>
-      </motion.div>
     </>
   );
 }

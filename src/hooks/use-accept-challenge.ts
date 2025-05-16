@@ -9,23 +9,19 @@ import { toast } from "sonner";
 import type { Player } from "@/types/player.types";
 import type { Challenge } from "./use-challenges";
 import { useRouter } from "next/navigation";
-import {
-  useDuelActions,
-  useDuelChallengeId,
-  useDuelTxHash,
-} from "@/stores/duel-store";
+import { useDuelActions } from "@/stores/duel-store";
 import {
   useAccount,
   useWriteContract,
   useWaitForTransactionReceipt,
-  useWatchContractEvent,
 } from "wagmi";
 import { useState, useEffect } from "react";
 
-// This is a placeholder - replace with your actual contract address
+// --- Constants ---
 const DUEL_GAME_CONTRACT_ADDRESS = process.env
   .NEXT_PUBLIC_DUEL_GAME_CONTRACT_ADDRESS as `0x${string}`;
 
+// --- Type Definitions ---
 interface AcceptChallengeParams {
   character: Player;
   challengeId: bigint;
@@ -38,25 +34,31 @@ interface AcceptChallengeResult {
   characterId: string;
 }
 
-export function useAcceptChallenge() {
-  const { isConnected } = useAccount();
+interface AcceptChallengeStatus {
+  acceptChallenge: (params: AcceptChallengeParams) => Promise<void>;
+  isAcceptingChallenge: boolean;
+  txHash: `0x${string}` | string | null;
+  error: Error | null;
+}
+
+// --- Mutation Keys ---
+const challengeKeys = {
+  all: ["challenges"] as const,
+  mutations: () => [...challengeKeys.all, "mutations"] as const,
+  accept: () => [...challengeKeys.mutations(), "accept"] as const,
+};
+
+export function useAcceptChallenge(): AcceptChallengeStatus {
+  const { isConnected, address } = useAccount();
   const { isWrongNetwork, switchToPrimaryNetwork } = useWallet();
   const queryClient = useQueryClient();
   const router = useRouter();
-  const { address } = useAccount();
   const [pendingChallenge, setPendingChallenge] =
     useState<AcceptChallengeResult | null>(null);
 
   // Get duel store state and actions
-  const {
-    startListening,
-    stopListening,
-    setDuelTxHash,
-    markAsTimedOut,
-    setListenerTimeout,
-    clearState,
-  } = useDuelActions();
-  const watchedChallengeId = useDuelChallengeId();
+  const { startListening, markAsTimedOut, setListenerTimeout, clearState } =
+    useDuelActions();
 
   // Using wagmi's contract hooks
   const {
@@ -67,21 +69,15 @@ export function useAcceptChallenge() {
     isPending: isWritePending,
   } = useWriteContract();
 
-  // Use useWaitForTransactionReceipt to track when the transaction is mined
-  const {
-    data: txReceipt,
-    isLoading: isWaitingForTx,
-    isSuccess: isReceiptReady,
-  } = useWaitForTransactionReceipt({
-    hash: writeData,
-  });
+  // Track transaction status
+  const { data: txReceipt, isLoading: isWaitingForTx } =
+    useWaitForTransactionReceipt({
+      hash: writeData,
+    });
 
   // Effect to handle transaction receipt confirmation
   useEffect(() => {
     if (pendingChallenge && txReceipt) {
-      console.log("Transaction confirmed, handling challenge acceptance");
-
-      // Handle the UI updates for challenge acceptance
       handleChallengeAccepted(pendingChallenge);
       setPendingChallenge(null);
     }
@@ -89,6 +85,7 @@ export function useAcceptChallenge() {
 
   // Create a mutation for accepting a challenge
   const mutation = useMutation({
+    mutationKey: challengeKeys.accept(),
     mutationFn: async ({
       character,
       challengeId,
@@ -105,12 +102,6 @@ export function useAcceptChallenge() {
       if (!address) {
         throw new Error("No wallet address found");
       }
-
-      console.log("Submitting acceptChallenge transaction:", {
-        challengeId: challengeId.toString(),
-        playerId: character.id,
-        wagerAmount: wagerAmount.toString(),
-      });
 
       // Create the defender loadout from the selected character
       const defenderLoadout = {
@@ -132,41 +123,25 @@ export function useAcceptChallenge() {
         value: wagerAmount,
       });
 
-      console.log("Transaction submitted:", txHash);
-
       return {
         txHash,
         challengeId,
         characterId: character.id,
       };
     },
-
     onSuccess: (result) => {
       // Store the pending challenge to process once transaction is confirmed
       setPendingChallenge(result);
 
-      // Show initial success toast
-      toast.success("Challenge acceptance submitted", {
-        description: "Your challenge acceptance is being processed...",
-        action: {
-          label:
-            process.env.NEXT_PUBLIC_ALCHEMY_NETWORK === "base-sepolia"
-              ? "View on BaseSepoliaScan"
-              : "View on ShapeScan",
-          onClick: () =>
-            window.open(
-              `${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${result.txHash}`,
-              "_blank",
-            ),
-        },
-        duration: 5000,
-      });
+      showTransactionToast(
+        "Challenge acceptance submitted",
+        "Your challenge acceptance is being processed...",
+        result.txHash,
+      );
     },
-
     onError: (error) => {
       console.error("Error accepting challenge:", error);
 
-      // Show error toast
       toast.error("Error accepting challenge", {
         description:
           error instanceof Error ? error.message : "An unknown error occurred",
@@ -174,23 +149,22 @@ export function useAcceptChallenge() {
     },
   });
 
-  // Function to handle successful challenge acceptance after transaction is confirmed
-  const handleChallengeAccepted = ({
-    txHash,
-    challengeId,
-    characterId,
-  }: AcceptChallengeResult) => {
-    // Add this at the beginning - clear any previous state first
-    clearState();
+  // Helper function to show blockchain transaction toasts
+  function showTransactionToast(
+    title: string,
+    description: string,
+    txHash: string,
+  ) {
+    const isTestnet =
+      process.env.NEXT_PUBLIC_ALCHEMY_NETWORK === "base-sepolia";
+    const explorerLabel = isTestnet
+      ? "View on BaseSepoliaScan"
+      : "View on ShapeScan";
 
-    toast.success("Challenge accepted", {
-      description:
-        "You've accepted the challenge! Preparing for battle as the duel begins.",
+    toast.success(title, {
+      description,
       action: {
-        label:
-          process.env.NEXT_PUBLIC_ALCHEMY_NETWORK === "base-sepolia"
-            ? "View on BaseSepoliaScan"
-            : "View on ShapeScan",
+        label: explorerLabel,
         onClick: () =>
           window.open(
             `${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${txHash}`,
@@ -199,6 +173,22 @@ export function useAcceptChallenge() {
       },
       duration: 5000,
     });
+  }
+
+  // Function to handle successful challenge acceptance after transaction is confirmed
+  const handleChallengeAccepted = ({
+    txHash,
+    challengeId,
+    characterId,
+  }: AcceptChallengeResult) => {
+    // Clear any previous state first
+    clearState();
+
+    showTransactionToast(
+      "Challenge accepted",
+      "You've accepted the challenge! Preparing for battle as the duel begins.",
+      txHash,
+    );
 
     // Start listening for the new challenge
     startListening(challengeId);
@@ -216,10 +206,6 @@ export function useAcceptChallenge() {
 
     // Update the cache
     if (address) {
-      // queryClient.invalidateQueries({
-      //   queryKey: ["active-challenges", address, characterId],
-      // });
-
       queryClient.setQueryData(
         ["active-challenges", address, characterId],
         (oldData: InfiniteData<Challenge[]> | undefined) => {

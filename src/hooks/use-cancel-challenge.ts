@@ -14,9 +14,15 @@ import {
 import { useState, useEffect } from "react";
 import type { Challenge } from "./use-challenges";
 
-// This is a placeholder - replace with your actual contract address
+// --- Constants ---
 const DUEL_GAME_CONTRACT_ADDRESS = process.env
   .NEXT_PUBLIC_DUEL_GAME_CONTRACT_ADDRESS as `0x${string}`;
+
+// --- Type Definitions ---
+interface CancelChallengeParams {
+  challengeId: bigint;
+  characterId: string;
+}
 
 interface CancelChallengeResult {
   txHash: string;
@@ -24,20 +30,53 @@ interface CancelChallengeResult {
   characterId: string;
 }
 
-interface CancelChallengeParams {
-  challengeId: bigint;
-  characterId: string;
+interface CancelChallengeStatus {
+  cancelChallenge: (params: CancelChallengeParams) => Promise<void>;
+  isCancellingChallenge: boolean;
+  txHash: `0x${string}` | string | null;
+  error: Error | null;
 }
 
-export function useCancelChallenge() {
-  const { isConnected } = useAccount();
+// --- Mutation Keys ---
+const challengeKeys = {
+  all: ["challenges"] as const,
+  mutations: () => [...challengeKeys.all, "mutations"] as const,
+  cancel: () => [...challengeKeys.mutations(), "cancel"] as const,
+};
+
+// --- Helper Functions ---
+function showTransactionToast(
+  title: string,
+  description: string,
+  txHash: string,
+) {
+  const isTestnet = process.env.NEXT_PUBLIC_ALCHEMY_NETWORK === "base-sepolia";
+  const explorerLabel = isTestnet
+    ? "View on BaseSepoliaScan"
+    : "View on ShapeScan";
+
+  toast.success(title, {
+    description,
+    action: {
+      label: explorerLabel,
+      onClick: () =>
+        window.open(
+          `${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${txHash}`,
+          "_blank",
+        ),
+    },
+    duration: 5000,
+  });
+}
+
+export function useCancelChallenge(): CancelChallengeStatus {
+  const { isConnected, address } = useAccount();
   const { isWrongNetwork, switchToPrimaryNetwork } = useWallet();
   const queryClient = useQueryClient();
-  const { address } = useAccount();
   const [pendingCancel, setPendingCancel] =
     useState<CancelChallengeParams | null>(null);
 
-  // Using wagmi's useWriteContract hook
+  // Contract interaction hooks
   const {
     writeContractAsync,
     data: writeData,
@@ -46,55 +85,27 @@ export function useCancelChallenge() {
     isPending: isWritePending,
   } = useWriteContract();
 
-  // Use useWaitForTransactionReceipt to track when the transaction is mined
-  const {
-    data: txReceipt,
-    isLoading: isWaitingForTx,
-    isSuccess: isReceiptReady,
-  } = useWaitForTransactionReceipt({
-    hash: writeData,
-  });
+  const { data: txReceipt, isLoading: isWaitingForTx } =
+    useWaitForTransactionReceipt({
+      hash: writeData,
+    });
 
-  // Effect to handle challenge cancellation when transaction is confirmed
+  // Process challenge cancellation when transaction is confirmed
   useEffect(() => {
     if (!pendingCancel || !txReceipt || !address) return;
 
     try {
-      // Update the UI
-      toast.success("Challenge cancelled", {
-        description:
-          "Your challenge has been successfully cancelled. Any wager amount will be returned to your wallet.",
-        action: {
-          label:
-            process.env.NEXT_PUBLIC_ALCHEMY_NETWORK === "base-sepolia"
-              ? "View on BaseSepoliaScan"
-              : "View on ShapeScan",
-          onClick: () =>
-            window.open(
-              `${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${writeData}`,
-              "_blank",
-            ),
-        },
-        duration: 5000,
-      });
-
-      // Update the cache to remove the cancelled challenge
-      queryClient.setQueryData(
-        ["active-challenges", address, pendingCancel.characterId],
-        (oldData: InfiniteData<Challenge[]> | undefined) => {
-          if (!oldData) return oldData;
-          return {
-            ...oldData,
-            pages: oldData.pages.map((page) =>
-              page.filter(
-                (challenge) => challenge.id !== pendingCancel.challengeId,
-              ),
-            ),
-          };
-        },
+      // Show success notification
+      showTransactionToast(
+        "Challenge cancelled",
+        "Your challenge has been successfully cancelled. Any wager amount will be returned to your wallet.",
+        writeData as string,
       );
 
-      // Clear the pending state
+      // Update the cache to remove the cancelled challenge
+      updateChallengeCache(address, pendingCancel);
+
+      // Clear pending state
       setPendingCancel(null);
     } catch (error) {
       console.error("Error processing challenge cancellation:", error);
@@ -103,10 +114,32 @@ export function useCancelChallenge() {
           "Challenge was cancelled, but the UI may not reflect this change.",
       });
     }
-  }, [txReceipt, pendingCancel, address, writeData, queryClient]);
+  }, [txReceipt, pendingCancel, address, writeData]);
+
+  // Helper function to update the challenge cache
+  function updateChallengeCache(
+    address: string,
+    pendingCancel: CancelChallengeParams,
+  ) {
+    queryClient.setQueryData(
+      ["active-challenges", address, pendingCancel.characterId],
+      (oldData: InfiniteData<Challenge[]> | undefined) => {
+        if (!oldData) return oldData;
+        return {
+          ...oldData,
+          pages: oldData.pages.map((page) =>
+            page.filter(
+              (challenge) => challenge.id !== pendingCancel.challengeId,
+            ),
+          ),
+        };
+      },
+    );
+  }
 
   // Create a mutation for cancelling a challenge
   const mutation = useMutation({
+    mutationKey: challengeKeys.cancel(),
     mutationFn: async ({
       challengeId,
       characterId,
@@ -123,47 +156,40 @@ export function useCancelChallenge() {
         throw new Error("No wallet address found");
       }
 
-      // Execute the contract write with wagmi
-      const txHash = await writeContractAsync({
-        account: address,
-        address: DUEL_GAME_CONTRACT_ADDRESS,
-        abi: DuelGameABI,
-        functionName: "cancelChallenge",
-        args: [challengeId],
-      });
+      try {
+        // Submit transaction to cancel the challenge
+        const txHash = await writeContractAsync({
+          account: address,
+          address: DUEL_GAME_CONTRACT_ADDRESS,
+          abi: DuelGameABI,
+          functionName: "cancelChallenge",
+          args: [challengeId],
+        });
 
-      return { txHash, challengeId, characterId };
+        return { txHash, challengeId, characterId };
+      } catch (error) {
+        console.error("Transaction error:", error);
+        throw error;
+      }
     },
 
     onSuccess: (result) => {
-      // Store the pending cancellation to process once transaction is confirmed
+      // Store pending cancellation for processing after confirmation
       setPendingCancel({
         challengeId: result.challengeId,
         characterId: result.characterId,
       });
 
-      // Show initial success toast
-      toast.success("Cancelling challenge...", {
-        description: "Your transaction has been submitted to the blockchain.",
-        action: {
-          label:
-            process.env.NEXT_PUBLIC_ALCHEMY_NETWORK === "base-sepolia"
-              ? "View on BaseSepoliaScan"
-              : "View on ShapeScan",
-          onClick: () =>
-            window.open(
-              `${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${result.txHash}`,
-              "_blank",
-            ),
-        },
-        duration: 5000,
-      });
+      // Show transaction submitted toast
+      showTransactionToast(
+        "Cancelling challenge...",
+        "Your transaction has been submitted to the blockchain.",
+        result.txHash,
+      );
     },
 
     onError: (error) => {
       console.error("Error cancelling challenge:", error);
-
-      // Show error toast
       toast.error("Error cancelling challenge", {
         description:
           error instanceof Error ? error.message : "An unknown error occurred",

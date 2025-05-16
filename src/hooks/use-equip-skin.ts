@@ -12,7 +12,13 @@ import {
 } from "wagmi";
 import { useState, useEffect } from "react";
 import type { StanceType } from "@/types/equipment.types";
+import type { Skin } from "@/types/skin.types";
 
+// --- Constants ---
+const PLAYER_CONTRACT_ADDRESS = process.env
+  .NEXT_PUBLIC_PLAYER_CONTRACT_ADDRESS as `0x${string}`;
+
+// --- Type Definitions ---
 interface EquipSkinParams {
   skinIndex: number;
   skinTokenId: number;
@@ -28,18 +34,62 @@ interface EquipSkinResult {
   stance: StanceType;
 }
 
-export function useEquipSkin(playerId: string) {
-  const { isConnected } = useAccount();
+interface EquipSkinStatus {
+  equipSkin: (
+    skinIndex: number,
+    skinTokenId: number,
+    newSkin: SkinWithMetadataURI,
+    stance: StanceType,
+  ) => Promise<
+    | EquipSkinResult
+    | { success: false; error: string; newSkin: SkinWithMetadataURI }
+  >;
+  isEquipping: boolean;
+  equipError: Error | null;
+  isSuccess: boolean;
+  txHash: `0x${string}` | string | null;
+}
+
+// --- Mutation Keys ---
+const skinKeys = {
+  all: ["skins"] as const,
+  mutations: () => [...skinKeys.all, "mutations"] as const,
+  equip: (playerId: string) =>
+    [...skinKeys.mutations(), "equip", playerId] as const,
+};
+
+// --- Helper Functions ---
+function showTransactionToast(
+  title: string,
+  description: string,
+  txHash: string,
+) {
+  const isTestnet = process.env.NEXT_PUBLIC_ALCHEMY_NETWORK === "base-sepolia";
+  const explorerLabel = isTestnet
+    ? "View on BaseSepoliaScan"
+    : "View on ShapeScan";
+
+  toast.success(title, {
+    description,
+    action: {
+      label: explorerLabel,
+      onClick: () =>
+        window.open(
+          `${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${txHash}`,
+          "_blank",
+        ),
+    },
+    duration: 5000,
+  });
+}
+
+export function useEquipSkin(playerId: string): EquipSkinStatus {
+  const { isConnected, address } = useAccount();
   const { isWrongNetwork, switchToPrimaryNetwork } = useWallet();
   const queryClient = useQueryClient();
-  const { address } = useAccount();
   const [pendingSkin, setPendingSkin] = useState<EquipSkinParams | null>(null);
 
-  // Get player contract address
-  const playerContractAddress = process.env
-    .NEXT_PUBLIC_PLAYER_CONTRACT_ADDRESS as `0x${string}`;
-
-  // Using wagmi's useWriteContract hook
+  // Using wagmi's contract hooks
   const {
     writeContractAsync,
     data: writeData,
@@ -48,7 +98,7 @@ export function useEquipSkin(playerId: string) {
     isPending: isWritePending,
   } = useWriteContract();
 
-  // Use useWaitForTransactionReceipt to track when the transaction is mined
+  // Track transaction status
   const {
     data: txReceipt,
     isLoading: isWaitingForTx,
@@ -57,7 +107,7 @@ export function useEquipSkin(playerId: string) {
     hash: writeData,
   });
 
-  // Effect to handle skin equipping completion when transaction is confirmed
+  // Process skin equipping when transaction is confirmed
   useEffect(() => {
     async function processSkinEquipping() {
       if (!pendingSkin || !txReceipt || !address) return;
@@ -66,47 +116,17 @@ export function useEquipSkin(playerId: string) {
         // Create the player skin
         const newSkin = await createPlayerSkin(pendingSkin.newSkin);
 
-        // Update the player in the cache
-        queryClient.setQueryData(["player", playerId], (oldData: Player) => {
-          return {
-            ...oldData,
-            currentSkin: {
-              ...oldData.currentSkin,
-              ...newSkin,
-            },
-          };
-        });
+        // Update player data in cache
+        updatePlayerCache(playerId, address, newSkin);
 
-        // Update the player in the owned players cache
-        queryClient.setQueryData(
-          ["owned-players", address],
-          (oldData: Player[] = []) => {
-            return oldData.map((player) => {
-              if (player.id === playerId) {
-                return { ...player, currentSkin: newSkin };
-              }
-              return player;
-            });
-          },
+        // Show success notification
+        showTransactionToast(
+          "Skin equipped successfully!",
+          "Your warrior has been updated with the new skin.",
+          writeData as string,
         );
 
-        // Show success toast
-        toast.success("Skin equipped successfully!", {
-          description: "Your warrior has been updated with the new skin.",
-          action: {
-            label:
-              process.env.NEXT_PUBLIC_ALCHEMY_NETWORK === "base-sepolia"
-                ? "View on BaseSepoliaScan"
-                : "View on ShapeScan",
-            onClick: () =>
-              window.open(
-                `${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${writeData}`,
-                "_blank",
-              ),
-          },
-        });
-
-        // Clear the pending state
+        // Clear pending state
         setPendingSkin(null);
       } catch (error) {
         console.error("Error processing skin equipping:", error);
@@ -117,9 +137,38 @@ export function useEquipSkin(playerId: string) {
     }
 
     processSkinEquipping();
-  }, [txReceipt, pendingSkin, address, writeData, playerId, queryClient]);
+  }, [txReceipt, pendingSkin, address, writeData, playerId]);
 
+  // Helper function to update the player cache
+  function updatePlayerCache(playerId: string, address: string, newSkin: Skin) {
+    // Update single player in cache
+    queryClient.setQueryData(["player", playerId], (oldData: Player) => {
+      return {
+        ...oldData,
+        currentSkin: {
+          ...oldData.currentSkin,
+          ...newSkin,
+        },
+      };
+    });
+
+    // Update player in owned players list
+    queryClient.setQueryData(
+      ["owned-players", address],
+      (oldData: Player[] = []) => {
+        return oldData.map((player) => {
+          if (player.id === playerId) {
+            return { ...player, currentSkin: newSkin };
+          }
+          return player;
+        });
+      },
+    );
+  }
+
+  // Create mutation for equipping skin
   const mutation = useMutation<EquipSkinResult, Error, EquipSkinParams>({
+    mutationKey: skinKeys.equip(playerId),
     mutationFn: async ({
       skinIndex,
       skinTokenId,
@@ -138,49 +187,42 @@ export function useEquipSkin(playerId: string) {
         throw new Error("No wallet address found");
       }
 
-      if (!playerContractAddress) {
+      if (!PLAYER_CONTRACT_ADDRESS) {
         throw new Error("Player contract address not configured");
       }
 
-      // Execute the contract write with wagmi
-      const txHash = await writeContractAsync({
-        account: address,
-        address: playerContractAddress,
-        abi: PlayerABI,
-        functionName: "equipSkin",
-        // TODO SET THIS TO PASSED IN STANCE INSTEAD OF 1
-        args: [Number(playerId), skinIndex, skinTokenId, stance],
-      });
+      try {
+        // Execute contract transaction
+        const txHash = await writeContractAsync({
+          account: address,
+          address: PLAYER_CONTRACT_ADDRESS,
+          abi: PlayerABI,
+          functionName: "equipSkin",
+          args: [Number(playerId), skinIndex, skinTokenId, stance],
+        });
 
-      // Return success and transaction hash
-      return { success: true, txHash, newSkin, stance };
+        return { success: true, txHash, newSkin, stance };
+      } catch (error) {
+        console.error("Contract error:", error);
+        throw error;
+      }
     },
 
     onSuccess: (result) => {
-      // Store the pending skin to process once transaction is confirmed
+      // Store pending skin to process after confirmation
       setPendingSkin({
         skinIndex: result.newSkin.collection.id as unknown as number,
         skinTokenId: result.newSkin.tokenId,
         newSkin: result.newSkin,
-        stance: 1,
+        stance: result.stance,
       });
 
-      // Show initial success toast
-      toast.success("Equipping skin...", {
-        description: "Your transaction has been submitted to the blockchain.",
-        action: {
-          label:
-            process.env.NEXT_PUBLIC_ALCHEMY_NETWORK === "base-sepolia"
-              ? "View on BaseSepoliaScan"
-              : "View on ShapeScan",
-          onClick: () =>
-            window.open(
-              `${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${result.txHash}`,
-              "_blank",
-            ),
-        },
-        duration: 5000,
-      });
+      // Show transaction submitted toast
+      showTransactionToast(
+        "Equipping skin...",
+        "Your transaction has been submitted to the blockchain.",
+        result.txHash as string,
+      );
     },
 
     onError: (error) => {
@@ -221,10 +263,10 @@ export function useEquipSkin(playerId: string) {
     } catch (error) {
       // Error is already handled in onError callback
       return {
-        success: false,
+        success: false as const,
         error:
           error instanceof Error ? error.message : "An unknown error occurred",
-        newSkin, // We still need to return the newSkin for type compatibility
+        newSkin, // Return the newSkin for type compatibility
       };
     }
   };

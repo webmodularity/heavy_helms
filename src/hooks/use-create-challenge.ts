@@ -49,8 +49,42 @@ interface ChallengeCreatedEvent {
   };
 }
 
-export function useCreateChallenge() {
-  const { address, chainId } = useAccount();
+interface CreateChallengeStatus {
+  createChallenge: (params: CreateChallengeParams) => Promise<void>;
+  isCreatingChallenge: boolean;
+  txHash: `0x${string}` | null;
+  error: Error | null;
+}
+
+// --- Mutation Keys ---
+const challengeKeys = {
+  all: ["challenges"] as const,
+  mutations: () => [...challengeKeys.all, "mutations"] as const,
+  create: () => [...challengeKeys.mutations(), "create"] as const,
+};
+
+// --- Helper Functions ---
+function showTransactionToast(
+  title: string,
+  description: string,
+  txHash: string,
+) {
+  toast.success(title, {
+    description,
+    action: {
+      label: "View Transaction",
+      onClick: () =>
+        window.open(
+          `${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${txHash}`,
+          "_blank",
+        ),
+    },
+    duration: 5000,
+  });
+}
+
+export function useCreateChallenge(): CreateChallengeStatus {
+  const { address } = useAccount();
   const { switchChain } = useSwitchChain();
   const queryClient = useQueryClient();
   const publicClient = usePublicClient();
@@ -63,6 +97,7 @@ export function useCreateChallenge() {
 
   // Create a mutation for challenge creation
   const mutation = useMutation({
+    mutationKey: challengeKeys.create(),
     mutationFn: async ({
       character,
       defenderId,
@@ -89,34 +124,39 @@ export function useCreateChallenge() {
         stance: character.stance,
       };
 
-      // Use wagmi's writeContractAsync to send the transaction
-      const hash = await writeContractAsync({
-        address: DUEL_GAME_CONTRACT_ADDRESS,
-        abi: DuelGameABI,
-        functionName: "initiateChallenge",
-        args: [challengerLoadout, defenderId, wagerValue],
-        value: wagerValue + parseEther("0.0002"),
-      });
+      try {
+        // Use wagmi's writeContractAsync to send the transaction
+        const hash = await writeContractAsync({
+          address: DUEL_GAME_CONTRACT_ADDRESS,
+          abi: DuelGameABI,
+          functionName: "initiateChallenge",
+          args: [challengerLoadout, defenderId, wagerValue],
+          value: wagerValue + parseEther("0.0002"),
+        });
 
-      // Wait for transaction receipt
-      const receipt = await viemClient.waitForTransactionReceipt({
-        hash: hash as `0x${string}`,
-      });
+        // Wait for transaction receipt
+        const receipt = await viemClient.waitForTransactionReceipt({
+          hash: hash as `0x${string}`,
+        });
 
-      // Parse logs to find the event containing the challenge ID
-      const challengeCreatedEvent = decodeEventLog({
-        abi: DuelGameABI,
-        data: receipt.logs[0].data,
-        topics: receipt.logs[0].topics,
-      }) as unknown as ChallengeCreatedEvent;
+        // Parse logs to find the event containing the challenge ID
+        const challengeCreatedEvent = decodeEventLog({
+          abi: DuelGameABI,
+          data: receipt.logs[0].data,
+          topics: receipt.logs[0].topics,
+        }) as unknown as ChallengeCreatedEvent;
 
-      return {
-        txHash: hash,
-        challenger: character,
-        challengerId: character.id,
-        createdAtBlock: receipt.blockNumber,
-        createdChallenge: challengeCreatedEvent.args,
-      };
+        return {
+          txHash: hash,
+          challenger: character,
+          challengerId: character.id,
+          createdAtBlock: receipt.blockNumber,
+          createdChallenge: challengeCreatedEvent.args,
+        };
+      } catch (error) {
+        console.error("Transaction error:", error);
+        throw error;
+      }
     },
 
     onSuccess: async ({
@@ -126,110 +166,88 @@ export function useCreateChallenge() {
       challenger,
       createdAtBlock,
     }) => {
-      toast.success("Challenge created successfully", {
-        description:
-          "Your challenge has been created and is now waiting for acceptance.",
-        action: {
-          label: "",
-          onClick: () =>
-            window.open(
-              `${process.env.NEXT_PUBLIC_EXPLORER_URL}/tx/${txHash}`,
-              "_blank",
-            ),
-        },
-        duration: 5000,
-      });
+      showTransactionToast(
+        "Challenge created successfully",
+        "Your challenge has been created and is now waiting for acceptance.",
+        txHash,
+      );
 
       if (address) {
-        const defenders = await request<{ fighters: Player[] }>(
-          SUBGRAPH_URL,
-          GET_FIGHTERS_BY_IDS,
-          {
-            fighterIds: [createdChallenge.defenderId],
-          },
-        );
-        const defender = defenders.fighters[0];
+        try {
+          // Fetch defender information
+          const defenders = await request<{ fighters: Player[] }>(
+            SUBGRAPH_URL,
+            GET_FIGHTERS_BY_IDS,
+            {
+              fighterIds: [createdChallenge.defenderId],
+            },
+          );
+          const defender = defenders.fighters[0];
 
-        queryClient.setQueryData(
-          ["active-challenges", address, challengerId],
-          (oldData: InfiniteData<Challenge[]> | undefined) => {
-            if (!oldData) return oldData;
-            const lastPage = oldData.pages[oldData.pages.length - 1];
-            const lastPageIndex = oldData.pages.length - 1;
-            return {
-              ...oldData,
-              pages: [
-                ...oldData.pages.slice(0, lastPageIndex),
-                [
-                  {
-                    id: BigInt(createdChallenge.challengeId),
-                    challengerId: Number(createdChallenge.challengerId),
-                    defenderId: Number(createdChallenge.defenderId),
-                    wagerAmount: BigInt(createdChallenge.wagerAmount),
-                    createdBlock: BigInt(createdAtBlock),
-                    challengerLoadout: {
-                      playerId: Number(createdChallenge.challengerId),
-                      weapon: challenger?.currentSkin.weapon,
-                      armor: challenger?.currentSkin.armor,
-                      stance: challenger?.stance,
-                    },
-                    defenderLoadout: {
-                      playerId: Number(createdChallenge.defenderId),
-                      weapon: defender?.currentSkin.weapon,
-                      armor: defender?.currentSkin.armor,
-                      stance: defender?.stance,
-                    },
-                    challengerName: challenger?.name.fullName,
-                    defenderName: defender?.fullName || "",
-                    isSentByMe: false,
-                    fulfilled: false,
-                  },
-                  ...lastPage,
-                ],
-              ],
-            };
-            // };
-            // return [
-            //   ...previousData,
-            //   {
-            //     id: BigInt(createdChallenge.challengeId),
-            //     challengerId: Number(createdChallenge.challengerId),
-            //     defenderId: Number(createdChallenge.defenderId),
-            //     wagerAmount: BigInt(createdChallenge.wagerAmount),
-            //     createdBlock: BigInt(createdChallenge.createdAtBlock),
-            //     challengerLoadout: {
-            //       playerId: Number(createdChallenge.challengerId),
-            //       weapon: challenger?.currentSkin.weapon,
-            //       armor: challenger?.currentSkin.armor,
-            //       stance: challenger?.stance,
-            //     },
-            //     defenderLoadout: {
-            //       playerId: Number(createdChallenge.defenderId),
-            //       weapon: defender?.currentSkin.weapon,
-            //       armor: defender?.currentSkin.armor,
-            //       stance: defender?.stance,
-            //     },
-            //     challengerName: challenger?.name.fullName,
-            //     defenderName: defender?.fullName || "",
-            //     isSentByMe: false,
-            //     fulfilled: false,
-            //   },
-            // ];
-          },
-        );
+          // Update the query cache with the new challenge
+          updateChallengeCache(address, challengerId, {
+            id: BigInt(createdChallenge.challengeId),
+            challengerId: Number(createdChallenge.challengerId),
+            defenderId: Number(createdChallenge.defenderId),
+            wagerAmount: BigInt(createdChallenge.wagerAmount),
+            createdBlock: BigInt(createdAtBlock),
+            challengerLoadout: {
+              playerId: Number(createdChallenge.challengerId),
+              weapon: challenger?.currentSkin.weapon,
+              armor: challenger?.currentSkin.armor,
+              stance: challenger?.stance,
+            },
+            defenderLoadout: {
+              playerId: Number(createdChallenge.defenderId),
+              weapon: defender?.currentSkin.weapon,
+              armor: defender?.currentSkin.armor,
+              stance: defender?.stance,
+            },
+            challengerName: challenger?.name.fullName,
+            defenderName: defender?.fullName || "",
+            isSentByMe: false,
+            fulfilled: false,
+          });
+        } catch (error) {
+          console.error("Error updating challenge cache:", error);
+        }
       }
     },
 
     onError: (error) => {
       console.error("Error creating challenge:", error);
 
-      // Show error toast
       toast.error("Error creating challenge", {
         description:
           error instanceof Error ? error.message : "An unknown error occurred",
       });
     },
   });
+
+  // Helper function to update the challenge cache
+  function updateChallengeCache(
+    address: string,
+    challengerId: string | undefined,
+    newChallenge: Challenge,
+  ) {
+    queryClient.setQueryData(
+      ["active-challenges", address, challengerId],
+      (oldData: InfiniteData<Challenge[]> | undefined) => {
+        if (!oldData) return oldData;
+
+        const lastPage = oldData.pages[oldData.pages.length - 1];
+        const lastPageIndex = oldData.pages.length - 1;
+
+        return {
+          ...oldData,
+          pages: [
+            ...oldData.pages.slice(0, lastPageIndex),
+            [newChallenge, ...lastPage],
+          ],
+        };
+      },
+    );
+  }
 
   const createChallenge = async (params: CreateChallengeParams) => {
     if (!address) {
