@@ -7,10 +7,11 @@ import { useAccount } from "wagmi";
 import type { Fighter } from "@/types/fighter-types";
 
 // --- Query Keys ---
-const playerKeys = {
+export const ownPlayerKeys = {
   all: ["players"] as const,
-  lists: () => [...playerKeys.all, "list"] as const,
-  own: (address?: string) => [...playerKeys.lists(), "owned", address] as const,
+  lists: () => [...ownPlayerKeys.all, "list"] as const,
+  own: (address?: string) =>
+    [...ownPlayerKeys.lists(), "owned", address] as const,
 };
 
 export function useOwnPlayers() {
@@ -22,7 +23,7 @@ export function useOwnPlayers() {
     error,
     refetch,
   } = useQuery({
-    queryKey: playerKeys.own(address),
+    queryKey: ownPlayerKeys.own(address),
     queryFn: async (): Promise<Fighter[]> => {
       if (!address) return [];
 

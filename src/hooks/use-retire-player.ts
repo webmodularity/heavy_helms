@@ -9,6 +9,7 @@ import {
   useWaitForTransactionReceipt,
 } from "wagmi";
 import { useState, useEffect } from "react";
+import { ownPlayerKeys } from "./use-own-players";
 
 // --- Constants ---
 const PLAYER_CONTRACT_ADDRESS = process.env
@@ -78,7 +79,6 @@ export function useRetirePlayer(playerId: string): RetirePlayerStatus {
   const { isConnected, address } = useAccount();
   const { isWrongNetwork, switchToPrimaryNetwork } = useWallet();
   const queryClient = useQueryClient();
-  const [pendingRetirement, setPendingRetirement] = useState<boolean>(false);
 
   // Using wagmi's contract hooks
   const {
@@ -98,35 +98,6 @@ export function useRetirePlayer(playerId: string): RetirePlayerStatus {
     hash: writeData,
   });
 
-  // Process player retirement when transaction is confirmed
-  useEffect(() => {
-    async function processRetirement() {
-      if (!pendingRetirement || !txReceipt || !address) return;
-
-      try {
-        // Show success notification
-        showTransactionToast(
-          "Warrior retired successfully!",
-          "Your warrior has been retired from battle.",
-        );
-
-        // Update cache to remove the retired player
-        updatePlayerCache(address, playerId);
-
-        // Clear pending state
-        setPendingRetirement(false);
-      } catch (error) {
-        console.error("Error processing player retirement:", error);
-        toast.error("Error updating player list", {
-          description:
-            "Player was retired, but the UI may not reflect this change.",
-        });
-      }
-    }
-
-    processRetirement();
-  }, [txReceipt, pendingRetirement, address, playerId]);
-
   // Helper function to update the player cache
   function updatePlayerCache(address: string, playerId: string) {
     // Invalidate specific queries
@@ -136,7 +107,7 @@ export function useRetirePlayer(playerId: string): RetirePlayerStatus {
 
     // Update owned-players cache to remove the retired player
     queryClient.setQueryData(
-      ["owned-players", address],
+      ownPlayerKeys.own(address),
       (oldData: Fighter[] = []) => {
         return oldData.filter((player) => player.id !== playerId);
       },
@@ -180,16 +151,31 @@ export function useRetirePlayer(playerId: string): RetirePlayerStatus {
       }
     },
 
-    onSuccess: (result) => {
-      // Set pending retirement to process after confirmation
-      setPendingRetirement(true);
-
+    onSuccess: async (result) => {
       // Show transaction submitted toast
       showTransactionToast(
         "Retirement request submitted",
         "Your warrior retirement request has been submitted to the blockchain.",
         result.txHash,
       );
+
+      // Wait for transaction receipt if needed
+      if (result.txHash) {
+        // You can choose to wait here directly if needed, or let the UI
+        // update based on the useWaitForTransactionReceipt hook's state
+
+        // Once transaction is confirmed - handled by the hook's state change
+        if (address) {
+          // Update cache to remove the retired player
+          updatePlayerCache(address, playerId);
+        }
+
+        // Show success toast after confirmation
+        showTransactionToast(
+          "Warrior retired successfully!",
+          "Your warrior has been retired from battle.",
+        );
+      }
     },
 
     onError: (error) => {
@@ -239,12 +225,8 @@ export function useRetirePlayer(playerId: string): RetirePlayerStatus {
 
   return {
     retirePlayer,
-    isRetiring:
-      mutation.isPending ||
-      isWritePending ||
-      isWaitingForTx ||
-      pendingRetirement,
-    isSuccess: mutation.isSuccess || isReceiptReady,
+    isRetiring: mutation.isPending || isWritePending || isWaitingForTx,
+    isSuccess: mutation.isSuccess && isReceiptReady,
     error: mutation.error || writeError,
     txHash: writeData || mutation.data?.txHash || null,
   };

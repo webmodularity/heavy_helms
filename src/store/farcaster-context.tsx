@@ -1,10 +1,12 @@
 // src/store/farcaster-context.tsx
 "use client";
 
+import { wagmiConfig } from "@/config";
 import { sdk } from "@farcaster/frame-sdk";
 import { usePrivy, useWallets, useIdentityToken } from "@privy-io/react-auth";
 import { useLoginToFrame } from "@privy-io/react-auth/farcaster";
 import { useSetActiveWallet } from "@privy-io/wagmi";
+import { switchChain } from "@wagmi/core";
 import {
   type ReactNode,
   createContext,
@@ -14,6 +16,7 @@ import {
   useContext,
 } from "react";
 import { toast } from "sonner";
+import { baseSepolia } from "wagmi/chains";
 
 /**
  * Farcaster context interface exposed to consumers
@@ -216,6 +219,7 @@ export function FarcasterProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (privyReady && privyAuthenticated && isBackendSynced) {
+      switchChain(wagmiConfig, { chainId: baseSepolia.id });
       signalReady();
     }
   }, [privyReady, privyAuthenticated, isBackendSynced, signalReady]);

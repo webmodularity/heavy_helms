@@ -81,7 +81,6 @@ export function CharacterCard({
       href={characterDetailsUrl}
       prefetch={true}
       onClick={handleCardClick}
-      legacyBehavior
       passHref
     >
       <div className="cursor-pointer">

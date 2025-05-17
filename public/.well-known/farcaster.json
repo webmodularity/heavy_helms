@@ -7,11 +7,11 @@
     "frame": {
       "name": "HeavyHelms",
       "version": "1",
-      "iconUrl": "https://exp-pan-springfield-back.trycloudflare.com/heavy_helms_header_drop_shadow.png",
-      "homeUrl": "https://exp-pan-springfield-back.trycloudflare.com",
-      "imageUrl": "https://exp-pan-springfield-back.trycloudflare.com/heavy_helms_header_drop_shadow.png",
+      "iconUrl": "https://roy-identify-drums-bush.trycloudflare.com/heavy_helms_header_drop_shadow.png",
+      "homeUrl": "https://roy-identify-drums-bush.trycloudflare.com",
+      "imageUrl": "https://roy-identify-drums-bush.trycloudflare.com/heavy_helms_header_drop_shadow.png",
       "buttonTitle": "Play",
-      "splashImageUrl": "https://exp-pan-springfield-back.trycloudflare.com/heavy_helms_header_drop_shadow.png",
+      "splashImageUrl": "https://roy-identify-drums-bush.trycloudflare.com/heavy_helms_header_drop_shadow.png",
       "splashBackgroundColor": "#f9c846"
     }
 }
