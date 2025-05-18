@@ -175,12 +175,12 @@ export function useCreateCharacter(): CreateCharacterStatus {
       return;
     }
 
-    // Show toast for successful transaction
-    showTransactionToast(
-      "Character creation submitted",
-      "Your character creation request has been submitted to the blockchain.",
-      txHash,
-    );
+    // // Show toast for successful transaction
+    // showTransactionToast(
+    //   "Character creation submitted",
+    //   "Your character creation request has been submitted to the blockchain.",
+    //   txHash,
+    // );
 
     // Navigate to the loading screen FIRST - before starting to listen
     router.push("/characters/creating");
@@ -369,11 +369,11 @@ export function useCreateCharacter(): CreateCharacterStatus {
       setPendingCharacter(result);
 
       // Show transaction submitted toast
-      showTransactionToast(
-        "Transaction submitted",
-        "Your character creation transaction has been sent to the blockchain.",
-        result.txHash,
-      );
+      // showTransactionToast(
+      //   "Transaction submitted",
+      //   "Your character creation transaction has been sent to the blockchain.",
+      //   result.txHash,
+      // );
     },
 
     onError: (error) => {
