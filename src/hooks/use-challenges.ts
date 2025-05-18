@@ -46,7 +46,7 @@ export interface SubgraphChallenge {
   };
 }
 
-interface GraphQLResponse {
+export interface GraphQLResponse {
   sentChallenges: SubgraphChallenge[];
   receivedChallenges: SubgraphChallenge[];
   duelChallenges?: SubgraphChallenge[];

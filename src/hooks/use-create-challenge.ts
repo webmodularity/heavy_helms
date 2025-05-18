@@ -2,12 +2,7 @@ import { DuelGameABI } from "@/game/abi/DuelGameABI.abi";
 import { toast } from "sonner";
 import { decodeEventLog, formatEther, parseEther } from "viem";
 import type { Player } from "@/types/player.types";
-import {
-  useAccount,
-  useWriteContract,
-  useSwitchChain,
-  usePublicClient,
-} from "wagmi";
+import { useAccount, useWriteContract, usePublicClient } from "wagmi";
 import {
   type InfiniteData,
   useMutation,
@@ -16,8 +11,8 @@ import {
 import { SUBGRAPH_URL, viemClient } from "@/config";
 import request from "graphql-request";
 import { GET_FIGHTERS_BY_IDS } from "@/lib/gql-queries";
-import type { Challenge, SubgraphChallenge } from "./use-challenges";
-import { Fighter, RawFighterData } from "@/types/fighter-types";
+import type { SubgraphChallenge } from "./use-challenges";
+import type { RawFighterData } from "@/types/fighter-types";
 
 // This is a placeholder - replace with your actual contract address
 const DUEL_GAME_CONTRACT_ADDRESS = process.env
@@ -251,6 +246,7 @@ export function useCreateChallenge(): CreateChallengeStatus {
         fighterId: challengerId,
         pageSize: 10,
       }),
+      // biome-ignore lint/suspicious/noExplicitAny: <explanation>
       (oldData: InfiniteData<any> | undefined) => {
         if (!oldData || !oldData.pages || !oldData.pages[0]) return oldData;
 
