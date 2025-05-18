@@ -1,6 +1,6 @@
 import { DuelGameABI } from "@/game/abi/DuelGameABI.abi";
 import { toast } from "sonner";
-import { decodeEventLog, parseEther } from "viem";
+import { decodeEventLog, formatEther, parseEther } from "viem";
 import type { Player } from "@/types/player.types";
 import {
   useAccount,
@@ -16,7 +16,8 @@ import {
 import { SUBGRAPH_URL, viemClient } from "@/config";
 import request from "graphql-request";
 import { GET_FIGHTERS_BY_IDS } from "@/lib/gql-queries";
-import type { Challenge } from "./use-challenges";
+import type { Challenge, SubgraphChallenge } from "./use-challenges";
+import { Fighter, RawFighterData } from "@/types/fighter-types";
 
 // This is a placeholder - replace with your actual contract address
 const DUEL_GAME_CONTRACT_ADDRESS = process.env
@@ -59,6 +60,14 @@ interface CreateChallengeStatus {
 // --- Mutation Keys ---
 const challengeKeys = {
   all: ["challenges"] as const,
+  lists: () => [...challengeKeys.all, "list"] as const,
+  list: (filters: { address?: string; fighterId?: string; pageSize: number }) =>
+    [...challengeKeys.lists(), filters] as const,
+  infiniteList: (filters: {
+    address?: string;
+    fighterId?: string;
+    pageSize: number;
+  }) => [...challengeKeys.list(filters), "infinite"] as const,
   mutations: () => [...challengeKeys.all, "mutations"] as const,
   create: () => [...challengeKeys.mutations(), "create"] as const,
 };
@@ -85,7 +94,6 @@ function showTransactionToast(
 
 export function useCreateChallenge(): CreateChallengeStatus {
   const { address } = useAccount();
-  const { switchChain } = useSwitchChain();
   const queryClient = useQueryClient();
   const publicClient = usePublicClient();
 
@@ -175,7 +183,7 @@ export function useCreateChallenge(): CreateChallengeStatus {
       if (address) {
         try {
           // Fetch defender information
-          const defenders = await request<{ fighters: Player[] }>(
+          const defenders = await request<{ fighters: RawFighterData[] }>(
             SUBGRAPH_URL,
             GET_FIGHTERS_BY_IDS,
             {
@@ -183,30 +191,37 @@ export function useCreateChallenge(): CreateChallengeStatus {
             },
           );
           const defender = defenders.fighters[0];
-
+          console.log("defender", defender);
           // Update the query cache with the new challenge
           updateChallengeCache(address, challengerId, {
-            id: BigInt(createdChallenge.challengeId),
-            challengerId: Number(createdChallenge.challengerId),
-            defenderId: Number(createdChallenge.defenderId),
-            wagerAmount: BigInt(createdChallenge.wagerAmount),
-            createdBlock: BigInt(createdAtBlock),
-            challengerLoadout: {
-              playerId: Number(createdChallenge.challengerId),
-              weapon: challenger?.currentSkin.weapon,
-              armor: challenger?.currentSkin.armor,
+            challengerSnapshot: {
+              currentSkin: {
+                weapon: challenger?.currentSkin.weapon,
+                armor: challenger?.currentSkin.armor,
+              },
+              fighterId: challenger?.id,
+              fighterType: "PlayerSnapshot",
               stance: challenger?.stance,
+              firstName: challenger?.name.firstName,
+              surname: challenger?.name.surname,
+              fullName: challenger?.name.fullName,
             },
-            defenderLoadout: {
-              playerId: Number(createdChallenge.defenderId),
-              weapon: defender?.currentSkin.weapon,
-              armor: defender?.currentSkin.armor,
+            id: String(createdChallenge.challengeId),
+            wagerAmount: formatEther(createdChallenge.wagerAmount),
+            state: "OPEN",
+            createdAt: String(createdAtBlock),
+            defenderSnapshot: {
+              currentSkin: {
+                weapon: defender?.currentSkin.weapon,
+                armor: defender?.currentSkin.armor,
+              },
+              fighterId: defender?.id,
+              fighterType: "PlayerSnapshot",
               stance: defender?.stance,
+              firstName: defender?.firstName,
+              surname: defender?.surname,
+              fullName: defender?.fullName,
             },
-            challengerName: challenger?.name.fullName,
-            defenderName: defender?.fullName || "",
-            isSentByMe: false,
-            fulfilled: false,
           });
         } catch (error) {
           console.error("Error updating challenge cache:", error);
@@ -228,22 +243,29 @@ export function useCreateChallenge(): CreateChallengeStatus {
   function updateChallengeCache(
     address: string,
     challengerId: string | undefined,
-    newChallenge: Challenge,
+    newChallenge: Omit<SubgraphChallenge, "defenderOwner" | "challengerOwner">,
   ) {
     queryClient.setQueryData(
-      ["active-challenges", address, challengerId],
-      (oldData: InfiniteData<Challenge[]> | undefined) => {
-        if (!oldData) return oldData;
+      challengeKeys.infiniteList({
+        address,
+        fighterId: challengerId,
+        pageSize: 10,
+      }),
+      (oldData: InfiniteData<any> | undefined) => {
+        if (!oldData || !oldData.pages || !oldData.pages[0]) return oldData;
 
-        const lastPage = oldData.pages[oldData.pages.length - 1];
-        const lastPageIndex = oldData.pages.length - 1;
+        // Clone the first page
+        const firstPage = { ...oldData.pages[0] };
+
+        // Add to the appropriate array based on isSentByMe flag
+        firstPage.sentChallenges = [
+          newChallenge,
+          ...(firstPage.sentChallenges || []),
+        ];
 
         return {
           ...oldData,
-          pages: [
-            ...oldData.pages.slice(0, lastPageIndex),
-            [newChallenge, ...lastPage],
-          ],
+          pages: [firstPage, ...oldData.pages.slice(1)],
         };
       },
     );

@@ -55,7 +55,7 @@ function BattleTabs({
 }: { selectedCharacter: Player | null }) {
   const [activeTab, setActiveTab] = useState("gauntlets");
   const { challenges } = useChallenges(selectedCharacter?.id || "");
-
+  console.log("challenges", challenges)
   // Filter challenges for the selected character
   const activeCharacterChallenges = useMemo(() => {
     if (!selectedCharacter) return [];
