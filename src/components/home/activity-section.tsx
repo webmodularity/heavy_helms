@@ -9,7 +9,7 @@ import { useState, useEffect, useMemo, useRef } from "react";
 import { formatEther } from "viem";
 import { toast } from "sonner";
 import type { Player } from "@/types/player.types";
-import { type Challenge, useChallenges } from "@/hooks/use-challenges";
+import { type Challenge, useFighterChallenges } from "@/hooks/use-challenges";
 import { useRecentDuels } from "@/hooks/use-recent-duels";
 import { useRouter } from "next/navigation";
 import { ChallengeCard } from "@/components/home/challenge-card";
@@ -54,18 +54,45 @@ function BattleTabs({
   selectedCharacter,
 }: { selectedCharacter: Player | null }) {
   const [activeTab, setActiveTab] = useState("gauntlets");
-  const { challenges } = useChallenges(selectedCharacter?.id || "");
-  console.log("challenges", challenges)
-  // Filter challenges for the selected character
+
+  // Determine which hook to use based on selectedCharacter
+  const fighterId = selectedCharacter?.id?.toString() ?? null;
+
+  const {
+    challenges: fighterSpecificChallenges,
+    // ...other properties for fighter challenges
+  } = useFighterChallenges(fighterId);
+
+  // If you need a separate list of "all open challenges" for a different tab or purpose:
+  // const {
+  //   challenges: allGlobalOpenChallenges,
+  //   // ...other properties for all open challenges
+  // } = useAllOpenChallenges();
+
+  // Your console.log from before:
+  // The 'challenges' variable for the active character will come from useFighterChallenges
+  // when a character is selected.
+  console.log("challenges for selected character", fighterSpecificChallenges);
+
   const activeCharacterChallenges = useMemo(() => {
-    if (!selectedCharacter) return [];
-    return challenges.filter(
+    if (!selectedCharacter) return []; // If no character, no specific challenges
+    // fighterSpecificChallenges already contains challenges for the selected character
+    // The filter logic in the original useMemo might still be useful if
+    // useFighterChallenges returns both sent/received and you need to ensure
+    // they are not fulfilled AND match challenger/defender.
+    // However, useFighterChallenges already handles fetching for that specific ID.
+    // The original useChallenges hook was a bit more complex in its filtering.
+    // The new useFighterChallenges is more direct.
+    // Let's assume useFighterChallenges returns only relevant, open challenges for that fighter.
+    // If not, the filtering logic here might need adjustment or be done within useFighterChallenges' select.
+    // For now, I'll keep your existing filter logic as it was applied to the output of useChallenges.
+    return fighterSpecificChallenges.filter(
       (c) =>
-        !c.fulfilled &&
+        !c.fulfilled && // This 'fulfilled' check is important
         (c.challengerId.toString() === selectedCharacter.id.toString() ||
           c.defenderId.toString() === selectedCharacter.id.toString()),
     );
-  }, [challenges, selectedCharacter]);
+  }, [fighterSpecificChallenges, selectedCharacter]);
 
   // Listen for the event to activate the challenges tab
   useEffect(() => {
@@ -539,8 +566,8 @@ function ActiveChallenges({
     hasNextPage,
     isFetchingNextPage,
     isRefetching,
-  } = useChallenges(selectedCharacter?.id || "");
-
+  } = useFighterChallenges(selectedCharacter?.id ?? null);
+  console.log("selectedCharacter", selectedCharacter);
   const { cancelChallenge, isCancellingChallenge } = useCancelChallenge();
   const { acceptChallenge, isAcceptingChallenge } = useAcceptChallenge();
   const [expandedChallenge, setExpandedChallenge] = useState<bigint | null>(

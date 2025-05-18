@@ -29,6 +29,7 @@ import {
 import { useEffect, useState } from "react";
 import { useGameOwnedSkinCollection } from "./use-game-owned-skin-collection";
 import { baseSepolia } from "wagmi/chains";
+import { ownPlayerKeys } from "./use-own-players";
 
 // --- Constants ---
 const PLAYER_CONTRACT_ADDRESS = process.env
@@ -181,6 +182,9 @@ export function useCreateCharacter(): CreateCharacterStatus {
       txHash,
     );
 
+    // Navigate to the loading screen FIRST - before starting to listen
+    router.push("/characters/creating");
+
     // Start listening for character creation event
     startListening(
       requestId,
@@ -295,7 +299,6 @@ export function useCreateCharacter(): CreateCharacterStatus {
     }, 60000);
 
     setListenerTimeout(timeoutId);
-    router.push("/characters/creating");
   };
 
   // Helper function to update the player cache
@@ -306,7 +309,7 @@ export function useCreateCharacter(): CreateCharacterStatus {
   ) {
     // Update owned players list
     queryClient.setQueryData(
-      ["owned-players", address],
+      ownPlayerKeys.own(address),
       (oldData: Fighter[] | undefined) => {
         if (!oldData) return [newPlayer];
         return [...oldData, newPlayer];

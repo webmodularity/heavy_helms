@@ -81,11 +81,14 @@ export interface Challenge {
 const challengeKeys = {
   all: ["challenges"] as const,
   lists: () => [...challengeKeys.all, "list"] as const,
-  list: (filters: { address?: string; fighterId?: string; pageSize: number }) =>
-    [...challengeKeys.lists(), filters] as const,
+  list: (filters: {
+    address?: string;
+    fighterId?: string | null;
+    pageSize: number;
+  }) => [...challengeKeys.lists(), filters] as const,
   infiniteList: (filters: {
     address?: string;
-    fighterId?: string;
+    fighterId?: string | null;
     pageSize: number;
   }) => [...challengeKeys.list(filters), "infinite"] as const,
 };
@@ -132,13 +135,26 @@ function processChallenges(
   });
 }
 
-export function useChallenges(fighterId?: string, pageSize = 10) {
+// --- Hook for Fighter-Specific Challenges ---
+const fighterChallengeKeys = {
+  all: (fighterId: string | null) => ["fighterChallenges", fighterId] as const,
+  infiniteList: (
+    fighterId: string | null,
+    address: string | undefined,
+    pageSize: number,
+  ) =>
+    [...fighterChallengeKeys.all(fighterId), address, pageSize, "infinite"] as const,
+};
+
+export function useFighterChallenges(
+  fighterId: string | null,
+  pageSize = 10,
+) {
   const { isConnected, address } = useAccount();
 
-  // Build query parameters object for consistent key structure
   const queryParams = {
     address: address || undefined,
-    fighterId: fighterId || undefined,
+    fighterId,
     pageSize,
   };
 
@@ -152,60 +168,37 @@ export function useChallenges(fighterId?: string, pageSize = 10) {
     isFetchingNextPage,
     isRefetching,
   } = useInfiniteQuery({
-    queryKey: challengeKeys.infiniteList(queryParams),
+    queryKey: fighterChallengeKeys.infiniteList(
+      fighterId,
+      queryParams.address,
+      pageSize,
+    ),
     queryFn: async ({ pageParam = 0 }) => {
-      // Don't fetch if not authenticated
-      if (!isConnected) {
-        return {
-          sentChallenges: [],
-          receivedChallenges: [],
-          duelChallenges: [],
-        };
-      }
-
-      // Ensure we have either a fighter ID or wallet address
-      if (!fighterId && !address) {
-        return {
-          sentChallenges: [],
-          receivedChallenges: [],
-          duelChallenges: [],
-        };
-      }
-
+      // This function will only be called if fighterId is not null due to 'enabled' option
+      // and isConnected & address are valid.
       try {
-        let data: GraphQLResponse;
-
-        // Use fighter-specific query if fighterId is provided
-        data = fighterId
-          ? await request<GraphQLResponse>(
-              SUBGRAPH_URL,
-              GET_FIGHTER_CHALLENGES_PAGINATED,
-              {
-                fighterId,
-                limit: pageSize,
-                skip: pageParam,
-              },
-            )
-          : await request<GraphQLResponse>(
-              SUBGRAPH_URL,
-              GET_ALL_OPEN_CHALLENGES,
-              {
-                limit: pageSize,
-                skip: pageParam,
-              },
-            );
-
-        // Return the raw GraphQL data for transformation with select
-        return data;
-      } catch (error) {
-        console.error("Error fetching challenges from subgraph:", error);
-        throw error;
+        const responseData = await request<GraphQLResponse>(
+          SUBGRAPH_URL,
+          GET_FIGHTER_CHALLENGES_PAGINATED,
+          {
+            fighterId, // fighterId is guaranteed to be non-null here
+            limit: pageSize,
+            skip: pageParam,
+          },
+        );
+        return responseData;
+      } catch (err) {
+        console.error(
+          "Error fetching fighter-specific challenges from subgraph:",
+          err,
+        );
+        throw err;
       }
     },
+    enabled: isConnected && !!fighterId && !!address, // Only enable if fighterId and address are present
     initialPageParam: 0,
-    select: (data: InfiniteData<GraphQLResponse>) => {
-      // Transform data after it's fetched
-      return data.pages.map((page) => {
+    select: (fetchedData: InfiniteData<GraphQLResponse>) => {
+      return fetchedData.pages.map((page) => {
         const sentChallenges = processChallenges(
           page.sentChallenges || [],
           true,
@@ -214,32 +207,101 @@ export function useChallenges(fighterId?: string, pageSize = 10) {
           page.receivedChallenges || [],
           false,
         );
-
-        return fighterId
-          ? [...sentChallenges, ...receivedChallenges]
-          : [...processChallenges(page.duelChallenges || [], false)];
+        // For fighter-specific challenges, we combine sent and received
+        return [...sentChallenges, ...receivedChallenges];
       });
     },
     getNextPageParam: (lastPage, allPages) => {
-      // If we got fewer items than requested, we've reached the end
       const combinedChallenges = [
         ...(lastPage.sentChallenges || []),
         ...(lastPage.receivedChallenges || []),
-        ...(lastPage.duelChallenges || []),
       ];
-
       if (combinedChallenges.length < pageSize) return undefined;
-
-      // Otherwise, calculate the next offset
       return allPages.length * pageSize;
     },
-    enabled: isConnected && (!!fighterId || !!address),
-    staleTime: 2 * 60 * 1000, // 2 minutes
-    refetchInterval: 5 * 60 * 1000, // 5 minutes
+    staleTime: 2 * 60 * 1000,
+    refetchInterval: 5 * 60 * 1000,
     refetchOnWindowFocus: true,
   });
 
-  // Flatten pages of data for easier consumption
+  const challenges = data?.flat() || [];
+
+  return {
+    challenges,
+    isLoading,
+    error,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isRefetching,
+  };
+}
+
+// --- Hook for All Open Challenges ---
+const allOpenChallengeKeys = {
+  all: () => ["allOpenChallenges"] as const,
+  infiniteList: (address: string | undefined, pageSize: number) =>
+    [...allOpenChallengeKeys.all(), address, pageSize, "infinite"] as const,
+};
+
+export function useAllOpenChallenges(pageSize = 10) {
+  const { isConnected, address } = useAccount();
+
+  const queryParams = {
+    address: address || undefined,
+    pageSize,
+  };
+
+  const {
+    data,
+    isLoading,
+    error,
+    refetch,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isRefetching,
+  } = useInfiniteQuery({
+    queryKey: allOpenChallengeKeys.infiniteList(
+      queryParams.address,
+      pageSize,
+    ),
+    queryFn: async ({ pageParam = 0 }) => {
+      // This function will only be called if isConnected & address are valid due to 'enabled' option.
+      try {
+        const responseData = await request<GraphQLResponse>(
+          SUBGRAPH_URL,
+          GET_ALL_OPEN_CHALLENGES,
+          {
+            limit: pageSize,
+            skip: pageParam,
+          },
+        );
+        return responseData;
+      } catch (err) {
+        console.error("Error fetching all open challenges from subgraph:", err);
+        throw err;
+      }
+    },
+    enabled: isConnected && !!address, // Only enable if user is connected and address is present
+    initialPageParam: 0,
+    select: (fetchedData: InfiniteData<GraphQLResponse>) => {
+      return fetchedData.pages.map((page) => {
+        // For all open challenges, we process duelChallenges (as per original logic)
+        return [...processChallenges(page.duelChallenges || [], false)];
+      });
+    },
+    getNextPageParam: (lastPage, allPages) => {
+      const combinedChallenges = [...(lastPage.duelChallenges || [])];
+      if (combinedChallenges.length < pageSize) return undefined;
+      return allPages.length * pageSize;
+    },
+    staleTime: 2 * 60 * 1000,
+    refetchInterval: 5 * 60 * 1000,
+    refetchOnWindowFocus: true,
+  });
+
   const challenges = data?.flat() || [];
 
   return {
