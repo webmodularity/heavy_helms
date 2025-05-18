@@ -23,9 +23,7 @@ export function AuthenticatedView() {
   const initialSelectedCharacterId = searchParams.get("selectedCharacter");
   // const chainId = getChainId(wagmiConfig);
   // console.log("chainId", chainId);
-  const [selectedCharacter, setSelectedCharacter] = useState<Player | null>(
-    null,
-  );
+  const [selectedCharacter, setSelectedCharacter] = useState<Player | null>(null);
   const { players, isLoading: isLoadingPlayers } = useOwnPlayers();
   const router = useRouter();
 
@@ -67,16 +65,13 @@ export function AuthenticatedView() {
 
   // Function to select a character - memoized
   // This is defined before the useEffect that might call it for initial selection
-  const handleSelectCharacter = useCallback(
-    (character: Player, stance?: StanceType) => {
-      setSelectedCharacter({
-        ...character,
-        stance: stance ?? character.stance,
-      });
-      router.push(`/?selectedCharacter=${character.id}`, { scroll: false });
-    },
-    [router],
-  ); // router is stable
+  const handleSelectCharacter = useCallback((character: Player, stance?: StanceType) => {
+    setSelectedCharacter(prev => {
+      if (prev?.id === character.id && prev.stance === (stance ?? character.stance)) return prev; // Avoid re-render if identical
+      return { ...character, stance: stance ?? character.stance }; // Ensure a new object for state update if changed
+    });
+    router.push(`/?selectedCharacter=${character.id}`, { scroll: false });
+  }, [router]); // router is stable
 
   // Effect to handle initial character selection from query param
   useEffect(() => {
@@ -107,7 +102,10 @@ export function AuthenticatedView() {
 
   // Function to deselect a character - memoized
   const handleDeselectCharacter = useCallback(() => {
-    setSelectedCharacter(null);
+    setSelectedCharacter(prev => {
+      if (prev === null) return null; // Avoid re-render if already null
+      return null;
+    });
     router.push("/", { scroll: false }); // Corrected template literal
   }, [router]); // router is stable
 

@@ -49,7 +49,6 @@ export function WarriorSelection({
         currentlySelectedPlayerFromList.gauntletStatus !==
           selectedCharacter.gauntletStatus
       ) {
-        // Call onSelectCharacter with the fresh player object and its current stance
         onSelectCharacter(
           currentlySelectedPlayerFromList as Player,
           (currentlySelectedPlayerFromList as Player).stance,
@@ -66,6 +65,7 @@ export function WarriorSelection({
   const showNewCharacterCard = players && players.length < MAX_PLAYERS;
   const totalScrollItems = numPlayerCards + (showNewCharacterCard ? 1 : 0);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     if (isLoading || !characterListRef.current || totalScrollItems <= 1) {
       return;
@@ -75,7 +75,6 @@ export function WarriorSelection({
       (entries) => {
         for (const entry of entries) {
           if (entry.isIntersecting && entry.intersectionRatio >= 0.5) {
-            // Find the index of the intersecting element
             const elementNode = entry.target as HTMLElement;
             const index = Array.from(
               characterListRef.current?.children ?? [],
@@ -84,27 +83,19 @@ export function WarriorSelection({
             if (index !== -1) {
               setActiveIndex(index);
 
-              // Auto-select the character when scrolled into view
-              // Only select if it's a character card (not the new character card)
               if (players && index < players.length) {
                 const character = players[index] as Player;
-
-                // Prevent unnecessary re-selection
                 if (selectedCharacter?.id !== character.id) {
                   onSelectCharacter(character, character.stance);
-
-                  if (address) {
-                    queryClient.invalidateQueries({
-                      queryKey: ["owned-players", address],
-                    });
-                  }
+                  // if (address) { // Temporarily comment out
+                  //   queryClient.invalidateQueries({ queryKey: ["owned-players", address] });
+                  // }
                 }
               } else if (
                 players &&
                 index === players.length &&
                 selectedCharacter
               ) {
-                // If we scrolled to the new character card, deselect the current character
                 onDeselectCharacter();
               }
             }
@@ -132,7 +123,6 @@ export function WarriorSelection({
     isLoading,
     totalScrollItems,
     players,
-    selectedCharacter,
     onSelectCharacter,
     onDeselectCharacter,
     address,
@@ -178,11 +168,9 @@ export function WarriorSelection({
                         (newStance as unknown as StanceType) ??
                           character.stance,
                       );
-                      if (address) {
-                        queryClient.invalidateQueries({
-                          queryKey: ["owned-players", address],
-                        });
-                      }
+                      // if (address) { // Temporarily comment out
+                      //   queryClient.invalidateQueries({ queryKey: ["owned-players", address] });
+                      // }
                     }}
                     onViewDetails={() => handleViewDetails(character as Player)}
                   />
