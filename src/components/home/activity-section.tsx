@@ -2,12 +2,11 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { SectionHeader } from "@/components/ui/section-header";
 import { motion } from "framer-motion";
 import { useCancelChallenge } from "@/hooks/use-cancel-challenge";
 import { useAcceptChallenge } from "@/hooks/use-accept-challenge";
 import { usePrivy } from "@privy-io/react-auth";
-import { Loader2, Shield, Swords, Trophy } from "lucide-react";
+import { Loader2, Shield, Swords, Trophy, BookMarked } from "lucide-react";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { formatEther } from "viem";
 import { YellowButton } from "@/components/ui/yellow-button";
@@ -31,7 +30,10 @@ export function ActivitySection({ selectedCharacter }: ActivitySectionProps) {
 
   return (
     <section className="mb-8" id="activity-section">
-      <SectionHeader title="Battle Chronicles" subtitle="YOUR SAGA" />
+      <h3 className="text-xl font-semibold text-yellow-500 mb-4 flex items-center">
+        <BookMarked className="mr-2 h-5 w-5" />
+        Battle Chronicles
+      </h3>
 
       <motion.div
         className="bg-gradient-to-b from-amber-900/5 to-stone-900/30 rounded-lg border border-yellow-600/10 p-6"

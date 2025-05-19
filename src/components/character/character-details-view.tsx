@@ -3,14 +3,22 @@
 import { usePlayerById } from "@/hooks/use-player-by-id";
 import { useRetirePlayer } from "@/hooks/use-retire-player";
 import { Button } from "@/components/ui/button";
-import { ChevronLeft, Trash2 } from "lucide-react";
+import {
+  Trash2,
+  X,
+  Shirt,
+  ChevronRight,
+  Swords,
+  Shield,
+  Flame,
+  Loader2,
+} from "lucide-react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { RetirementConfirmationDialog } from "../dialogs/retirement-confirmation-dialog";
 import { HeroSection } from "./hero-section";
 import { AttributesSection } from "./attributes-section";
-import { EquipmentSection } from "./equipment-section";
 import {
   CharacterDetailsSkeleton,
   CharacterError,
@@ -18,30 +26,99 @@ import {
 } from "./loading-states";
 import { SkinsBrowser } from "./skins-browser";
 import type { Player } from "@/types/player.types";
-import { useAccount } from "wagmi";
+import { useAccount, useConfig } from "wagmi";
+import { watchAccount } from "@wagmi/core";
 import { CharacterImage } from "./character-image";
-import { WarriorIdentity } from "./warrior-identity";
 import { BattleLegacy } from "./battle-legacy";
+import { ActivitySection } from "@/components/home/activity-section";
+import {
+  getWeaponDisplayName,
+  getArmorDisplayName,
+  getStanceDisplayName,
+} from "@/lib/equipment-utils";
 
 interface CharacterDetailsViewProps {
   characterId: string;
 }
 
+// Basic Modal Component (can be moved to a separate file later)
+interface ModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  title: string;
+  children: React.ReactNode;
+}
+
+const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
+      <div className="bg-stone-800 p-6 rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-2xl font-bold text-yellow-400">{title}</h2>
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <X className="h-6 w-6 text-stone-400" />
+          </Button>
+        </div>
+        <div className="overflow-y-auto flex-grow">{children}</div>
+      </div>
+    </div>
+  );
+};
+
 export function CharacterDetailsView({
   characterId,
 }: CharacterDetailsViewProps) {
+  const initialAccountState = useAccount();
+  // Force initial status to 'disconnected', let watchAccount provide the true status
+  const [internalStatus, setInternalStatus] =
+    useState<typeof initialAccountState.status>("disconnected");
+  const [internalAddress, setInternalAddress] = useState(
+    initialAccountState.address,
+  );
+
   const { data: character, isLoading, error } = usePlayerById(characterId);
   const router = useRouter();
   const { retirePlayer, isRetiring, txHash } = useRetirePlayer(characterId);
-  const [showConfirm, setShowConfirm] = useState(false);
-  const { address } = useAccount();
+  const [showConfirmRetirement, setShowConfirmRetirement] = useState(false);
+  const wagmiConfig = useConfig();
+  const [isSkinsModalOpen, setIsSkinsModalOpen] = useState(false);
 
-  // Handle the retirement process
+  useEffect(() => {
+    const unwatch = watchAccount(wagmiConfig, {
+      onChange: (account) => {
+        setInternalStatus(account.status);
+        setInternalAddress(account.address);
+      },
+    });
+    // Update status on mount/hydration from useAccount() as a fallback/initial sync
+    setInternalStatus(initialAccountState.status);
+    setInternalAddress(initialAccountState.address);
+    return () => unwatch();
+  }, [initialAccountState.status, initialAccountState.address, wagmiConfig]);
+
+  const status = internalStatus;
+  const address = internalAddress;
+
+  const isOwner =
+    status === "connected" &&
+    !!address &&
+    character?.owner?.address?.toLowerCase() === address.toLowerCase();
+
+  const canShowOwnerModals =
+    status === "connected" && isOwner && !character?.isRetired;
+
+  useEffect(() => {
+    if (!canShowOwnerModals) {
+      setShowConfirmRetirement(false);
+      setIsSkinsModalOpen(false);
+    }
+  }, [canShowOwnerModals]);
+
   const handleRetirement = async () => {
     const result = await retirePlayer();
-
     if (result.success) {
-      // Redirect to home after successful retirement
       setTimeout(() => {
         router.push("/");
       }, 2000);
@@ -60,77 +137,131 @@ export function CharacterDetailsView({
     return <CharacterNotFound />;
   }
 
-  // Check if the current user is the owner
-  const isOwner =
-    !!address &&
-    !!character.owner &&
-    address.toLowerCase() === character.owner.address.toLowerCase();
-
   return (
     <>
-      {/* New Grid Layout */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
-        {/* Left Column: Character Image */}
-        {/* Use col-span-1 for consistency */}
-        <div className="col-span-1">
-          <CharacterImage character={character as Player} />
+      {/* Hero Section for Mobile - visible only on small screens */}
+      <div className="mb-6 md:hidden">
+        <HeroSection character={character as Player} />
+      </div>
+
+      {/* Main Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 md:items-start">
+        {/* Left Column: Image, Loadout Display Button, Retire Button */}
+        <div className="col-span-1 flex flex-col space-y-6">
+          <CharacterImage
+            character={character as Player}
+            isOwner={isOwner}
+            isRetiring={isRetiring}
+            onRetireClick={() => setShowConfirmRetirement(true)}
+            showRetireButton={isOwner && !character.isRetired}
+          />
+
+          {/* Current Loadout Button - Always visible, disabled if not owner or retired */}
+          <Button
+            onClick={() =>
+              isOwner && !character.isRetired && setIsSkinsModalOpen(true)
+            }
+            variant="outline"
+            className="w-full text-left p-3 border border-yellow-600/20 rounded-lg bg-stone-900/40 hover:bg-stone-800/60 transition-all duration-200 shadow-md flex flex-col items-start h-auto disabled:opacity-70 disabled:cursor-not-allowed"
+            disabled={!isOwner || character.isRetired}
+          >
+            <div className="flex items-center mb-2 w-full">
+              <Shirt className="h-5 w-5 text-yellow-400 flex-shrink-0 mr-2" />
+              <div className="flex-grow">
+                <span className="block font-semibold text-md text-yellow-300">
+                  Current Loadout
+                </span>
+                <span className="block text-xs text-stone-400">
+                  {isOwner && !character.isRetired
+                    ? "Click to change skin & gear"
+                    : "Skin & gear information"}
+                </span>
+              </div>
+              {isOwner && !character.isRetired && (
+                <ChevronRight className="h-5 w-5 text-stone-400 flex-shrink-0 ml-auto" />
+              )}
+            </div>
+            <div className="space-y-1 pt-2 border-t border-yellow-600/10 w-full">
+              <div className="flex items-center text-xs">
+                <Swords className="h-3 w-3 text-yellow-500 mr-2 flex-shrink-0" />
+                <span className="text-stone-300 mr-1">Weapon:</span>
+                <span className="text-stone-100 font-medium truncate">
+                  {getWeaponDisplayName(character.currentSkin.weapon)}
+                </span>
+              </div>
+              <div className="flex items-center text-xs">
+                <Shield className="h-3 w-3 text-yellow-500 mr-2 flex-shrink-0" />
+                <span className="text-stone-300 mr-1">Armor:</span>
+                <span className="text-stone-100 font-medium truncate">
+                  {getArmorDisplayName(character.currentSkin.armor)}
+                </span>
+              </div>
+              <div className="flex items-center text-xs">
+                <Flame className="h-3 w-3 text-yellow-500 mr-2 flex-shrink-0" />
+                <span className="text-stone-300 mr-1">Style:</span>
+                <span className="text-stone-100 font-medium truncate">
+                  {getStanceDisplayName(character.stance)}
+                </span>
+              </div>
+            </div>
+          </Button>
         </div>
 
-        {/* Right Column: Stacked Info */}
-        {/* Use col-span-1 md:col-span-2 for consistency */}
+        {/* Right Column: Hero Info (desktop), Attributes, Battle Legacy */}
         <div className="col-span-1 md:col-span-2 space-y-6">
-          {/* Section 1: Name/Address (Modified HeroSection) */}
-          {/* Removed margin-bottom from HeroSection internally, rely on space-y-6 */}
-          <HeroSection character={character as Player} />
-          {/* Section 2: Warrior Identity */}
-          <WarriorIdentity character={character as Player} />
-          {/* Section 3: Battle Legacy */}
+          <div className="hidden md:block">
+            <HeroSection character={character as Player} />
+          </div>
+          <AttributesSection character={character as Player} />
           <BattleLegacy character={character as Player} />
         </div>
       </div>
 
-      {/* Attributes Section remains below the new grid */}
-      <AttributesSection character={character as Player} />
-
-      {/* Equipment Section remains below the new grid */}
-      <EquipmentSection character={character as Player} />
-
-      {/* Skins Browser Section - only shown for non-retired characters that the user owns */}
-      {isOwner && !character.isRetired && (
-        <SkinsBrowser character={character as Player} />
+      {/* Battle Chronicles Section */}
+      {character && (
+        <div className="mt-8">
+          <ActivitySection selectedCharacter={character as Player} />
+        </div>
       )}
 
-      {/* Action Buttons - only shown for non-retired characters that the user owns */}
-      {isOwner && !character.isRetired && (
-        <>
-          <motion.div
-            className="flex flex-wrap gap-4 justify-center md:justify-start mt-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
+      {/* Skins Browser Modal Wrapper - Keyed by connection status */}
+      <div
+        key={
+          status === "connected"
+            ? "skins-modal-connected"
+            : "skins-modal-disconnected"
+        }
+      >
+        {canShowOwnerModals && (
+          <Modal
+            isOpen={isSkinsModalOpen}
+            onClose={() => setIsSkinsModalOpen(false)}
+            title="Select Character Skin"
           >
-            <Button
-              variant="destructive"
-              onClick={() => setShowConfirm(true)}
-              disabled={isRetiring}
-              className="font-bokor text-lg"
-            >
-              <Trash2 className="mr-1 h-4 w-4" />
-              {isRetiring ? "Retiring..." : "Retire Warrior"}
-            </Button>
-          </motion.div>
+            <SkinsBrowser character={character as Player} />
+          </Modal>
+        )}
+      </div>
 
-          {/* Retirement Confirmation Dialog */}
+      {/* Retirement Confirmation Dialog Wrapper - Keyed by connection status */}
+      <div
+        key={
+          status === "connected"
+            ? "retirement-dialog-connected"
+            : "retirement-dialog-disconnected"
+        }
+      >
+        {canShowOwnerModals && (
           <RetirementConfirmationDialog
-            open={showConfirm}
-            onOpenChange={setShowConfirm}
+            open={showConfirmRetirement}
+            onOpenChange={setShowConfirmRetirement}
             characterName={character.name.fullName || ""}
             onConfirm={handleRetirement}
             isRetiring={isRetiring}
             txHash={txHash || null}
           />
-        </>
-      )}
+        )}
+      </div>
     </>
   );
 }
