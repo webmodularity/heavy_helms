@@ -103,30 +103,33 @@ function BattleTabs({
         <TabsList className="bg-transparent p-0 border-b border-stone-600 rounded-none w-full">
           <TabsTrigger
             value="gauntlets"
-            className="px-5 py-3 text-stone-400 border-b-2 border-transparent 
+            className="sm:px-5 px-3 py-3 text-stone-400 border-b-2 border-transparent 
                        data-[state=active]:text-yellow-500 data-[state=active]:border-b-yellow-500/50 data-[state=active]:bg-yellow-500/5 data-[state=active]:rounded-tl-md data-[state=active]:rounded-tr-md
                        data-[state=inactive]:hover:text-yellow-400 data-[state=inactive]:hover:bg-yellow-500/10 data-[state=inactive]:hover:border-b-yellow-400/50
                        rounded-none focus-visible:ring-offset-0 focus-visible:ring-0"
           >
-            Recent Gauntlets
+            <span className="inline sm:hidden">Gauntlets</span>
+            <span className="hidden sm:inline">Recent Gauntlets</span>
           </TabsTrigger>
           <TabsTrigger
             value="duels"
-            className="px-5 py-3 text-stone-400 border-b-2 border-transparent 
+            className="sm:px-5 px-3 py-3 text-stone-400 border-b-2 border-transparent 
                        data-[state=active]:text-yellow-500 data-[state=active]:border-b-yellow-500/50 data-[state=active]:bg-yellow-500/5 data-[state=active]:rounded-tl-md data-[state=active]:rounded-tr-md
                        data-[state=inactive]:hover:text-yellow-400 data-[state=inactive]:hover:bg-yellow-500/10 data-[state=inactive]:hover:border-b-yellow-400/50
                        rounded-none focus-visible:ring-offset-0 focus-visible:ring-0"
           >
-            Recent Duels
+            <span className="inline sm:hidden">Duels</span>
+            <span className="hidden sm:inline">Recent Duels</span>
           </TabsTrigger>
           <TabsTrigger
             value="challenges"
-            className="px-5 py-3 text-stone-400 border-b-2 border-transparent 
+            className="sm:px-5 px-3 py-3 text-stone-400 border-b-2 border-transparent 
                        data-[state=active]:text-yellow-500 data-[state=active]:border-b-yellow-500/50 data-[state=active]:bg-yellow-500/5 data-[state=active]:rounded-tl-md data-[state=active]:rounded-tr-md
                        data-[state=inactive]:hover:text-yellow-400 data-[state=inactive]:hover:bg-yellow-500/10 data-[state=inactive]:hover:border-b-yellow-400/50
                        rounded-none focus-visible:ring-offset-0 focus-visible:ring-0 relative"
           >
-            Active Challenges
+            <span className="inline sm:hidden">Challenges</span>
+            <span className="hidden sm:inline">Active Challenges</span>
             {activeCharacterChallenges.length > 0 && (
               <span className="absolute top-1.5 right-1.5 bg-amber-600 text-amber-50 text-xs font-bold rounded-full min-w-[20px] h-5 px-1.5 flex items-center justify-center">
                 {activeCharacterChallenges.length}
