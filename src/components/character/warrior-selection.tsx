@@ -144,10 +144,10 @@ export function WarriorSelection({
         </div>
       </div>
 
-      <div className="relative max-w-full px-3">
+      <div className="relative max-w-full">
         <div
           ref={characterListRef}
-          className="flex gap-2 mt-3 overflow-x-auto pb-3 pt-1 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-yellow-600/20 scrollbar-track-transparent items-start overscroll-x-contain"
+          className="flex gap-4 mt-3 overflow-x-auto pb-3 pt-1 snap-x snap-mandatory scrollbar-none items-start overscroll-x-contain px-[10%]"
         >
           {isLoading ? (
             renderSkeletons()
@@ -156,7 +156,11 @@ export function WarriorSelection({
               {players?.map((character, index) => (
                 <div
                   key={character.id}
-                  className="flex-shrink-0 snap-center w-full"
+                  className={`flex-shrink-0 snap-center w-[80%] transition-transform duration-300 ${
+                    activeIndex === index 
+                      ? "scale-105 z-10" 
+                      : "scale-95 opacity-85"
+                  }`}
                 >
                   <CharacterCard
                     character={character as Player}
@@ -168,9 +172,6 @@ export function WarriorSelection({
                         (newStance as unknown as StanceType) ??
                           character.stance,
                       );
-                      // if (address) { // Temporarily comment out
-                      //   queryClient.invalidateQueries({ queryKey: ["owned-players", address] });
-                      // }
                     }}
                     onViewDetails={() => handleViewDetails(character as Player)}
                   />
@@ -179,7 +180,13 @@ export function WarriorSelection({
 
               {/* Character Creation Card */}
               {players && players.length < MAX_PLAYERS ? (
-                <div className="flex-shrink-0 snap-center w-full">
+                <div
+                  className={`flex-shrink-0 snap-center w-[80%] transition-transform duration-300 ${
+                    activeIndex === players.length 
+                      ? "scale-105 z-10" 
+                      : "scale-95 opacity-85"
+                  }`}
+                >
                   <NewCharacterCard
                     delay={players?.length || 0}
                     onClick={(namePreference: NamePreference) =>

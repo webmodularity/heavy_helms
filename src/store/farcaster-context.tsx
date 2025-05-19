@@ -6,7 +6,7 @@ import { sdk } from "@farcaster/frame-sdk";
 import { usePrivy, useWallets, useIdentityToken } from "@privy-io/react-auth";
 import { useLoginToFrame } from "@privy-io/react-auth/farcaster";
 import { useSetActiveWallet } from "@privy-io/wagmi";
-import { switchChain } from "@wagmi/core";
+import { disconnect, switchChain } from "@wagmi/core";
 import {
   type ReactNode,
   createContext,
@@ -16,6 +16,7 @@ import {
   useContext,
 } from "react";
 import { toast } from "sonner";
+import { useAccount } from "wagmi";
 import { baseSepolia } from "wagmi/chains";
 
 /**
@@ -52,7 +53,7 @@ export function FarcasterProvider({ children }: { children: ReactNode }) {
   const [isInFarcasterClient, setIsInFarcasterClient] =
     useState<boolean>(false);
 
-  // const { address } = useAccount();
+  // const { ready, authenticated } = usePrivy();
   const { setActiveWallet } = useSetActiveWallet();
   const [isBackendSynced, setIsBackendSynced] = useState<boolean>(false);
   const [hasAttemptedBackendRegistration, setHasAttemptedBackendRegistration] =
@@ -100,6 +101,13 @@ export function FarcasterProvider({ children }: { children: ReactNode }) {
     initLoginToFrame,
     loginToFrame,
   ]);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+  useEffect(() => {
+    if (!privyReady || !privyAuthenticated) {
+      disconnect(wagmiConfig);
+    }
+  }, [privyReady, privyAuthenticated, wagmiConfig]);
 
   // Effect to register user with backend
   useEffect(() => {
