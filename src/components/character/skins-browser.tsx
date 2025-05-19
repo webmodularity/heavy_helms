@@ -126,7 +126,7 @@ export function SkinsBrowser({ character }: SkinsBrowserProps) {
     character.currentSkin.tokenId === skin.tokenId;
 
   return (
-    <section className="mt-12 mb-16">
+    <section>
       <SectionHeader
         title="Character Skins"
         subtitle="Choose wisely, adventurer - your chosen skin dictates your warrior's equipment and combat path!"

@@ -8,7 +8,7 @@ import React from "react";
 import { useInView } from "react-intersection-observer";
 import { BattleSection } from "../battle/battle-section";
 import { WarriorSelection } from "../character/warrior-selection";
-import { ActivitySection } from "./activity-section";
+// import { ActivitySection } from "./activity-section";
 import type { StanceType } from "@/types/equipment.types";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -76,9 +76,9 @@ export function AuthenticatedView() {
           battleSectionRef={battleSectionRef}
         />
       </div>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+      {/* <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <ActivitySection selectedCharacter={selectedCharacter} />
-      </div>
+      </div> */}
     </>
   );
 }
