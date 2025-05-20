@@ -44,6 +44,9 @@ function DuelGame() {
   const [fightWinnerName, setFightWinnerName] = useState<string | undefined>(
     undefined,
   );
+  const [fightLoserName, setFightLoserName] = useState<string | undefined>(
+    undefined,
+  );
 
   useEffect(() => {
     // Redirect if no transaction ID is provided
@@ -60,10 +63,11 @@ function DuelGame() {
     };
   }, [txId, router, clearState, selectedCharacterId]);
 
-  usePhaserBridge<{ winnerName: string; selectedCharacterId: string }>(
+  usePhaserBridge<{ winnerName: string; loserName: string; selectedCharacterId: string }>(
     GameEvents.FIGHT_ENDED,
-    ({ winnerName }) => {
+    ({ winnerName, loserName }) => {
       setFightWinnerName(winnerName);
+      setFightLoserName(loserName);
       setIsFightEndDialogOpen(true);
     },
   );
@@ -88,6 +92,7 @@ function DuelGame() {
         onClose={() => setIsFightEndDialogOpen(false)}
         winnerName={fightWinnerName}
         onReturnToMenu={handleReturnToMenu}
+        loserName={fightLoserName}
       />
     </>
   );

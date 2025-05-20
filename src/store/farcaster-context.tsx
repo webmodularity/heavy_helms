@@ -30,6 +30,7 @@ interface FarcasterContextType {
   closeFrame: () => Promise<void>;
   openUrl: (url: string) => Promise<void>;
   viewProfile: (fid: number) => Promise<void>;
+  composeCast: (options: { text?: string; url: string }) => Promise<void>;
 }
 
 // Create the context with default values
@@ -41,6 +42,7 @@ export const FarcasterContext = createContext<FarcasterContextType>({
   closeFrame: async () => {},
   openUrl: async () => {},
   viewProfile: async () => {},
+  composeCast: async () => {},
 });
 
 /**
@@ -280,9 +282,27 @@ export function FarcasterProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  /**
+   * Compose a cast with a text and url
+   * @param text The text of the cast
+   * @param url The url to include in the cast
+   */
+  const composeCast = useCallback(
+    async ({ text, url }: { text?: string; url: string }): Promise<void> => {
+      try {
+        await sdk.actions.composeCast({ text, embeds: [url] });
+      } catch (error) {
+        console.error("Error in sdk.actions.composeCast():", error);
+        toast.error("Failed to compose cast");
+      }
+    },
+    [],
+  );
+
   // Construct the context value
   const contextValue: FarcasterContextType = {
     isInFarcasterClient,
+    composeCast,
     isReady: privyReady && privyAuthenticated && isBackendSynced,
     signalReady,
     addFrame,

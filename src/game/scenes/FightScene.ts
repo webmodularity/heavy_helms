@@ -1274,8 +1274,11 @@ export class FightScene extends Scene {
       const winnerName = isPlayer2
         ? this.player2.name.fullName
         : this.player1.name.fullName;
+      const loserName = isPlayer2
+        ? this.player1.name.fullName
+        : this.player2.name.fullName;
       // Emit the FIGHT_ENDED event
-      EventBus.emit(GameEvents.FIGHT_ENDED, { winnerName: winnerName ?? "Unknown Winner" });
+      EventBus.emit(GameEvents.FIGHT_ENDED, { winnerName: winnerName ?? "Unknown Winner", loserName: loserName ?? "Unknown Loser" });
       return;
     }
 
@@ -1291,8 +1294,11 @@ export class FightScene extends Scene {
         const winnerName = isPlayer2
           ? this.player2.name.fullName
           : this.player1.name.fullName;
+        const loserName = isPlayer2
+          ? this.player1.name.fullName
+          : this.player2.name.fullName;
         // Emit the FIGHT_ENDED event
-        EventBus.emit(GameEvents.FIGHT_ENDED, { winnerName: winnerName ?? "Unknown Winner" });
+        EventBus.emit(GameEvents.FIGHT_ENDED, { winnerName: winnerName ?? "Unknown Winner", loserName: loserName ?? "Unknown Loser" });
       }
     });
   }

@@ -43,6 +43,9 @@ function PracticeGame() {
   const [fightWinnerName, setFightWinnerName] = useState<string | undefined>(
     undefined,
   );
+  const [fightLoserName, setFightLoserName] = useState<string | undefined>(
+    undefined,
+  );
 
   useEffect(() => {
     // Redirect if no character ID is provided
@@ -52,10 +55,11 @@ function PracticeGame() {
     }
   }, [player1Id, router]);
 
-  usePhaserBridge<{ winnerName: string }>(
+  usePhaserBridge<{ winnerName: string; loserName: string }>(
     GameEvents.FIGHT_ENDED,
-    ({ winnerName }) => {
+    ({ winnerName, loserName }) => {
       setFightWinnerName(winnerName);
+      setFightLoserName(loserName);
       setIsFightEndDialogOpen(true);
     },
   );
@@ -84,6 +88,7 @@ function PracticeGame() {
         onClose={() => setIsFightEndDialogOpen(false)}
         winnerName={fightWinnerName}
         onReturnToMenu={handleReturnToMenu}
+        loserName={fightLoserName}
       />
     </>
   );
