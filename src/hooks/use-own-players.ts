@@ -16,7 +16,6 @@ export const ownPlayerKeys = {
 
 export function useOwnPlayers() {
   const { address } = useAccount();
-
   const {
     data: players,
     isLoading,
@@ -26,6 +25,7 @@ export function useOwnPlayers() {
     queryKey: ownPlayerKeys.own(address),
     queryFn: async (): Promise<Fighter[]> => {
       if (!address) return [];
+
 
       try {
         const rawPlayers = await fetchFightersByOwner(address);

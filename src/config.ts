@@ -30,7 +30,7 @@ export const wagmiConfig = createConfig({
       ? [baseSepolia]
       : [shape],
   connectors: [miniAppConnector()],
-  // ssr: true,
+  ssr: true,
   transports: {
     [baseSepolia.id]: http(),
     // [mainnet.id]: http(),

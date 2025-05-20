@@ -6,7 +6,6 @@ import { useAccount } from "wagmi";
 
 export default function Home() {
   const { isConnected } = useAccount();
-  console.log("isConnected", isConnected);
   return (
     <div className="min-h-screen w-full overflow-y-auto overflow-x-hidden">
       {isConnected ? (
