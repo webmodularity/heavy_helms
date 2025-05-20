@@ -12,6 +12,8 @@ import { SkinTypeFilter } from "./skin-type-filter";
 import { SkinDetailsDialog } from "../dialogs/skin-details-dialog";
 import { useEquipSkin } from "@/hooks/use-equip-skin";
 import type { StanceType } from "@/types/equipment.types";
+import { SectionHeader } from "../ui/section-header";
+import { CompactSectionHeader } from "../ui/compact/CompactSectionHeader";
 
 export interface SkinWithMetadataURI {
   id: string;
@@ -122,17 +124,12 @@ export function SkinsBrowser({ character }: SkinsBrowserProps) {
     character.currentSkin.tokenId === skin.tokenId;
 
   return (
-    <section className="mt-3 mb-4">
-      <div className="flex flex-col space-y-2">
-        {/* <h3 className="text-sm font-semibold text-yellow-500 flex items-center">
-          <Swords className="h-3 w-3 mr-1 text-yellow-500" />
-          Character Skins
-        </h3> */}
-        <p className="text-xs text-stone-400 mb-2">
-          Choose wisely, adventurer - your chosen skin dictates your warrior's
-          equipment and combat path!
-        </p>
-      </div>
+    <section>
+      <CompactSectionHeader
+        title="Character Skins"
+        description="Choose wisely, adventurer - your chosen skin dictates your warrior's equipment and combat path!"
+        icon={<Swords className="h-5 w-5 text-yellow-500" />}
+      />
 
       {/* Skin Type Filter - more compact */}
       <div className="mb-3">

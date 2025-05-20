@@ -16,7 +16,6 @@ import {
   useContext,
 } from "react";
 import { toast } from "sonner";
-import { useAccount } from "wagmi";
 import { baseSepolia } from "wagmi/chains";
 
 /**
@@ -68,7 +67,6 @@ export function FarcasterProvider({ children }: { children: ReactNode }) {
   const { initLoginToFrame, loginToFrame } = useLoginToFrame();
   const { wallets, ready: readyWallets } = useWallets();
   const { identityToken } = useIdentityToken();
-  console.log("wallets: ", wallets);
   // Login to Mini App with Privy automatically
   useEffect(() => {
     if (privyReady && !privyAuthenticated && !privyUser) {
@@ -113,27 +111,16 @@ export function FarcasterProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const registerUserWithBackend = async (token: string) => {
       setHasAttemptedBackendRegistration(true);
-      console.log(
-        "FarcasterProvider: Attempting to register/login user with backend.",
-      );
+      // console.log(
+      //   "FarcasterProvider: Attempting to register/login user with backend.",
+      // );
       try {
         // Find the Warpcast injected wallet
         const warpcastWallet = wallets.find(
           (w) => w.walletClientType === "warpcast",
         );
         if (warpcastWallet) {
-          console.log("WARPCAST WALLET FOUND: ", warpcastWallet);
           setActiveWallet(warpcastWallet);
-          console.log(
-            "FarcasterProvider: Found Warpcast wallet to send as active:",
-            warpcastWallet.address,
-            "Chain ID:",
-            warpcastWallet.chainId,
-          );
-        } else {
-          console.log(
-            "FarcasterProvider: No Warpcast injected wallet found in useWallets().",
-          );
         }
 
         const response = await fetch("/api/user/register-or-login", {
@@ -156,10 +143,7 @@ export function FarcasterProvider({ children }: { children: ReactNode }) {
         }
 
         const data = await response.json();
-        console.log(
-          "FarcasterProvider: Backend registration/login successful:",
-          data,
-        );
+
         setIsBackendSynced(true);
         // biome-ignore lint/suspicious/noExplicitAny: <explanation>
       } catch (error: any) {
@@ -191,9 +175,6 @@ export function FarcasterProvider({ children }: { children: ReactNode }) {
       );
 
       if (farcasterAccount) {
-        console.log(
-          "FarcasterProvider: Farcaster account linked and verified, proceeding with backend registration.",
-        );
         registerUserWithBackend(identityToken);
       } else {
         console.log(
@@ -286,19 +267,16 @@ export function FarcasterProvider({ children }: { children: ReactNode }) {
    * View a Farcaster user's profile
    * @param fid The Farcaster ID of the user to view
    */
-  const viewProfile = useCallback(
-    async (fid: number): Promise<void> => {
-      if (!isInFarcasterClient) return;
+  const viewProfile = useCallback(async (fid: number): Promise<void> => {
+    // if (!isInFarcasterClient) return;
 
-      try {
-        await sdk.actions.viewProfile({ fid });
-      } catch (error) {
-        console.error(`Error viewing profile for FID ${fid}:`, error);
-        toast.error("Failed to view profile");
-      }
-    },
-    [isInFarcasterClient],
-  );
+    try {
+      await sdk.actions.viewProfile({ fid });
+    } catch (error) {
+      console.error(`Error viewing profile for FID ${fid}:`, error);
+      toast.error("Failed to view profile");
+    }
+  }, []);
 
   // Construct the context value
   const contextValue: FarcasterContextType = {

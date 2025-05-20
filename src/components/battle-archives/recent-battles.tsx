@@ -53,7 +53,7 @@ function BattleCardSkeleton() {
   );
 }
 
-export function RecentBattles() {
+export function RecentDuels() {
   const {
     duels,
     isLoading,
@@ -84,7 +84,7 @@ export function RecentBattles() {
   // Format timestamp to a readable date
   const formatDate = (timestamp: string) => {
     const date = new Date(Number.parseInt(timestamp, 10) * 1000);
-    return `${date.toLocaleDateString()} ${date.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}`;
+    return `${date.toLocaleDateString()} ${date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}`;
   };
 
   useEffect(() => {
@@ -117,7 +117,9 @@ export function RecentBattles() {
       <div className="p-2.5 bg-gradient-to-r from-amber-900/50 to-stone-900 border-b border-yellow-600/20 flex items-center justify-between">
         <div className="flex items-center">
           <Sword className="h-4 w-4 text-yellow-500 mr-1.5" />
-          <h2 className="text-base font-bold text-yellow-400">Recent Battles</h2>
+          <h2 className="text-base font-bold text-yellow-400">
+            Recent Battles
+          </h2>
         </div>
         <div className="flex items-center gap-1.5">
           <span className="text-xs text-stone-400 flex items-center">
@@ -261,7 +263,7 @@ export function RecentBattles() {
                               }
                               fill
                               className="object-cover"
-                              sizes="32px" 
+                              sizes="32px"
                               priority={index < 5}
                             />
                           ) : (
@@ -336,7 +338,7 @@ export function RecentBattles() {
                 disabled={isFetchingNextPage}
                 className="h-6 px-2 text-xs border-yellow-600/20 hover:bg-yellow-500/10 hover:text-yellow-400 text-stone-400"
               >
-                Load More Battles
+                Load More Duels
               </Button>
             ) : duels.length > 0 ? (
               <span className="text-xs text-stone-400">

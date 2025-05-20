@@ -4,7 +4,14 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { motion } from "framer-motion";
 import { useCancelChallenge } from "@/hooks/use-cancel-challenge";
 import { useAcceptChallenge } from "@/hooks/use-accept-challenge";
-import { Loader2, Shield, Swords, Trophy, ChevronRight } from "lucide-react";
+import {
+  Loader2,
+  Shield,
+  Swords,
+  Trophy,
+  ChevronRight,
+  BookMarked,
+} from "lucide-react";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { formatEther } from "viem";
 import { toast } from "sonner";
@@ -29,6 +36,7 @@ export function ActivitySection({ selectedCharacter }: ActivitySectionProps) {
     <section className="mb-6" id="activity-section">
       <div className="text-center mb-3">
         <h2 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-600 uppercase tracking-wider">
+          <BookMarked className="mr-2 h-5 w-5" />
           Battle Chronicles
         </h2>
         <div className="text-yellow-400/90 text-xs font-medium">YOUR SAGA</div>

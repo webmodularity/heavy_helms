@@ -16,13 +16,14 @@ export function HeroSection({ character, subtitleElement }: HeroSectionProps) {
   );
 
   return (
-    <div className="flex items-center justify-center bg-gradient-to-b from-amber-900/10 to-stone-900/40 rounded-lg border border-yellow-600/20 p-6 relative overflow-hidden">
-      <div className="flex items-center justify-center h-full min-h-[50px]">
-        <SectionHeader
-          title={character.name.fullName || "Warrior Details"}
-          subtitle={subtitleElement || subtitle}
-          className="relative z-10 text-center mb-0"
-        />
+    <div className="p-2 bg-gradient-to-b from-amber-900/10 to-stone-900/40 rounded-lg border border-yellow-600/20 relative overflow-hidden">
+      <div className="flex flex-col items-center">
+        <h2 className="text-xl md:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-600 uppercase tracking-wider">
+          {character.name.fullName || "Warrior Details"}
+        </h2>
+        <div className="text-yellow-400/90 text-xs md:text-sm font-medium">
+          {subtitle}
+        </div>
       </div>
     </div>
   );

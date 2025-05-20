@@ -28,6 +28,7 @@ import {
 import { PlayerGauntletStatus } from "@/types/player.types";
 import { useGauntletQueue } from "@/hooks/use-gauntlet-queue";
 import { useAccount } from "wagmi";
+import { ViewGauntletQueueModal } from "@/components/dialogs/view-gauntlet-queue-modal";
 
 interface GameStats {
   stats: {
@@ -107,11 +108,13 @@ export function GauntletRegistrationForm({
   );
   const [hasLoadedInitialData, setHasLoadedInitialData] = useState(false);
   const justUpdatedOptimistically = useRef(false);
+  const [isQueueModalOpen, setIsQueueModalOpen] = useState(false);
 
   // Refs to track previous stats values for targeted invalidation
   const prevQueueSizeRef = useRef<number | null>(null);
   const prevLastUpdatedRef = useRef<string | null>(null);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     if (justUpdatedOptimistically.current) {
       return;
@@ -177,6 +180,7 @@ export function GauntletRegistrationForm({
     character.id,
   ]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     if (justUpdatedOptimistically.current) {
       const timerId = setTimeout(() => {
@@ -322,15 +326,14 @@ export function GauntletRegistrationForm({
                 </div>
                 <YellowButton
                   type="button"
-                  onClick={() =>
-                    alert("Feature coming soon: View queue details!")
-                  }
-                  title="View Current Queue (Coming Soon)"
+                  onClick={() => setIsQueueModalOpen(true)}
+                  title="View Current Queue"
                   disabled={
                     !isReady ||
                     isProcessing ||
                     !!errorStats ||
-                    requiredSize === 0
+                    requiredSize === 0 ||
+                    (localQueueSize ?? 0) === 0
                   }
                   className="h-8 p-0"
                 >
@@ -425,6 +428,10 @@ export function GauntletRegistrationForm({
           </YellowButton>
         </div>
       </motion.div>
+      <ViewGauntletQueueModal
+        isOpen={isQueueModalOpen}
+        onClose={() => setIsQueueModalOpen(false)}
+      />
     </TooltipProvider>
   );
 }

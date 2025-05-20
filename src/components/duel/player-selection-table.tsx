@@ -55,7 +55,7 @@ export function PlayerSelectionTable({
   currentPlayerId,
 }: PlayerSelectionTableProps) {
   const { players: allPlayers, isLoading, error } = useActivePlayers();
-  const { openUrl } = useFarcaster();
+  const { viewProfile } = useFarcaster();
   const { players: ownPlayers, isLoading: isOwnPlayersLoading } =
     useOwnPlayers();
   const [sorting, setSorting] = useState<SortingState>([
@@ -146,7 +146,7 @@ export function PlayerSelectionTable({
               type="button"
               onClick={(e) => {
                 e.stopPropagation();
-                openUrl(`https://warpcast.com/${farcasterUsername}`);
+                viewProfile(user.farcaster_fid);
               }}
               className="flex justify-center items-center"
               title={`View ${farcasterUsername} on Farcaster`}
@@ -347,7 +347,7 @@ export function PlayerSelectionTable({
     },
   });
 
-  if (isLoading) {
+  if (isLoading || isOwnPlayersLoading) {
     return (
       <div className="flex justify-center items-center h-40">
         <Loader2 className="h-6 w-6 text-yellow-500 animate-spin" />
@@ -366,7 +366,7 @@ export function PlayerSelectionTable({
     );
   }
 
-  if (filteredPlayers.length === 0) {
+  if (filteredPlayers.length === 0 && !isLoading && !isOwnPlayersLoading) {
     return (
       <div className="text-center text-stone-300 h-40 flex flex-col justify-center">
         <h3 className="text-base font-medium text-yellow-500 mb-1.5">

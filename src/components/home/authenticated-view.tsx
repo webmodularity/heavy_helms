@@ -2,29 +2,24 @@
 "use client";
 import type { Player } from "@/types/player.types";
 import { motion } from "framer-motion";
-import { ChevronDown, ChartBar } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 import { useEffect, useRef, useState, useCallback } from "react";
 import React from "react";
 import { useInView } from "react-intersection-observer";
 import { BattleSection } from "../battle/battle-section";
 import { WarriorSelection } from "../character/warrior-selection";
-import { ActivitySection } from "./activity-section";
 import type { StanceType } from "@/types/equipment.types";
 import { useOwnPlayers } from "@/hooks/use-own-players";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useIdentityToken, usePrivy } from "@privy-io/react-auth";
-import { getChainId } from "@wagmi/core";
-import { wagmiConfig } from "@/config";
 
 export function AuthenticatedView() {
-  const { identityToken } = useIdentityToken();
-  const { getAccessToken } = usePrivy();
   const searchParams = useSearchParams();
   const initialSelectedCharacterId = searchParams.get("selectedCharacter");
-  // const chainId = getChainId(wagmiConfig);
-  // console.log("chainId", chainId);
-  const [selectedCharacter, setSelectedCharacter] = useState<Player | null>(null);
-  const { players, isLoading: isLoadingPlayers } = useOwnPlayers();
+
+  const [selectedCharacter, setSelectedCharacter] = useState<Player | null>(
+    null,
+  );
+  const { players } = useOwnPlayers();
   const router = useRouter();
 
   const battleSectionRef = useRef<HTMLElement>(null);
@@ -37,41 +32,22 @@ export function AuthenticatedView() {
     battleSectionRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
-  // useEffect(() => {
-  //   const fetchData = async () => {
-  //     const accessToken = await getAccessToken();
-  //     console.log("accessToken", accessToken);
-  //     // const response = await fetch("/api/test", {
-  //     //   method: "GET",
-  //     //   headers: {
-  //     //     "privy-id-token": identityToken,
-  //     //   },
-  //     // });
-  //     // const data = await response.json();
-  //     // console.log("data", data);
-  //     // For HTTP-only cookies approach
-  //     const response = await fetch("/api/test", {
-  //       method: "GET",
-  //       headers: {
-  //         Authorization: `Bearer ${accessToken}`,
-  //         "Content-Type": "application/json",
-  //       },
-  //     });
-  //     const data = await response.json();
-  //     console.log("data", data);
-  //   };
-  //   fetchData();
-  // }, []);
-
   // Function to select a character - memoized
   // This is defined before the useEffect that might call it for initial selection
-  const handleSelectCharacter = useCallback((character: Player, stance?: StanceType) => {
-    setSelectedCharacter(prev => {
-      if (prev?.id === character.id && prev.stance === (stance ?? character.stance)) return prev; // Avoid re-render if identical
-      return { ...character, stance: stance ?? character.stance }; // Ensure a new object for state update if changed
-    });
-    router.push(`/?selectedCharacter=${character.id}`, { scroll: false });
-  }, [router]); // router is stable
+  const handleSelectCharacter = useCallback(
+    (character: Player, stance?: StanceType) => {
+      setSelectedCharacter((prev) => {
+        if (
+          prev?.id === character.id &&
+          prev.stance === (stance ?? character.stance)
+        )
+          return prev; // Avoid re-render if identical
+        return { ...character, stance: stance ?? character.stance }; // Ensure a new object for state update if changed
+      });
+      router.push(`/?selectedCharacter=${character.id}`, { scroll: false });
+    },
+    [router],
+  ); // router is stable
 
   // Effect to handle initial character selection from query param
   useEffect(() => {
@@ -102,7 +78,7 @@ export function AuthenticatedView() {
 
   // Function to deselect a character - memoized
   const handleDeselectCharacter = useCallback(() => {
-    setSelectedCharacter(prev => {
+    setSelectedCharacter((prev) => {
       if (prev === null) return null; // Avoid re-render if already null
       return null;
     });
@@ -146,9 +122,9 @@ export function AuthenticatedView() {
           battleSectionRef={battleSectionRef}
         />
       </div>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6">
+      {/* <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <ActivitySection selectedCharacter={selectedCharacter} />
-      </div>
+      </div> */}
     </>
   );
 }

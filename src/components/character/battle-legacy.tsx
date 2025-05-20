@@ -24,30 +24,30 @@ export function BattleLegacy({ character }: BattleLegacyProps) {
         </h3>
 
         <div className="grid grid-cols-5 gap-1 relative z-10">
-          <CompactStat 
-            label="Rank" 
-            value={character?.rank ? `#${character.rank}` : "N/A"} 
-            className="text-amber-500" 
+          <CompactStat
+            label="Rank"
+            value={character?.rank ? `#${character.rank}` : "N/A"}
+            className="text-amber-500"
           />
-          <CompactStat 
-            label="Rating" 
-            value={formatBattleRating(character.battleRating)} 
-            className="text-yellow-400" 
+          <CompactStat
+            label="Rating"
+            value={formatBattleRating(character.battleRating)}
+            className="text-yellow-400"
           />
-          <CompactStat 
-            label="Wins" 
-            value={character.record.wins.toString()} 
-            className="text-green-400" 
+          <CompactStat
+            label="Wins"
+            value={character.record.wins.toString()}
+            className="text-green-400"
           />
-          <CompactStat 
-            label="Losses" 
-            value={character.record.losses.toString()} 
-            className="text-red-400" 
+          <CompactStat
+            label="Losses"
+            value={character.record.losses.toString()}
+            className="text-red-400"
           />
-          <CompactStat 
-            label="Kills" 
-            value={character.record.kills.toString()} 
-            className="text-stone-200" 
+          <CompactStat
+            label="Kills"
+            value={character.record.kills.toString()}
+            className="text-stone-200"
           />
         </div>
       </div>
@@ -56,15 +56,15 @@ export function BattleLegacy({ character }: BattleLegacyProps) {
 }
 
 // A more compact version of StatBox specifically for this component
-function CompactStat({ label, value, className = "" }: { label: string; value: string; className?: string }) {
+function CompactStat({
+  label,
+  value,
+  className = "",
+}: { label: string; value: string; className?: string }) {
   return (
     <div className="text-center p-1 bg-stone-800/30 rounded border border-yellow-600/10">
-      <div className={`text-sm font-semibold ${className}`}>
-        {value}
-      </div>
-      <div className="text-stone-400 text-xs">
-        {label}
-      </div>
+      <div className={`text-sm font-semibold ${className}`}>{value}</div>
+      <div className="text-stone-400 text-xs">{label}</div>
     </div>
   );
 }

@@ -1,14 +1,9 @@
 "use client";
 import { wagmiConfig } from "@/config";
-
-import { getChainId, switchChain } from "@wagmi/core";
-import {
-  type ReactNode,
-  createContext,
-  useCallback,
-  useEffect,
-  useState,
-} from "react";
+import { usePrivy, useWallets } from "@privy-io/react-auth";
+import { useSetActiveWallet } from "@privy-io/wagmi";
+import { getChainId, switchChain, disconnect } from "@wagmi/core";
+import { type ReactNode, createContext, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { useConnect } from "wagmi";
 import { baseSepolia, base, shape } from "wagmi/chains";
@@ -77,7 +72,15 @@ export function WalletProvider({ children }: { children: ReactNode }) {
 
   // Switch network function
   const switchToPrimaryNetwork = async () => {
-    switchChain(wagmiConfig, { chainId: baseSepolia.id });
+    switchChain(wagmiConfig, {
+      chainId:
+        process.env.NEXT_PUBLIC_ALCHEMY_NETWORK === "base-sepolia"
+          ? baseSepolia.id
+          : shape.id,
+    });
+    toast("Network switched", {
+      description: `Successfully connected to ${process.env.NEXT_PUBLIC_ALCHEMY_NETWORK === "base-sepolia" ? "Base Sepolia" : "Shape"}`,
+    });
   };
 
   // Calculate derived state
@@ -93,6 +96,13 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     currentChainName,
     switchToPrimaryNetwork,
   };
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+  // useEffect(() => {
+  //   if (!ready || !authenticated) {
+  //     disconnect(wagmiConfig);
+  //   }
+  // }, [ready, authenticated, wagmiConfig]);
 
   return (
     <WalletContext.Provider value={value}>{children}</WalletContext.Provider>

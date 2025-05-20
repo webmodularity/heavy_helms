@@ -3,37 +3,27 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import type { GauntletChronicle } from "@/hooks/use-recent-gauntlets";
 import type { Player } from "@/types/player.types";
-import { Trophy, Loader2, ChevronRight } from "lucide-react";
+import { Trophy, Loader2, ChevronRight, Info } from "lucide-react";
 import { formatEther } from "viem";
 import { ParticipantCard } from "./participant-card";
 import { useQuery } from "@tanstack/react-query";
 import { request } from "graphql-request";
 import { GET_FIGHTERS_BY_IDS, GET_COMBAT_RESULTS } from "@/lib/gql-queries";
 import type { RawFighterData } from "@/types/fighter-types";
-import type { Skin } from "@/types/skin.types";
-import { SkinType } from "@/types/skin.types";
-import type { PlayerGauntletStatus } from "@/types/player.types";
-import type { WeaponType, ArmorType } from "@/types/equipment.types";
-import { createPlayerSkin } from "@/lib/player-api";
 import { decodePlayerIdFromPackedData } from "@/lib/utils";
-import { SUBGRAPH_URL, DEFAULT_CHARACTER_IMAGE } from "@/config";
+import { SUBGRAPH_URL } from "@/config";
 import Link from "next/link";
-import type {
-  Fighter,
-  FighterType,
-  FighterAttributes,
-  FighterName,
-  FighterRecord,
-} from "@/types/fighter-types";
-
-interface GauntletAccordionItemProps {
-  gauntlet: GauntletChronicle;
-  selectedCharacter: Player | null;
-  itemValue: string;
-  isExpanded: boolean;
-}
+import type { Fighter } from "@/types/fighter-types";
+import { convertRawFighterToFighter } from "@/lib/player-api";
+import { getFantasyGauntletName } from "@/lib/gauntlet-naming";
+import type { GauntletChronicle } from "@/hooks/use-recent-gauntlets";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger as TooltipTriggerPrimitive,
+} from "@/components/ui/tooltip";
 
 interface FightersQueryResponse {
   fighters: RawFighterData[];
@@ -57,108 +47,21 @@ interface CombatResultsQueryResponse {
 const formatDate = (timestamp: string) => {
   if (!timestamp || timestamp === "0") return "N/A";
   const date = new Date(Number.parseInt(timestamp, 10) * 1000);
-  return date.toLocaleDateString();
+  return date.toLocaleString(undefined, {
+    year: "numeric",
+    month: "numeric",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
 };
 
-function createDefaultSkin(): Skin {
-  return {
-    collection: {
-      id: "",
-      contractAddress: "",
-      isVerified: false,
-      skinType: SkinType.Player,
-      requiredNFTAddress: undefined,
-    },
-    tokenId: 0,
-    metadataURL: "",
-    imageURL: DEFAULT_CHARACTER_IMAGE,
-    spritesheet: {
-      image: "",
-      fps: {
-        idle: 10,
-        walking: 10,
-        running: 10,
-        attacking: 10,
-        blocking: 10,
-        dying: 10,
-        hurt: 10,
-        dodging: 10,
-        taunting: 10,
-      },
-      format: "RGBA8888",
-      size: { w: 0, h: 0 },
-      scale: 1,
-      frames: [],
-    },
-    weapon: 0 as WeaponType,
-    armor: 0 as ArmorType,
-  };
-}
-
-async function mapRawFighterToDomainFighter(
-  rawFighter: RawFighterData,
-): Promise<Fighter> {
-  let finalSkin: Skin;
-  if (rawFighter.currentSkin) {
-    try {
-      const skinAttempt = await createPlayerSkin(rawFighter.currentSkin);
-      if (skinAttempt) {
-        finalSkin = skinAttempt;
-      } else {
-        console.warn(
-          `createPlayerSkin returned null for fighter ${rawFighter.id}, using default.`,
-        );
-        finalSkin = createDefaultSkin();
-      }
-    } catch (error) {
-      console.error(
-        `Error processing skin via createPlayerSkin for fighter ${rawFighter.id}:`,
-        error,
-      );
-      finalSkin = createDefaultSkin();
-    }
-  } else {
-    finalSkin = createDefaultSkin();
-  }
-
-  const fighterName: FighterName = {
-    fullName:
-      rawFighter.fullName ||
-      `${rawFighter.firstName || ""} ${rawFighter.surname || ""}`.trim() ||
-      `Fighter ${rawFighter.fighterId}`,
-  };
-
-  const fighterAttributes: FighterAttributes = {
-    strength: rawFighter.strength,
-    constitution: rawFighter.constitution,
-    size: rawFighter.size,
-    agility: rawFighter.agility,
-    stamina: rawFighter.stamina,
-    luck: rawFighter.luck,
-  };
-
-  const fighterRecord: FighterRecord = {
-    wins: rawFighter.wins,
-    losses: rawFighter.losses,
-    kills: rawFighter.kills,
-  };
-
-  return {
-    id: rawFighter.id,
-    fighterId: rawFighter.fighterId ? BigInt(rawFighter.fighterId) : undefined,
-    fighterType: rawFighter.fighterType as FighterType,
-    name: fighterName,
-    fullName: fighterName.fullName,
-    attributes: fighterAttributes,
-    currentSkin: finalSkin,
-    stance: rawFighter.stance,
-    record: fighterRecord,
-    isRetired: rawFighter.isRetired,
-    isImmortal: rawFighter.isImmortal ?? false,
-    owner: rawFighter.owner ? { address: rawFighter.owner.address } : undefined,
-    battleRating: rawFighter.battleRating,
-    gauntletStatus: rawFighter.gauntletStatus as PlayerGauntletStatus,
-  };
+interface GauntletAccordionItemProps {
+  gauntlet: GauntletChronicle;
+  selectedCharacter: Player | null;
+  itemValue: string;
+  isExpanded: boolean;
 }
 
 export function GauntletAccordionItem({
@@ -186,10 +89,12 @@ export function GauntletAccordionItem({
         },
       );
       if (!response.fighters) return [];
-      return Promise.all(response.fighters.map(mapRawFighterToDomainFighter));
+      return Promise.all(response.fighters.map(convertRawFighterToFighter));
     },
     enabled:
-      !!gauntlet.finalParticipantIds && gauntlet.finalParticipantIds.length > 0,
+      isExpanded &&
+      !!gauntlet.finalParticipantIds &&
+      gauntlet.finalParticipantIds.length > 0,
     staleTime: Number.POSITIVE_INFINITY,
   });
 
@@ -214,12 +119,17 @@ export function GauntletAccordionItem({
         }
         return response.combatResults;
       } catch (error) {
+        console.error("Failed to fetch combat results:", error);
         return [];
       }
     },
     enabled: gauntlet.isCompleted && !!gauntlet.completedTx && isExpanded,
     staleTime: Number.POSITIVE_INFINITY,
   });
+
+  const displayGauntletName = getFantasyGauntletName(
+    gauntlet.gauntletNumericId,
+  );
 
   const renderRoundsAndFights = () => {
     if (!gauntlet.isCompleted) {
@@ -325,36 +235,65 @@ export function GauntletAccordionItem({
         for (let j = 0; j < fightsInThisRound; j++) {
           if (fightCounter >= combatResults.length) break;
           const fight = combatResults[fightCounter];
-          const p1Id = decodePlayerIdFromPackedData(fight.player1Data);
-          const p2Id = decodePlayerIdFromPackedData(fight.player2Data);
-          const winnerIdBigInt = BigInt(fight.winningPlayerId);
 
-          const player1 = participants.find(
-            (p) => p.fighterId === BigInt(p1Id || 0),
-          );
-          const player2 = participants.find(
-            (p) => p.fighterId === BigInt(p2Id || 0),
-          );
-          const winner = participants.find(
-            (p) => p.fighterId === winnerIdBigInt,
-          );
+          const p1IdNum = decodePlayerIdFromPackedData(fight.player1Data);
+          const p2IdNum = decodePlayerIdFromPackedData(fight.player2Data);
+
+          const winnerIdFromCombat = fight.winningPlayerId;
+
+          const p1IdStr = p1IdNum?.toString();
+          const p2IdStr = p2IdNum?.toString();
+
+          const player1 = p1IdStr
+            ? participants.find((p) => p.fighterId?.toString() === p1IdStr)
+            : undefined;
+          const player2 = p2IdStr
+            ? participants.find((p) => p.fighterId?.toString() === p2IdStr)
+            : undefined;
+          const winner = winnerIdFromCombat
+            ? participants.find(
+                (p) => p.fighterId?.toString() === winnerIdFromCombat,
+              )
+            : undefined;
 
           let fightDescription: React.ReactNode;
           if (player1 && player2 && winner) {
             const loser =
-              winnerIdBigInt === player1.fighterId ? player2 : player1;
-            const winnerName = winner.fullName || `Fighter ${winner.fighterId}`;
-            const loserName = loser.fullName || `Fighter ${loser.fighterId}`;
+              winner.fighterId?.toString() === player1.fighterId?.toString()
+                ? player2
+                : player1;
+
+            let bestAttemptWinnerName: string | undefined;
+            if (winner.name?.fullName && winner.name.fullName.trim() !== "") {
+              bestAttemptWinnerName = winner.name.fullName.trim();
+            } else if (winner.fullName && winner.fullName.trim() !== "") {
+              bestAttemptWinnerName = winner.fullName.trim();
+            }
+            const winnerName: string =
+              bestAttemptWinnerName ||
+              `Fighter ${winner.fighterId?.toString() || winner.id}`;
+
+            let bestAttemptLoserName: string | undefined;
+            if (loser.name?.fullName && loser.name.fullName.trim() !== "") {
+              bestAttemptLoserName = loser.name.fullName.trim();
+            } else if (loser.fullName && loser.fullName.trim() !== "") {
+              bestAttemptLoserName = loser.fullName.trim();
+            }
+            const loserName: string =
+              bestAttemptLoserName ||
+              `Fighter ${loser.fighterId?.toString() || loser.id}`;
 
             const championHighlightClass = "font-semibold text-yellow-400";
             const selectedPlayerTextHighlightClass =
               "font-semibold text-stone-100";
 
             const winnerIsOverallChampion = gauntlet.champion?.fighterId
-              ? BigInt(gauntlet.champion.fighterId) === winner.fighterId
+              ? gauntlet.champion.fighterId.toString() ===
+                winner.fighterId?.toString()
               : false;
             const loserIsOverallChampion = gauntlet.champion?.fighterId
-              ? BigInt(gauntlet.champion.fighterId) === loser.fighterId
+              ? gauntlet.champion.fighterId.toString() ===
+                loser.fighterId?.toString()
               : false;
 
             const winnerIsSelected = selectedCharacter?.id === winner.id;
@@ -436,17 +375,16 @@ export function GauntletAccordionItem({
     ) : null;
   };
 
-  const gauntletChampionFighterId = gauntlet.champion?.fighterId
-    ? BigInt(gauntlet.champion.fighterId)
-    : null;
+  const gauntletChampionFighterIdString =
+    gauntlet.champion?.fighterId?.toString() ?? null;
 
   const scFighterId = selectedCharacter?.fighterId;
 
   let isSelectedPlayerTheChampion = false;
-  if (gauntletChampionFighterId !== null && scFighterId != null) {
+  if (gauntletChampionFighterIdString !== null && scFighterId != null) {
     try {
       isSelectedPlayerTheChampion =
-        BigInt(scFighterId) === gauntletChampionFighterId;
+        gauntletChampionFighterIdString === scFighterId.toString();
     } catch (error) {
       isSelectedPlayerTheChampion = false;
     }
@@ -516,8 +454,9 @@ export function GauntletAccordionItem({
                   key={fighter.id}
                   fighter={fighter}
                   isChampion={
-                    !!gauntletChampionFighterId &&
-                    gauntletChampionFighterId === fighter.fighterId
+                    !!gauntletChampionFighterIdString &&
+                    gauntletChampionFighterIdString ===
+                      fighter.fighterId?.toString()
                   }
                   isSelectedCharacter={selectedCharacter?.id === fighter.id}
                 />

@@ -2,22 +2,31 @@
 
 import type { Player } from "@/types/player.types";
 import { motion } from "framer-motion";
-import { Flag } from "lucide-react";
 import { useSupabaseSingleAddressToUserMap } from "@/hooks/use-supabase-players";
 import { useFarcaster } from "@/store/farcaster-context";
 import Image from "next/image";
+import { Flag, Trash2, Loader2 } from "lucide-react";
+import { StatBox } from "./profile-helpers";
+import { Button } from "@/components/ui/button";
 
 interface WarriorIdentityProps {
   character: Player;
+  isOwner?: boolean;
+  onRetireClick?: () => void;
+  isRetiring?: boolean;
 }
 
-export function WarriorIdentity({ character }: WarriorIdentityProps) {
+export function WarriorIdentity({
+  character,
+  isOwner,
+  onRetireClick,
+  isRetiring,
+}: WarriorIdentityProps) {
   const { data: userWithAddresses } = useSupabaseSingleAddressToUserMap(
     // biome-ignore lint/style/noNonNullAssertion: <explanation>
     character.owner?.address!,
   );
   const { openUrl } = useFarcaster();
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -54,12 +63,29 @@ export function WarriorIdentity({ character }: WarriorIdentityProps) {
             value={`#${character.id}`}
             className="text-stone-200"
           />
-          <CompactStat
+
+          <StatBox
             label="Status"
             value={character.isRetired ? "Retired" : "Active"}
             className={character.isRetired ? "text-red-400" : "text-green-400"}
+            actionIcon={
+              isOwner && !character.isRetired ? (
+                isRetiring ? (
+                  <Loader2 className="h-4 w-4 animate-spin text-red-400" />
+                ) : (
+                  <Trash2 className="h-4 w-4 text-red-400 hover:text-red-300" />
+                )
+              ) : undefined
+            }
+            onActionClick={
+              isOwner && !character.isRetired && !isRetiring
+                ? onRetireClick
+                : undefined
+            }
+            isActionDisabled={isRetiring}
           />
-          <CompactStat
+
+          <StatBox
             label="Immortal"
             value={character.isImmortal ? "Yes" : "No"}
             className={

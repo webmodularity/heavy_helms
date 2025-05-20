@@ -219,6 +219,33 @@ export function Footer() {
                 <div className="w-1 h-1 rounded-full bg-stone-600/50 mr-1.5 group-hover:bg-yellow-400 transition-colors" />
                 <a
                   href={
+                    "https://shapescan.xyz/address/0x684055392575eF42A6f04490dB50FFdC34309681"
+                  }
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-stone-200 text-sm hover:text-yellow-400 transition-colors flex items-center"
+                >
+                  Gauntlet Game Contract
+                  <svg
+                    className="w-4 h-4 ml-1 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-yellow-400"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M5 12H19M19 12L12 5M19 12L12 19"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </a>
+              </li>
+              <li className="flex items-center group">
+                <div className="w-1.5 h-1.5 rounded-full bg-stone-600/50 mr-2 group-hover:bg-yellow-400 transition-colors" />
+                <a
+                  href={
                     "https://shapescan.xyz/address/0x70FA59BA4FbD253850c76B6d1A12a7DFaC744072"
                   }
                   target="_blank"
