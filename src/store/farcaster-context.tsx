@@ -198,6 +198,7 @@ export function FarcasterProvider({ children }: { children: ReactNode }) {
    */
   const signalReady = useCallback(async (): Promise<void> => {
     try {
+      await isInMiniAppContext();
       await sdk.actions.ready();
       console.log("Signaled ready to Farcaster client");
     } catch (error) {
@@ -209,6 +210,7 @@ export function FarcasterProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (privyReady && privyAuthenticated && isBackendSynced) {
       switchChain(wagmiConfig, { chainId: baseSepolia.id });
+
       signalReady();
     }
   }, [privyReady, privyAuthenticated, isBackendSynced, signalReady]);
@@ -217,51 +219,51 @@ export function FarcasterProvider({ children }: { children: ReactNode }) {
    * Request the user to add this frame to their favorites
    */
   const addFrame = useCallback(async (): Promise<void> => {
-    if (!isInFarcasterClient) return;
-
     try {
       await sdk.actions.addFrame();
     } catch (error) {
       console.error("Error in sdk.actions.addFrame():", error);
       toast.error("Failed to add app");
     }
-  }, [isInFarcasterClient]);
+  }, []);
 
   /**
    * Close the mini app frame
    */
   const closeFrame = useCallback(async (): Promise<void> => {
-    if (!isInFarcasterClient) return;
-
     try {
       await sdk.actions.close();
     } catch (error) {
       console.error("Error in sdk.actions.close():", error);
     }
-  }, [isInFarcasterClient]);
+  }, []);
+
+  /**
+   * Determines if the user is in a miniapp context
+   */
+  const isInMiniAppContext = useCallback(async () => {
+    try {
+      const isMiniApp = await sdk.isInMiniApp();
+      setIsInFarcasterClient(isMiniApp);
+    } catch (error) {
+      console.error("Error in sdk.actions.isMiniApp():", error);
+      return false;
+    }
+  }, []);
 
   /**
    * Open an external URL from the frame
    * Falls back to browser window.open if not in a Farcaster client
    */
-  const openUrl = useCallback(
-    async (url: string): Promise<void> => {
-      if (!isInFarcasterClient) {
-        // Fallback for non-Farcaster environments
-        window.open(url, "_blank");
-        return;
-      }
-
-      try {
-        await sdk.actions.openUrl(url);
-      } catch (error) {
-        console.error("Error in sdk.actions.openUrl():", error);
-        // Fallback if the Farcaster action fails
-        window.open(url, "_blank");
-      }
-    },
-    [isInFarcasterClient],
-  );
+  const openUrl = useCallback(async (url: string): Promise<void> => {
+    try {
+      await sdk.actions.openUrl(url);
+    } catch (error) {
+      console.error("Error in sdk.actions.openUrl():", error);
+      // Fallback if the Farcaster action fails
+      window.open(url, "_blank");
+    }
+  }, []);
 
   /**
    * View a Farcaster user's profile
