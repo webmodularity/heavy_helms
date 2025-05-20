@@ -32,13 +32,11 @@ export function WarriorSelection({
   const router = useRouter();
   const characterListRef = useRef<HTMLDivElement>(null);
   const { players, isLoading } = useOwnPlayers();
-  console.log("players", players);
   const { createCharacter, isCreatingCharacter, txHash } = useCreateCharacter();
   const queryClient = useQueryClient();
   const { address } = useAccount();
   const [activeIndex, setActiveIndex] = useState(0);
 
-  
   // Effect to refresh selectedCharacter if its underlying data changes
   useEffect(() => {
     if (selectedCharacter && players && players.length > 0) {
@@ -159,8 +157,8 @@ export function WarriorSelection({
                 <div
                   key={character.id}
                   className={`flex-shrink-0 snap-center w-[80%] transition-transform duration-300 ${
-                    activeIndex === index 
-                      ? "scale-105 z-10" 
+                    activeIndex === index
+                      ? "scale-105 z-10"
                       : "scale-95 opacity-85"
                   }`}
                 >
@@ -184,8 +182,8 @@ export function WarriorSelection({
               {players && players.length < MAX_PLAYERS ? (
                 <div
                   className={`flex-shrink-0 snap-center w-[80%] transition-transform duration-300 ${
-                    activeIndex === players.length 
-                      ? "scale-105 z-10" 
+                    activeIndex === players.length
+                      ? "scale-105 z-10"
                       : "scale-95 opacity-85"
                   }`}
                 >
