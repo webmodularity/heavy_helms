@@ -107,9 +107,6 @@ export async function POST(request: NextRequest) {
       console.error("API ERROR: Supabase user upsert error:", userError);
       throw new Error(`Supabase user upsert failed: ${userError.message}`);
     }
-    console.log(
-      `API TRY_BLOCK: Supabase user upsert successful for PrivyDID ${privyDid}`,
-    );
 
     const walletUpserts = (
       privyUser.linkedAccounts as unknown as LinkedAccount[]
@@ -128,9 +125,6 @@ export async function POST(request: NextRequest) {
       });
 
     if (walletUpserts.length > 0) {
-      console.log(
-        `API TRY_BLOCK: Upserting ${walletUpserts.length} wallets to Supabase.`,
-      );
       const { error: walletError } = await supabase
         .from("user_wallets")
         .upsert(walletUpserts, {
@@ -140,11 +134,7 @@ export async function POST(request: NextRequest) {
       if (walletError) {
         console.error("API ERROR: Supabase wallet upsert error:", walletError);
         // Not throwing here, as user upsert might be more critical
-      } else {
-        console.log("API TRY_BLOCK: Supabase wallet upsert successful.");
       }
-    } else {
-      console.log("API TRY_BLOCK: No wallets from linkedAccounts to upsert.");
     }
 
     // If activeWalletAddressFromBody was provided but wasn't found in linkedAccounts,
