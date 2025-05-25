@@ -35,6 +35,7 @@ import {
 } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Loader2, Search, ArrowUpDown } from "lucide-react";
 import { useOwnPlayers } from "@/hooks/use-own-players";
 import type { Fighter } from "@/types/fighter-types";
@@ -45,6 +46,8 @@ import {
 import { useSupabaseAddressToUserMap } from "@/hooks/use-supabase-players";
 import { getAddress } from "viem";
 import { useFarcaster } from "@/store/farcaster-context";
+import { useFollowingData } from "@/hooks/use-following-data";
+
 interface PlayerSelectionTableProps {
   onSelectPlayer: (player: Fighter) => void;
   currentPlayerId?: string;
@@ -64,24 +67,58 @@ export function PlayerSelectionTable({
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [globalFilter, setGlobalFilter] = useState("");
+  const [showFollowingOnly, setShowFollowingOnly] = useState(false);
+
   const { data: addressToUserMap, isLoading: isAddressToUserMapLoading } =
     useSupabaseAddressToUserMap();
-  // Replace useState and useEffect for filteredPlayers with useMemo
+
+  // Get Farcaster data
+  const { currentUserFid, isLoadingFollowing, followingError, isFollowing } =
+    useFollowingData();
+
+  // Enhanced filtered players logic with Farcaster following
   const filteredPlayers = useMemo(() => {
     if (isLoading || isOwnPlayersLoading || !allPlayers) {
       return [];
     }
+
+    let players = allPlayers;
 
     // Filter out own players if currentPlayerId is provided
     if (currentPlayerId) {
       const ownPlayerIdsSet = new Set(
         ownPlayers?.map((player) => player.id) ?? [],
       );
-      return allPlayers.filter((player) => !ownPlayerIdsSet.has(player.id));
+      players = players.filter((player) => !ownPlayerIdsSet.has(player.id));
     }
-    // If no currentPlayerId, return all active players (original logic)
-    return allPlayers;
-  }, [allPlayers, currentPlayerId, isLoading, isOwnPlayersLoading, ownPlayers]);
+
+    // Apply Farcaster following filter
+    if (showFollowingOnly && currentUserFid && !isLoadingFollowing) {
+      players = players.filter((player) => {
+        // Get player's Farcaster FID from address mapping
+        const playerAddress = player.owner?.address;
+        if (!playerAddress || !addressToUserMap) return false;
+
+        const user = addressToUserMap[getAddress(playerAddress)];
+        if (!user?.farcaster_fid) return false;
+
+        return isFollowing(user.farcaster_fid);
+      });
+    }
+
+    return players;
+  }, [
+    allPlayers,
+    currentPlayerId,
+    isLoading,
+    isOwnPlayersLoading,
+    ownPlayers,
+    showFollowingOnly,
+    currentUserFid,
+    isLoadingFollowing,
+    addressToUserMap,
+    isFollowing,
+  ]);
 
   // Define columns for the table
   const columns: ColumnDef<Fighter>[] = [
@@ -115,11 +152,29 @@ export function PlayerSelectionTable({
           <ArrowUpDown className="ml-1 h-3 w-3" />
         </Button>
       ),
-      cell: ({ row }) => (
-        <div className="font-medium text-stone-200 text-xs sm:text-sm">
-          {row.original.name.fullName}
-        </div>
-      ),
+      cell: ({ row }) => {
+        // Check if this player is followed
+        const playerAddress = row.original.owner?.address;
+        const user =
+          playerAddress && addressToUserMap
+            ? addressToUserMap[getAddress(playerAddress)]
+            : null;
+        const isPlayerFollowed = user?.farcaster_fid
+          ? isFollowing(user.farcaster_fid)
+          : false;
+
+        return (
+          <div className="font-medium text-stone-200 text-xs sm:text-sm flex items-center gap-1">
+            {row.original.name.fullName}
+            {isPlayerFollowed && (
+              <div
+                className="w-2 h-2 bg-blue-500 rounded-full"
+                title="You follow this player"
+              />
+            )}
+          </div>
+        );
+      },
       enableHiding: false,
     },
     {
@@ -161,11 +216,10 @@ export function PlayerSelectionTable({
             </button>
           );
         }
-        // Render a placeholder if no Farcaster link is available or if addressToUserMap is still loading
         return <div className="w-[20px] h-[20px] mx-auto" />;
       },
       enableSorting: false,
-      enableHiding: false, // Consistent with avatar column
+      enableHiding: false,
     },
     {
       accessorFn: (row) => row.attributes.strength,
@@ -311,7 +365,7 @@ export function PlayerSelectionTable({
     },
   ];
 
-  // Create table instance with proper filtering
+  // Create table instance
   const table = useReactTable({
     data: filteredPlayers,
     columns,
@@ -331,7 +385,6 @@ export function PlayerSelectionTable({
     getPaginationRowModel: getPaginationRowModel(),
     globalFilterFn: (row, columnId, value) => {
       const searchValue = value.toLowerCase();
-      // Search by name or ID
       if (columnId === "name" && row.original.name.fullName) {
         return (
           row.original.name.fullName.toLowerCase().includes(searchValue) ||
@@ -347,6 +400,7 @@ export function PlayerSelectionTable({
     },
   });
 
+  // Early loading state
   if (isLoading || isOwnPlayersLoading) {
     return (
       <div className="flex justify-center items-center h-40">
@@ -355,6 +409,7 @@ export function PlayerSelectionTable({
     );
   }
 
+  // Early error state
   if (error) {
     return (
       <div className="text-center text-red-400 h-40 flex flex-col justify-center">
@@ -366,21 +421,52 @@ export function PlayerSelectionTable({
     );
   }
 
-  if (filteredPlayers.length === 0 && !isLoading && !isOwnPlayersLoading) {
-    return (
-      <div className="text-center text-stone-300 h-40 flex flex-col justify-center">
-        <h3 className="text-base font-medium text-yellow-500 mb-1.5">
-          No challengers found
-        </h3>
-        <p className="text-xs max-w-md mx-auto">
-          There are no active players available to challenge at the moment.
-        </p>
-      </div>
-    );
-  }
-
+  // Render the main component with filters always visible
   return (
     <div className="flex flex-col h-full gap-2.5">
+      {/* Farcaster Following Filter Row - Always show if user has FID */}
+      {currentUserFid && (
+        <div className="flex-none">
+          <div className="flex items-center space-x-2 p-2 bg-stone-900/30 rounded-md border border-yellow-600/10">
+            <Checkbox
+              id="following-filter"
+              checked={showFollowingOnly}
+              onCheckedChange={(checked) =>
+                setShowFollowingOnly(
+                  checked === "indeterminate" ? false : checked === true,
+                )
+              }
+              disabled={isLoadingFollowing}
+              className="border-yellow-600/20 data-[state=checked]:bg-yellow-600 data-[state=checked]:border-yellow-600"
+            />
+            <label
+              htmlFor="following-filter"
+              className="text-xs text-stone-200 cursor-pointer flex items-center gap-1.5"
+            >
+              <Image
+                src="/logos/farcaster-logo.svg"
+                alt="Farcaster"
+                width={14}
+                height={14}
+              />
+              Show only players I follow
+              {isLoadingFollowing && (
+                <Loader2 className="h-3 w-3 animate-spin text-yellow-500" />
+              )}
+            </label>
+            {followingError && (
+              <span
+                className="text-xs text-red-400"
+                title={followingError.message}
+              >
+                (Error loading following)
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Search and Filter Controls - Always show */}
       <div className="flex-none flex flex-col space-y-2 md:flex-row md:space-y-0 md:space-x-2 md:items-center">
         {/* Search input */}
         <div className="relative flex-1">
@@ -469,80 +555,93 @@ export function PlayerSelectionTable({
         </div>
       </div>
 
-      {/* Players table with scrolling container */}
-      <div className="flex-grow min-h-0 rounded-md border border-yellow-600/20 overflow-hidden">
-        <div className="h-full overflow-auto">
-          <Table className="border-collapse text-xs">
-            <TableHeader className="bg-stone-100/50 sticky top-0 z-10">
-              <TableRow>
-                {table.getHeaderGroups()[0].headers.map((header) => (
-                  <TableHead key={header.id} className="text-center py-2 px-2">
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext(),
-                        )}
-                  </TableHead>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {table.getRowModel().rows.length > 0 ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    onClick={() => onSelectPlayer(row.original)}
-                    className="group hover:bg-amber-900/10 hover:border-yellow-600/30 cursor-pointer"
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id} className="py-1.5 px-2">
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext(),
-                        )}
-                      </TableCell>
+      {/* Table Content Area */}
+      {filteredPlayers.length === 0 ? (
+        // No results state - but filters remain visible above
+        <div className="flex-grow flex items-center justify-center">
+          <div className="text-center text-stone-300">
+            <h3 className="text-base font-medium text-yellow-500 mb-1.5">
+              {showFollowingOnly && currentUserFid
+                ? "No followed challengers found"
+                : "No challengers found"}
+            </h3>
+            <p className="text-xs max-w-md mx-auto">
+              {showFollowingOnly && currentUserFid
+                ? "None of the players you follow on Farcaster are available to challenge. Try unchecking the filter above."
+                : "There are no active players available to challenge at the moment."}
+            </p>
+          </div>
+        </div>
+      ) : (
+        // Table with data
+        <>
+          <div className="flex-grow min-h-0 rounded-md border border-yellow-600/20 overflow-hidden">
+            <div className="h-full overflow-auto">
+              <Table className="border-collapse text-xs">
+                <TableHeader className="bg-stone-100/50 sticky top-0 z-10">
+                  <TableRow>
+                    {table.getHeaderGroups()[0].headers.map((header) => (
+                      <TableHead
+                        key={header.id}
+                        className="text-center py-2 px-2"
+                      >
+                        {header.isPlaceholder
+                          ? null
+                          : flexRender(
+                              header.column.columnDef.header,
+                              header.getContext(),
+                            )}
+                      </TableHead>
                     ))}
                   </TableRow>
-                ))
-              ) : (
-                <TableRow>
-                  <TableCell
-                    colSpan={table.getAllColumns().length}
-                    className="h-20 text-center text-xs"
-                  >
-                    No results found.
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
+                </TableHeader>
+                <TableBody>
+                  {table.getRowModel().rows.map((row) => (
+                    <TableRow
+                      key={row.id}
+                      onClick={() => onSelectPlayer(row.original)}
+                      className="group hover:bg-amber-900/10 hover:border-yellow-600/30 cursor-pointer"
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <TableCell key={cell.id} className="py-1.5 px-2">
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext(),
+                          )}
+                        </TableCell>
+                      ))}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
+          </div>
 
-      {/* Pagination controls */}
-      <div className="flex-none flex items-center justify-end space-x-1.5 py-2">
-        <div className="text-xs text-stone-400">
-          Page {table.getState().pagination.pageIndex + 1} of{" "}
-          {table.getPageCount()}
-        </div>
-        <Button
-          size="sm"
-          onClick={() => table.previousPage()}
-          disabled={!table.getCanPreviousPage()}
-          className="h-7 px-2 text-xs border-yellow-600/20 hover:bg-yellow-500/10 hover:text-yellow-400 text-stone-200"
-        >
-          Previous
-        </Button>
-        <Button
-          size="sm"
-          onClick={() => table.nextPage()}
-          disabled={!table.getCanNextPage()}
-          className="h-7 px-2 text-xs border-yellow-600/20 hover:bg-yellow-500/10 hover:text-yellow-400 text-stone-200"
-        >
-          Next
-        </Button>
-      </div>
+          {/* Pagination controls */}
+          <div className="flex-none flex items-center justify-end space-x-1.5 py-2">
+            <div className="text-xs text-stone-400">
+              Page {table.getState().pagination.pageIndex + 1} of{" "}
+              {table.getPageCount()}
+            </div>
+            <Button
+              size="sm"
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}
+              className="h-7 px-2 text-xs border-yellow-600/20 hover:bg-yellow-500/10 hover:text-yellow-400 text-stone-200"
+            >
+              Previous
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}
+              className="h-7 px-2 text-xs border-yellow-600/20 hover:bg-yellow-500/10 hover:text-yellow-400 text-stone-200"
+            >
+              Next
+            </Button>
+          </div>
+        </>
+      )}
     </div>
   );
 }
