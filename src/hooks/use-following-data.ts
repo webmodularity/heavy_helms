@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import type { Follower } from "@neynar/nodejs-sdk/build/api";
 
-interface FarcasterData {
+interface FollowingData {
   currentUserFid: number | null;
   following: Follower[];
   isLoadingFollowing: boolean;
@@ -14,7 +14,7 @@ interface FarcasterData {
   isFollowing: (fid: number) => boolean;
 }
 
-export function useFarcasterData(): FarcasterData {
+export function useFollowingData(): FollowingData {
   const { user: privyUser, authenticated } = usePrivy();
 
   // Extract current user's FID

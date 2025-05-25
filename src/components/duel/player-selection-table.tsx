@@ -46,7 +46,7 @@ import {
 import { useSupabaseAddressToUserMap } from "@/hooks/use-supabase-players";
 import { getAddress } from "viem";
 import { useFarcaster } from "@/store/farcaster-context";
-import { useFarcasterData } from "@/hooks/use-farcaster-data";
+import { useFollowingData } from "@/hooks/use-following-data";
 
 interface PlayerSelectionTableProps {
   onSelectPlayer: (player: Fighter) => void;
@@ -74,7 +74,7 @@ export function PlayerSelectionTable({
 
   // Get Farcaster data
   const { currentUserFid, isLoadingFollowing, followingError, isFollowing } =
-    useFarcasterData();
+    useFollowingData();
 
   // Enhanced filtered players logic with Farcaster following
   const filteredPlayers = useMemo(() => {

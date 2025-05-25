@@ -26,10 +26,6 @@ class UsersService {
     return data;
   }
 
-  async getUserFollowing(fid: number) {
-    
-  }
-
   async getAddressToUserMap(targetAddress?: string) {
     let query = supabaseClient.from("user_wallets").select("*, users(*)");
     console.log("targetAddress", targetAddress);
