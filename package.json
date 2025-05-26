@@ -33,8 +33,8 @@
         "knip": "knip"
     },
     "dependencies": {
-        "@farcaster/frame-sdk": "^0.0.38",
-        "@farcaster/frame-wagmi-connector": "^0.0.26",
+        "@farcaster/frame-sdk": "latest",
+        "@farcaster/frame-wagmi-connector": "latest",
         "@neynar/nodejs-sdk": "^2.44.0",
         "@privy-io/react-auth": "^2.5.0",
         "@privy-io/server-auth": "^1.22.0",

@@ -1,5 +1,9 @@
 import { CharacterDetailsView } from "@/components/character/character-details-view";
 import type { Metadata } from "next";
+import { request } from "graphql-request";
+import { SUBGRAPH_URL } from "@/config";
+import { GET_FIGHTERS_BY_IDS } from "@/lib/gql-queries";
+import { convertRawFighterToFighter, type FightersResponse } from "@/lib/player-api";
 
 interface CharacterPageProps {
   params: {
@@ -10,11 +14,94 @@ interface CharacterPageProps {
 export async function generateMetadata({
   params,
 }: CharacterPageProps): Promise<Metadata> {
-  // This would be enhanced with real character data in production
-  return {
-    title: `Character Details #${params.id} | Heavy Helms`,
-    description: "View detailed information about your warrior character",
-  };
+  const characterId = params.id;
+  
+  try {
+    // Fetch character data server-side for metadata
+    const response = await request<FightersResponse>(
+      SUBGRAPH_URL,
+      GET_FIGHTERS_BY_IDS,
+      { fighterIds: [characterId] }
+    );
+
+    if (!response.fighters || response.fighters.length === 0) {
+      // Fallback metadata for non-existent character
+      return {
+        title: `Character #${characterId} | Heavy Helms`,
+        description: "Character not found in Heavy Helms",
+      };
+    }
+
+    const rawCharacter = response.fighters[0];
+    const character = await convertRawFighterToFighter(rawCharacter);
+    
+    const appDomain = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:8080";
+    
+    // Generate character image URL with all necessary parameters
+    const characterImageUrl = new URL(`${appDomain}/api/character-image`);
+    characterImageUrl.searchParams.set("characterId", character.id);
+    characterImageUrl.searchParams.set("characterName", character.name.fullName || "Unknown Warrior");
+    characterImageUrl.searchParams.set("wins", character.record.wins.toString());
+    characterImageUrl.searchParams.set("losses", character.record.losses.toString());
+    characterImageUrl.searchParams.set("characterImageUrl", character.currentSkin.imageURL);
+    characterImageUrl.searchParams.set("battleRating", character.battleRating?.toString() || "0");
+    // characterImageUrl.searchParams.set("rank", character.rank?.toString() || "null");
+
+    // Character page URL
+    const characterPageUrl = `${appDomain}/character/${characterId}`;
+
+    const title = `${character.name.fullName} | Heavy Helms Warrior`;
+    const description = `Meet ${character.name.fullName}, a warrior with ${character.record.wins} wins and ${character.record.losses} losses. Battle Rating: ${Math.round(character.battleRating || 0)}`;
+
+    return {
+      title,
+      description,
+      openGraph: {
+        title,
+        description,
+        images: [
+          {
+            url: characterImageUrl.toString(),
+            width: 1200,
+            height: 630,
+            alt: `${character.name.fullName} - Heavy Helms Warrior`,
+          },
+        ],
+        type: "website",
+        url: characterPageUrl,
+      },
+      twitter: {
+        card: "summary_large_image",
+        title,
+        description,
+        images: [characterImageUrl.toString()],
+      },
+      other: {
+        // Standard Farcaster Frame meta tags
+        "fc:frame": "vNext",
+        "fc:frame:image": characterImageUrl.toString(),
+        "fc:frame:image:aspect_ratio": "1.91:1",
+        "fc:frame:button:1": "View Warrior",
+        "fc:frame:button:1:action": "link",
+        "fc:frame:button:1:target": characterPageUrl,
+        "fc:frame:post_url": characterPageUrl,
+        
+        // Open Graph fallbacks
+        "og:image": characterImageUrl.toString(),
+        "og:image:width": "1200",
+        "og:image:height": "630",
+        "og:url": characterPageUrl,
+      },
+    };
+  } catch (error) {
+    console.error("Error generating character metadata:", error);
+    
+    // Fallback metadata
+    return {
+      title: `Character #${characterId} | Heavy Helms`,
+      description: "View detailed information about this Heavy Helms warrior",
+    };
+  }
 }
 
 export default function CharacterPage({ params }: CharacterPageProps) {

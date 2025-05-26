@@ -69,6 +69,7 @@ export function FarcasterProvider({ children }: { children: ReactNode }) {
   const { initLoginToFrame, loginToFrame } = useLoginToFrame();
   const { wallets, ready: readyWallets } = useWallets();
   const { identityToken } = useIdentityToken();
+  console.log("privyUser", privyUser);
   // Login to Mini App with Privy automatically
   useEffect(() => {
     if (privyReady && !privyAuthenticated && !privyUser) {

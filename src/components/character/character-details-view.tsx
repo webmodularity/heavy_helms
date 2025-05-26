@@ -221,7 +221,7 @@ export function CharacterDetailsView({
             <HeroSection character={character as Player} />
           </div>
           <AttributesSection character={character as Player} />
-          <BattleLegacy character={character as Player} />
+          <BattleLegacy character={character as Player} isOwner={isOwner} />
         </div>
       </div>
 
