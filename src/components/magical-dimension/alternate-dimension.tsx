@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useEffect, useState, useMemo } from "react";
-import { X, Loader2 } from "lucide-react";
+import { X, Loader2, Sparkles, Star, Zap } from "lucide-react";
 import { EmberCharacter } from "./ember-character";
 import { useFollowingData } from "@/hooks/use-following-data";
 import { useActivePlayers } from "@/hooks/use-active-players";
@@ -16,6 +16,7 @@ interface AlternateDimensionProps {
   onClose: () => void;
   selectedCharacter: Player;
   onChallengePlayer: (player: Fighter) => void;
+  skipPortalAnimation?: boolean;
 }
 
 export function AlternateDimension({
@@ -23,9 +24,13 @@ export function AlternateDimension({
   onClose,
   selectedCharacter,
   onChallengePlayer,
+  skipPortalAnimation = false,
 }: AlternateDimensionProps) {
   const [showEmbers, setShowEmbers] = useState(false);
   const [emberIndex, setEmberIndex] = useState(0);
+  const [portalPhase, setPortalPhase] = useState(0); // 0: closed, 1: opening, 2: open
+  const [embersComplete, setEmbersComplete] = useState(false);
+  const [emberPositions, setEmberPositions] = useState<Array<{x: number, y: number}>>([]);
 
   const { currentUserFid, isLoadingFollowing, isFollowing } =
     useFollowingData();
@@ -34,8 +39,8 @@ export function AlternateDimension({
   const { data: addressToUserMap, isLoading: isAddressMapLoading } =
     useSupabaseAddressToUserMap();
 
-  // Get challengeable following players
-  const challengeableFriends = useMemo(() => {
+  // Get all challengeable following players
+  const allChallengeableFriends = useMemo(() => {
     if (
       isLoadingPlayers ||
       isLoadingFollowing ||
@@ -46,19 +51,20 @@ export function AlternateDimension({
       return [];
     }
 
-    return allPlayers.filter((player) => {
-      // Don't include own character
-      if (player.id === selectedCharacter.id) return false;
+    return allPlayers;
+    // return allPlayers.filter((player) => {
+    //   // Don't include own character
+    //   if (player.id === selectedCharacter.id) return false;
 
-      // Check if this player is followed
-      const playerAddress = player.owner?.address;
-      if (!playerAddress) return false;
+    //   // Check if this player is followed
+    //   const playerAddress = player.owner?.address;
+    //   if (!playerAddress) return false;
 
-      const user = addressToUserMap[getAddress(playerAddress)];
-      if (!user?.farcaster_fid) return false;
+    //   const user = addressToUserMap[getAddress(playerAddress)];
+    //   if (!user?.farcaster_fid) return false;
 
-      return isFollowing(user.farcaster_fid);
-    });
+    //   return isFollowing(user.farcaster_fid);
+    // });
   }, [
     allPlayers,
     selectedCharacter.id,
@@ -69,73 +75,256 @@ export function AlternateDimension({
     isFollowing,
   ]);
 
-  // Portal opening animation sequence
+  // Randomly select up to 10 friends - stable selection that doesn't change on re-renders
+  const challengeableFriends = useMemo(() => {
+    if (allChallengeableFriends.length === 0) return [];
+
+    // Create a stable seed based on the selected character ID to ensure consistent random selection
+    const seed = selectedCharacter.id;
+    const random = () => {
+      const x = Math.sin(Number(seed)) * 10000;
+      return x - Math.floor(x);
+    };
+
+    // Use seeded random for consistent selection
+    const shuffled = [...allChallengeableFriends].sort(() => random() - 0.5);
+    return shuffled.slice(0, 10); // Limit to 10 friends max
+  }, [allChallengeableFriends, selectedCharacter.id]);
+
+  // Enhanced positioning system with collision detection
+  const generateNonOverlappingPositions = useMemo(() => {
+    if (challengeableFriends.length === 0) return [];
+
+    const positions: Array<{x: number, y: number}> = [];
+    const emberSize = 80; // Approximate size of each ember (20 * 4 for padding)
+    const minDistance = emberSize * 1.2; // Minimum distance between centers (20% overlap max)
+    
+    // Define safe boundaries
+    const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1200;
+    const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 800;
+    const centerBuffer = 120; // Buffer around center
+    const edgeBuffer = 100; // Buffer from edges
+    
+    const maxX = Math.min(viewportWidth * 0.4, 400);
+    const maxY = Math.min(viewportHeight * 0.35, 300);
+    
+    for (let i = 0; i < challengeableFriends.length; i++) {
+      const player = challengeableFriends[i];
+      let position = { x: 0, y: 0 };
+      let attempts = 0;
+      const maxAttempts = 50;
+      
+      // Create seeded random for consistent positioning
+      const seed1 = Number(player.id) * 1234 + i * 5678;
+      const seed2 = Number(player.id) * 9876 + i * 4321;
+      
+      const seededRandom1 = () => {
+        const x = Math.sin(seed1 + attempts) * 10000;
+        return Math.abs(x - Math.floor(x));
+      };
+      
+      const seededRandom2 = () => {
+        const x = Math.sin(seed2 + attempts) * 10000;
+        return Math.abs(x - Math.floor(x));
+      };
+      
+      do {
+        // Generate random angle and radius
+        const angle = seededRandom1() * Math.PI * 2;
+        const radiusMultiplier = 0.4 + seededRandom2() * 0.6; // Between 40% and 100%
+        const radius = centerBuffer + radiusMultiplier * (maxX - centerBuffer);
+        
+        position.x = Math.cos(angle) * radius;
+        position.y = Math.sin(angle) * radius;
+        
+        // Ensure within bounds
+        position.x = Math.max(-maxX + edgeBuffer, Math.min(maxX - edgeBuffer, position.x));
+        position.y = Math.max(-maxY + edgeBuffer, Math.min(maxY - edgeBuffer, position.y));
+        
+        // Check for overlaps with existing positions
+        const hasOverlap = positions.some(existingPos => {
+          const distance = Math.sqrt(
+            Math.pow(position.x - existingPos.x, 2) + 
+            Math.pow(position.y - existingPos.y, 2)
+          );
+          return distance < minDistance;
+        });
+        
+        if (!hasOverlap) {
+          break;
+        }
+        
+        attempts++;
+      } while (attempts < maxAttempts);
+      
+      // If we couldn't find a non-overlapping position, use the last generated one
+      // but ensure it's still in bounds
+      if (attempts >= maxAttempts) {
+        // Fallback: use a spiral pattern based on index
+        const spiralAngle = (i * 137.5) * (Math.PI / 180); // Golden angle
+        const spiralRadius = centerBuffer + (i * 25) % (maxX - centerBuffer);
+        position.x = Math.cos(spiralAngle) * spiralRadius;
+        position.y = Math.sin(spiralAngle) * spiralRadius;
+      }
+      
+      positions.push(position);
+    }
+    
+    return positions;
+  }, [challengeableFriends]);
+
+  // Update ember positions when they change
+  useEffect(() => {
+    setEmberPositions(generateNonOverlappingPositions);
+  }, [generateNonOverlappingPositions]);
+
+  // Simplified portal opening sequence
   useEffect(() => {
     if (isOpen) {
-      const timer1 = setTimeout(() => setShowEmbers(true), 1000);
-      return () => clearTimeout(timer1);
+      if (skipPortalAnimation) {
+        // Immediate open state for page navigation
+        setPortalPhase(2);
+        setShowEmbers(true);
+        setEmbersComplete(false);
+      } else {
+        // Natural center-opening animation for overlay mode
+        setPortalPhase(1);
+        setEmbersComplete(false);
+        const timer1 = setTimeout(() => {
+          setPortalPhase(2);
+          setShowEmbers(true);
+        }, 800); // Faster opening
+        return () => clearTimeout(timer1);
+      }
     } else {
       setShowEmbers(false);
       setEmberIndex(0);
+      setPortalPhase(0);
+      setEmbersComplete(false);
     }
-  }, [isOpen]);
+  }, [isOpen, skipPortalAnimation]);
 
-  // Stagger ember appearances
+  // Stagger ember appearances with enhanced timing
   useEffect(() => {
-    if (showEmbers && emberIndex < allPlayers.length) {
+    if (showEmbers && emberIndex < challengeableFriends.length) {
       const timer = setTimeout(() => {
         setEmberIndex((prev) => prev + 1);
-      }, 300); // Stagger every 300ms
+      }, 250); // Slightly faster for better flow
+      return () => clearTimeout(timer);
+    } else if (showEmbers && emberIndex >= challengeableFriends.length) {
+      // All embers have appeared, enable full background effects
+      const timer = setTimeout(() => {
+        setEmbersComplete(true);
+      }, 500); // Small delay after last ember
       return () => clearTimeout(timer);
     }
-  }, [showEmbers, emberIndex, allPlayers.length]);
+  }, [showEmbers, emberIndex, challengeableFriends.length]);
 
   const isLoading =
     isLoadingFollowing || isLoadingPlayers || isAddressMapLoading;
+
+  // Performance-aware background particle count
+  const particleCount = embersComplete ? 20 : showEmbers ? 5 : 15; // Fewer during ember appearance
+  const symbolCount = embersComplete ? 3 : showEmbers ? 1 : 2; // Minimal symbols during ember appearance
 
   return (
     <AnimatePresence>
       {isOpen && (
         <motion.div
-          className="fixed inset-0 z-50 overflow-hidden"
-          initial={{ opacity: 0 }}
+          className="fixed inset-0 z-50 overflow-hidden bg-black"
+          initial={{ opacity: skipPortalAnimation ? 1 : 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.8 }}
+          transition={{ duration: skipPortalAnimation ? 0 : 0.5 }}
         >
-          {/* Portal entry effect */}
+          {/* Clean dimensional background - no competing elements */}
           <motion.div
             className="absolute inset-0"
-            initial={{ scale: 0, rotate: 0 }}
-            animate={{ scale: 1, rotate: 360 }}
-            exit={{ scale: 0, rotate: -360 }}
+            initial={{ 
+              scale: skipPortalAnimation ? 1 : 0,
+            }}
+            animate={{
+              scale: portalPhase >= 1 ? 1 : 0,
+            }}
+            exit={{ scale: 0 }}
             transition={{
-              duration: 1.2,
+              duration: skipPortalAnimation ? 0 : 0.8,
               ease: [0.25, 0.46, 0.45, 0.94],
             }}
             style={{
-              background:
-                "radial-gradient(circle at center, rgba(0, 0, 0, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%)",
+              background: "radial-gradient(circle at center, rgba(245, 158, 11, 0.15) 0%, rgba(139, 69, 19, 0.3) 40%, rgba(0, 0, 0, 0.95) 100%)",
             }}
           />
 
-          {/* Mystical background particles */}
-          <div className="absolute inset-0">
-            {[...Array(50)].map((_, i) => (
+          {/* Natural portal opening effect from center */}
+          <AnimatePresence>
+            {portalPhase === 1 && !skipPortalAnimation && (
               <motion.div
-                key={i}
-                className="absolute w-1 h-1 bg-yellow-400/30 rounded-full"
+                className="absolute inset-0 pointer-events-none"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+              >
+                {/* Centered energy rings */}
+                {[...Array(3)].map((_, i) => (
+                  <motion.div
+                    key={i}
+                    className="absolute rounded-full border border-yellow-400/40"
+                    style={{
+                      left: "50%",
+                      top: "50%",
+                      width: `${(i + 1) * 100}px`,
+                      height: `${(i + 1) * 100}px`,
+                      marginLeft: `${-(i + 1) * 50}px`,
+                      marginTop: `${-(i + 1) * 50}px`,
+                    }}
+                    animate={{
+                      scale: [0, 1.5],
+                      opacity: [0.8, 0],
+                    }}
+                    transition={{
+                      duration: 0.8,
+                      delay: i * 0.1,
+                      ease: "easeOut",
+                    }}
+                  />
+                ))}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Dynamic background particles */}
+          <div className="absolute inset-0">
+            {[...Array(particleCount)].map((_, i) => (
+              <motion.div
+                key={`particle-${i}-${particleCount}`}
+                className="absolute rounded-full"
                 style={{
                   left: `${Math.random() * 100}%`,
                   top: `${Math.random() * 100}%`,
+                  width: Math.random() * 3 + 1,
+                  height: Math.random() * 3 + 1,
+                  background:
+                    i % 3 === 0
+                      ? "#FCD34D"
+                      : i % 3 === 1
+                        ? "#F59E0B"
+                        : "#FBBF24",
+                  willChange: "transform, opacity",
                 }}
                 animate={{
-                  opacity: [0, 1, 0],
+                  opacity: [0, 0.8, 0],
                   scale: [0, 1, 0],
-                  y: [0, -50],
+                  y: showEmbers
+                    ? [0, -30]
+                    : [0, -50 - Math.random() * 30],
+                  x: showEmbers
+                    ? [(Math.random() - 0.5) * 10]
+                    : [(Math.random() - 0.5) * 20, (Math.random() - 0.5) * 30],
                 }}
                 transition={{
-                  duration: 3 + Math.random() * 2,
+                  duration: showEmbers ? 4 : 3 + Math.random() * 2,
                   repeat: Number.POSITIVE_INFINITY,
                   delay: Math.random() * 3,
                   ease: "easeOut",
@@ -144,70 +333,188 @@ export function AlternateDimension({
             ))}
           </div>
 
-          {/* Close button */}
-          <motion.button
-            onClick={onClose}
-            className="absolute top-8 right-8 z-60 w-12 h-12 rounded-full 
-                       bg-stone-900/80 border border-yellow-400/30 
-                       flex items-center justify-center text-yellow-300
-                       hover:bg-stone-800/80 hover:border-yellow-300/50 transition-all"
-            initial={{ opacity: 0, scale: 0 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.5 }}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <X className="w-6 h-6" />
-          </motion.button>
+          {/* Floating magical symbols */}
+          <AnimatePresence>
+            {symbolCount > 0 && (
+              <div className="absolute inset-0 pointer-events-none">
+                {[...Array(symbolCount)].map((_, i) => (
+                  <motion.div
+                    key={`symbol-${i}-${symbolCount}`}
+                    className="absolute text-yellow-400/15"
+                    style={{
+                      left: `${30 + Math.random() * 40}%`,
+                      top: `${30 + Math.random() * 40}%`,
+                      willChange: "transform, opacity",
+                    }}
+                    initial={{ opacity: 0, scale: 0.5 }}
+                    animate={{
+                      opacity: showEmbers
+                        ? [0.05, 0.15, 0.05]
+                        : [0.1, 0.2, 0.1],
+                      rotate: [0, 360],
+                      scale: showEmbers ? [0.8, 1, 0.8] : [0.8, 1.2, 0.8],
+                    }}
+                    exit={{ opacity: 0, scale: 0.5 }}
+                    transition={{
+                      duration: showEmbers ? 12 : 8 + Math.random() * 4,
+                      repeat: Number.POSITIVE_INFINITY,
+                      delay: i * 3,
+                      ease: "easeInOut",
+                    }}
+                  >
+                    {i % 3 === 0 ? (
+                      <Star className="w-6 h-6" />
+                    ) : i % 3 === 1 ? (
+                      <Sparkles className="w-6 h-6" />
+                    ) : (
+                      <Zap className="w-6 h-6" />
+                    )}
+                  </motion.div>
+                ))}
+              </div>
+            )}
+          </AnimatePresence>
 
-          {/* Title */}
+          {/* Enhanced title */}
           <motion.div
             className="absolute top-12 left-1/2 transform -translate-x-1/2 text-center"
-            initial={{ opacity: 0, y: -30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8 }}
+            initial={{ opacity: 0, y: -50, scale: 0.5 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ delay: skipPortalAnimation ? 0.1 : 1.2, type: "spring", stiffness: 150 }}
           >
-            <h1 className="text-2xl md:text-3xl font-bold text-yellow-400 mb-2">
-              Dimension of Following
-            </h1>
-            <p className="text-stone-300 text-sm">
+            <motion.h1
+              className="text-3xl md:text-4xl font-bold text-transparent bg-clip-text 
+                         bg-gradient-to-r from-yellow-400 via-orange-500 to-yellow-400 mb-3"
+              animate={{
+                backgroundPosition: embersComplete
+                  ? ["0% 50%", "100% 50%", "0% 50%"]
+                  : "0% 50%",
+              }}
+              transition={{
+                duration: 3,
+                repeat: embersComplete ? Number.POSITIVE_INFINITY : 0,
+                ease: "easeInOut",
+              }}
+              style={{
+                backgroundSize: "200% 200%",
+              }}
+            >
+              Inner Circle
+            </motion.h1>
+            <motion.p
+              className="text-stone-300 text-sm"
+              animate={{
+                opacity: embersComplete ? [0.7, 1, 0.7] : 0.8,
+              }}
+              transition={{
+                duration: 2,
+                repeat: embersComplete ? Number.POSITIVE_INFINITY : 0,
+                ease: "easeInOut",
+              }}
+            >
               Challenge your Farcaster friends to epic duels
-            </p>
+              {challengeableFriends.length > 0 && (
+                <span className="block text-xs text-yellow-400/80 mt-1">
+                  Showing {challengeableFriends.length} of{" "}
+                  {allChallengeableFriends.length} friends
+                </span>
+              )}
+            </motion.p>
           </motion.div>
 
-          {/* Content area */}
+          {/* Enhanced content area */}
           <div className="absolute inset-0 flex items-center justify-center pt-32 pb-16">
             {isLoading ? (
               <motion.div
-                className="flex flex-col items-center gap-4"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1 }}
+                className="flex flex-col items-center gap-6"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: skipPortalAnimation ? 0.1 : 1.5 }}
               >
-                <Loader2 className="w-8 h-8 text-yellow-400 animate-spin" />
-                <p className="text-stone-300 text-sm">
-                  Summoning your friends...
-                </p>
+                {/* Loading spinner */}
+                <div className="relative">
+                  <motion.div
+                    className="w-16 h-16 border-4 border-yellow-400/20 rounded-full"
+                    animate={{ rotate: 360 }}
+                    transition={{
+                      duration: 2,
+                      repeat: Number.POSITIVE_INFINITY,
+                      ease: "linear",
+                    }}
+                    style={{ willChange: "transform" }}
+                  />
+                  <motion.div
+                    className="absolute inset-2 border-4 border-transparent border-t-yellow-400 rounded-full"
+                    animate={{ rotate: -360 }}
+                    transition={{
+                      duration: 1.5,
+                      repeat: Number.POSITIVE_INFINITY,
+                      ease: "linear",
+                    }}
+                    style={{ willChange: "transform" }}
+                  />
+                  <motion.div
+                    className="absolute inset-6 bg-yellow-400/30 rounded-full"
+                    animate={{
+                      scale: [1, 1.1, 1],
+                      opacity: [0.3, 0.6, 0.3],
+                    }}
+                    transition={{
+                      duration: 1.5,
+                      repeat: Number.POSITIVE_INFINITY,
+                      ease: "easeInOut",
+                    }}
+                  />
+                </div>
+
+                <motion.p
+                  className="text-stone-300 text-sm"
+                  animate={{
+                    opacity: [0.5, 1, 0.5],
+                  }}
+                  transition={{
+                    duration: 2,
+                    repeat: Number.POSITIVE_INFINITY,
+                    ease: "easeInOut",
+                  }}
+                >
+                  Summoning your friends from the mystical realm...
+                </motion.p>
               </motion.div>
-            ) : allPlayers.length === 0 ? (
+            ) : challengeableFriends.length === 0 ? (
               <motion.div
                 className="text-center max-w-md"
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                transition={{ delay: 1 }}
+                initial={{ opacity: 0, scale: 0.8, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                transition={{ delay: skipPortalAnimation ? 0.1 : 1.5, type: "spring" }}
               >
-                <h3 className="text-lg font-medium text-yellow-400 mb-2">
-                  No Friends Found
+                <motion.div
+                  className="mb-4"
+                  animate={{
+                    rotate: embersComplete ? [0, 10, -10, 0] : 0,
+                  }}
+                  transition={{
+                    duration: 4,
+                    repeat: embersComplete ? Number.POSITIVE_INFINITY : 0,
+                    ease: "easeInOut",
+                  }}
+                >
+                  <Sparkles className="w-16 h-16 text-yellow-400/60 mx-auto" />
+                </motion.div>
+                <h3 className="text-lg font-medium text-yellow-400 mb-3">
+                  No Friends Found in this Realm
                 </h3>
-                <p className="text-stone-300 text-sm">
+                <p className="text-stone-300 text-sm leading-relaxed">
                   {currentUserFid
-                    ? "None of your Farcaster friends have active characters ready for battle."
-                    : "Connect your Farcaster account to challenge your friends!"}
+                    ? allChallengeableFriends.length > 0
+                      ? "Your friends are busy in other dimensions. Try again later!"
+                      : "None of your Farcaster friends have manifested active characters in this dimension. Encourage them to join the battle!"
+                    : "Connect your Farcaster essence to bridge the gap between realms and challenge your friends!"}
                 </p>
               </motion.div>
             ) : (
               <div className="relative w-full h-full max-w-6xl mx-auto">
-                {allPlayers
+                {challengeableFriends
                   .slice(0, emberIndex)
                   .map((player, index) => (
                     <EmberCharacter
@@ -216,12 +523,41 @@ export function AlternateDimension({
                       index={index}
                       total={challengeableFriends.length}
                       onSelect={() => onChallengePlayer(player)}
-                      delay={index * 300}
+                      delay={index * 250}
+                      position={emberPositions[index]}
+                      allPlayers={challengeableFriends}
                     />
                   ))}
               </div>
             )}
           </div>
+
+          {/* Ambient magical energy field - only when embers are complete */}
+          <AnimatePresence>
+            {embersComplete && (
+              <motion.div
+                className="absolute inset-0 pointer-events-none"
+                initial={{ opacity: 0 }}
+                animate={{
+                  opacity: 1,
+                  background: [
+                    "radial-gradient(circle at 20% 80%, rgba(255, 215, 0, 0.02) 0%, transparent 50%)",
+                    "radial-gradient(circle at 80% 20%, rgba(255, 165, 0, 0.02) 0%, transparent 50%)",
+                    "radial-gradient(circle at 20% 80%, rgba(255, 215, 0, 0.02) 0%, transparent 50%)",
+                  ],
+                }}
+                exit={{ opacity: 0 }}
+                transition={{
+                  opacity: { duration: 1 },
+                  background: {
+                    duration: 8,
+                    repeat: Number.POSITIVE_INFINITY,
+                    ease: "easeInOut",
+                  },
+                }}
+              />
+            )}
+          </AnimatePresence>
         </motion.div>
       )}
     </AnimatePresence>

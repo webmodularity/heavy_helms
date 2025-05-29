@@ -107,27 +107,21 @@ export function AuthenticatedView() {
     }
   }, [inViewRef]);
 
-  // Magical dimension handlers
-  const handleOpenDimension = useCallback(() => {
-    setIsDimensionOpen(true);
-  }, []);
-
-  const handleCloseDimension = useCallback(() => {
-    setIsDimensionOpen(false);
-  }, []);
-
+  // Modified handlers - DON'T close dimension when opening confirmation
   const handleChallengePlayer = useCallback((opponent: Fighter) => {
-    setIsDimensionOpen(false);
+    // Keep dimension open - only show confirmation overlay
     setChallengeConfirmation({ isOpen: true, opponent });
   }, []);
 
   const handleCloseChallengeConfirmation = useCallback(() => {
     setChallengeConfirmation({ isOpen: false, opponent: null });
+    // Dimension remains open so user can try other friends
   }, []);
 
   const handleChallengeSuccess = useCallback(() => {
     setChallengeConfirmation({ isOpen: false, opponent: null });
-    // Optionally show a success message or navigate somewhere
+    // Close dimension after successful challenge
+    setIsDimensionOpen(false);
   }, []);
 
   // Show portal button when character is selected and user has Farcaster
@@ -167,29 +161,8 @@ export function AuthenticatedView() {
       {/* Magical Portal Button */}
       <MagicalPortalButton
         isVisible={showPortalButton}
-        onClick={handleOpenDimension}
+        selectedCharacterId={selectedCharacter?.id}
       />
-
-      {/* Alternate Dimension */}
-      {selectedCharacter && (
-        <AlternateDimension
-          isOpen={isDimensionOpen}
-          onClose={handleCloseDimension}
-          selectedCharacter={selectedCharacter}
-          onChallengePlayer={handleChallengePlayer}
-        />
-      )}
-
-      {/* Challenge Confirmation Modal */}
-      {selectedCharacter && challengeConfirmation.opponent && (
-        <EmberChallengeConfirmation
-          isOpen={challengeConfirmation.isOpen}
-          onClose={handleCloseChallengeConfirmation}
-          challenger={selectedCharacter}
-          opponent={challengeConfirmation.opponent}
-          onSuccess={handleChallengeSuccess}
-        />
-      )}
 
       {/* <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <ActivitySection selectedCharacter={selectedCharacter} />
