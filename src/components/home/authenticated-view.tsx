@@ -11,6 +11,13 @@ import { WarriorSelection } from "../character/warrior-selection";
 import type { StanceType } from "@/types/equipment.types";
 import { useOwnPlayers } from "@/hooks/use-own-players";
 import { useRouter, useSearchParams } from "next/navigation";
+import { 
+  MagicalPortalButton, 
+  AlternateDimension, 
+  EmberChallengeConfirmation 
+} from "../magical-dimension";
+import type { Fighter } from "@/types/fighter-types";
+import { useFollowingData } from "@/hooks/use-following-data";
 
 export function AuthenticatedView() {
   const searchParams = useSearchParams();
@@ -20,7 +27,15 @@ export function AuthenticatedView() {
     null,
   );
   const { players } = useOwnPlayers();
+  const { currentUserFid } = useFollowingData();
   const router = useRouter();
+
+  // Magical dimension states
+  const [isDimensionOpen, setIsDimensionOpen] = useState(false);
+  const [challengeConfirmation, setChallengeConfirmation] = useState<{
+    isOpen: boolean;
+    opponent: Fighter | null;
+  }>({ isOpen: false, opponent: null });
 
   const battleSectionRef = useRef<HTMLElement>(null);
   const { ref: inViewRef, inView } = useInView({
@@ -92,6 +107,32 @@ export function AuthenticatedView() {
     }
   }, [inViewRef]);
 
+  // Magical dimension handlers
+  const handleOpenDimension = useCallback(() => {
+    setIsDimensionOpen(true);
+  }, []);
+
+  const handleCloseDimension = useCallback(() => {
+    setIsDimensionOpen(false);
+  }, []);
+
+  const handleChallengePlayer = useCallback((opponent: Fighter) => {
+    setIsDimensionOpen(false);
+    setChallengeConfirmation({ isOpen: true, opponent });
+  }, []);
+
+  const handleCloseChallengeConfirmation = useCallback(() => {
+    setChallengeConfirmation({ isOpen: false, opponent: null });
+  }, []);
+
+  const handleChallengeSuccess = useCallback(() => {
+    setChallengeConfirmation({ isOpen: false, opponent: null });
+    // Optionally show a success message or navigate somewhere
+  }, []);
+
+  // Show portal button when character is selected and user has Farcaster
+  const showPortalButton = Boolean(selectedCharacter && currentUserFid);
+
   // Automatically scroll to battle section if a character is selected and it's not in view
   // useEffect(() => {
   //   if (selectedCharacter && !hasBattleInView) {
@@ -122,6 +163,34 @@ export function AuthenticatedView() {
           battleSectionRef={battleSectionRef}
         />
       </div>
+
+      {/* Magical Portal Button */}
+      <MagicalPortalButton
+        isVisible={showPortalButton}
+        onClick={handleOpenDimension}
+      />
+
+      {/* Alternate Dimension */}
+      {selectedCharacter && (
+        <AlternateDimension
+          isOpen={isDimensionOpen}
+          onClose={handleCloseDimension}
+          selectedCharacter={selectedCharacter}
+          onChallengePlayer={handleChallengePlayer}
+        />
+      )}
+
+      {/* Challenge Confirmation Modal */}
+      {selectedCharacter && challengeConfirmation.opponent && (
+        <EmberChallengeConfirmation
+          isOpen={challengeConfirmation.isOpen}
+          onClose={handleCloseChallengeConfirmation}
+          challenger={selectedCharacter}
+          opponent={challengeConfirmation.opponent}
+          onSuccess={handleChallengeSuccess}
+        />
+      )}
+
       {/* <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <ActivitySection selectedCharacter={selectedCharacter} />
       </div> */}
