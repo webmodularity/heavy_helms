@@ -33,7 +33,7 @@ export function EmberChallengeConfirmation({
 }: EmberChallengeConfirmationProps) {
   const [confirmationState, setConfirmationState] = useState<ConfirmationState>("idle");
   const [showSuccessAnimation, setShowSuccessAnimation] = useState(false);
-  const { createChallenge, isCreatingChallenge, error } = useCreateChallenge();
+  const { createChallenge, isCreatingChallenge, error, txHash } = useCreateChallenge();
 
   // Reset state when modal opens
   useEffect(() => {
@@ -42,6 +42,15 @@ export function EmberChallengeConfirmation({
       setShowSuccessAnimation(false);
     }
   }, [isOpen]);
+
+  // NEW: Close modal immediately when we get a txHash
+  useEffect(() => {
+    if (txHash) {
+      // Close the modal immediately when transaction is submitted
+      onSuccess();
+      onClose();
+    }
+  }, [txHash, onSuccess, onClose]);
 
   const handleConfirm = async () => {
     setConfirmationState("confirming");
@@ -53,18 +62,9 @@ export function EmberChallengeConfirmation({
         wagerAmount: DEFAULT_WAGER,
       });
 
-      if (!error) {
-        setConfirmationState("success");
-        setShowSuccessAnimation(true);
-        
-        // Auto-close after success animation
-        setTimeout(() => {
-          onSuccess();
-          onClose();
-        }, 2500);
-      } else {
-        setConfirmationState("error");
-      }
+      // The useEffect above will handle closing when txHash is available
+      // So we don't need to handle success/error states here anymore
+      
     } catch (err) {
       console.error("Error creating magical challenge:", err);
       setConfirmationState("error");
@@ -325,9 +325,9 @@ export function EmberChallengeConfirmation({
                       <p className="text-stone-400 text-[10px]">{challenger.name.fullName}</p>
                     </motion.div>
 
-                    {/* Enhanced VS with magical effects */}
+                    {/* Enhanced VS with magical effects - FIXED OVERLAP */}
                     <motion.div
-                      className="text-yellow-400 font-bold text-xl relative"
+                      className="text-yellow-400 font-bold text-xl relative flex items-center justify-center"
                       animate={{
                         scale: confirmationState === "confirming" ? [1, 1.3, 1] : [1, 1.2, 1],
                         rotate: confirmationState === "confirming" ? [0, 10, -10, 0] : [0, 5, -5, 0],
@@ -338,24 +338,40 @@ export function EmberChallengeConfirmation({
                         ease: "easeInOut",
                       }}
                     >
-                      VS
-                      
-                      {/* Magical energy between characters */}
-                      {confirmationState === "confirming" && (
-                        <motion.div
-                          className="absolute inset-0 flex items-center justify-center"
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                        >
+                      {/* Show different content based on confirmation state */}
+                      <AnimatePresence mode="wait">
+                        {confirmationState === "confirming" ? (
                           <motion.div
-                            className="w-8 h-8"
-                            animate={{ rotate: 360 }}
-                            transition={{ duration: 1, repeat: Number.POSITIVE_INFINITY, ease: "linear" }}
+                            key="channeling"
+                            className="flex items-center justify-center"
+                            initial={{ opacity: 0, scale: 0.5 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.5 }}
+                            transition={{ duration: 0.3 }}
                           >
-                            <Zap className="w-8 h-8 text-yellow-300" />
+                            <motion.div
+                              animate={{ rotate: 360 }}
+                              transition={{ 
+                                duration: 1, 
+                                repeat: Number.POSITIVE_INFINITY, 
+                                ease: "linear" 
+                              }}
+                            >
+                              <Zap className="w-8 h-8 text-yellow-300" />
+                            </motion.div>
                           </motion.div>
-                        </motion.div>
-                      )}
+                        ) : (
+                          <motion.div
+                            key="vs"
+                            initial={{ opacity: 0, scale: 0.5 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            exit={{ opacity: 0, scale: 0.5 }}
+                            transition={{ duration: 0.3 }}
+                          >
+                            VS
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </motion.div>
 
                     {/* Opponent */}

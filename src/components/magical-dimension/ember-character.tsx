@@ -2,7 +2,7 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Sparkles, Zap } from "lucide-react";
 import type { Fighter } from "@/types/fighter-types";
 import {
@@ -31,6 +31,8 @@ export function EmberCharacter({
 }: EmberCharacterProps) {
   const [isHovered, setIsHovered] = useState(false);
   const [isPressed, setIsPressed] = useState(false);
+  const [showTooltip, setShowTooltip] = useState(false);
+  const [tooltipPosition, setTooltipPosition] = useState<'top' | 'bottom' | 'left' | 'right'>('top');
 
   // Calculate dynamic size based on wins
   const sizeData = useMemo(() => {
@@ -39,14 +41,9 @@ export function EmberCharacter({
     const minWins = Math.min(...allWins);
     const maxWins = Math.max(...allWins);
     
-    // Avoid division by zero if all players have same wins
     const winsRange = maxWins - minWins || 1;
-    
-    // Scale from 50% to 100% based on wins
     const sizePercent = 50 + ((wins - minWins) / winsRange) * 50;
     const scaleFactor = sizePercent / 100;
-    
-    // Base size is 80px (w-20 h-20), scale accordingly
     const baseSize = 80;
     const actualSize = Math.round(baseSize * scaleFactor);
     
@@ -60,7 +57,153 @@ export function EmberCharacter({
   }, [player.record.wins, allPlayers]);
 
   const { x, y } = position;
-  const { scaleFactor, actualSize, isLargest, isSmallest } = sizeData;
+  const { scaleFactor, actualSize, isLargest } = sizeData;
+
+  // Smart tooltip positioning based on ember location
+  useEffect(() => {
+    const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1200;
+    const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 800;
+    const centerX = viewportWidth / 2;
+    const centerY = viewportHeight / 2;
+    
+    // Calculate absolute position of ember
+    const emberX = centerX + x;
+    const emberY = centerY + y;
+    
+    // Choose position that keeps tooltip in viewport and away from center
+    if (emberY < centerY - 100) {
+      setTooltipPosition('bottom'); // Ember is high, tooltip below
+    } else if (emberY > centerY + 100) {
+      setTooltipPosition('top'); // Ember is low, tooltip above
+    } else if (emberX < centerX) {
+      setTooltipPosition('right'); // Ember is left, tooltip right
+    } else {
+      setTooltipPosition('left'); // Ember is right, tooltip left
+    }
+  }, [x, y]);
+
+  // Improved hover timing - delay show, immediate hide
+  useEffect(() => {
+    let showTimer: NodeJS.Timeout;
+    let hideTimer: NodeJS.Timeout;
+
+    if (isHovered) {
+      // Show tooltip after delay
+      showTimer = setTimeout(() => {
+        setShowTooltip(true);
+      }, 500); // 500ms delay before showing
+    } else {
+      // Hide tooltip after a short delay to prevent flickering
+      hideTimer = setTimeout(() => {
+        setShowTooltip(false);
+      }, 150); // Quick hide but not instant
+    }
+
+    return () => {
+      clearTimeout(showTimer);
+      clearTimeout(hideTimer);
+    };
+  }, [isHovered]);
+
+  const handleEmberClick = () => {
+    // Always close tooltip when clicking
+    setShowTooltip(false);
+    onSelect();
+  };
+
+  const handleHoverStart = () => {
+    setIsHovered(true);
+  };
+
+  const handleHoverEnd = () => {
+    setIsHovered(false);
+  };
+
+  // Tooltip positioning styles
+  const getTooltipPositionStyles = () => {
+    const baseDistance = 20 + actualSize / 2; // Distance from ember edge
+    
+    switch (tooltipPosition) {
+      case 'top':
+        return {
+          bottom: `${baseDistance}px`,
+          left: '50%',
+          transform: 'translateX(-50%)',
+        };
+      case 'bottom':
+        return {
+          top: `${baseDistance}px`,
+          left: '50%',
+          transform: 'translateX(-50%)',
+        };
+      case 'left':
+        return {
+          right: `${baseDistance}px`,
+          top: '50%',
+          transform: 'translateY(-50%)',
+        };
+      case 'right':
+        return {
+          left: `${baseDistance}px`,
+          top: '50%',
+          transform: 'translateY(-50%)',
+        };
+      default:
+        return {
+          top: `${-baseDistance}px`,
+          left: '50%',
+          transform: 'translateX(-50%)',
+        };
+    }
+  };
+
+  // Tooltip arrow styles
+  const getTooltipArrowStyles = () => {
+    switch (tooltipPosition) {
+      case 'top':
+        return {
+          top: '100%',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          borderTop: '8px solid rgba(28, 25, 23, 0.98)',
+          borderLeft: '8px solid transparent',
+          borderRight: '8px solid transparent',
+          borderBottom: 'none',
+        };
+      case 'bottom':
+        return {
+          bottom: '100%',
+          left: '50%',
+          transform: 'translateX(-50%)',
+          borderBottom: '8px solid rgba(28, 25, 23, 0.98)',
+          borderLeft: '8px solid transparent',
+          borderRight: '8px solid transparent',
+          borderTop: 'none',
+        };
+      case 'left':
+        return {
+          left: '100%',
+          top: '50%',
+          transform: 'translateY(-50%)',
+          borderLeft: '8px solid rgba(28, 25, 23, 0.98)',
+          borderTop: '8px solid transparent',
+          borderBottom: '8px solid transparent',
+          borderRight: 'none',
+        };
+      case 'right':
+        return {
+          right: '100%',
+          top: '50%',
+          transform: 'translateY(-50%)',
+          borderRight: '8px solid rgba(28, 25, 23, 0.98)',
+          borderTop: '8px solid transparent',
+          borderBottom: '8px solid transparent',
+          borderLeft: 'none',
+        };
+      default:
+        return {};
+    }
+  };
 
   return (
     <motion.div
@@ -93,18 +236,18 @@ export function EmberCharacter({
         filter: { duration: 0.8 },
       }}
       whileHover={{
-        scale: 1.3,
-        transition: { duration: 0.3, ease: "easeOut" },
+        scale: 1.1, // Reduced from 1.3 to prevent layout shift
+        transition: { duration: 0.2, ease: "easeOut" },
       }}
-      onHoverStart={() => setIsHovered(true)}
-      onHoverEnd={() => setIsHovered(false)}
+      onHoverStart={handleHoverStart}
+      onHoverEnd={handleHoverEnd}
       onTapStart={() => setIsPressed(true)}
       onTap={() => setIsPressed(false)}
       onTapCancel={() => setIsPressed(false)}
     >
       {/* Enhanced multi-layered ember glow effect - scaled */}
       <motion.div
-        className="absolute rounded-full"
+        className="absolute rounded-full pointer-events-none"
         style={{
           width: `${actualSize + 40}px`,
           height: `${actualSize + 40}px`,
@@ -116,8 +259,8 @@ export function EmberCharacter({
           filter: `blur(${12 * scaleFactor}px)`,
         }}
         animate={{
-          scale: isHovered ? [1, 1.5, 1.2] : [1, 1.4, 1],
-          opacity: isHovered ? [0.6, 1, 0.8] : isLargest ? [0.6, 1, 0.6] : [0.4, 0.8, 0.4],
+          scale: isHovered ? [1, 1.3, 1.1] : [1, 1.2, 1], // Reduced scaling
+          opacity: isHovered ? [0.6, 0.9, 0.7] : isLargest ? [0.6, 1, 0.6] : [0.4, 0.8, 0.4],
         }}
         transition={{
           duration: isLargest ? 1.5 : 2,
@@ -128,7 +271,7 @@ export function EmberCharacter({
 
       {/* Secondary glow layer - scaled */}
       <motion.div
-        className="absolute rounded-full"
+        className="absolute rounded-full pointer-events-none"
         style={{
           width: `${actualSize + 20}px`,
           height: `${actualSize + 20}px`,
@@ -151,24 +294,25 @@ export function EmberCharacter({
         }}
       />
 
-      {/* Enhanced character ember with magical border - dynamically sized */}
+      {/* Enhanced character ember with magical border - FIXED CLICK AREA */}
       <motion.button
-        onClick={onSelect}
+        onClick={handleEmberClick}
         className="relative rounded-full overflow-hidden 
                    border-2 bg-gradient-to-br 
                    from-amber-500/30 to-orange-600/30 backdrop-blur-sm
                    transition-all duration-300
-                   shadow-xl"
+                   shadow-xl cursor-pointer
+                   touch-manipulation"
         style={{
           width: `${actualSize}px`,
           height: `${actualSize}px`,
           borderColor: isHovered ? "#FCD34D" : isLargest ? "#FCD34D80" : "#FB923C80",
           borderWidth: isLargest ? "3px" : "2px",
           boxShadow: isHovered
-            ? `0 0 ${30 * scaleFactor}px rgba(255, 165, 0, 0.6), 0 0 ${60 * scaleFactor}px rgba(255, 69, 0, 0.3)`
+            ? `0 0 ${25 * scaleFactor}px rgba(255, 165, 0, 0.6), 0 0 ${50 * scaleFactor}px rgba(255, 69, 0, 0.3)`
             : isLargest 
-            ? `0 0 ${25 * scaleFactor}px rgba(255, 215, 0, 0.5), 0 0 ${50 * scaleFactor}px rgba(255, 165, 0, 0.3)`
-            : `0 0 ${20 * scaleFactor}px rgba(255, 165, 0, 0.4)`,
+            ? `0 0 ${20 * scaleFactor}px rgba(255, 215, 0, 0.5), 0 0 ${40 * scaleFactor}px rgba(255, 165, 0, 0.3)`
+            : `0 0 ${15 * scaleFactor}px rgba(255, 165, 0, 0.4)`,
         }}
         animate={{
           rotate: isPressed ? [0, 15, -15, 0] : 0,
@@ -176,220 +320,174 @@ export function EmberCharacter({
         transition={{
           rotate: { duration: 0.3 },
         }}
+        whileTap={{ scale: 0.95 }}
       >
-        {/* Enhanced character image with magical overlay */}
-        <div className="relative w-full h-full">
-          <Image
-            src={player.currentSkin.imageURL}
-            alt={player.name.fullName || ""}
-            fill
-            className="object-cover"
-          />
+        {/* Character image - now properly sized and positioned */}
+        <Image
+          src={player.currentSkin.imageURL}
+          alt={player.name.fullName || ""}
+          fill
+          className="object-cover rounded-full"
+        />
 
-          {/* Animated magical overlay */}
-          <motion.div
-            className="absolute inset-0 bg-gradient-to-br from-orange-400/40 via-transparent to-yellow-400/40"
-            animate={{
-              opacity: isLargest ? [0.4, 0.8, 0.4] : [0.3, 0.7, 0.3],
-              background: [
-                "linear-gradient(45deg, rgba(251, 146, 60, 0.4) 0%, transparent 50%, rgba(252, 211, 77, 0.4) 100%)",
-                "linear-gradient(135deg, rgba(252, 211, 77, 0.4) 0%, transparent 50%, rgba(251, 146, 60, 0.4) 100%)",
-                "linear-gradient(45deg, rgba(251, 146, 60, 0.4) 0%, transparent 50%, rgba(252, 211, 77, 0.4) 100%)",
+        {/* Animated magical overlay */}
+        <motion.div
+          className="absolute inset-0 bg-gradient-to-br from-orange-400/40 via-transparent to-yellow-400/40 rounded-full"
+          animate={{
+            opacity: isLargest ? [0.4, 0.8, 0.4] : [0.3, 0.7, 0.3],
+            background: [
+              "linear-gradient(45deg, rgba(251, 146, 60, 0.4) 0%, transparent 50%, rgba(252, 211, 77, 0.4) 100%)",
+              "linear-gradient(135deg, rgba(252, 211, 77, 0.4) 0%, transparent 50%, rgba(251, 146, 60, 0.4) 100%)",
+              "linear-gradient(45deg, rgba(251, 146, 60, 0.4) 0%, transparent 50%, rgba(252, 211, 77, 0.4) 100%)",
+            ],
+          }}
+          transition={{
+            duration: isLargest ? 2 : 3,
+            repeat: Number.POSITIVE_INFINITY,
+            ease: "easeInOut",
+          }}
+        />
+
+        {/* Magical energy ring - scaled */}
+        <motion.div
+          className="absolute rounded-full border border-yellow-400/50"
+          style={{
+            inset: `${2 * scaleFactor}px`,
+            borderWidth: isLargest ? "2px" : "1px",
+          }}
+          animate={{
+            rotate: [0, 360],
+            borderColor: [
+              "rgba(251, 146, 60, 0.5)",
+              isLargest ? "rgba(255, 215, 0, 0.9)" : "rgba(252, 211, 77, 0.8)",
+              "rgba(251, 146, 60, 0.5)",
+            ],
+          }}
+          transition={{
+            rotate: {
+              duration: isLargest ? 3 : 4,
+              repeat: Number.POSITIVE_INFINITY,
+              ease: "linear",
+            },
+            borderColor: {
+              duration: 2,
+              repeat: Number.POSITIVE_INFINITY,
+              ease: "easeInOut",
+            },
+          }}
+        />
+      </motion.button>
+
+      {/* Floating sparks - reduced quantity for better performance */}
+      {[...Array(isLargest ? 4 : 3)].map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute rounded-full pointer-events-none"
+          style={{
+            left: "50%",
+            top: "50%",
+            width: (i % 2 === 0 ? 3 : 2) * scaleFactor,
+            height: (i % 2 === 0 ? 3 : 2) * scaleFactor,
+            background: isLargest 
+              ? (i % 2 === 0 ? "#FFD700" : "#FCD34D")
+              : (i % 2 === 0 ? "#FCD34D" : "#FB923C"),
+          }}
+          animate={{
+            x: [
+              0,
+              Math.cos((i * (360 / (isLargest ? 4 : 3)) * Math.PI) / 180) * (25 + i * 4) * scaleFactor,
+              Math.cos((i * (360 / (isLargest ? 4 : 3)) * Math.PI) / 180) * (35 + i * 4) * scaleFactor,
+            ],
+            y: [
+              0,
+              Math.sin((i * (360 / (isLargest ? 4 : 3)) * Math.PI) / 180) * (25 + i * 4) * scaleFactor,
+              Math.sin((i * (360 / (isLargest ? 4 : 3)) * Math.PI) / 180) * (35 + i * 4) * scaleFactor - 15 * scaleFactor,
+            ],
+            opacity: [0, 1, 0.7, 0],
+            scale: [0, 1.2 * scaleFactor, 0.8 * scaleFactor, 0],
+            rotate: [0, 180, 360],
+          }}
+          transition={{
+            duration: isLargest ? 1.8 : 2.2,
+            repeat: Number.POSITIVE_INFINITY,
+            delay: i * 0.5,
+            ease: "easeOut",
+          }}
+        />
+      ))}
+
+      {/* Power level indicator - enhanced positioning to avoid tooltip interference */}
+      <motion.div
+        className="absolute rounded-full border-2 border-stone-900 flex items-center justify-center font-bold pointer-events-none"
+        style={{
+          top: `${-6 * scaleFactor}px`,
+          right: `${-6 * scaleFactor}px`,
+          width: `${20 * scaleFactor}px`,
+          height: `${20 * scaleFactor}px`,
+          background: isLargest 
+            ? "linear-gradient(135deg, #FFD700 0%, #FFA500 100%)"
+            : "linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%)",
+          fontSize: `${8 * scaleFactor}px`,
+          color: isLargest ? "#000" : "#1C1917",
+          zIndex: 10,
+        }}
+        animate={{
+          scale: [1, 1.08, 1],
+          boxShadow: isLargest 
+            ? [
+                "0 0 6px rgba(255, 215, 0, 0.7)",
+                "0 0 15px rgba(255, 215, 0, 1)",
+                "0 0 6px rgba(255, 215, 0, 0.7)",
+              ]
+            : [
+                "0 0 4px rgba(252, 211, 77, 0.5)",
+                "0 0 12px rgba(251, 146, 60, 0.8)",
+                "0 0 4px rgba(252, 211, 77, 0.5)",
               ],
+        }}
+        transition={{
+          duration: isLargest ? 1.5 : 2,
+          repeat: Number.POSITIVE_INFINITY,
+          ease: "easeInOut",
+        }}
+      >
+        {Math.min(player.record.wins + 1, 99)}
+        {isLargest && (
+          <motion.div
+            className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-yellow-300 rounded-full"
+            animate={{
+              scale: [0, 1, 0],
+              opacity: [0, 1, 0],
             }}
             transition={{
-              duration: isLargest ? 2 : 3,
+              duration: 1,
               repeat: Number.POSITIVE_INFINITY,
               ease: "easeInOut",
             }}
           />
+        )}
+      </motion.div>
 
-          {/* Magical energy ring - scaled */}
-          <motion.div
-            className="absolute rounded-full border border-yellow-400/50"
-            style={{
-              inset: `${2 * scaleFactor}px`,
-              borderWidth: isLargest ? "2px" : "1px",
-            }}
-            animate={{
-              rotate: [0, 360],
-              borderColor: [
-                "rgba(251, 146, 60, 0.5)",
-                isLargest ? "rgba(255, 215, 0, 0.9)" : "rgba(252, 211, 77, 0.8)",
-                "rgba(251, 146, 60, 0.5)",
-              ],
-            }}
-            transition={{
-              rotate: {
-                duration: isLargest ? 3 : 4,
-                repeat: Number.POSITIVE_INFINITY,
-                ease: "linear",
-              },
-              borderColor: {
-                duration: 2,
-                repeat: Number.POSITIVE_INFINITY,
-                ease: "easeInOut",
-              },
-            }}
-          />
-        </div>
-
-        {/* Enhanced floating sparks with varied patterns - scaled */}
-        {[...Array(isLargest ? 6 : 5)].map((_, i) => (
-          <motion.div
-            key={i}
-            className="absolute rounded-full"
-            style={{
-              left: "50%",
-              top: "50%",
-              width: (i % 2 === 0 ? 3 : 2) * scaleFactor,
-              height: (i % 2 === 0 ? 3 : 2) * scaleFactor,
-              background: isLargest 
-                ? (i % 2 === 0 ? "#FFD700" : "#FCD34D")
-                : (i % 2 === 0 ? "#FCD34D" : "#FB923C"),
-            }}
-            animate={{
-              x: [
-                0,
-                Math.cos((i * (360 / (isLargest ? 6 : 5)) * Math.PI) / 180) * (30 + i * 5) * scaleFactor,
-                Math.cos((i * (360 / (isLargest ? 6 : 5)) * Math.PI) / 180) * (40 + i * 5) * scaleFactor,
-              ],
-              y: [
-                0,
-                Math.sin((i * (360 / (isLargest ? 6 : 5)) * Math.PI) / 180) * (30 + i * 5) * scaleFactor,
-                Math.sin((i * (360 / (isLargest ? 6 : 5)) * Math.PI) / 180) * (40 + i * 5) * scaleFactor - 20 * scaleFactor,
-              ],
-              opacity: [0, 1, 0.7, 0],
-              scale: [0, 1.5 * scaleFactor, 1 * scaleFactor, 0],
-              rotate: [0, 180, 360],
-            }}
-            transition={{
-              duration: isLargest ? 1.5 : 2,
-              repeat: Number.POSITIVE_INFINITY,
-              delay: i * 0.4,
-              ease: "easeOut",
-            }}
-          />
-        ))}
-
-        {/* Magical trail effect on hover - scaled */}
-        <AnimatePresence>
-          {isHovered && (
-            <motion.div
-              className="absolute rounded-full border-2 border-yellow-300/60"
-              style={{
-                inset: 0,
-                borderWidth: isLargest ? "3px" : "2px",
-              }}
-              initial={{ scale: 1, opacity: 0.8 }}
-              animate={{
-                scale: [1, 1.8],
-                opacity: [0.8, 0],
-              }}
-              exit={{ scale: 1.8, opacity: 0 }}
-              transition={{
-                duration: 0.8,
-                repeat: Number.POSITIVE_INFINITY,
-                ease: "easeOut",
-              }}
-            />
-          )}
-        </AnimatePresence>
-
-        {/* Power level indicator - scaled and enhanced for champions */}
-        <motion.div
-          className="absolute rounded-full border-2 border-stone-900 flex items-center justify-center font-bold"
-          style={{
-            top: `${-8 * scaleFactor}px`,
-            right: `${-8 * scaleFactor}px`,
-            width: `${24 * scaleFactor}px`,
-            height: `${24 * scaleFactor}px`,
-            background: isLargest 
-              ? "linear-gradient(135deg, #FFD700 0%, #FFA500 100%)"
-              : "linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%)",
-            fontSize: `${10 * scaleFactor}px`,
-            color: isLargest ? "#000" : "#1C1917",
-          }}
-          animate={{
-            scale: [1, 1.1, 1],
-            boxShadow: isLargest 
-              ? [
-                  "0 0 8px rgba(255, 215, 0, 0.7)",
-                  "0 0 20px rgba(255, 215, 0, 1)",
-                  "0 0 8px rgba(255, 215, 0, 0.7)",
-                ]
-              : [
-                  "0 0 5px rgba(252, 211, 77, 0.5)",
-                  "0 0 15px rgba(251, 146, 60, 0.8)",
-                  "0 0 5px rgba(252, 211, 77, 0.5)",
-                ],
-          }}
-          transition={{
-            duration: isLargest ? 1.5 : 2,
-            repeat: Number.POSITIVE_INFINITY,
-            ease: "easeInOut",
-          }}
-        >
-          {Math.min(player.record.wins + 1, 99)}
-          {isLargest && (
-            <motion.div
-              className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-300 rounded-full"
-              animate={{
-                scale: [0, 1, 0],
-                opacity: [0, 1, 0],
-              }}
-              transition={{
-                duration: 1,
-                repeat: Number.POSITIVE_INFINITY,
-                ease: "easeInOut",
-              }}
-            />
-          )}
-        </motion.div>
-      </motion.button>
-
-      {/* Enhanced character info tooltip with magical styling - scaled positioning */}
+      {/* Improved tooltip with smart positioning and click-through protection */}
       <AnimatePresence>
-        {isHovered && (
+        {showTooltip && (
           <motion.div
-            className="absolute left-1/2 transform -translate-x-1/2 z-20
-                       bg-gradient-to-br from-stone-900/98 to-stone-800/98 
-                       border border-yellow-400/40 rounded-xl p-4
-                       text-xs text-stone-200 backdrop-blur-sm min-w-52
-                       shadow-2xl"
-            style={{
-              top: `${-96 * scaleFactor}px`,
-              borderWidth: isLargest ? "2px" : "1px",
-            }}
-            initial={{ opacity: 0, y: 20, scale: 0.8 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.8 }}
-            transition={{ duration: 0.3, ease: "easeOut" }}
+            className="absolute z-30 pointer-events-none" // pointer-events-none prevents interference
+            style={getTooltipPositionStyles()}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 0.2, ease: "easeOut" }}
           >
-            {/* Magical border glow */}
-            <motion.div
-              className="absolute inset-0 rounded-xl border border-yellow-400/20"
-              animate={{
-                boxShadow: isLargest 
-                  ? [
-                      "0 0 15px rgba(255, 215, 0, 0.3)",
-                      "0 0 25px rgba(255, 215, 0, 0.5)",
-                      "0 0 15px rgba(255, 215, 0, 0.3)",
-                    ]
-                  : [
-                      "0 0 10px rgba(252, 211, 77, 0.2)",
-                      "0 0 20px rgba(251, 146, 60, 0.4)",
-                      "0 0 10px rgba(252, 211, 77, 0.2)",
-                    ],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Number.POSITIVE_INFINITY,
-                ease: "easeInOut",
-              }}
-            />
-
-            <div className="relative z-10">
+            <div className="bg-gradient-to-br from-stone-900/95 to-stone-800/95 
+                           border border-yellow-400/40 rounded-lg p-3
+                           text-xs text-stone-200 backdrop-blur-sm
+                           shadow-2xl max-w-48"
+                 style={{
+                   borderWidth: isLargest ? "2px" : "1px",
+                 }}>
+              
+              {/* Compact character info */}
               <div className="flex items-center gap-2 mb-2">
                 <motion.div
                   animate={{ rotate: [0, 360] }}
@@ -399,71 +497,59 @@ export function EmberCharacter({
                     ease: "linear",
                   }}
                 >
-                  <Sparkles className={`${isLargest ? 'w-4 h-4' : 'w-3 h-3'} text-yellow-400`} />
+                  <Sparkles className={`${isLargest ? 'w-3.5 h-3.5' : 'w-3 h-3'} text-yellow-400`} />
                 </motion.div>
-                <div className={`text-yellow-300 font-medium ${isLargest ? 'text-sm' : ''}`}>
+                <div className={`text-yellow-300 font-medium ${isLargest ? 'text-sm' : 'text-xs'} truncate`}>
                   {player.name.fullName}
-                  {isLargest && <span className="ml-2 text-yellow-400">👑</span>}
+                  {isLargest && <span className="ml-1 text-yellow-400">👑</span>}
                 </div>
               </div>
 
-              <div className="flex justify-between text-[10px] text-stone-300 mb-2">
+              {/* Compact stats */}
+              <div className="flex justify-between text-[9px] text-stone-300 mb-1.5">
                 <span className="flex items-center gap-1">
-                  <div className="w-2 h-2 bg-green-400 rounded-full"></div>
+                  <div className="w-1.5 h-1.5 bg-green-400 rounded-full"></div>
                   {player.record.wins}W
                 </span>
                 <span className="flex items-center gap-1">
-                  <div className="w-2 h-2 bg-red-400 rounded-full"></div>
+                  <div className="w-1.5 h-1.5 bg-red-400 rounded-full"></div>
                   {player.record.losses}L
                 </span>
                 <span className="flex items-center gap-1">
-                  <Zap className="w-2 h-2 text-yellow-400" />
+                  <Zap className="w-1.5 h-1.5 text-yellow-400" />
                   {player.record.kills}K
                 </span>
               </div>
 
-              <div className="text-[10px] text-stone-400 border-t border-yellow-400/20 pt-2">
-                {getWeaponDisplayName(player.currentSkin.weapon)} •{" "}
-                {getArmorDisplayName(player.currentSkin.armor)}
+              {/* Equipment info */}
+              <div className="text-[9px] text-stone-400 border-t border-yellow-400/20 pt-1.5 truncate">
+                {getWeaponDisplayName(player.currentSkin.weapon)} • {getArmorDisplayName(player.currentSkin.armor)}
               </div>
 
-              {/* Click hint */}
-              <motion.div
-                className={`text-[9px] text-yellow-400/80 text-center mt-2 font-medium ${isLargest ? 'text-yellow-300' : ''}`}
-                animate={{
-                  opacity: [0.6, 1, 0.6],
-                }}
-                transition={{
-                  duration: 1.5,
-                  repeat: Number.POSITIVE_INFINITY,
-                  ease: "easeInOut",
-                }}
-              >
-                ✨ {isLargest ? 'Challenge the Champion' : 'Click to Challenge'} ✨
-              </motion.div>
+              {/* Tooltip arrow */}
+              <div
+                className="absolute w-0 h-0"
+                style={getTooltipArrowStyles()}
+              />
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-            {/* Enhanced tooltip arrow */}
-            <motion.div
-              className="absolute left-1/2 transform -translate-x-1/2 
-                         w-4 h-4 bg-stone-900 border-r border-b border-yellow-400/40 
-                         rotate-45"
-              style={{
-                bottom: `${-8}px`,
-              }}
-              animate={{
-                boxShadow: [
-                  "0 0 5px rgba(252, 211, 77, 0.3)",
-                  "0 0 10px rgba(251, 146, 60, 0.6)",
-                  "0 0 5px rgba(252, 211, 77, 0.3)",
-                ],
-              }}
-              transition={{
-                duration: 2,
-                repeat: Number.POSITIVE_INFINITY,
-                ease: "easeInOut",
-              }}
-            />
+      {/* Simple click hint that appears briefly on hover */}
+      <AnimatePresence>
+        {isHovered && !showTooltip && (
+          <motion.div
+            className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 
+                       text-[10px] text-yellow-400/90 font-medium
+                       bg-stone-900/80 px-2 py-1 rounded backdrop-blur-sm
+                       pointer-events-none whitespace-nowrap"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+          >
+            {isLargest ? '👑 Challenge Champion' : 'Click to Challenge'}
           </motion.div>
         )}
       </AnimatePresence>
