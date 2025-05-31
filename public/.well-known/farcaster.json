@@ -7,19 +7,11 @@
     "frame": {
       "name": "HeavyHelms",
       "version": "1",
-<<<<<<< Updated upstream
-      "iconUrl": "https://moms-jets-scheduling-straight.trycloudflare.com/heavy_helms_header_drop_shadow.png",
-      "homeUrl": "https://moms-jets-scheduling-straight.trycloudflare.com",
-      "imageUrl": "https://moms-jets-scheduling-straight.trycloudflare.com/heavy_helms_header_drop_shadow.png",
-      "buttonTitle": "Play",
-      "splashImageUrl": "https://moms-jets-scheduling-straight.trycloudflare.com/warlock_forge.png",
-=======
       "iconUrl": "https://brook-assumptions-singapore-foundations.trycloudflare.com/heavy_helms_header_drop_shadow.png",
       "homeUrl": "https://brook-assumptions-singapore-foundations.trycloudflare.com",
       "imageUrl": "https://brook-assumptions-singapore-foundations.trycloudflare.com/heavy_helms_header_drop_shadow.png",
       "buttonTitle": "Play",
       "splashImageUrl": "https://brook-assumptions-singapore-foundations.trycloudflare.com/warlock_forge.png",
->>>>>>> Stashed changes
       "splashBackgroundColor": "#2e1b3b"
     }
 }
