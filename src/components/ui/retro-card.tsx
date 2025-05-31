@@ -8,17 +8,17 @@ const retroCardVariants = cva(
     variants: {
       variant: {
         default: "border-border shadow-lg",
-        arcade: "border-2 border-primary bg-arcade-screen shadow-arcade",
-        medieval: "border-2 border-medieval-bronze bg-gradient-to-b from-medieval-stone to-card shadow-lg",
+        arcade: "border border-primary bg-arcade-screen shadow-arcade",
+        medieval: "border border-medieval-bronze bg-gradient-to-b from-medieval-stone to-card shadow-lg",
         pixel: "border border-primary shadow-pixel bg-card",
-        crt: "border-2 border-primary bg-arcade-screen shadow-crt",
-        glow: "border-2 border-primary shadow-retro bg-card",
+        crt: "border border-primary bg-arcade-screen shadow-crt",
+        glow: "border border-primary shadow-retro bg-card",
       },
       size: {
-        sm: "p-3",
-        default: "p-4",
-        lg: "p-6",
-        xl: "p-8",
+        sm: "p-2",
+        default: "p-2.5",
+        lg: "p-3",
+        xl: "p-4",
       },
       rounded: {
         none: "rounded-none",
@@ -36,16 +36,16 @@ const retroCardVariants = cva(
 );
 
 const retroCardHeaderVariants = cva(
-  "flex flex-col space-y-1.5",
+  "flex flex-col space-y-1",
   {
     variants: {
       variant: {
-        default: "pb-4",
-        arcade: "pb-3 border-b border-primary/30",
-        medieval: "pb-3 border-b border-medieval-bronze/50",
-        pixel: "pb-3",
-        crt: "pb-3 border-b border-primary/20",
-        glow: "pb-4",
+        default: "pb-2",
+        arcade: "pb-2 border-b border-primary/30",
+        medieval: "pb-2 border-b border-medieval-bronze/50",
+        pixel: "pb-2",
+        crt: "pb-2 border-b border-primary/20",
+        glow: "pb-2",
       },
     },
     defaultVariants: {
@@ -59,12 +59,12 @@ const retroCardTitleVariants = cva(
   {
     variants: {
       variant: {
-        default: "font-pixel text-pixel-lg",
-        arcade: "font-pixel text-pixel-lg retro-glow",
-        medieval: "font-bokor text-lg text-medieval-gold",
-        pixel: "font-pixel text-pixel-lg",
-        crt: "font-pixel text-pixel-lg text-primary",
-        glow: "font-pixel text-pixel-lg retro-glow",
+        default: "font-pixeloid text-base",
+        arcade: "font-pixeloid text-base retro-glow",
+        medieval: "font-bokor text-base text-medieval-gold",
+        pixel: "font-pixeloid text-base",
+        crt: "font-pixeloid text-base text-primary",
+        glow: "font-pixeloid text-base retro-glow",
       },
     },
     defaultVariants: {
@@ -78,12 +78,12 @@ const retroCardDescriptionVariants = cva(
   {
     variants: {
       variant: {
-        default: "text-pixel-sm font-pixel",
-        arcade: "text-pixel-sm font-pixel text-primary/80",
-        medieval: "text-sm font-medieval text-muted-foreground",
-        pixel: "text-pixel-sm font-pixel",
-        crt: "text-pixel-sm font-pixel text-primary/70",
-        glow: "text-pixel-sm font-pixel",
+        default: "text-xs font-pixeloid",
+        arcade: "text-xs font-pixeloid text-primary/80",
+        medieval: "text-xs font-medieval text-muted-foreground",
+        pixel: "text-xs font-pixeloid",
+        crt: "text-xs font-pixeloid text-primary/70",
+        glow: "text-xs font-pixeloid",
       },
     },
     defaultVariants: {
@@ -151,7 +151,7 @@ const RetroCardContent = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
 >(({ className, ...props }, ref) => (
-  <div ref={ref} className={cn("text-pixel-sm font-pixel", className)} {...props} />
+  <div ref={ref} className={cn("text-xs font-pixeloid", className)} {...props} />
 ));
 
 const RetroCardFooter = React.forwardRef<
@@ -160,7 +160,7 @@ const RetroCardFooter = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <div
     ref={ref}
-    className={cn("flex items-center pt-4", className)}
+    className={cn("flex items-center pt-2", className)}
     {...props}
   />
 ));

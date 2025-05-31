@@ -72,7 +72,7 @@ export function RetroNewCharacterCard({
                 {txHash ? "FORGING WARRIOR..." : "AWAITING CONFIRMATION..."}
               </RetroCardTitle>
               
-              <div className="font-pixel text-pixel-sm text-medieval-gold/80">
+              <div className="font-pixeloid text-sm text-medieval-gold/80">
                 {txHash ? "Crafting in the ethereal forge" : "Confirm transaction in wallet"}
               </div>
               
@@ -116,7 +116,7 @@ export function RetroNewCharacterCard({
             </RetroCardHeader>
 
             <RetroCardContent className="space-y-4">
-              <div className="text-center font-pixel text-pixel-sm text-medieval-gold/80">
+              <div className="text-center font-pixeloid text-sm text-medieval-gold/80">
                 Summon a new champion from the ethereal realm to join your ranks.
               </div>
 
@@ -125,7 +125,7 @@ export function RetroNewCharacterCard({
                 className="space-y-3"
                 onClick={(e) => e.stopPropagation()}
               >
-                <div className="text-center font-pixel text-pixel-xs text-medieval-gold/60">
+                <div className="text-center font-pixeloid text-xs text-medieval-gold/60">
                   WARRIOR ESSENCE
                 </div>
                 
@@ -138,7 +138,7 @@ export function RetroNewCharacterCard({
                     glow={selectedNamePreference === 'male' ? "subtle" : "none"}
                   >
                     <User className="h-4 w-4" />
-                    <span className="font-pixel text-pixel-xs">MALE</span>
+                    <span className="font-pixeloid text-xs">MALE</span>
                   </RetroButton>
                   
                   <RetroButton
@@ -149,7 +149,7 @@ export function RetroNewCharacterCard({
                     glow={selectedNamePreference === 'female' ? "subtle" : "none"}
                   >
                     <UserCheck className="h-4 w-4" />
-                    <span className="font-pixel text-pixel-xs">FEMALE</span>
+                    <span className="font-pixeloid text-xs">FEMALE</span>
                   </RetroButton>
                 </div>
               </div>
@@ -157,12 +157,12 @@ export function RetroNewCharacterCard({
               {/* Cost Information */}
               <div className="border-t border-medieval-bronze/30 pt-3">
                 <div className="flex items-center justify-between">
-                  <span className="font-pixel text-pixel-xs text-medieval-gold/60">
+                  <span className="font-pixeloid text-xs text-medieval-gold/60">
                     FORGING COST:
                   </span>
                   <div className="flex items-center gap-1">
                     <Sparkles className="h-3 w-3 text-medieval-gold" />
-                    <span className="font-pixel text-pixel-sm text-medieval-gold font-bold">
+                    <span className="font-pixeloid text-sm text-medieval-gold font-bold">
                       0.002 ETH
                     </span>
                   </div>
@@ -172,7 +172,7 @@ export function RetroNewCharacterCard({
               {/* Action Hint */}
               <div className="text-center">
                 <motion.div
-                  className="inline-flex items-center gap-2 font-pixel text-pixel-xs text-medieval-gold/40"
+                  className="inline-flex items-center gap-2 font-pixeloid text-xs text-medieval-gold/40"
                   animate={{ opacity: [0.4, 0.8, 0.4] }}
                   transition={{ duration: 2, repeat: Infinity }}
                 >

@@ -2,6 +2,10 @@
 
 @plugin "tailwindcss-animate";
 
+@theme inline {
+  --font-pixeloid: var(--font-pixeloid);
+}
+
 /* RETRO-PIXEL THEME SYSTEM - Tailwind CSS v4 */
 @theme {
   /* Font Family Configuration */
@@ -124,7 +128,7 @@
 }
 
 /* Custom utility classes using the correct @utility syntax */
-@utility font-pixel {
+@utility font-pixeloid {
   font-family: var(--font-family-pixel);
   font-feature-settings: normal;
   image-rendering: pixelated;
@@ -232,14 +236,14 @@
 /* Component classes using @apply - these should now work */
 @layer components {
   .btn-retro {
-    @apply bg-primary text-primary-foreground px-4 py-2 font-pixel text-sm uppercase tracking-wider;
+    @apply bg-primary text-primary-foreground px-4 py-2 font-pixeloid text-sm uppercase tracking-wider;
     @apply border-2 border-primary retro-glow pixel-perfect;
     @apply transition-all duration-150;
     @apply hover:bg-primary/80 hover:retro-glow-lg active:scale-95;
   }
   
   .btn-pixel {
-    @apply bg-primary text-primary-foreground px-3 py-2 font-pixel text-xs uppercase;
+    @apply bg-primary text-primary-foreground px-3 py-2 font-pixeloid text-xs uppercase;
     @apply border border-primary pixel-shadow pixel-perfect;
     @apply transition-all duration-100;
     @apply hover:bg-primary/90 hover:pixel-shadow-lg;
@@ -252,7 +256,7 @@
   
   .input-retro {
     @apply bg-input border border-border rounded-pixel-md px-3 py-2;
-    @apply text-foreground font-pixel text-sm;
+    @apply text-foreground font-pixeloid text-sm;
     @apply focus:border-primary focus:retro-glow focus:outline-none;
     @apply pixel-perfect;
   }

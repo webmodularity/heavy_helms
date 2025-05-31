@@ -3,7 +3,7 @@ import { type VariantProps, cva } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const retroInputVariants = cva(
-  "flex min-w-0 w-full font-pixel text-pixel-base bg-transparent transition-all duration-200 outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 pixel-perfect",
+  "flex min-w-0 w-full font-pixeloid text-base bg-transparent transition-all duration-200 outline-none disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 pixel-perfect",
   {
     variants: {
       variant: {
@@ -21,9 +21,9 @@ const retroInputVariants = cva(
           "border border-transparent bg-muted/30 text-foreground placeholder:text-muted-foreground focus-visible:border-primary focus-visible:bg-muted/50",
       },
       size: {
-        sm: "h-8 px-3 py-1 text-pixel-sm rounded-pixel-sm",
-        default: "h-10 px-3 py-2 text-pixel-base rounded-pixel-md",
-        lg: "h-12 px-4 py-2 text-pixel-lg rounded-retro",
+        sm: "h-8 px-3 py-1 text-sm rounded-pixel-sm",
+        default: "h-10 px-3 py-2 text-base rounded-pixel-md",
+        lg: "h-12 px-4 py-2 text-lg rounded-retro",
       },
       rounded: {
         none: "rounded-none",

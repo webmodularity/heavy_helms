@@ -140,14 +140,14 @@ export function RetroAuthenticatedView() {
 
   return (
     <>
-      <div className="max-w-7xl mx-auto px-0 sm:px-2 md:px-4">
+      <div className="max-w-7xl mx-auto px-0 sm:px-1 md:px-2">
         <RetroWarriorSelection
           selectedCharacter={selectedCharacter}
           onSelectCharacter={handleSelectCharacter}
           onDeselectCharacter={handleDeselectCharacter}
         />
 
-        {/* Scroll indicator - only show when a character is selected and battle section is not in view */}
+        {/* Scroll indicator - COMPACTED */}
         {selectedCharacter && !hasBattleInView && (
           <RetroScrollIndicator onClick={scrollToBattleSection} />
         )}
@@ -172,29 +172,23 @@ export function RetroAuthenticatedView() {
   );
 }
 
-// ======== Shared Components ========
-
-// The ScrollIndicator component - can stay here since it's specific to this view
-interface RetroScrollIndicatorProps {
-  onClick: () => void;
-}
-
+// COMPACTED ScrollIndicator component
 function RetroScrollIndicator({ onClick }: RetroScrollIndicatorProps) {
   return (
     <motion.div
-      className="fixed bottom-8 left-0 right-0 z-50 flex justify-center items-center"
+      className="fixed bottom-6 left-0 right-0 z-50 flex justify-center items-center"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0, y: 20 }}
     >
       <RetroButton
         variant="arcade"
-        size="lg"
+        size="default"
         glow="medium"
         onClick={onClick}
-        className="gap-2"
+        className="gap-1.5"
       >
-        View Battle Options <ChevronDown className="h-4 w-4" />
+        View Battle Options <ChevronDown className="h-3 w-3" />
       </RetroButton>
     </motion.div>
   );

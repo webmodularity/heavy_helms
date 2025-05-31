@@ -49,7 +49,7 @@ export function RetroBackButton({
     >
       {withIcon && <IconComponent className="h-4 w-4" />}
       {children || (
-        <span className="font-pixel">
+        <span className="font-pixeloid">
           {variant === "medieval" ? "RETURN" : "BACK"}
         </span>
       )}

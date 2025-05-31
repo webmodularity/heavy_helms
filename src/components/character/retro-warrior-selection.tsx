@@ -148,28 +148,28 @@ export function RetroWarriorSelection({
   };
 
   return (
-    <section className="mt-6">
-      {/* Section Header */}
-      <RetroCard variant="arcade" className="mb-4">
+    <section className="mt-3">
+      {/* Section Header - COMPACTED */}
+      <RetroCard variant="arcade" className="mb-3" size="sm">
         <RetroCardHeader variant="arcade">
           <RetroCardTitle variant="arcade" className="text-center">
             WARRIOR ROSTER
           </RetroCardTitle>
         </RetroCardHeader>
         <RetroCardContent>
-          <div className="text-center font-pixel text-pixel-sm text-primary/80">
+          <div className="text-center font-pixeloid text-xs text-primary/80">
             SELECT COMBAT UNIT • CONFIGURE STANCE • DEPLOY TO BATTLEFIELD
           </div>
         </RetroCardContent>
       </RetroCard>
 
-      {/* Character Selection Scroll */}
-      <div className="relative max-w-full">
+      {/* Character Selection Scroll - COMPACTED */}
+      <div className="relative max-w-full mt-12">
         <div
           ref={characterListRef}
           className={cn(
-            "flex gap-4 mt-3 overflow-x-auto pb-4 pt-2 snap-x snap-mandatory",
-            "scrollbar-none items-start overscroll-x-contain px-[10%]",
+            "flex gap-2.5 mt-2 overflow-x-auto pb-3 pt-1 snap-x snap-mandatory",
+            "scrollbar-none items-start overscroll-x-contain px-[8%]",
             "bg-gradient-to-r from-transparent via-primary/5 to-transparent rounded-retro",
           )}
         >
@@ -181,7 +181,7 @@ export function RetroWarriorSelection({
                 <div
                   key={character.id}
                   className={cn(
-                    "flex-shrink-0 snap-center w-[80%] transition-all duration-300",
+                    "flex-shrink-0 snap-center w-[75%] transition-all duration-300",
                     activeIndex === index
                       ? "scale-105 z-10 shadow-retro"
                       : "scale-95 opacity-75",
@@ -203,46 +203,21 @@ export function RetroWarriorSelection({
                 </div>
               ))}
 
-              {/* Character Creation Card */}
-              {players && players.length < MAX_PLAYERS ? (
+              {showNewCharacterCard && (
                 <div
                   className={cn(
-                    "flex-shrink-0 snap-center w-[80%] transition-all duration-300",
-                    activeIndex === players.length
+                    "flex-shrink-0 snap-center w-[75%] transition-all duration-300",
+                    activeIndex === numPlayerCards
                       ? "scale-105 z-10 shadow-retro"
                       : "scale-95 opacity-75",
                   )}
                 >
-                  <RetroNewCharacterCard
-                    delay={players?.length || 0}
-                    onClick={(namePreference: NamePreference) =>
-                      createCharacter(namePreference)
-                    }
-                    isCreating={isCreatingCharacter}
-                    txHash={txHash}
-                  />
+                  <RetroNewCharacterCard />
                 </div>
-              ) : null}
+              )}
             </>
           )}
         </div>
-
-        {/* Scroll Progress Indicator */}
-        {totalScrollItems > 1 && (
-          <div className="flex justify-center mt-3 gap-1">
-            {Array.from({ length: totalScrollItems }).map((_, index) => (
-              <div
-                key={index}
-                className={cn(
-                  "w-2 h-2 rounded-pixel transition-all duration-200",
-                  index === activeIndex
-                    ? "bg-primary shadow-retro"
-                    : "bg-primary/20",
-                )}
-              />
-            ))}
-          </div>
-        )}
       </div>
     </section>
   );

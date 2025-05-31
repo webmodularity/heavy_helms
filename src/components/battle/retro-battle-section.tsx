@@ -74,7 +74,7 @@ export function RetroBattleSection({
           </RetroCardTitle>
         </RetroCardHeader>
         <RetroCardContent>
-          <div className="text-center font-pixel text-pixel-sm text-primary/80">
+          <div className="text-center font-pixeloid text-sm text-primary/80">
             CHOOSE ENGAGEMENT TYPE • CONFIGURE PARAMETERS • INITIATE COMBAT
           </div>
         </RetroCardContent>
@@ -98,7 +98,7 @@ export function RetroBattleSection({
       {selectedCharacter && (
         <RetroCard variant="pixel" className="mt-6 border-success/30">
           <RetroCardContent>
-            <div className="flex items-center justify-between font-pixel text-pixel-sm">
+            <div className="flex items-center justify-between font-pixeloid text-sm">
               <span className="text-success">WARRIOR STATUS: COMBAT READY</span>
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-success rounded-full animate-pulse" />
@@ -256,7 +256,7 @@ function RetroBattleCard({
               />
             </div>
             <div className={cn(
-              "px-2 py-1 rounded-pixel text-pixel-xs font-pixel",
+              "px-2 py-1 rounded-pixel text-xs font-pixeloid",
               battleType.variant === "arcade" ? "bg-primary/20 text-primary" : "bg-medieval-gold/20 text-medieval-gold"
             )}>
               {battleType.statusText}

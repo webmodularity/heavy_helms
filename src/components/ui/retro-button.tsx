@@ -5,42 +5,42 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 const retroButtonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap font-pixel text-pixel-sm font-medium transition-all duration-200 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-4 [&_svg]:shrink-0 outline-none pixel-perfect relative overflow-hidden",
+  "inline-flex items-center justify-center gap-1.5 whitespace-nowrap font-pixeloid text-sm font-medium transition-all duration-200 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-3 [&_svg]:shrink-0 outline-none pixel-perfect relative overflow-hidden",
   {
     variants: {
       variant: {
         primary:
-          "bg-primary text-primary-foreground border-2 border-primary hover:bg-primary-glow hover:shadow-retro focus-visible:ring-2 focus-visible:ring-primary/50",
+          "bg-primary text-primary-foreground border border-primary hover:bg-primary-glow hover:shadow-retro focus-visible:ring-1 focus-visible:ring-primary/50",
         secondary:
-          "bg-secondary text-secondary-foreground border-2 border-secondary hover:bg-secondary-glow hover:shadow-[0_0_10px_var(--color-secondary)] focus-visible:ring-2 focus-visible:ring-secondary/50",
+          "bg-secondary text-secondary-foreground border border-secondary hover:bg-secondary-glow hover:shadow-[0_0_6px_var(--color-secondary)] focus-visible:ring-1 focus-visible:ring-secondary/50",
         pixel:
           "bg-card text-foreground border border-primary hover:bg-primary hover:text-primary-foreground shadow-pixel hover:shadow-pixel-lg",
         medieval:
-          "bg-medieval-gold text-background border-2 border-medieval-bronze hover:bg-medieval-bronze hover:shadow-[0_0_15px_var(--color-medieval-gold)] font-bokor",
+          "bg-medieval-gold text-background border border-medieval-bronze hover:bg-medieval-bronze hover:shadow-[0_0_8px_var(--color-medieval-gold)] font-bokor",
         arcade:
-          "bg-arcade-screen text-primary border-2 border-primary shadow-arcade hover:shadow-retro-lg relative",
+          "bg-arcade-screen text-primary border border-primary shadow-arcade hover:shadow-retro-lg relative",
         destructive:
-          "bg-destructive text-destructive-foreground border-2 border-destructive hover:bg-red-600 hover:shadow-[0_0_10px_var(--color-destructive)]",
+          "bg-destructive text-destructive-foreground border border-destructive hover:bg-red-600 hover:shadow-[0_0_6px_var(--color-destructive)]",
         ghost:
           "text-foreground border border-transparent hover:bg-muted hover:border-primary",
         outline:
-          "border-2 border-primary text-primary bg-transparent hover:bg-primary hover:text-primary-foreground",
+          "border border-primary text-primary bg-transparent hover:bg-primary hover:text-primary-foreground",
       },
       size: {
-        xs: "h-6 px-2 text-pixel-xs rounded-pixel",
-        sm: "h-8 px-3 text-pixel-sm rounded-pixel-sm",
-        default: "h-10 px-4 text-pixel-base rounded-pixel-md",
-        lg: "h-12 px-6 text-pixel-lg rounded-pixel-lg",
-        xl: "h-14 px-8 text-pixel-xl rounded-retro",
-        icon: "size-10 rounded-pixel-md",
-        "icon-sm": "size-8 rounded-pixel-sm",
-        "icon-lg": "size-12 rounded-pixel-lg",
+        xs: "h-5 px-1.5 text-xs rounded-pixel",
+        sm: "h-6 px-2 text-sm rounded-pixel-sm",
+        default: "h-7 px-3 text-base rounded-pixel-md",
+        lg: "h-8 px-4 text-lg rounded-pixel-lg",
+        xl: "h-10 px-5 text-xl rounded-retro",
+        icon: "size-7 rounded-pixel-md",
+        "icon-sm": "size-6 rounded-pixel-sm",
+        "icon-lg": "size-8 rounded-pixel-lg",
       },
       glow: {
         none: "",
         subtle: "hover:shadow-retro",
         medium: "shadow-retro hover:shadow-retro-lg",
-        intense: "shadow-retro-lg hover:shadow-[0_0_30px_var(--color-primary),0_0_50px_var(--color-primary)]",
+        intense: "shadow-retro-lg hover:shadow-[0_0_18px_var(--color-primary),0_0_24px_var(--color-primary)]",
       },
       pixelBorder: {
         true: "border-style-[solid] image-rendering-[pixelated]",

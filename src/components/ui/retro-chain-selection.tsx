@@ -28,7 +28,7 @@ export function RetroChainSelection() {
     return (
       <div className="flex items-center gap-2 px-3 py-2 rounded-retro bg-arcade-screen/80 border border-primary/30 backdrop-blur-sm">
         <RetroSpinner variant="arcade" size="xs" speed="fast" />
-        <span className="text-pixel-xs font-pixel text-primary/80">
+        <span className="text-xs font-pixeloid text-primary/80">
           SCANNING...
         </span>
       </div>
@@ -40,7 +40,7 @@ export function RetroChainSelection() {
     return (
       <div
         className={cn(
-          "flex items-center gap-2 px-3 py-1.5 rounded-retro border font-pixel text-pixel-xs transition-all duration-200",
+          "flex items-center gap-2 px-3 py-1.5 rounded-retro border font-pixeloid text-xs transition-all duration-200",
           !isWrongNetwork
             ? "bg-success/10 border-success/30 text-success shadow-[0_0_8px_var(--color-success)]"
             : "bg-warning/10 border-warning/50 text-warning shadow-[0_0_8px_var(--color-warning)]",
@@ -71,7 +71,7 @@ export function RetroChainSelection() {
             variant="pixel"
             size="xs"
             onClick={switchToPrimaryNetwork}
-            className="ml-1 px-2 py-0.5 text-pixel-xs hover:shadow-pixel"
+            className="ml-1 px-2 py-0.5 text-xs hover:shadow-pixel"
           >
             SWITCH
           </RetroButton>

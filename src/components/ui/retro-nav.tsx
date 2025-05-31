@@ -3,7 +3,7 @@ import { type VariantProps, cva } from "class-variance-authority";
 import { cn } from "@/lib/utils";
 
 const retroNavVariants = cva(
-  "flex font-pixel pixel-perfect",
+  "flex font-pixeloid pixel-perfect",
   {
     variants: {
       variant: {
@@ -39,7 +39,7 @@ const retroNavVariants = cva(
 );
 
 const retroNavItemVariants = cva(
-  "inline-flex items-center justify-center font-pixel text-pixel-sm font-medium transition-all duration-200 disabled:pointer-events-none disabled:opacity-50 outline-none pixel-perfect relative",
+  "inline-flex items-center justify-center font-pixeloid text-sm font-medium transition-all duration-200 disabled:pointer-events-none disabled:opacity-50 outline-none pixel-perfect relative",
   {
     variants: {
       variant: {
@@ -55,9 +55,9 @@ const retroNavItemVariants = cva(
         disabled: "opacity-50 cursor-not-allowed",
       },
       size: {
-        sm: "h-8 px-3 text-pixel-xs rounded-pixel-sm",
-        default: "h-10 px-4 text-pixel-sm rounded-pixel-md",
-        lg: "h-12 px-6 text-pixel-base rounded-retro",
+        sm: "h-8 px-3 text-xs rounded-pixel-sm",
+        default: "h-10 px-4 text-sm rounded-pixel-md",
+        lg: "h-12 px-6 text-base rounded-retro",
       },
     },
     defaultVariants: {

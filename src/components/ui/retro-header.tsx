@@ -44,15 +44,15 @@ export function RetroHeader() {
   const closeMenu = () => setIsMenuOpen(false);
 
   return (
-    <header className="relative w-full flex flex-col items-center pt-2 sm:pt-4 pb-0 pixel-perfect">
+    <header className="relative w-full flex flex-col items-center pt-1 sm:pt-2 pb-0 pixel-perfect">
       {/* Retro arcade-style border effect */}
       <div className="absolute inset-0 bg-gradient-to-b from-primary/5 to-transparent pointer-events-none" />
 
-      {/* Top right corner group */}
-      <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-50 flex items-center gap-2">
+      {/* Top right corner group - COMPACTED */}
+      <div className="absolute top-1 right-1 sm:top-2 sm:right-2 z-50 flex items-center gap-1">
         <RetroChainSelection />
 
-        {/* Mobile Navigation Menu Button */}
+        {/* Mobile Navigation Menu Button - COMPACTED */}
         <RetroButton
           variant="arcade"
           size="icon-sm"
@@ -67,16 +67,16 @@ export function RetroHeader() {
             )}
           >
             {isMenuOpen ? (
-              <X className="h-4 w-4" />
+              <X className="h-3 w-3" />
             ) : (
-              <Menu className="h-4 w-4" />
+              <Menu className="h-3 w-3" />
             )}
           </div>
           <span className="sr-only">Toggle Menu</span>
         </RetroButton>
       </div>
 
-      {/* Mobile Arcade-Style Navigation Menu */}
+      {/* Mobile Arcade-Style Navigation Menu - COMPACTED */}
       <div
         className={cn(
           "fixed inset-0 z-40 transition-all duration-300 ease-in-out",
@@ -93,10 +93,10 @@ export function RetroHeader() {
           onClick={closeMenu}
         />
 
-        {/* Menu Content */}
+        {/* Menu Content - COMPACTED WIDTH */}
         <div
           className={cn(
-            "absolute top-16 right-2 sm:right-4 w-72 transition-all duration-300 ease-out",
+            "absolute top-12 right-1 sm:right-2 w-60 transition-all duration-300 ease-out",
             isMenuOpen
               ? "transform translate-y-0 opacity-100 scale-100"
               : "transform -translate-y-4 opacity-0 scale-95",
@@ -105,47 +105,47 @@ export function RetroHeader() {
           <RetroNav
             variant="arcade"
             orientation="vertical"
-            size="lg"
+            size="default"
             withScanlines
-            className="p-4 border-2 border-primary shadow-retro-lg bg-arcade-screen/95 backdrop-blur-md"
+            className="p-2.5 border border-primary shadow-retro-lg bg-arcade-screen/95 backdrop-blur-md"
           >
-            {/* Menu Header */}
-            <div className="pb-3 border-b border-primary/30 mb-2">
-              <h3 className="font-bokor text-pixel-lg text-primary retro-glow text-center">
+            {/* Menu Header - COMPACTED */}
+            <div className="pb-2 border-b border-primary/30 mb-1.5">
+              <h3 className="font-bokor text-base text-primary retro-glow text-center">
                 NAVIGATION
               </h3>
-              <div className="text-center text-pixel-xs text-primary/60 font-pixel mt-1">
+              <div className="text-center text-xs text-primary/60 font-pixeloid mt-0.5">
                 SELECT DESTINATION
               </div>
             </div>
 
-            {/* Navigation Items */}
-            <div className="space-y-1">
+            {/* Navigation Items - COMPACTED SPACING */}
+            <div className="space-y-0.5">
               {navigationItems.map((item) => (
                 <Link key={item.path} href={item.path} onClick={closeMenu}>
                   <RetroNavItem
                     variant="arcade"
-                    size="lg"
+                    size="default"
                     isActive={isActive(item.path)}
                     className={cn(
-                      "w-full justify-start gap-3 transition-all duration-200",
+                      "w-full justify-start gap-2 transition-all duration-200",
                       "hover:translate-x-1 active:translate-x-0.5",
                       isActive(item.path) && "shadow-retro",
                     )}
                   >
-                    <item.icon className="h-4 w-4 flex-shrink-0" />
-                    <span className="text-left font-pixel">{item.label}</span>
+                    <item.icon className="h-3 w-3 flex-shrink-0" />
+                    <span className="text-left font-pixeloid">{item.label}</span>
                     {isActive(item.path) && (
-                      <div className="ml-auto text-pixel-xs">●</div>
+                      <div className="ml-auto text-xs">●</div>
                     )}
                   </RetroNavItem>
                 </Link>
               ))}
             </div>
 
-            {/* Menu Footer */}
-            <div className="pt-3 border-t border-primary/30 mt-4">
-              <div className="text-center text-pixel-xs text-primary/40 font-pixel">
+            {/* Menu Footer - COMPACTED */}
+            <div className="pt-2 border-t border-primary/30 mt-2">
+              <div className="text-center text-xs text-primary/40 font-pixeloid">
                 HEAVY HELMS v1.337
               </div>
             </div>
