@@ -1,5 +1,5 @@
 "use client";
-import { AuthenticatedView } from "@/components/home/authenticated-view";
+import { RetroAuthenticatedView } from "@/components/home/retro-authenticated-view";
 import { CommunityStats } from "@/components/home/community-stats";
 import { GameIntroduction } from "@/components/home/game-introduction";
 import { usePrivy } from "@privy-io/react-auth";
@@ -11,9 +11,9 @@ export default function Home() {
   // console.log("privyUser 2", user);
   // console.log("isConnected", isConnected);
   return (
-    <div className="min-h-screen w-full overflow-y-auto overflow-x-hidden">
+    <div className="min-h-screen w-full overflow-y-auto overflow-x-hidden pixel-perfect">
       {isConnected ? (
-        <AuthenticatedView />
+        <RetroAuthenticatedView />
       ) : (
         <>
           <GameIntroduction />

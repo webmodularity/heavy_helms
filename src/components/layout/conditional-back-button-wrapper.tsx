@@ -1,22 +1,29 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { BackButton } from "@/components/ui/back-button";
+import { RetroBackButton } from "@/components/ui/retro-back-button";
 
-export function ConditionalBackButtonWrapper({
-  children,
-}: {
+interface ConditionalBackButtonWrapperProps {
   children: React.ReactNode;
-}) {
+}
+
+export function ConditionalBackButtonWrapper({ 
+  children 
+}: ConditionalBackButtonWrapperProps) {
   const pathname = usePathname();
-  const showBackButton = pathname !== "/";
+  
+  // Pages where we should show the back button
+  const showBackButton = pathname !== "/" && !pathname.startsWith("/auth");
 
   return (
     <>
-      {/* Conditionally render the BackButton based on the path */}
       {showBackButton && (
-        <div className="w-full max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 pt-2 pb-1">
-          <BackButton />
+        <div className="mb-4 flex justify-start">
+          <RetroBackButton 
+            variant="arcade"
+            size="sm"
+            className="mb-2"
+          />
         </div>
       )}
       {children}

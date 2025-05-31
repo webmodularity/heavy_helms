@@ -1,212 +1,409 @@
 @import "tailwindcss";
 
-@plugin 'tailwindcss-animate';
+@plugin "tailwindcss-animate";
 
-@custom-variant dark (&:is(.dark *));
-@theme inline {
-  --font-pixeloid: var(--font-pixeloid);
-  --font-bokor: var(--font-bokor);
-  --font-cormorant-unicase: var(--font-cormorant-unicase);
-  --font-cinzel: var(--font-cinzel);
+/* RETRO-PIXEL THEME SYSTEM - Tailwind CSS v4 */
+@theme {
+  /* Font Family Configuration */
+  --font-family-pixeloid: var(--font-pixeloid);
+  --font-family-bokor: var(--font-bokor);
+  --font-family-cormorant: var(--font-cormorant-unicase);
+  --font-family-cinzel: var(--font-cinzel);
+  --font-family-medieval: var(--font-cormorant-unicase);
+  --font-family-pixel: var(--font-pixeloid);
+
+  /* Primary theme colors - Use RGB space-separated values for opacity support */
+  --color-primary: 0 212 255;                     /* Bright teal/cyan */
+  --color-primary-foreground: 10 15 28;           /* Dark background for contrast */
+  
+  /* Secondary colors */
+  --color-secondary: 255 149 0;                   /* Warm amber */
+  --color-secondary-foreground: 10 15 28;         /* Dark background */
+  
+  /* Background and surface colors */
+  --color-background: 10 15 28;                   /* Very dark blue-black */
+  --color-foreground: 224 247 255;                /* Bright cyan-white */
+  --color-card: 18 25 43;                         /* Slightly lighter dark blue */
+  --color-card-foreground: 212 240 255;           /* Bright cyan */
+  --color-popover: 15 20 32;                      /* Dark blue for popovers */
+  --color-popover-foreground: 224 247 255;        /* Bright cyan-white */
+  
+  /* Status colors */
+  --color-destructive: 255 68 68;                 /* Bright red */
+  --color-destructive-foreground: 224 247 255;    /* Light text */
+  --color-warning: 255 221 0;                     /* Bright yellow */
+  --color-warning-foreground: 10 15 28;           /* Dark text */
+  --color-success: 0 255 136;                     /* Bright green */
+  --color-success-foreground: 10 15 28;           /* Dark text */
+  
+  /* Neutral colors */
+  --color-muted: 31 41 55;                        /* Muted dark blue */
+  --color-muted-foreground: 156 163 175;          /* Muted cyan */
+  --color-accent: 55 65 81;                       /* Accent dark blue */
+  --color-accent-foreground: 209 250 229;         /* Bright cyan */
+  --color-border: 55 65 81;                       /* Border color */
+  --color-input: 31 41 55;                        /* Input background */
+  --color-ring: 0 212 255;                        /* Focus ring - primary color */
+  
+  /* Default border radius */
+  --radius: 0.375rem;                             /* 6px default radius */
+  
+  /* Custom border radius values */
+  --radius-pixel: 0px;
+  --radius-pixel-sm: 1px;
+  --radius-pixel-md: 2px;
+  --radius-pixel-lg: 3px;
+  --radius-pixel-xl: 4px;
+  --radius-retro: 6px;
+  --radius-retro-lg: 8px;
+
+  /* Pixel-perfect font sizes */
+  --font-size-pixel-xs: 10px;
+  --font-size-pixel-sm: 12px;
+  --font-size-pixel-base: 14px;
+  --font-size-pixel-lg: 16px;
+  --font-size-pixel-xl: 20px;
+  --font-size-pixel-2xl: 24px;
+  --font-size-pixel-3xl: 30px;
+  --font-size-pixel-4xl: 36px;
+
+  /* Line heights for pixel fonts */
+  --line-height-pixel-xs: 12px;
+  --line-height-pixel-sm: 16px;
+  --line-height-pixel-base: 20px;
+  --line-height-pixel-lg: 24px;
+  --line-height-pixel-xl: 28px;
+  --line-height-pixel-2xl: 32px;
+  --line-height-pixel-3xl: 36px;
+  --line-height-pixel-4xl: 40px;
+
+  /* Enhanced box shadows for retro effects */
+  --shadow-pixel: 2px 2px 0px rgba(0,0,0,0.8);
+  --shadow-pixel-lg: 4px 4px 0px rgba(0,0,0,0.8);
+  --shadow-retro: 0 0 10px rgb(var(--color-primary));
+  --shadow-retro-lg: 0 0 20px rgb(var(--color-primary)), 0 0 30px rgb(var(--color-primary));
+  --shadow-arcade: inset 0 0 20px rgba(0,0,0,0.8), 0 0 20px rgb(var(--color-primary));
+  --shadow-crt: inset 0 0 50px rgba(0,0,0,0.5);
+
+  /* Animation durations */
+  --animate-duration-fast: 150ms;
+  --animate-duration-normal: 300ms;
+  --animate-duration-slow: 500ms;
+
+  /* Backdrop blur values */
+  --backdrop-blur-xs: 2px;
+  --backdrop-blur-sm: 4px;
+  --backdrop-blur: 8px;
+  --backdrop-blur-md: 12px;
+  --backdrop-blur-lg: 16px;
+  --backdrop-blur-xl: 24px;
+  --backdrop-blur-2xl: 40px;
+  --backdrop-blur-3xl: 64px;
+
+  /* Breakpoints for mobile-first design */
+  --breakpoint-sm: 480px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 976px;
+  --breakpoint-xl: 1440px;
 }
-/* Custom styles below */
+
+/* Alternative theme classes for easy switching */
+.theme-green {
+  --color-primary: 0 255 136;                     /* Bright green */
+  --color-ring: 0 255 136;
+}
+
+.theme-purple {
+  --color-primary: 170 68 255;                    /* Bright purple */
+  --color-ring: 170 68 255;
+}
+
+.theme-pink {
+  --color-primary: 255 68 170;                    /* Bright pink */
+  --color-ring: 255 68 170;
+}
+
+/* Custom utility classes using the correct @utility syntax */
+@utility font-pixel {
+  font-family: var(--font-family-pixel);
+  font-feature-settings: normal;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+
+@utility font-medieval {
+  font-family: var(--font-family-medieval);
+}
+
+@utility font-bokor {
+  font-family: var(--font-family-bokor);
+}
+
+@utility font-cinzel {
+  font-family: var(--font-family-cinzel);
+}
+
+@utility pixel-perfect {
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+
+@utility retro-glow {
+  box-shadow: 0 0 10px rgb(var(--color-primary));
+  text-shadow: 0 0 10px currentColor;
+}
+
+@utility retro-glow-lg {
+  box-shadow: 
+    0 0 20px rgb(var(--color-primary)), 
+    0 0 30px rgb(var(--color-primary));
+  text-shadow: 
+    0 0 20px currentColor, 
+    0 0 30px currentColor;
+}
+
+@utility pixel-shadow {
+  box-shadow: 2px 2px 0px rgba(0,0,0,0.8);
+}
+
+@utility pixel-shadow-lg {
+  box-shadow: 4px 4px 0px rgba(0,0,0,0.8);
+}
+
+@utility arcade-shadow {
+  box-shadow: 
+    inset 0 0 20px rgba(0,0,0,0.8), 
+    0 0 20px rgb(var(--color-primary));
+}
+
+@utility crt-shadow {
+  box-shadow: inset 0 0 50px rgba(0,0,0,0.5);
+}
+
+@utility screen-flicker {
+  animation: screenFlicker 0.15s infinite linear alternate;
+}
+
+@utility retro-border {
+  border: 2px solid rgb(var(--color-primary));
+  box-shadow: 
+    inset 0 0 5px rgb(var(--color-primary)),
+    0 0 5px rgb(var(--color-primary));
+}
+
+@utility pixel-border {
+  border: 1px solid rgb(var(--color-primary));
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+
+/* Border radius utilities */
+@utility rounded-pixel {
+  border-radius: var(--radius-pixel);
+}
+
+@utility rounded-pixel-sm {
+  border-radius: var(--radius-pixel-sm);
+}
+
+@utility rounded-pixel-md {
+  border-radius: var(--radius-pixel-md);
+}
+
+@utility rounded-pixel-lg {
+  border-radius: var(--radius-pixel-lg);
+}
+
+@utility rounded-pixel-xl {
+  border-radius: var(--radius-pixel-xl);
+}
+
+@utility rounded-retro {
+  border-radius: var(--radius-retro);
+}
+
+@utility rounded-retro-lg {
+  border-radius: var(--radius-retro-lg);
+}
+
+/* Component classes using @apply - these should now work */
+@layer components {
+  .btn-retro {
+    @apply bg-primary text-primary-foreground px-4 py-2 font-pixel text-sm uppercase tracking-wider;
+    @apply border-2 border-primary retro-glow pixel-perfect;
+    @apply transition-all duration-150;
+    @apply hover:bg-primary/80 hover:retro-glow-lg active:scale-95;
+  }
+  
+  .btn-pixel {
+    @apply bg-primary text-primary-foreground px-3 py-2 font-pixel text-xs uppercase;
+    @apply border border-primary pixel-shadow pixel-perfect;
+    @apply transition-all duration-100;
+    @apply hover:bg-primary/90 hover:pixel-shadow-lg;
+  }
+  
+  .card-retro {
+    @apply bg-card border-2 border-border rounded-retro p-4;
+    @apply retro-glow pixel-perfect;
+  }
+  
+  .input-retro {
+    @apply bg-input border border-border rounded-pixel-md px-3 py-2;
+    @apply text-foreground font-pixel text-sm;
+    @apply focus:border-primary focus:retro-glow focus:outline-none;
+    @apply pixel-perfect;
+  }
+}
+
+/* Keyframe animations */
+@keyframes screenFlicker {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.98; }
+}
+
+@keyframes pixelGlow {
+  0%, 100% { filter: brightness(1) contrast(1); }
+  50% { filter: brightness(1.1) contrast(1.1); }
+}
+
+@keyframes scanline {
+  0% { transform: translateY(-100%); }
+  100% { transform: translateY(100vh); }
+}
+
+@keyframes crtGlow {
+  0%, 100% { 
+    box-shadow: 
+      inset 0 0 50px rgba(0,0,0,0.5),
+      0 0 20px rgb(var(--color-primary));
+  }
+  50% { 
+    box-shadow: 
+      inset 0 0 50px rgba(0,0,0,0.5),
+      0 0 30px rgb(var(--color-primary));
+  }
+}
+
+/* Base styles */
 body {
-  margin: 0;
-  padding: 0;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #000000;
+  font-family: var(--font-family-pixel);
+  background-color: rgb(var(--color-background));
+  color: rgb(var(--color-foreground));
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
 }
 
 #app {
+  position: relative;
   width: 100%;
   height: 100vh;
   overflow: hidden;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+  background-color: rgb(var(--color-background));
 }
 
 .spritePosition {
-  margin: 10px 0 0 10px;
-  font-size: 0.8em;
+  position: absolute !important;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
 }
 
-/* Loading spinner styles */
+/* Loading styles */
 .loading-container {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   height: 100vh;
-  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-  color: #fff;
+  background-color: rgb(var(--color-background));
+  color: rgb(var(--color-foreground));
 }
 
 .loading-spinner {
-  width: 50px;
-  height: 50px;
-  border: 5px solid rgba(255, 255, 255, 0.1);
+  width: 40px;
+  height: 40px;
+  border: 4px solid rgb(var(--color-muted));
+  border-top: 4px solid rgb(var(--color-primary));
   border-radius: 50%;
-  border-top-color: #f9c846;
-  animation: spin 1s ease-in-out infinite;
-  margin-bottom: 1rem;
+  animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
-  to {
-    transform: rotate(360deg);
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* CRT Effects */
+.crt-container {
+  position: relative;
+  background: rgb(5 10 20);
+  border-radius: var(--radius-retro);
+  overflow: hidden;
+}
+
+.crt-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: 
+    linear-gradient(
+      90deg,
+      transparent 50%,
+      rgba(0,255,0,0.03) 50%,
+      rgba(0,255,0,0.03) 51%,
+      transparent 51%
+    ),
+    linear-gradient(
+      transparent 50%,
+      rgba(0,0,0,0.1) 50%,
+      rgba(0,0,0,0.1) 51%,
+      transparent 51%
+    );
+  background-size: 4px 4px, 4px 2px;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.scanlines {
+  background: linear-gradient(transparent 50%, rgba(0,0,0,0.1) 50%);
+  background-size: 100% 2px;
+}
+
+/* Media queries for responsive design */
+@media (min-width: 480px) {
+  .sm\:retro-glow {
+    box-shadow: var(--shadow-retro);
+    text-shadow: 0 0 10px currentColor;
   }
 }
 
-body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-  line-height: 1.6;
-}
-
-a {
-  color: inherit;
-  text-decoration: none;
-}
-
-button {
-  cursor: pointer;
-}
-
-:root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.147 0.004 49.25);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.147 0.004 49.25);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.147 0.004 49.25);
-  --primary: oklch(0.216 0.006 56.043);
-  --primary-foreground: oklch(0.985 0.001 106.423);
-  --secondary: oklch(0.97 0.001 106.424);
-  --secondary-foreground: oklch(0.216 0.006 56.043);
-  --muted: oklch(0.97 0.001 106.424);
-  --muted-foreground: oklch(0.553 0.013 58.071);
-  --accent: oklch(0.97 0.001 106.424);
-  --accent-foreground: oklch(0.216 0.006 56.043);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.577 0.245 27.325);
-  --border: oklch(0.923 0.003 48.717);
-  --input: oklch(0.923 0.003 48.717);
-  --ring: oklch(0.869 0.005 56.366);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0.001 106.423);
-  --sidebar-foreground: oklch(0.147 0.004 49.25);
-  --sidebar-primary: oklch(0.216 0.006 56.043);
-  --sidebar-primary-foreground: oklch(0.985 0.001 106.423);
-  --sidebar-accent: oklch(0.97 0.001 106.424);
-  --sidebar-accent-foreground: oklch(0.216 0.006 56.043);
-  --sidebar-border: oklch(0.923 0.003 48.717);
-  --sidebar-ring: oklch(0.869 0.005 56.366);
-}
-
-.dark {
-  --background: oklch(0.147 0.004 49.25);
-  --foreground: oklch(0.985 0.001 106.423);
-  --card: oklch(0.147 0.004 49.25);
-  --card-foreground: oklch(0.985 0.001 106.423);
-  --popover: oklch(0.147 0.004 49.25);
-  --popover-foreground: oklch(0.985 0.001 106.423);
-  --primary: oklch(0.985 0.001 106.423);
-  --primary-foreground: oklch(0.216 0.006 56.043);
-  --secondary: oklch(0.268 0.007 34.298);
-  --secondary-foreground: oklch(0.985 0.001 106.423);
-  --muted: oklch(0.268 0.007 34.298);
-  --muted-foreground: oklch(0.709 0.01 56.259);
-  --accent: oklch(0.268 0.007 34.298);
-  --accent-foreground: oklch(0.985 0.001 106.423);
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.268 0.007 34.298);
-  --input: oklch(0.268 0.007 34.298);
-  --ring: oklch(0.553 0.013 58.071);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.216 0.006 56.043);
-  --sidebar-foreground: oklch(0.985 0.001 106.423);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0.001 106.423);
-  --sidebar-accent: oklch(0.268 0.007 34.298);
-  --sidebar-accent-foreground: oklch(0.985 0.001 106.423);
-  --sidebar-border: oklch(0.268 0.007 34.298);
-  --sidebar-ring: oklch(0.553 0.013 58.071);
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-card: var(--card);
-  --color-card-foreground: var(--card-foreground);
-  --color-popover: var(--popover);
-  --color-popover-foreground: var(--popover-foreground);
-  --color-primary: var(--primary);
-  --color-primary-foreground: var(--primary-foreground);
-  --color-secondary: var(--secondary);
-  --color-secondary-foreground: var(--secondary-foreground);
-  --color-muted: var(--muted);
-  --color-muted-foreground: var(--muted-foreground);
-  --color-accent: var(--accent);
-  --color-accent-foreground: var(--accent-foreground);
-  --color-destructive: var(--destructive);
-  --color-destructive-foreground: var(--destructive-foreground);
-  --color-border: var(--border);
-  --color-input: var(--input);
-  --color-ring: var(--ring);
-  --color-chart-1: var(--chart-1);
-  --color-chart-2: var(--chart-2);
-  --color-chart-3: var(--chart-3);
-  --color-chart-4: var(--chart-4);
-  --color-chart-5: var(--chart-5);
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --color-sidebar: var(--sidebar);
-  --color-sidebar-foreground: var(--sidebar-foreground);
-  --color-sidebar-primary: var(--sidebar-primary);
-  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
-  --color-sidebar-accent: var(--sidebar-accent);
-  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
-  --color-sidebar-border: var(--sidebar-border);
-  --color-sidebar-ring: var(--sidebar-ring);
-}
-
-@layer base {
-  * {
-    @apply border-border outline-ring/50;
-  }
-  body {
-    @apply bg-background text-foreground;
-    /* Default font applied via className in layout.tsx */
-  }
-  /* Keep this override attempt */
-  button,
-  [type="button"],
-  [type="reset"],
-  [type="submit"] {
-    font-family: inherit;
+@media (min-width: 768px) {
+  .md\:crt-screen {
+    background: rgb(5 10 20);
+    border-radius: var(--radius-retro-lg);
+    box-shadow: var(--shadow-crt);
   }
 }
 
-/* FONT UTILITIES */
-@layer utilities {
-  .font-heading {
-    font-family: var(--font-cormorant-unicase), serif !important; /* Add !important */
-  }
-  .font-bokor {
-    font-family: var(--font-bokor), sans-serif !important; /* Add !important */
-  }
-  /* You can add other custom utilities here if needed */
+/* Typography fixes */
+* {
+  -webkit-font-smoothing: auto;
+  -moz-osx-font-smoothing: auto;
+  text-rendering: optimizeSpeed;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+  font-feature-settings: inherit;
+  image-rendering: inherit;
 }
