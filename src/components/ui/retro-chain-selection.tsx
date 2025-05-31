@@ -23,30 +23,30 @@ export function RetroChainSelection() {
     return null;
   }
 
-  // Loading state
+  // Loading state - COMPACTED
   if (checking) {
     return (
-      <div className="flex items-center gap-2 px-3 py-2 rounded-retro bg-arcade-screen/80 border border-primary/30 backdrop-blur-sm">
+      <div className="flex items-center gap-1.5 px-2 py-1 rounded-retro bg-arcade-screen/80 border border-primary/30 backdrop-blur-sm">
         <RetroSpinner variant="arcade" size="xs" speed="fast" />
-        <span className="text-xs font-pixeloid text-primary/80">
+        <span className="text-pixel-xs font-pixel text-primary/80">
           SCANNING...
         </span>
       </div>
     );
   }
 
-  // Connected state
+  // Connected state - COMPACTED
   if (currentChainId !== null) {
     return (
       <div
         className={cn(
-          "flex items-center gap-2 px-3 py-1.5 rounded-retro border font-pixeloid text-xs transition-all duration-200",
+          "flex items-center gap-1.5 px-2 py-1 rounded-retro border font-pixel text-pixel-xs transition-all duration-200",
           !isWrongNetwork
-            ? "bg-success/10 border-success/30 text-success shadow-[0_0_8px_var(--color-success)]"
-            : "bg-warning/10 border-warning/50 text-warning shadow-[0_0_8px_var(--color-warning)]",
+            ? "bg-success/10 border-success/30 text-success shadow-[0_0_6px_var(--color-success)]"
+            : "bg-warning/10 border-warning/50 text-warning shadow-[0_0_6px_var(--color-warning)]",
         )}
       >
-        {/* Network Status Icon */}
+        {/* Network Status Icon - COMPACTED */}
         <div
           className={cn(
             "flex items-center justify-center",
@@ -54,9 +54,9 @@ export function RetroChainSelection() {
           )}
         >
           {!isWrongNetwork ? (
-            <Wifi className="h-3 w-3" />
+            <Wifi className="h-2.5 w-2.5" />
           ) : (
-            <AlertTriangle className="h-3 w-3" />
+            <AlertTriangle className="h-2.5 w-2.5" />
           )}
         </div>
 
@@ -65,13 +65,13 @@ export function RetroChainSelection() {
           {!isWrongNetwork ? "CONNECTED" : "WRONG NET"}
         </span>
 
-        {/* Switch Button for Wrong Network */}
+        {/* Switch Button for Wrong Network - COMPACTED */}
         {isWrongNetwork && (
           <RetroButton
             variant="pixel"
             size="xs"
             onClick={switchToPrimaryNetwork}
-            className="ml-1 px-2 py-0.5 text-xs hover:shadow-pixel"
+            className="ml-0.5 px-1.5 py-0.5 text-pixel-xs hover:shadow-pixel"
           >
             SWITCH
           </RetroButton>

@@ -63,25 +63,25 @@ export function RetroBattleSection({
   ];
 
   return (
-    <section ref={battleSectionRef} className="mb-6 scroll-mt-4 mt-8">
-      {/* Section Header */}
-      <RetroCard variant="crt" className="mb-6" withScanlines>
+    <section ref={battleSectionRef} className="mb-4 scroll-mt-4 mt-6">
+      {/* Section Header - COMPACTED */}
+      <RetroCard variant="crt" className="mb-4" withScanlines size="sm">
         <RetroCardHeader variant="crt">
-          <RetroCardTitle variant="crt" className="text-center flex items-center justify-center gap-3">
-            <Shield className="h-6 w-6 text-primary animate-pulse" />
+          <RetroCardTitle variant="crt" className="text-center flex items-center justify-center gap-2">
+            <Shield className="h-4 w-4 text-primary animate-pulse" />
             BATTLE SELECTION MATRIX
-            <Zap className="h-6 w-6 text-primary animate-pulse" />
+            <Zap className="h-4 w-4 text-primary animate-pulse" />
           </RetroCardTitle>
         </RetroCardHeader>
         <RetroCardContent>
-          <div className="text-center font-pixeloid text-sm text-primary/80">
+          <div className="text-center font-pixel text-pixel-xs text-primary/80">
             CHOOSE ENGAGEMENT TYPE • CONFIGURE PARAMETERS • INITIATE COMBAT
           </div>
         </RetroCardContent>
       </RetroCard>
 
-      {/* Battle Type Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Battle Type Cards - COMPACTED GRID */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5">
         {battleTypes.map((battleType, index) => (
           <RetroBattleCard
             key={battleType.id}
@@ -94,14 +94,14 @@ export function RetroBattleSection({
         ))}
       </div>
 
-      {/* Combat Readiness Status */}
+      {/* Combat Readiness Status - COMPACTED */}
       {selectedCharacter && (
-        <RetroCard variant="pixel" className="mt-6 border-success/30">
+        <RetroCard variant="pixel" className="mt-4 border-success/30" size="sm">
           <RetroCardContent>
-            <div className="flex items-center justify-between font-pixeloid text-sm">
+            <div className="flex items-center justify-between font-pixel text-pixel-xs">
               <span className="text-success">WARRIOR STATUS: COMBAT READY</span>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-success rounded-full animate-pulse" />
+              <div className="flex items-center gap-1.5">
+                <div className="w-1.5 h-1.5 bg-success rounded-full animate-pulse" />
                 <span className="text-success/80">SYSTEMS ONLINE</span>
               </div>
             </div>
@@ -232,6 +232,7 @@ function RetroBattleCard({
     >
       <RetroCard 
         variant={battleType.variant}
+        size="sm"
         className={cn(
           "h-full transition-all duration-300 hover:scale-105",
           isHovered && "shadow-retro",
@@ -240,49 +241,49 @@ function RetroBattleCard({
         withScanlines={battleType.variant === "arcade"}
       >
         <RetroCardHeader variant={battleType.variant}>
-          <div className="flex items-center justify-between mb-2">
+          <div className="flex items-center justify-between mb-1.5">
             <div 
               className={cn(
-                "p-2 rounded-pixel-lg border-2 transition-all duration-200",
+                "p-1.5 rounded-pixel border transition-all duration-200",
                 battleType.variant === "arcade" ? "border-primary bg-primary/10" : "border-medieval-gold bg-medieval-gold/10"
               )}
             >
               <IconComponent 
                 className={cn(
-                  "h-6 w-6",
+                  "h-4 w-4",
                   battleType.variant === "arcade" ? "text-primary" : "text-medieval-gold",
                   isHovered && "animate-pulse"
                 )} 
               />
             </div>
             <div className={cn(
-              "px-2 py-1 rounded-pixel text-xs font-pixeloid",
+              "px-1.5 py-0.5 rounded-pixel text-pixel-xs font-pixel",
               battleType.variant === "arcade" ? "bg-primary/20 text-primary" : "bg-medieval-gold/20 text-medieval-gold"
             )}>
               {battleType.statusText}
             </div>
           </div>
-          <RetroCardTitle variant={battleType.variant}>
+          <RetroCardTitle variant={battleType.variant} className="text-pixel-sm">
             {battleType.title}
           </RetroCardTitle>
         </RetroCardHeader>
         
         <RetroCardContent>
-          <RetroCardDescription variant={battleType.variant} className="mb-4">
+          <RetroCardDescription variant={battleType.variant} className="mb-3">
             {battleType.description}
           </RetroCardDescription>
           
           <RetroButton
             variant={battleType.variant === "arcade" ? "arcade" : "medieval"}
-            size="lg"
+            size="default"
             onClick={handleAction}
             disabled={!selectedCharacter || !battleType.available || isNavigating}
             glow={isHovered ? "medium" : "subtle"}
             className="w-full"
           >
             {isNavigating ? (
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+              <div className="flex items-center gap-1.5">
+                <div className="w-3 h-3 border border-current border-t-transparent rounded-full animate-spin" />
                 <span>LOADING...</span>
               </div>
             ) : (

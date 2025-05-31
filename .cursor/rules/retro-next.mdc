@@ -1,0 +1,353 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Retro Arcade Design System - Cursor Rules
+
+You are an expert in building retro arcade-style applications using Next.js 15, TypeScript, **Tailwind CSS v4**, and Framer Motion. You specialize in creating compact, mobile-first interfaces with authentic 80s/90s arcade aesthetics.
+
+## Core Technology Stack
+
+### Tailwind CSS v4 Setup
+- **Always use Tailwind CSS v4** with the modern `@theme` and `@utility` syntax
+- **Never use traditional tailwind.config.js** - all configuration is in `src/styles/globals.css`
+- **CSS Variables**: All design tokens defined as CSS custom properties in the `@theme` block
+- **Custom Utilities**: Retro-specific utilities defined with `@utility` syntax
+- **Component Classes**: Defined in `@layer components` for complex reusable styles
+
+### Globals.css Pattern (CRITICAL)
+```css
+@import "tailwindcss";
+@plugin "tailwindcss-animate";
+
+/* All theme configuration in @theme block */
+@theme {
+  /* CSS Variables for design tokens */
+  --font-family-pixel: var(--font-pixeloid);
+  --font-size-pixel-xs: 8px;
+  --font-size-pixel-sm: 9px;
+  --font-size-pixel-base: 10px;
+  --color-primary: 0 212 255;
+  --shadow-retro: 0 0 6px rgb(var(--color-primary));
+  /* ... more variables */
+}
+
+/* Custom utilities with @utility */
+@utility font-pixel {
+  font-family: var(--font-family-pixel);
+  image-rendering: pixelated;
+}
+
+@utility retro-glow {
+  box-shadow: 0 0 6px rgb(var(--color-primary));
+  text-shadow: 0 0 6px currentColor;
+}
+
+/* Component classes with @layer */
+@layer components {
+  .btn-retro {
+    @apply bg-primary text-primary-foreground px-3 py-1.5;
+    @apply border border-primary retro-glow pixel-perfect;
+  }
+}
+```
+
+### Design Token System
+- **Font sizes**: Use CSS variables (`--font-size-pixel-xs: 8px`) accessed via utilities (`text-pixel-xs`)
+- **Colors**: RGB space-separated values (`--color-primary: 0 212 255`) for opacity support
+- **Shadows**: Predefined retro effects (`--shadow-retro`, `--shadow-pixel`) scaled proportionally
+- **Spacing**: Compact mobile-first scale built into the theme
+
+## Core Design Philosophy
+
+### Retro Aesthetic Principles
+- **Pixel-perfect rendering**: Use `pixel-perfect` utility class and crisp image rendering
+- **Authentic color palette**: Bright cyan (#00d4ff) primary, warm amber secondary, dark backgrounds
+- **Compact mobile-first**: Everything optimized for mobile screens with ~40% smaller sizing than typical designs
+- **Proportional scaling**: All effects (glows, shadows, borders) scale together consistently
+- **Arcade authenticity**: CRT effects, scanlines, retro typography, and neon glows
+
+### Mobile-First Compaction Strategy
+- **Font sizes**: Use pixel font system (text-pixel-xs: 8px, text-pixel-base: 10px, text-pixel-lg: 12px)
+- **Spacing**: Prefer tight spacing (gap-1, gap-1.5, p-2, p-2.5) over large spacing
+- **Icons**: Standard size 2.5x2.5 to 3x3, larger icons 4x4 for headers only
+- **Touch targets**: Minimum h-6 for buttons while maintaining visual compactness
+- **Borders**: Use 1px borders as default, 2px only for special emphasis
+
+## Component Patterns
+
+### Naming Convention
+- Prefix all custom components with "Retro" (e.g., RetroButton, RetroCard)
+- Use descriptive variant names: "arcade", "pixel", "medieval", "crt", "neon"
+- Size variants: "xs", "sm", "default", "lg" (no "xl" unless absolutely necessary)
+
+### Required Props Pattern
+```typescript
+interface RetroComponentProps
+  extends React.HTMLAttributes<HTMLDivElement>,
+    VariantProps<typeof componentVariants> {
+  withScanlines?: boolean;
+  withCrtEffect?: boolean;
+  glow?: "none" | "subtle" | "medium" | "intense";
+}
+```
+
+### Variant Structure Template
+```typescript
+const retroComponentVariants = cva(
+  "pixel-perfect font-pixel transition-all duration-200", // Base classes
+  {
+    variants: {
+      variant: {
+        arcade: "bg-arcade-screen border border-primary shadow-arcade",
+        pixel: "bg-card border border-primary shadow-pixel", 
+        medieval: "bg-medieval-stone border border-medieval-gold",
+        crt: "bg-arcade-screen border border-primary shadow-crt",
+      },
+      size: {
+        sm: "p-2 gap-1 text-pixel-xs",
+        default: "p-2.5 gap-1.5 text-pixel-sm", 
+        lg: "p-3 gap-2 text-pixel-base",
+      },
+    },
+    defaultVariants: {
+      variant: "arcade",
+      size: "default",
+    },
+  }
+);
+```
+
+## Styling Guidelines
+
+### Typography System (Always use these classes)
+```css
+/* Always use pixel font system - defined in globals.css @theme */
+font-pixel text-pixel-xs   /* 8px - smallest text */
+font-pixel text-pixel-sm   /* 9px - secondary text */
+font-pixel text-pixel-base /* 10px - body text */
+font-pixel text-pixel-lg   /* 12px - headings */
+
+/* Special fonts for variety */
+font-bokor    /* Medieval/fantasy style */
+font-medieval /* Cormorant Unicase for elegance */
+```
+
+### Color Usage (CSS Variables from @theme)
+```css
+/* Primary arcade colors - using CSS variables */
+text-primary        /* rgb(var(--color-primary)) - Bright cyan */
+text-primary/80     /* Dimmed for secondary text */
+text-primary/60     /* Further dimmed for labels */
+
+/* Status colors */
+text-success        /* rgb(var(--color-success)) - Bright green */
+text-warning        /* rgb(var(--color-warning)) - Bright yellow */
+text-destructive    /* rgb(var(--color-destructive)) - Bright red */
+
+/* Backgrounds */
+bg-arcade-screen    /* Main arcade background */
+bg-card            /* Card backgrounds */
+bg-arcade-bezel    /* Darker accent background */
+```
+
+### Custom Utility Classes (Defined in globals.css)
+```css
+/* Use these custom utilities - all defined with @utility */
+pixel-perfect       /* Image rendering optimization */
+retro-glow         /* Text and box glow effect */
+retro-glow-lg      /* Larger glow effect */
+pixel-shadow       /* Pixelated drop shadow */
+pixel-shadow-lg    /* Larger pixelated shadow */
+arcade-shadow      /* Inset + outer glow combination */
+crt-shadow         /* CRT screen inset shadow */
+retro-border       /* Glowing border effect */
+```
+
+### Spacing Scale (Mobile-Compact - from @theme)
+```css
+/* Gaps and padding - use sparingly */
+gap-0.5, gap-1, gap-1.5, gap-2     /* Prefer smaller gaps */
+p-1, p-1.5, p-2, p-2.5, p-3       /* Compact padding scale */
+m-1, m-2, m-3, m-4                 /* Minimal margins */
+
+/* Avoid large spacing unless absolutely necessary */
+/* gap-4+, p-4+, m-6+ should be rare */
+```
+
+## Extending the Design System
+
+### Adding New Utilities (globals.css)
+```css
+/* Add new retro utilities with @utility syntax */
+@utility my-new-effect {
+  /* CSS properties using CSS variables */
+  box-shadow: 0 0 var(--shadow-size) rgb(var(--color-primary));
+  border: 1px solid rgb(var(--color-primary));
+}
+```
+
+### Adding New Design Tokens (@theme block)
+```css
+@theme {
+  /* Add new CSS variables in the @theme block */
+  --shadow-my-effect: 0 0 8px rgb(var(--color-primary));
+  --color-my-variant: 255 100 150;
+  --font-size-my-size: 11px;
+}
+```
+
+### Adding Component Classes (@layer components)
+```css
+@layer components {
+  .my-retro-component {
+    @apply bg-primary text-primary-foreground;
+    @apply border border-primary pixel-perfect;
+    @apply font-pixel text-pixel-sm;
+    /* Can mix @apply with CSS variables */
+    box-shadow: var(--shadow-retro);
+  }
+}
+```
+
+## Component Creation Checklist
+
+### For Every New Retro Component:
+1. **Use Tailwind v4 syntax** - No config file, everything in globals.css
+2. **Leverage CSS variables** from the @theme block
+3. **Use custom utilities** defined with @utility
+4. **Start with cva variants** for consistent API
+5. **Include mobile-first sizing** (default should be compact)
+6. **Add pixel-perfect class** to base styles
+7. **Support glow prop** for interactive feedback
+8. **Include withScanlines option** for arcade authenticity
+9. **Use forwardRef pattern** for proper DOM access
+10. **Add proper TypeScript interfaces** extending HTML attributes
+11. **Test with smaller icons** (2.5x2.5, 3x3) before using larger ones
+
+### Adding New Theme Values
+```css
+/* Always extend the @theme block in globals.css */
+@theme {
+  /* New color */
+  --color-my-new-color: 150 255 100;
+  
+  /* New shadow effect */
+  --shadow-my-effect: 0 0 8px rgb(var(--color-my-new-color));
+  
+  /* New font size */
+  --font-size-pixel-custom: 11px;
+  --line-height-pixel-custom: 14px;
+}
+
+/* Then create utility if needed */
+@utility text-pixel-custom {
+  font-size: var(--font-size-pixel-custom);
+  line-height: var(--line-height-pixel-custom);
+}
+```
+
+## Animation Guidelines
+```typescript
+/* Prefer subtle, retro-appropriate animations using CSS variables */
+transition-all duration-200        /* Fast transitions */
+hover:scale-105                   /* Subtle hover growth */
+active:scale-95                   /* Press feedback */
+animate-pulse                     /* For status indicators */
+
+/* Framer Motion for complex animations */
+initial={{ opacity: 0, y: 20 }}
+animate={{ opacity: 1, y: 0 }}
+transition={{ duration: 0.3 }}
+```
+
+## File Structure Requirements
+
+### globals.css Structure (MANDATORY)
+```css
+@import "tailwindcss";
+@plugin "tailwindcss-animate";
+
+/* 1. Theme configuration with CSS variables */
+@theme {
+  /* All design tokens here */
+}
+
+/* 2. Custom utility classes */
+@utility utility-name {
+  /* Custom CSS */
+}
+
+/* 3. Component classes */
+@layer components {
+  .component-class {
+    @apply /* tailwind classes */;
+  }
+}
+
+/* 4. Keyframe animations */
+@keyframes animation-name {
+  /* Animation steps */
+}
+
+/* 5. Base styles */
+body {
+  /* Global styles using CSS variables */
+}
+```
+
+## Common Anti-Patterns to Avoid
+
+### ❌ Don't Do This:
+```jsx
+// Using non-pixel fonts
+<span className="font-sans text-base">
+
+// Large spacing (old patterns)
+<div className="p-6 gap-4">
+
+// Hardcoded colors instead of CSS variables
+<div style={{ color: '#00d4ff' }}>
+
+// Creating tailwind.config.js (v4 uses globals.css)
+
+// Ignoring the custom utility classes
+<div className="shadow-lg"> {/* Use shadow-retro instead */}
+```
+
+### ✅ Do This Instead:
+```jsx
+// Use pixel font system
+<span className="font-pixel text-pixel-base">
+
+// Compact spacing
+<div className="p-2.5 gap-1.5">
+
+// Use CSS variable colors through utilities
+<div className="text-primary">
+
+// Add new utilities to globals.css @utility blocks
+
+// Use custom retro utilities
+<div className="shadow-retro">
+```
+
+## Testing Checklist
+
+Before submitting retro components:
+- [ ] Uses Tailwind v4 syntax (no config file dependencies)
+- [ ] Leverages CSS variables from @theme block
+- [ ] Uses custom utilities (pixel-perfect, retro-glow, etc.)
+- [ ] Looks good on mobile viewport (375px width)
+- [ ] Touch targets are minimum 24px
+- [ ] Uses pixel font system consistently  
+- [ ] Glows and effects are proportionally scaled
+- [ ] Spacing follows compact mobile-first scale
+- [ ] Icons are appropriately sized (2.5x2.5 to 3x3)
+- [ ] Animations are subtle and retro-appropriate
+- [ ] Supports all standard retro variants
+- [ ] Includes proper TypeScript interfaces
+- [ ] Works with scanlines and CRT effects
+
+Remember: **Compact, authentic, mobile-first with Tailwind v4!** Every design decision should prioritize the retro arcade aesthetic while maintaining excellent mobile usability and leveraging the power of CSS variables and custom utilities.

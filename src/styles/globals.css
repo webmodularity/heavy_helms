@@ -4,6 +4,11 @@
 
 @theme inline {
   --font-pixeloid: var(--font-pixeloid);
+  --font-bokor: var(--font-bokor);
+  --font-cinzel: var(--font-cinzel);
+  --font-cormorant-unicase: var(--font-cormorant-unicase);
+  --font-medieval: var(--font-cormorant-unicase);
+  --font-pixel: var(--font-pixeloid);
 }
 
 /* RETRO-PIXEL THEME SYSTEM - Tailwind CSS v4 */
@@ -62,7 +67,7 @@
   --radius-retro-lg: 8px;
 
   /* Pixel-perfect font sizes */
-  --font-size-pixel-xs: 10px;
+  --font-size-pixel-xs: 8px;
   --font-size-pixel-sm: 12px;
   --font-size-pixel-base: 14px;
   --font-size-pixel-lg: 16px;
@@ -232,6 +237,35 @@
 @utility rounded-retro-lg {
   border-radius: var(--radius-retro-lg);
 }
+
+@utility text-pixel-xs {
+  font-size: var(--font-size-pixel-xs);
+}
+
+@utility text-pixel-sm {
+  font-size: var(--font-size-pixel-sm);
+}
+
+@utility text-pixel-base {
+  font-size: var(--font-size-pixel-base);
+}
+
+@utility text-pixel-lg {
+  font-size: var(--font-size-pixel-lg);
+}
+
+@utility text-pixel-xl {
+  font-size: var(--font-size-pixel-xl);
+}
+
+@utility text-pixel-2xl {
+  font-size: var(--font-size-pixel-2xl);
+}
+
+@utility text-pixel-3xl {
+  font-size: var(--font-size-pixel-3xl);
+}
+
 
 /* Component classes using @apply - these should now work */
 @layer components {
