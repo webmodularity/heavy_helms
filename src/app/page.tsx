@@ -7,9 +7,9 @@ import { useAccount } from "wagmi";
 
 export default function Home() {
   const { isConnected } = useAccount();
-  const { user } = usePrivy();
-  console.log("privyUser 2", user);
-  console.log("isConnected", isConnected);
+  // const { user } = usePrivy();
+  // console.log("privyUser 2", user);
+  // console.log("isConnected", isConnected);
   return (
     <div className="min-h-screen w-full overflow-y-auto overflow-x-hidden">
       {isConnected ? (
