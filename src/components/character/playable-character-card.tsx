@@ -1,6 +1,7 @@
 "use client";
 
 import { CardContainer } from "@/components/character/card-container";
+import { RetroStanceSelector } from "@/components/character/retro-stance-selector";
 import type { Player } from "@/types/player.types";
 import Image from "next/image";
 import Link from "next/link";
@@ -13,12 +14,9 @@ import {
   Ruler,
   Dices,
   Check,
-  Shield,
-  Swords,
-  Flame,
 } from "lucide-react";
 import { StanceType } from "@/types/equipment.types";
-import { useState } from "react";
+import { cn } from "@/lib/utils";
 
 interface CharacterCardProps {
   character: Player;
@@ -28,7 +26,7 @@ interface CharacterCardProps {
   onViewDetails: () => void;
 }
 
-function AttributeBar({
+function RetroAttributeBar({
   label,
   value,
   icon,
@@ -38,20 +36,23 @@ function AttributeBar({
   const percentage = ((value - minValue) / (maxValue - minValue)) * 100;
 
   return (
-    <div className="space-y-1">
-      <div className="flex justify-between items-center text-[10px]">
-        <span className="flex items-center text-zinc-400">
+    <div className="space-y-0.5">
+      <div className="flex justify-between items-center">
+        <span className="flex items-center font-pixeloid text-pixel-xs text-primary/60">
           {icon}
-          <span className="ml-1">{label}</span>
+          <span className="ml-0.5 uppercase tracking-wide">{label}</span>
         </span>
-        <span className="font-medium text-white">{value}</span>
+        <span className="font-pixeloid text-pixel-xs font-bold text-primary">
+          {value}
+        </span>
       </div>
-      <div className="h-1 w-full bg-stone-800/80 rounded-full overflow-hidden">
+      <div className="h-0.5 w-full bg-arcade-bezel rounded-pixel border border-primary/20 overflow-hidden">
         <motion.div
-          className="h-full bg-gradient-to-r from-amber-700 to-yellow-500 rounded-full"
+          className="h-full bg-gradient-to-r from-primary/60 to-primary/80 pixel-perfect"
           initial={{ width: 0 }}
           animate={{ width: `${percentage}%` }}
           transition={{ duration: 0.8, delay: 0.2 }}
+          style={{ imageRendering: 'pixelated' }}
         />
       </div>
     </div>
@@ -86,12 +87,16 @@ export function CharacterCard({
       <div className="cursor-pointer">
         <CardContainer index={index} isSelected={isSelected}>
           <div className="relative">
-            {/* Character Image */}
-            <div className="aspect-square relative bg-gradient-to-b from-stone-800/30 to-stone-900/30 overflow-hidden group">
+            {/* Character Image with Retro Frame */}
+            <div className="aspect-square relative bg-gradient-to-b from-arcade-screen/30 to-card/60 overflow-hidden border-2 border-primary/20 rounded-pixel-md pixel-perfect">
+              {/* CRT Effect Background */}
+              <div className="absolute inset-0 bg-[linear-gradient(transparent_50%,rgba(0,255,255,0.02)_50%)] bg-[length:100%_2px] pointer-events-none opacity-60" />
+              
+              {/* Selection Glow */}
               <motion.div
-                className="absolute inset-0 bg-gradient-radial from-yellow-500/10 to-transparent opacity-0 z-10"
+                className="absolute inset-0 bg-gradient-radial from-primary/20 to-transparent z-10"
                 initial={false}
-                animate={isSelected ? { opacity: 0.4 } : { opacity: 0 }}
+                animate={isSelected ? { opacity: 0.6 } : { opacity: 0 }}
                 transition={{ duration: 0.6 }}
               />
 
@@ -100,65 +105,87 @@ export function CharacterCard({
                 alt={`Character ${character.name.fullName}`}
                 width={210}
                 height={210}
-                className="object-cover transition-transform duration-500 group-hover:scale-105"
+                className="object-cover transition-transform duration-500 hover:scale-105 pixel-perfect"
+                style={{ imageRendering: 'pixelated' }}
                 priority
               />
 
-              {/* Character ID Badge */}
-              <div className="absolute top-2 left-2 bg-black/70 backdrop-blur-sm px-1.5 py-0.5 rounded text-[10px] font-mono text-yellow-500 border border-yellow-500/30 z-20">
-                ID: {character.id}
+              {/* Character ID Badge - Retro Style */}
+              <div className="absolute top-2 left-2 bg-card/90 backdrop-blur-sm px-1.5 py-0.5 rounded-pixel border border-primary/30 z-20 retro-glow">
+                <span className="font-pixeloid text-pixel-xs font-bold text-primary uppercase tracking-wider">
+                  ID: {character.id}
+                </span>
               </div>
 
-              {/* Selected Badge */}
+              {/* Selected Badge - Enhanced */}
               {isSelected && (
-                <div className="absolute top-2 right-2 bg-yellow-500 text-black px-1.5 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-0.5 z-20">
-                  <Check size={8} /> Selected
-                </div>
+                <motion.div
+                  className="absolute top-2 right-2 bg-gradient-to-r from-primary to-primary/80 text-background px-1.5 py-0.5 rounded-pixel text-pixel-xs font-pixeloid font-bold flex items-center gap-0.5 z-20 retro-glow border border-primary/50"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  <Check className="h-2.5 w-2.5" />
+                  <span className="uppercase tracking-wide">ACTIVE</span>
+                </motion.div>
+              )}
+
+              {/* Retro Border Glow */}
+              {isSelected && (
+                <motion.div
+                  className="absolute inset-0 border-2 border-primary/50 rounded-pixel-md pointer-events-none"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.4 }}
+                />
               )}
             </div>
           </div>
 
           <div className="p-2 space-y-2">
-            {/* Character Name */}
-            <h3 className="font-bold text-sm text-yellow-500 truncate">
-              {character.name.fullName}
-            </h3>
+            {/* Character Name - Retro Style */}
+            <div className="text-center">
+              <h3 className="font-pixeloid font-bold text-pixel-sm text-primary truncate uppercase tracking-wider retro-glow">
+                {character.name.fullName}
+              </h3>
+              <div className="w-full h-px bg-gradient-to-r from-transparent via-primary/30 to-transparent mt-1" />
+            </div>
 
-            {/* Attributes */}
-            <div className="space-y-1.5">
-              <AttributeBar
-                label="Strength"
+            {/* Attributes - Retro Grid */}
+            <div className="space-y-1">
+              <RetroAttributeBar
+                label="STR"
                 value={character.attributes.strength}
-                icon={<Dumbbell className="h-2.5 w-2.5 text-yellow-600" />}
+                icon={<Dumbbell className="h-2.5 w-2.5 text-primary" />}
               />
-              <AttributeBar
-                label="Constitution"
+              <RetroAttributeBar
+                label="CON"
                 value={character.attributes.constitution}
-                icon={<HeartPulse className="h-2.5 w-2.5 text-yellow-600" />}
+                icon={<HeartPulse className="h-2.5 w-2.5 text-primary" />}
               />
-              <AttributeBar
-                label="Size"
+              <RetroAttributeBar
+                label="SIZE"
                 value={character.attributes.size}
-                icon={<Ruler className="h-2.5 w-2.5 text-yellow-600" />}
+                icon={<Ruler className="h-2.5 w-2.5 text-primary" />}
               />
-              <AttributeBar
-                label="Agility"
+              <RetroAttributeBar
+                label="AGI"
                 value={character.attributes.agility}
-                icon={<Footprints className="h-2.5 w-2.5 text-yellow-600" />}
+                icon={<Footprints className="h-2.5 w-2.5 text-primary" />}
               />
-              <AttributeBar
-                label="Stamina"
+              <RetroAttributeBar
+                label="STA"
                 value={character.attributes.stamina}
-                icon={<Heart className="h-2.5 w-2.5 text-yellow-600" />}
+                icon={<Heart className="h-2.5 w-2.5 text-primary" />}
               />
-              <AttributeBar
-                label="Luck"
+              <RetroAttributeBar
+                label="LUCK"
                 value={character.attributes.luck}
-                icon={<Dices className="h-2.5 w-2.5 text-yellow-600" />}
+                icon={<Dices className="h-2.5 w-2.5 text-primary" />}
               />
             </div>
 
-            {/* Add AnimatePresence for the stance selector */}
+            {/* Retro Stance Selector */}
             <AnimatePresence>
               {isSelected && (
                 <motion.div
@@ -175,12 +202,20 @@ export function CharacterCard({
                     e.preventDefault();
                   }}
                 >
-                  <CompactStanceSelector
+                  {/* Retro Divider */}
+                  <div className="flex items-center gap-2 mb-2">
+                    <div className="flex-1 h-px bg-gradient-to-r from-transparent via-primary/40 to-primary/40" />
+                    <div className="w-1 h-1 bg-primary rounded-pixel animate-pulse" />
+                    <div className="flex-1 h-px bg-gradient-to-r from-primary/40 via-primary/40 to-transparent" />
+                  </div>
+
+                  <RetroStanceSelector
                     character={character}
                     currentStance={character.stance as StanceType}
                     onStanceChange={(newStance) =>
                       onSelect(newStance as unknown as StanceType)
                     }
+                    size="compact"
                   />
                 </motion.div>
               )}
@@ -189,76 +224,5 @@ export function CharacterCard({
         </CardContainer>
       </div>
     </Link>
-  );
-}
-
-// Compact version of the stance selector
-function CompactStanceSelector({
-  character,
-  currentStance,
-  onStanceChange,
-}: {
-  character: Player;
-  currentStance: StanceType;
-  onStanceChange: (newStance: StanceType) => void;
-}) {
-  const [stance, setStance] = useState<StanceType>(currentStance);
-
-  // Icons and descriptions for different stances
-  const stanceInfo = {
-    [StanceType.Defensive]: {
-      icon: <Shield className="h-3 w-3" />,
-      label: "Defensive",
-      color: "bg-gradient-to-r from-emerald-700 to-emerald-500",
-    },
-    [StanceType.Balanced]: {
-      icon: <Swords className="h-3 w-3" />,
-      label: "Balanced",
-      color: "bg-gradient-to-r from-blue-700 to-blue-500",
-    },
-    [StanceType.Offensive]: {
-      icon: <Flame className="h-3 w-3" />,
-      label: "Offensive",
-      color: "bg-gradient-to-r from-orange-700 to-orange-500",
-    },
-  };
-
-  const handleStanceChange = (newStance: StanceType) => {
-    setStance(newStance);
-    onStanceChange(newStance);
-  };
-
-  return (
-    <div className="space-y-1.5">
-      <p className="text-[10px] font-medium text-zinc-400">Combat Stance</p>
-      <div className="flex justify-between p-1 bg-stone-800/60 rounded-md border border-yellow-500/20">
-        {Object.entries(stanceInfo).map(([value, info]) => {
-          const stanceValue = Number(value) as StanceType;
-          const isSelected = stance === stanceValue;
-          return (
-            <button
-              type="button"
-              key={value}
-              onClick={(e) => {
-                e.stopPropagation();
-                e.preventDefault(); // Prevent link navigation
-                handleStanceChange(stanceValue);
-              }}
-              className={`flex-1 relative py-1 rounded-sm ${isSelected ? "text-white" : "text-zinc-400"}`}
-            >
-              <div className="flex flex-col items-center gap-0.5 relative z-10">
-                <span className="text-yellow-400">{info.icon}</span>
-                <span className="text-[10px] font-medium">{info.label}</span>
-              </div>
-              {isSelected && (
-                <div
-                  className={`absolute inset-0 ${info.color} rounded-sm opacity-20`}
-                />
-              )}
-            </button>
-          );
-        })}
-      </div>
-    </div>
   );
 }

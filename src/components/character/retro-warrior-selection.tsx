@@ -131,7 +131,7 @@ export function RetroWarriorSelection({
 
   const renderSkeletons = () => {
     return (
-      <div className="flex gap-4 px-[10%]">
+      <div className="flex gap-4 px-[10%] py-4">
         {[...Array(3)].map((_, i) => (
           <RetroCard
             key={i}
@@ -149,74 +149,86 @@ export function RetroWarriorSelection({
 
   return (
     <section className="mt-3">
-      {/* Section Header - COMPACTED */}
-      <RetroCard variant="arcade" className="mb-3" size="sm">
+      {/* Section Header */}
+      <RetroCard variant="arcade" className="mb-6" size="sm">
         <RetroCardHeader variant="arcade">
           <RetroCardTitle variant="arcade" className="text-center">
             WARRIOR ROSTER
           </RetroCardTitle>
         </RetroCardHeader>
         <RetroCardContent>
-          <div className="text-center font-pixeloid text-xs text-primary/80">
+          <div className="text-center font-pixel text-pixel-xs text-primary/80">
             SELECT COMBAT UNIT • CONFIGURE STANCE • DEPLOY TO BATTLEFIELD
           </div>
         </RetroCardContent>
       </RetroCard>
 
-      {/* Character Selection Scroll - COMPACTED */}
-      <div className="relative max-w-full mt-12">
-        <div
-          ref={characterListRef}
-          className={cn(
-            "flex gap-2.5 mt-2 overflow-x-auto pb-3 pt-1 snap-x snap-mandatory",
-            "scrollbar-none items-start overscroll-x-contain px-[8%]",
-            "bg-gradient-to-r from-transparent via-primary/5 to-transparent rounded-retro",
-          )}
-        >
-          {isLoading ? (
-            renderSkeletons()
-          ) : (
-            <>
-              {players?.map((character, index) => (
-                <div
-                  key={character.id}
-                  className={cn(
-                    "flex-shrink-0 snap-center w-[75%] transition-all duration-300",
-                    activeIndex === index
-                      ? "scale-105 z-10 shadow-retro"
-                      : "scale-95 opacity-75",
-                  )}
-                >
-                  <RetroCharacterCard
-                    character={character as Player}
-                    index={index}
-                    isSelected={selectedCharacter?.id === character.id}
-                    onSelect={(newStance) => {
-                      onSelectCharacter(
-                        character as Player,
-                        (newStance as unknown as StanceType) ??
-                          character.stance,
-                      );
-                    }}
-                    onViewDetails={() => handleViewDetails(character as Player)}
-                  />
-                </div>
-              ))}
+      {/* Character Selection Scroll - IMPROVED SPACING */}
+      <div className="relative max-w-full">
+        {/* Added breathing room container */}
+        <div className="py-6 px-2">
+          <div
+            ref={characterListRef}
+            className={cn(
+              "flex gap-4 overflow-x-auto snap-x snap-mandatory",
+              "scrollbar-none items-start overscroll-x-contain",
+              "px-[8%] py-4", // Added more padding for glow effects
+              "bg-gradient-to-r from-transparent via-primary/5 to-transparent rounded-retro",
+            )}
+          >
+            {isLoading ? (
+              renderSkeletons()
+            ) : (
+              <>
+                {players?.map((character, index) => (
+                  <div
+                    key={character.id}
+                    className={cn(
+                      "flex-shrink-0 snap-center w-[75%] transition-all duration-300",
+                      // Added more spacing for glow effects to breathe
+                      "p-2", // Padding around each card for glow space
+                      activeIndex === index
+                        ? "scale-105 z-10"
+                        : "scale-95 opacity-75",
+                    )}
+                  >
+                    <RetroCharacterCard
+                      character={character as Player}
+                      index={index}
+                      isSelected={selectedCharacter?.id === character.id}
+                      onSelect={(newStance) => {
+                        onSelectCharacter(
+                          character as Player,
+                          (newStance as unknown as StanceType) ??
+                            character.stance,
+                        );
+                      }}
+                      onViewDetails={() => handleViewDetails(character as Player)}
+                    />
+                  </div>
+                ))}
 
-              {showNewCharacterCard && (
-                <div
-                  className={cn(
-                    "flex-shrink-0 snap-center w-[75%] transition-all duration-300",
-                    activeIndex === numPlayerCards
-                      ? "scale-105 z-10 shadow-retro"
-                      : "scale-95 opacity-75",
-                  )}
-                >
-                  <RetroNewCharacterCard />
-                </div>
-              )}
-            </>
-          )}
+                {showNewCharacterCard && (
+                  <div
+                    className={cn(
+                      "flex-shrink-0 snap-center w-[75%] transition-all duration-300",
+                      "p-2", // Consistent padding for glow space
+                      activeIndex === numPlayerCards
+                        ? "scale-105 z-10"
+                        : "scale-95 opacity-75",
+                    )}
+                  >
+                    <RetroNewCharacterCard
+                      delay={0.5}
+                      onClick={() => {}}
+                      isCreating={false}
+                      txHash={null}
+                    />
+                  </div>
+                )}
+              </>
+            )}
+          </div>
         </div>
       </div>
     </section>

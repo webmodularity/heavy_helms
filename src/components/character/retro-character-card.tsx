@@ -12,21 +12,15 @@ import {
   Ruler,
   Dices,
   Check,
-  Shield,
-  Swords,
-  Flame,
-  Zap,
-  Target,
 } from "lucide-react";
 import { StanceType } from "@/types/equipment.types";
-import { useState } from "react";
 import {
   RetroCard,
   RetroCardContent,
   RetroCardHeader,
   RetroCardTitle,
 } from "@/components/ui/retro-card";
-import { RetroButton } from "@/components/ui/retro-button";
+import { RetroStanceSelector } from "@/components/character/retro-stance-selector";
 import { cn } from "@/lib/utils";
 
 interface RetroCharacterCardProps {
@@ -54,32 +48,32 @@ function RetroAttributeBar({
 
   return (
     <div className="space-y-0.5">
-      <div className="flex justify-between items-center text-sm">
+      <div className="flex justify-between items-center">
         <span
           className={cn(
-            "flex items-center font-pixeloid text-xs",
-            isActive ? "text-primary" : "text-primary/60",
+            "flex items-center font-pixel text-pixel-xs gap-0.5",
+            isActive ? "text-primary retro-glow" : "text-primary/70",
           )}
         >
           {icon}
-          <span className="ml-0.5">{label}</span>
+          {label}
         </span>
         <span
           className={cn(
-            "font-pixeloid text-xs font-bold",
-            isActive ? "text-primary" : "text-foreground",
+            "font-pixel text-pixel-xs font-bold",
+            isActive ? "text-primary retro-glow" : "text-foreground",
           )}
         >
           {value}
         </span>
       </div>
-      <div className="h-0.5 w-full bg-arcade-bezel rounded-pixel overflow-hidden border border-primary/20">
+      <div className="h-1 w-full bg-arcade-bezel rounded-pixel overflow-hidden border border-primary/30 pixel-perfect">
         <motion.div
           className={cn(
-            "h-full rounded-pixel transition-all duration-200",
+            "h-full rounded-pixel transition-all duration-300",
             isActive
-              ? "bg-gradient-to-r from-primary to-primary-glow shadow-retro"
-              : "bg-gradient-to-r from-primary/60 to-primary/80",
+              ? "bg-gradient-to-r from-primary to-primary/80 retro-glow"
+              : "bg-gradient-to-r from-primary/50 to-primary/70",
           )}
           initial={{ width: 0 }}
           animate={{ width: `${percentage}%` }}
@@ -108,142 +102,147 @@ export function RetroCharacterCard({
   };
 
   return (
-    <Link
-      href={characterDetailsUrl}
-      prefetch={true}
-      onClick={handleCardClick}
-      passHref
-    >
-      <div className="cursor-pointer">
+    <Link href={characterDetailsUrl} prefetch={true} passHref>
+      <div className="cursor-pointer" onClick={handleCardClick}>
         <RetroCard
           variant={isSelected ? "arcade" : "pixel"}
           size="sm"
           className={cn(
-            "transition-all duration-300 hover:scale-105 relative overflow-hidden",
-            isSelected && "shadow-retro border-primary-glow",
+            "transition-all duration-300 hover:scale-[1.02] relative overflow-hidden",
+            isSelected && "retro-glow border-primary",
           )}
           withScanlines={isSelected}
         >
-          {/* Character Image Section - COMPACTED */}
+          {/* Character Image Section - SCALED DOWN */}
           <div className="relative">
-            <div className="aspect-[4/3] relative bg-gradient-to-b from-arcade-screen to-arcade-bezel overflow-hidden group border-b border-primary/30">
+            <div className="aspect-[4/3] relative bg-gradient-to-b from-arcade-screen to-arcade-bezel overflow-hidden group border-b border-primary/40">
               <motion.div
-                className="absolute inset-0 bg-gradient-radial from-primary/20 to-transparent z-10"
+                className="absolute inset-0 bg-gradient-radial from-primary/30 to-transparent z-10"
                 initial={false}
-                animate={isSelected ? { opacity: 0.6 } : { opacity: 0 }}
+                animate={isSelected ? { opacity: 1 } : { opacity: 0 }}
                 transition={{ duration: 0.6 }}
               />
 
               <Image
                 src={character.currentSkin.imageURL}
                 alt={`Character ${character.name.fullName}`}
-                width={150}
-                height={120}
+                width={120}
+                height={90}
                 className="object-cover transition-transform duration-500 group-hover:scale-105 pixel-perfect"
                 priority
               />
 
-              {/* Character ID Badge - COMPACTED */}
-              <div className="absolute top-1 left-1 bg-arcade-screen/90 backdrop-blur-sm px-1.5 py-0.5 rounded-pixel border border-primary/50 z-20">
-                <span className="font-pixeloid text-xs text-primary">
-                  ID: {character.id}
+              {/* Character ID Badge - SLIGHTLY SMALLER */}
+              <div className="absolute top-0.5 left-0.5 bg-arcade-screen/95 backdrop-blur-sm px-1 py-0.5 rounded-pixel border border-primary/60 z-20">
+                <span className="font-pixel text-pixel-xs text-primary">
+                  #{character.id}
                 </span>
               </div>
 
-              {/* Selected Badge - COMPACTED */}
+              {/* Selected Badge - SLIGHTLY SMALLER */}
               {isSelected && (
                 <motion.div
-                  className="absolute top-1 right-1 bg-primary text-primary-foreground px-1.5 py-0.5 rounded-pixel font-pixeloid text-xs font-bold flex items-center gap-0.5 z-20 shadow-retro"
+                  className="absolute top-0.5 right-0.5 bg-primary text-primary-foreground px-1 py-0.5 rounded-pixel font-pixel text-pixel-xs font-bold flex items-center gap-0.5 z-20 retro-glow"
                   initial={{ scale: 0, rotate: -180 }}
                   animate={{ scale: 1, rotate: 0 }}
                   transition={{ duration: 0.5, type: "spring" }}
                 >
-                  <Check size={8} /> ACTIVE
+                  <Check size={7} />
+                  ACTIVE
                 </motion.div>
               )}
 
-              {/* Status Indicators - COMPACTED */}
-              <div className="absolute bottom-1 left-1 flex gap-0.5 z-20">
-                <div className="w-1.5 h-1.5 bg-success rounded-pixel animate-pulse shadow-retro" />
-                <span className="font-pixeloid text-xs text-success">
+              {/* Status Indicators - SLIGHTLY SMALLER */}
+              <div className="absolute bottom-0.5 left-0.5 flex items-center gap-0.5 z-20">
+                <div className="w-1 h-1 bg-success rounded-pixel animate-pulse retro-glow" />
+                <span className="font-pixel text-pixel-xs text-success retro-glow">
                   READY
                 </span>
               </div>
             </div>
           </div>
 
-          <RetroCardContent className="p-2 space-y-2">
-            {/* Character Name - COMPACTED */}
-            <RetroCardTitle
-              variant={isSelected ? "arcade" : "pixel"}
-              className="text-center text-sm"
-            >
-              {character.name.fullName}
-            </RetroCardTitle>
+          <RetroCardContent className="p-1.5 space-y-1.5">
+            {/* Character Name - SMALLER */}
+            <div className="text-center">
+              <RetroCardTitle
+                variant={isSelected ? "arcade" : "pixel"}
+                className="text-pixel-xs font-pixel"
+              >
+                {character.name.fullName}
+              </RetroCardTitle>
+            </div>
 
-            {/* Attributes - COMPACTED SPACING */}
-            <div className="space-y-1">
+            {/* Attributes - TIGHTER SPACING */}
+            <div className="space-y-0.5">
               <RetroAttributeBar
                 label="STR"
                 value={character.attributes.strength}
-                icon={<Dumbbell className="h-2.5 w-2.5" />}
+                icon={<Dumbbell className="h-2 w-2" />}
                 isActive={isSelected}
               />
               <RetroAttributeBar
                 label="CON"
                 value={character.attributes.constitution}
-                icon={<HeartPulse className="h-2.5 w-2.5" />}
+                icon={<HeartPulse className="h-2 w-2" />}
                 isActive={isSelected}
               />
               <RetroAttributeBar
                 label="SIZE"
                 value={character.attributes.size}
-                icon={<Ruler className="h-2.5 w-2.5" />}
+                icon={<Ruler className="h-2 w-2" />}
                 isActive={isSelected}
               />
               <RetroAttributeBar
                 label="AGI"
                 value={character.attributes.agility}
-                icon={<Footprints className="h-2.5 w-2.5" />}
+                icon={<Footprints className="h-2 w-2" />}
                 isActive={isSelected}
               />
               <RetroAttributeBar
                 label="STA"
                 value={character.attributes.stamina}
-                icon={<Heart className="h-2.5 w-2.5" />}
+                icon={<Heart className="h-2 w-2" />}
                 isActive={isSelected}
               />
               <RetroAttributeBar
                 label="LUCK"
                 value={character.attributes.luck}
-                icon={<Dices className="h-2.5 w-2.5" />}
+                icon={<Dices className="h-2 w-2" />}
                 isActive={isSelected}
               />
             </div>
 
-            {/* Stance Selector - COMPACTED */}
+            {/* Stance Selector */}
             <AnimatePresence>
               {isSelected && (
                 <motion.div
                   initial={{ opacity: 0, height: 0, marginTop: 0 }}
-                  animate={{ opacity: 1, height: "auto", marginTop: 8 }}
+                  animate={{ opacity: 1, height: "auto", marginTop: 6 }}
                   exit={{ opacity: 0, height: 0, marginTop: 0 }}
                   transition={{
                     duration: 0.3,
                     ease: "easeInOut",
                   }}
-                  className="overflow-hidden stance-selector border-t border-primary/30 pt-2"
+                  className="overflow-hidden stance-selector border-t border-primary/40 pt-1.5"
                   onClick={(e) => {
                     e.stopPropagation();
                     e.preventDefault();
                   }}
                 >
-                  <RetroCompactStanceSelector
-                    character={character}
+                  <RetroStanceSelector
+                    character={character as any}
                     currentStance={character.stance as StanceType}
-                    onStanceChange={(newStance) =>
-                      onSelect(newStance as unknown as StanceType)
-                    }
+                    onStanceChange={(newStance) => {
+                      console.log(
+                        "Stance changing from",
+                        character.stance,
+                        "to",
+                        newStance,
+                      );
+                      onSelect(newStance);
+                    }}
+                    size="compact"
                   />
                 </motion.div>
               )}
@@ -252,66 +251,5 @@ export function RetroCharacterCard({
         </RetroCard>
       </div>
     </Link>
-  );
-}
-
-// Retro Compact Stance Selector - COMPACTED
-function RetroCompactStanceSelector({
-  character,
-  currentStance,
-  onStanceChange,
-}: {
-  character: Player;
-  currentStance: StanceType;
-  onStanceChange: (newStance: StanceType) => void;
-}) {
-  const stanceOptions = [
-    {
-      value: "Aggressive" as StanceType,
-      label: "AGG",
-      icon: <Flame className="h-2.5 w-2.5" />,
-      description: "High damage, low defense",
-    },
-    {
-      value: "Balanced" as StanceType,
-      label: "BAL",
-      icon: <Target className="h-2.5 w-2.5" />,
-      description: "Equal offense and defense",
-    },
-    {
-      value: "Defensive" as StanceType,
-      label: "DEF",
-      icon: <Shield className="h-2.5 w-2.5" />,
-      description: "High defense, low damage",
-    },
-  ];
-
-  const handleStanceChange = (newStance: StanceType) => {
-    if (newStance !== currentStance) {
-      onStanceChange(newStance);
-    }
-  };
-
-  return (
-    <div className="space-y-1.5">
-      <div className="text-center font-pixeloid text-xs text-primary/80">
-        COMBAT STANCE
-      </div>
-      <div className="grid grid-cols-3 gap-0.5">
-        {stanceOptions.map((stance) => (
-          <RetroButton
-            key={stance.value}
-            variant={currentStance === stance.value ? "arcade" : "pixel"}
-            size="xs"
-            onClick={() => handleStanceChange(stance.value)}
-            className="flex flex-col items-center gap-0.5 py-1.5 px-1"
-            glow={currentStance === stance.value ? "medium" : "none"}
-          >
-            {stance.icon}
-            <span className="text-xs font-bold">{stance.label}</span>
-          </RetroButton>
-        ))}
-      </div>
-    </div>
   );
 }
