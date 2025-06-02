@@ -4,7 +4,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 const retroActionButtonVariants = cva(
-  "w-full relative overflow-hidden font-pixeloid font-bold uppercase tracking-wider pixel-perfect transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group",
+  "w-full cursor-pointer relative overflow-hidden font-pixeloid font-bold uppercase tracking-wider pixel-perfect transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed group",
   {
     variants: {
       variant: {
@@ -18,7 +18,7 @@ const retroActionButtonVariants = cva(
           "before:absolute before:inset-0 before:bg-gradient-to-r before:from-transparent before:via-white/20 before:to-transparent before:translate-x-[-100%] hover:before:translate-x-[100%] before:transition-transform before:duration-500",
         ],
         secondary: [
-          "bg-gradient-to-b from-secondary/60 to-secondary/90", 
+          "bg-gradient-to-b from-secondary/60 to-secondary/90",
           "border-2 border-secondary",
           "text-background shadow-pixel",
           "hover:from-secondary/80 hover:to-secondary",
@@ -59,7 +59,7 @@ const retroActionButtonVariants = cva(
       variant: "primary",
       size: "default",
     },
-  }
+  },
 );
 
 export interface RetroActionButtonProps
@@ -70,29 +70,40 @@ export interface RetroActionButtonProps
   withPulse?: boolean;
 }
 
-const RetroActionButton = React.forwardRef<HTMLButtonElement, RetroActionButtonProps>(
-  ({ 
-    className, 
-    variant, 
-    size, 
-    loading = false, 
-    withShimmer = true, 
-    withPulse = false,
-    children, 
-    disabled, 
-    ...props 
-  }, ref) => {
+const RetroActionButton = React.forwardRef<
+  HTMLButtonElement,
+  RetroActionButtonProps
+>(
+  (
+    {
+      className,
+      variant,
+      size,
+      loading = false,
+      withShimmer = true,
+      withPulse = false,
+      children,
+      disabled,
+      ...props
+    },
+    ref,
+  ) => {
     const isDisabled = disabled || loading || variant === "coming";
 
     return (
       <motion.button
         className={cn(retroActionButtonVariants({ variant, size }), className)}
-        whileHover={!isDisabled ? { 
-          scale: 1.02,
-          boxShadow: variant === "primary" 
-            ? "0 0 20px rgb(var(--color-primary)), 0 0 30px rgb(var(--color-primary))"
-            : undefined
-        } : {}}
+        whileHover={
+          !isDisabled
+            ? {
+                scale: 1.02,
+                boxShadow:
+                  variant === "primary"
+                    ? "0 0 20px rgb(var(--color-primary)), 0 0 30px rgb(var(--color-primary))"
+                    : undefined,
+              }
+            : {}
+        }
         whileTap={!isDisabled ? { scale: 0.96 } : {}}
         disabled={isDisabled}
         ref={ref}
@@ -137,7 +148,6 @@ const RetroActionButton = React.forwardRef<HTMLButtonElement, RetroActionButtonP
             }}
           />
         )}
-
         {/* Loading spinner */}
         {loading && (
           <motion.div
@@ -151,10 +161,12 @@ const RetroActionButton = React.forwardRef<HTMLButtonElement, RetroActionButtonP
         )}
 
         {/* Content with enhanced typography */}
-        <span className={cn(
-          "relative z-10 flex items-center justify-center gap-1.5 transition-all duration-200",
-          loading && "opacity-0"
-        )}>
+        <span
+          className={cn(
+            "relative z-10 flex items-center justify-center gap-1.5 transition-all duration-200",
+            loading && "opacity-0",
+          )}
+        >
           {variant === "primary" && !isDisabled && (
             <motion.span
               className="text-pixel-xs"
@@ -164,11 +176,9 @@ const RetroActionButton = React.forwardRef<HTMLButtonElement, RetroActionButtonP
               ►
             </motion.span>
           )}
-          
-          <span className="tracking-wider">
-            {children}
-          </span>
-          
+
+          <span className="tracking-wider">{children}</span>
+
           {variant === "primary" && !isDisabled && (
             <motion.span
               className="text-pixel-xs"
@@ -191,9 +201,9 @@ const RetroActionButton = React.forwardRef<HTMLButtonElement, RetroActionButtonP
         )}
       </motion.button>
     );
-  }
+  },
 );
 
 RetroActionButton.displayName = "RetroActionButton";
 
-export { RetroActionButton, retroActionButtonVariants }; 
+export { RetroActionButton, retroActionButtonVariants };
