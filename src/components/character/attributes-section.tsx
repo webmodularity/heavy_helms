@@ -13,6 +13,15 @@ import {
   Info,
   X,
 } from "lucide-react";
+import {
+  RetroCard,
+  RetroCardContent,
+  RetroCardHeader,
+  RetroCardTitle,
+} from "@/components/ui/retro-card";
+import { RetroButton } from "@/components/ui/retro-button";
+import { RetroAttributeBar } from "@/components/ui/retro-attribute-bar";
+import { cn } from "@/lib/utils";
 
 interface AttributesSectionProps {
   character: Player;
@@ -27,82 +36,82 @@ export function AttributesSection({ character }: AttributesSectionProps) {
     switch (attr) {
       case "Strength":
         return {
-          title: "Strength",
+          title: "STRENGTH",
           description:
-            "Affects physical power, weapon damage, parry chance, counterattack effectiveness, and endurance",
+            "AFFECTS PHYSICAL POWER, WEAPON DAMAGE, PARRY CHANCE, COUNTERATTACK EFFECTIVENESS, AND ENDURANCE",
           details: [
-            "Increases physical damage with all weapons",
-            "Improves parry chance against enemy attacks",
-            "Enhances counterattack damage and effectiveness",
-            "Contributes to critical hit damage multiplier",
-            "Slightly improves maximum endurance",
+            "INCREASES PHYSICAL DAMAGE WITH ALL WEAPONS",
+            "IMPROVES PARRY CHANCE AGAINST ENEMY ATTACKS",
+            "ENHANCES COUNTERATTACK DAMAGE AND EFFECTIVENESS",
+            "CONTRIBUTES TO CRITICAL HIT DAMAGE MULTIPLIER",
+            "SLIGHTLY IMPROVES MAXIMUM ENDURANCE",
           ],
         };
       case "Constitution":
         return {
-          title: "Constitution",
+          title: "CONSTITUTION",
           description:
-            "Affects maximum health, block chance, riposte ability, and survival in lethal situations",
+            "AFFECTS MAXIMUM HEALTH, BLOCK CHANCE, RIPOSTE ABILITY, AND SURVIVAL IN LETHAL SITUATIONS",
           details: [
-            "Major contributor to maximum health",
-            "Improves chance to block attacks with shields",
-            "Contributes to riposte chance after successful parry",
-            "Significantly increases survival chance in lethal situations",
+            "MAJOR CONTRIBUTOR TO MAXIMUM HEALTH",
+            "IMPROVES CHANCE TO BLOCK ATTACKS WITH SHIELDS",
+            "CONTRIBUTES TO RIPOSTE CHANCE AFTER SUCCESSFUL PARRY",
+            "SIGNIFICANTLY INCREASES SURVIVAL CHANCE IN LETHAL SITUATIONS",
           ],
         };
       case "Size":
         return {
-          title: "Size",
+          title: "SIZE",
           description:
-            "Affects maximum health, physical power, block chance, and inversely affects dodge capability",
+            "AFFECTS MAXIMUM HEALTH, PHYSICAL POWER, BLOCK CHANCE, AND INVERSELY AFFECTS DODGE CAPABILITY",
           details: [
-            "Contributes to maximum health",
-            "Increases physical power and damage modifier",
-            "Improves block chance with shields",
-            "Higher size reduces dodge chance",
-            "Affects your combat presence and ability to withstand damage",
+            "CONTRIBUTES TO MAXIMUM HEALTH",
+            "INCREASES PHYSICAL POWER AND DAMAGE MODIFIER",
+            "IMPROVES BLOCK CHANCE WITH SHIELDS",
+            "HIGHER SIZE REDUCES DODGE CHANCE",
+            "AFFECTS YOUR COMBAT PRESENCE AND ABILITY TO WITHSTAND DAMAGE",
           ],
         };
       case "Agility":
         return {
-          title: "Agility",
+          title: "AGILITY",
           description:
-            "Affects initiative, hit accuracy, dodge chance, parry ability, critical strikes, counterattacks, and ripostes",
+            "AFFECTS INITIATIVE, HIT ACCURACY, DODGE CHANCE, PARRY ABILITY, CRITICAL STRIKES, COUNTERATTACKS, AND RIPOSTES",
           details: [
-            "Major factor in initiative calculation and combat speed",
-            "Increases hit chance and accuracy in combat",
-            "Primary contributor to dodge chance",
-            "Improves parry success rate",
-            "Contributes to critical hit chance",
-            "Enhances counterattack and riposte abilities",
+            "MAJOR FACTOR IN INITIATIVE CALCULATION AND COMBAT SPEED",
+            "INCREASES HIT CHANCE AND ACCURACY IN COMBAT",
+            "PRIMARY CONTRIBUTOR TO DODGE CHANCE",
+            "IMPROVES PARRY SUCCESS RATE",
+            "CONTRIBUTES TO CRITICAL HIT CHANCE",
+            "ENHANCES COUNTERATTACK AND RIPOSTE ABILITIES",
           ],
         };
       case "Stamina":
         return {
-          title: "Stamina",
+          title: "STAMINA",
           description:
-            "Affects maximum endurance, energy reserves, dodge capability, parry effectiveness, and contributes to health",
+            "AFFECTS MAXIMUM ENDURANCE, ENERGY RESERVES, DODGE CAPABILITY, PARRY EFFECTIVENESS, AND CONTRIBUTES TO HEALTH",
           details: [
-            "Primary contributor to maximum endurance",
-            "Determines how quickly you fatigue in combat",
-            "Adds to total health",
-            "Improves dodge capability",
-            "Contributes to parry effectiveness",
-            "Critical for sustained combat performance",
+            "PRIMARY CONTRIBUTOR TO MAXIMUM ENDURANCE",
+            "DETERMINES HOW QUICKLY YOU FATIGUE IN COMBAT",
+            "ADDS TO TOTAL HEALTH",
+            "IMPROVES DODGE CAPABILITY",
+            "CONTRIBUTES TO PARRY EFFECTIVENESS",
+            "CRITICAL FOR SUSTAINED COMBAT PERFORMANCE",
           ],
         };
       case "Luck":
         return {
-          title: "Luck",
+          title: "LUCK",
           description:
-            "Affects initiative, accuracy, critical hit chance, riposte ability, and survival chance in lethal situations",
+            "AFFECTS INITIATIVE, ACCURACY, CRITICAL HIT CHANCE, RIPOSTE ABILITY, AND SURVIVAL CHANCE IN LETHAL SITUATIONS",
           details: [
-            "Contributes to initiative and combat order",
-            "Significantly increases hit chance",
-            "Improves critical hit chances",
-            "Enhances riposte success rate",
-            "Increases survival chances in lethal combat situations",
-            "Affects favorable outcomes in various combat scenarios",
+            "CONTRIBUTES TO INITIATIVE AND COMBAT ORDER",
+            "SIGNIFICANTLY INCREASES HIT CHANCE",
+            "IMPROVES CRITICAL HIT CHANCES",
+            "ENHANCES RIPOSTE SUCCESS RATE",
+            "INCREASES SURVIVAL CHANCES IN LETHAL COMBAT SITUATIONS",
+            "AFFECTS FAVORABLE OUTCOMES IN VARIOUS COMBAT SCENARIOS",
           ],
         };
       default:
@@ -111,139 +120,140 @@ export function AttributesSection({ character }: AttributesSectionProps) {
   };
 
   return (
-    <motion.div
-      className="mb-3"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5, delay: 0.2 }}
-    >
-      {/* <h3 className="text-sm font-semibold text-yellow-500 mb-3 flex items-center">
-        <Dumbbell className="mr-2 h-3 w-3" />
-        Attributes
-      </h3> */}
-
-      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
-        <CompactAttributeCard
-          label="Strength"
-          value={character.attributes.strength}
-          description="Physical power"
-          icon={<Dumbbell className="h-3 w-3" />}
-          onInfoClick={() => setSelectedAttribute("Strength")}
-        />
-        <CompactAttributeCard
-          label="Constitution"
-          value={character.attributes.constitution}
-          description="Health"
-          icon={<HeartPulse className="h-3 w-3" />}
-          onInfoClick={() => setSelectedAttribute("Constitution")}
-        />
-        <CompactAttributeCard
-          label="Size"
-          value={character.attributes.size}
-          description="Defense"
-          icon={<Ruler className="h-3 w-3" />}
-          onInfoClick={() => setSelectedAttribute("Size")}
-        />
-        <CompactAttributeCard
-          label="Agility"
-          value={character.attributes.agility}
-          description="Speed"
-          icon={<ArrowLeft className="h-3 w-3 transform -rotate-45" />}
-          onInfoClick={() => setSelectedAttribute("Agility")}
-        />
-        <CompactAttributeCard
-          label="Stamina"
-          value={character.attributes.stamina}
-          description="Endurance"
-          icon={<Zap className="h-3 w-3" />}
-          onInfoClick={() => setSelectedAttribute("Stamina")}
-        />
-        <CompactAttributeCard
-          label="Luck"
-          value={character.attributes.luck}
-          description="Critical"
-          icon={<Dices className="h-3 w-3" />}
-          onInfoClick={() => setSelectedAttribute("Luck")}
-        />
-      </div>
+    <RetroCard variant="arcade" withScanlines>
+      <RetroCardHeader variant="arcade">
+        <RetroCardTitle variant="arcade" className="font-pixel text-pixel-lg flex items-center gap-2">
+          <Dumbbell className="h-4 w-4 text-primary" />
+          COMBAT ATTRIBUTES
+        </RetroCardTitle>
+      </RetroCardHeader>
+      
+      <RetroCardContent className="p-4">
+        <motion.div
+          className="grid grid-cols-2 md:grid-cols-3 gap-3"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5, delay: 0.2 }}
+        >
+          <RetroAttributeCard
+            label="STR"
+            fullLabel="Strength"
+            value={character.attributes.strength}
+            description="PHYSICAL POWER"
+            icon={<Dumbbell className="h-3 w-3" />}
+            onInfoClick={() => setSelectedAttribute("Strength")}
+          />
+          <RetroAttributeCard
+            label="CON"
+            fullLabel="Constitution"
+            value={character.attributes.constitution}
+            description="HEALTH"
+            icon={<HeartPulse className="h-3 w-3" />}
+            onInfoClick={() => setSelectedAttribute("Constitution")}
+          />
+          <RetroAttributeCard
+            label="SIZE"
+            fullLabel="Size"
+            value={character.attributes.size}
+            description="DEFENSE"
+            icon={<Ruler className="h-3 w-3" />}
+            onInfoClick={() => setSelectedAttribute("Size")}
+          />
+          <RetroAttributeCard
+            label="AGI"
+            fullLabel="Agility"
+            value={character.attributes.agility}
+            description="SPEED"
+            icon={<ArrowLeft className="h-3 w-3 transform -rotate-45" />}
+            onInfoClick={() => setSelectedAttribute("Agility")}
+          />
+          <RetroAttributeCard
+            label="STA"
+            fullLabel="Stamina"
+            value={character.attributes.stamina}
+            description="ENDURANCE"
+            icon={<Zap className="h-3 w-3" />}
+            onInfoClick={() => setSelectedAttribute("Stamina")}
+          />
+          <RetroAttributeCard
+            label="LUCK"
+            fullLabel="Luck"
+            value={character.attributes.luck}
+            description="CRITICAL"
+            icon={<Dices className="h-3 w-3" />}
+            onInfoClick={() => setSelectedAttribute("Luck")}
+          />
+        </motion.div>
+      </RetroCardContent>
 
       <AnimatePresence>
         {selectedAttribute && (
-          <AttributeModal
+          <RetroAttributeModal
             details={getAttributeDetails(selectedAttribute)}
             onClose={() => setSelectedAttribute(null)}
           />
         )}
       </AnimatePresence>
-    </motion.div>
+    </RetroCard>
   );
 }
 
 interface AttributeCardProps {
   label: string;
+  fullLabel: string;
   value: number;
   description: string;
   icon: React.ReactNode;
   onInfoClick: () => void;
 }
 
-function CompactAttributeCard({
+function RetroAttributeCard({
   label,
+  fullLabel,
   value,
   description,
   icon,
   onInfoClick,
 }: AttributeCardProps) {
-  // Generate a dynamic color based on the attribute value
-  const getValueColor = (val: number) => {
-    if (val >= 15) return "text-yellow-400";
-    if (val >= 10) return "text-green-400";
-    if (val >= 5) return "text-blue-400";
-    return "text-stone-400";
-  };
-
-  // Fix: Use proper attribute scale (3-21)
-  const minValue = 3;
-  const maxValue = 21;
-  const percentage = ((value - minValue) / (maxValue - minValue)) * 100;
-
   return (
-    <motion.div
-      className="bg-gradient-to-b from-amber-900/10 to-stone-900/40 rounded-lg border border-yellow-600/20 p-2 relative overflow-hidden group hover:border-yellow-600/30 transition-all duration-300"
-      whileHover={{ scale: 1.02, transition: { duration: 0.2 } }}
+    <RetroCard 
+      variant="pixel" 
+      size="sm"
+      className="hover:scale-[1.02] transition-all duration-300 cursor-pointer"
     >
-      <div className="flex justify-between items-center relative z-10">
-        <h4 className="text-xs font-medium text-yellow-400 flex items-center">
-          <span className="mr-1 text-yellow-500">{icon}</span>
-          {label}
-        </h4>
-        <span className={`text-sm font-bold ${getValueColor(value)}`}>
-          {value}
-        </span>
-      </div>
+      <RetroCardContent className="p-3 space-y-2">
+        {/* Header with Info Button */}
+        <div className="flex justify-between items-center">
+          <h4 className="font-pixel text-pixel-sm text-primary font-bold">
+            {label}
+          </h4>
+          <RetroButton
+            variant="pixel"
+            size="xs"
+            onClick={onInfoClick}
+            className="flex-shrink-0"
+          >
+            <Info className="h-2.5 w-2.5" />
+          </RetroButton>
+        </div>
 
-      <div className="flex justify-between items-center text-stone-400 text-xs relative z-10">
-        <p>{description}</p>
-        <button
-          type="button"
-          onClick={onInfoClick}
-          className="ml-1 text-yellow-500/70 hover:text-yellow-400 transition-colors duration-200 focus:outline-none"
-          aria-label="More information"
-        >
-          <Info className="h-3 w-3" />
-        </button>
-      </div>
+        {/* Description */}
+        <p className="font-pixel text-pixel-xs text-foreground/70 uppercase">
+          {description}
+        </p>
 
-      {/* Progress bar visualization */}
-      <div className="mt-1 h-1 w-full bg-stone-700/50 rounded-full overflow-hidden">
-        <motion.div
-          className="h-full bg-gradient-to-r from-amber-700 to-yellow-500 rounded-full"
-          initial={{ width: 0 }}
-          animate={{ width: `${percentage}%` }}
-          transition={{ duration: 1, delay: 0.5 }}
+        {/* Attribute Bar using the reusable component */}
+        <RetroAttributeBar
+          label=""
+          value={value}
+          icon={icon}
+          showValue={true}
+          size="sm"
+          valueFormatter={(v) => v.toString()}
+          className="mt-2"
         />
-      </div>
-    </motion.div>
+      </RetroCardContent>
+    </RetroCard>
   );
 }
 
@@ -256,49 +266,62 @@ interface AttributeModalProps {
   onClose: () => void;
 }
 
-function AttributeModal({ details, onClose }: AttributeModalProps) {
+function RetroAttributeModal({ details, onClose }: AttributeModalProps) {
   if (!details) return null;
 
   return (
     <motion.div
-      className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 px-4"
+      className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 px-4"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
       onClick={onClose}
     >
       <motion.div
-        className="bg-stone-900 border border-yellow-600/30 rounded-lg max-w-md w-full p-4"
         initial={{ scale: 0.9, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         exit={{ scale: 0.9, opacity: 0 }}
         onClick={(e) => e.stopPropagation()}
+        className="max-w-md w-full"
       >
-        <div className="flex justify-between items-center mb-2">
-          <h3 className="text-lg font-semibold text-yellow-500">
-            {details.title}
-          </h3>
-          <button
-            type="button"
-            onClick={onClose}
-            className="text-stone-400 hover:text-yellow-400 transition-colors"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
+        <RetroCard variant="arcade" withScanlines>
+          <RetroCardHeader variant="arcade">
+            <div className="flex justify-between items-center">
+              <RetroCardTitle variant="arcade" className="font-pixel text-pixel-lg">
+                {details.title}
+              </RetroCardTitle>
+              <RetroButton
+                variant="pixel"
+                size="sm"
+                onClick={onClose}
+              >
+                <X className="h-3 w-3" />
+              </RetroButton>
+            </div>
+          </RetroCardHeader>
 
-        <p className="text-stone-300 text-sm mb-2">{details.description}</p>
+          <RetroCardContent className="p-4 space-y-3">
+            <p className="font-pixel text-pixel-xs text-foreground/80 uppercase">
+              {details.description}
+            </p>
 
-        <h4 className="text-yellow-400 text-xs font-medium mb-1">Effects:</h4>
-        <ul className="text-stone-300 space-y-1">
-          {details.details.map((detail, index) => (
-            // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
-            <li key={index} className="flex items-start">
-              <span className="text-yellow-500 mr-1">•</span>
-              <span className="text-xs">{detail}</span>
-            </li>
-          ))}
-        </ul>
+            <div>
+              <h4 className="font-pixel text-pixel-xs text-primary font-bold mb-2">
+                COMBAT EFFECTS:
+              </h4>
+              <ul className="space-y-1">
+                {details.details.map((detail, index) => (
+                  <li key={index} className="flex items-start">
+                    <span className="text-primary mr-2">•</span>
+                    <span className="font-pixel text-pixel-xs text-foreground/70 uppercase">
+                      {detail}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </RetroCardContent>
+        </RetroCard>
       </motion.div>
     </motion.div>
   );

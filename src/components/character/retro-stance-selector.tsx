@@ -89,7 +89,7 @@ export function RetroStanceSelector({
 
   return (
     <motion.div
-      className="space-y-1.5 pixel-perfect"
+      className="w-full space-y-1.5 pixel-perfect"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.2, delay: 0.1 }}
@@ -112,6 +112,7 @@ export function RetroStanceSelector({
         onValueChange={handleStanceChange}
         variant="arcade"
         size={size === "sm" ? "sm" : "default"}
+        className="w-full grid grid-cols-3 gap-0.5" // Full width grid
       >
         {Object.values(stanceInfo).map((stance) => (
           <RetroToggleGroupItem
@@ -124,13 +125,14 @@ export function RetroStanceSelector({
             }
             label={stance.label}
             aria-label={`Set stance to ${stance.label}`}
+            className="flex-1 w-full" // Take full width of grid cell
           />
         ))}
       </RetroToggleGroup>
 
       {size !== "sm" && (
         <motion.p
-          className="text-pixel-xs text-center text-foreground/60 font-pixel uppercase tracking-wide"
+          className="text-pixel-xs text-center text-foreground/60 font-pixel uppercase tracking-wide w-full"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.3, delay: 0.25 }}

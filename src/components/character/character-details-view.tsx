@@ -2,7 +2,13 @@
 
 import { usePlayerById } from "@/hooks/use-player-by-id";
 import { useRetirePlayer } from "@/hooks/use-retire-player";
-import { Button } from "@/components/ui/button";
+import { RetroButton } from "@/components/ui/retro-button";
+import {
+  RetroCard,
+  RetroCardContent,
+  RetroCardHeader,
+  RetroCardTitle,
+} from "@/components/ui/retro-card";
 import {
   Trash2,
   X,
@@ -13,7 +19,7 @@ import {
   Flame,
   Loader2,
 } from "lucide-react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { RetirementConfirmationDialog } from "../dialogs/retirement-confirmation-dialog";
@@ -43,34 +49,63 @@ import {
   getStanceDisplayName,
 } from "@/lib/equipment-utils";
 import { HeroSection } from "./hero-section";
+import { cn } from "@/lib/utils";
 
 interface CharacterDetailsViewProps {
   characterId: string;
 }
 
-// Basic Modal Component (can be moved to a separate file later)
-interface ModalProps {
+// Retro Modal Component
+interface RetroModalProps {
   isOpen: boolean;
   onClose: () => void;
   title: string;
   children: React.ReactNode;
 }
 
-const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
+const RetroModal: React.FC<RetroModalProps> = ({ isOpen, onClose, title, children }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
-      <div className="bg-stone-800 p-6 rounded-lg shadow-xl w-full max-w-3xl max-h-[90vh] flex flex-col">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-2xl font-bold text-yellow-400">{title}</h2>
-          <Button variant="ghost" size="icon" onClick={onClose}>
-            <X className="h-6 w-6 text-stone-400" />
-          </Button>
-        </div>
-        <div className="overflow-y-auto flex-grow">{children}</div>
-      </div>
-    </div>
+    <AnimatePresence>
+      <motion.div
+        className="fixed inset-0 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 z-50"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        transition={{ duration: 0.2 }}
+      >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          exit={{ opacity: 0, scale: 0.9, y: 20 }}
+          transition={{ duration: 0.3, type: "spring" }}
+          className="w-full max-w-4xl max-h-[90vh] flex flex-col"
+        >
+          <RetroCard variant="arcade" className="flex flex-col h-full retro-glow" withScanlines>
+            <RetroCardHeader variant="arcade" className="flex-shrink-0">
+              <div className="flex justify-between items-center">
+                <RetroCardTitle variant="arcade" className="font-pixel text-pixel-lg">
+                  {title}
+                </RetroCardTitle>
+                <RetroButton
+                  variant="pixel"
+                  size="sm"
+                  onClick={onClose}
+                  className="retro-glow"
+                  glow="subtle"
+                >
+                  <X className="h-3 w-3" />
+                </RetroButton>
+              </div>
+            </RetroCardHeader>
+            <RetroCardContent className="overflow-y-auto flex-grow p-4">
+              {children}
+            </RetroCardContent>
+          </RetroCard>
+        </motion.div>
+      </motion.div>
+    </AnimatePresence>
   );
 };
 
@@ -146,16 +181,27 @@ export function CharacterDetailsView({
   }
 
   return (
-    <>
+    <div className="space-y-6">
       {/* Hero Section for Mobile - visible only on small screens */}
-      <div className="mb-6 md:hidden">
-        <HeroSection character={character as Player} />
+      <div className="md:hidden">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+        >
+          <HeroSection character={character as Player} />
+        </motion.div>
       </div>
 
       {/* Main Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 md:items-start">
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:items-start">
         {/* Left Column: Image, Loadout Display Button, Retire Button */}
-        <div className="col-span-1 flex flex-col space-y-6">
+        <motion.div
+          className="col-span-1 flex flex-col space-y-4"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.4, delay: 0.1 }}
+        >
           <CharacterImage
             character={character as Player}
             isOwner={isOwner}
@@ -164,72 +210,114 @@ export function CharacterDetailsView({
             showRetireButton={isOwner && !character.isRetired}
           />
 
-          {/* Current Loadout Button - Always visible, disabled if not owner or retired */}
-          <Button
+          {/* Current Loadout Card - Retro Style */}
+          <RetroCard
+            variant={isOwner && !character.isRetired ? "arcade" : "pixel"}
+            className={cn(
+              "cursor-pointer transition-all duration-300",
+              isOwner && !character.isRetired 
+                ? "hover:scale-[1.02] retro-glow" 
+                : "opacity-80"
+            )}
             onClick={() =>
               isOwner && !character.isRetired && setIsSkinsModalOpen(true)
             }
-            variant="outline"
-            className="w-full text-left p-3 border border-yellow-600/20 rounded-lg bg-stone-900/40 hover:bg-stone-800/60 transition-all duration-200 shadow-md flex flex-col items-start h-auto disabled:opacity-70 disabled:cursor-not-allowed"
-            disabled={!isOwner || character.isRetired}
+            withScanlines={isOwner && !character.isRetired}
+            glow={isOwner && !character.isRetired ? "subtle" : "none"}
           >
-            <div className="flex items-center mb-2 w-full">
-              <Shirt className="h-5 w-5 text-yellow-400 flex-shrink-0 mr-2" />
-              <div className="flex-grow">
-                <span className="block font-semibold text-md text-yellow-300">
-                  Current Loadout
-                </span>
-                <span className="block text-xs text-stone-400">
-                  {isOwner && !character.isRetired
-                    ? "Click to change skin & gear"
-                    : "Skin & gear information"}
-                </span>
+            <RetroCardContent className="p-3">
+              <div className="flex items-center mb-2 w-full">
+                <Shirt className="h-4 w-4 text-primary flex-shrink-0 mr-2 retro-glow" />
+                <div className="flex-grow">
+                  <span className="block font-pixel text-pixel-sm text-primary font-bold">
+                    CURRENT LOADOUT
+                  </span>
+                  <span className="block font-pixel text-pixel-xs text-primary/60">
+                    {isOwner && !character.isRetired
+                      ? "CLICK TO MODIFY EQUIPMENT"
+                      : "EQUIPMENT CONFIGURATION"}
+                  </span>
+                </div>
+                {isOwner && !character.isRetired && (
+                  <ChevronRight className="h-4 w-4 text-primary/70 flex-shrink-0 ml-auto animate-pulse" />
+                )}
               </div>
-              {isOwner && !character.isRetired && (
-                <ChevronRight className="h-5 w-5 text-stone-400 flex-shrink-0 ml-auto" />
-              )}
-            </div>
-            <div className="space-y-1 pt-2 border-t border-yellow-600/10 w-full">
-              <div className="flex items-center text-xs">
-                <Swords className="h-3 w-3 text-yellow-500 mr-2 flex-shrink-0" />
-                <span className="text-stone-300 mr-1">Weapon:</span>
-                <span className="text-stone-100 font-medium truncate">
-                  {getWeaponDisplayName(character.currentSkin.weapon)}
-                </span>
+              
+              <div className="space-y-1.5 pt-2 border-t border-primary/30 w-full">
+                <div className="flex items-center font-pixel text-pixel-xs">
+                  <Swords className="h-2.5 w-2.5 text-primary mr-2 flex-shrink-0" />
+                  <span className="text-primary/70 mr-1">WEAPON:</span>
+                  <span className="text-foreground font-bold truncate">
+                    {getWeaponDisplayName(character.currentSkin.weapon)}
+                  </span>
+                </div>
+                <div className="flex items-center font-pixel text-pixel-xs">
+                  <Shield className="h-2.5 w-2.5 text-primary mr-2 flex-shrink-0" />
+                  <span className="text-primary/70 mr-1">ARMOR:</span>
+                  <span className="text-foreground font-bold truncate">
+                    {getArmorDisplayName(character.currentSkin.armor)}
+                  </span>
+                </div>
+                <div className="flex items-center font-pixel text-pixel-xs">
+                  <Flame className="h-2.5 w-2.5 text-primary mr-2 flex-shrink-0" />
+                  <span className="text-primary/70 mr-1">STANCE:</span>
+                  <span className="text-foreground font-bold truncate">
+                    {getStanceDisplayName(character.stance)}
+                  </span>
+                </div>
               </div>
-              <div className="flex items-center text-xs">
-                <Shield className="h-3 w-3 text-yellow-500 mr-2 flex-shrink-0" />
-                <span className="text-stone-300 mr-1">Armor:</span>
-                <span className="text-stone-100 font-medium truncate">
-                  {getArmorDisplayName(character.currentSkin.armor)}
-                </span>
-              </div>
-              <div className="flex items-center text-xs">
-                <Flame className="h-3 w-3 text-yellow-500 mr-2 flex-shrink-0" />
-                <span className="text-stone-300 mr-1">Style:</span>
-                <span className="text-stone-100 font-medium truncate">
-                  {getStanceDisplayName(character.stance)}
-                </span>
-              </div>
-            </div>
-          </Button>
-        </div>
+            </RetroCardContent>
+          </RetroCard>
+        </motion.div>
 
         {/* Right Column: Hero Info (desktop), Attributes, Battle Legacy */}
-        <div className="col-span-1 md:col-span-2 space-y-6">
+        <motion.div
+          className="col-span-1 md:col-span-2 space-y-6"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.4, delay: 0.2 }}
+        >
           <div className="hidden md:block">
             <HeroSection character={character as Player} />
           </div>
-          <AttributesSection character={character as Player} />
-          <BattleLegacy character={character as Player} isOwner={isOwner} />
-        </div>
+          
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.3 }}
+          >
+            <AttributesSection character={character as Player} />
+          </motion.div>
+          
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, delay: 0.4 }}
+          >
+            <BattleLegacy character={character as Player} isOwner={isOwner} />
+          </motion.div>
+        </motion.div>
       </div>
 
       {/* Battle Chronicles Section */}
       {character && (
-        <div className="mt-8">
-          <ActivitySection selectedCharacter={character as Player} />
-        </div>
+        <motion.div
+          className="mt-8"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4, delay: 0.5 }}
+        >
+          <RetroCard variant="arcade" className="retro-glow" withScanlines>
+            <RetroCardHeader variant="arcade">
+              <RetroCardTitle variant="arcade" className="font-pixel text-pixel-lg">
+                BATTLE CHRONICLES
+              </RetroCardTitle>
+            </RetroCardHeader>
+            <RetroCardContent>
+              <ActivitySection selectedCharacter={character as Player} />
+            </RetroCardContent>
+          </RetroCard>
+        </motion.div>
       )}
 
       {/* Skins Browser Modal Wrapper - Keyed by connection status */}
@@ -241,13 +329,13 @@ export function CharacterDetailsView({
         }
       >
         {canShowOwnerModals && (
-          <Modal
+          <RetroModal
             isOpen={isSkinsModalOpen}
             onClose={() => setIsSkinsModalOpen(false)}
-            title="Select Character Skin"
+            title="CHARACTER CUSTOMIZATION"
           >
             <SkinsBrowser character={character as Player} />
-          </Modal>
+          </RetroModal>
         )}
       </div>
 
@@ -270,6 +358,6 @@ export function CharacterDetailsView({
           />
         )}
       </div>
-    </>
+    </div>
   );
 }

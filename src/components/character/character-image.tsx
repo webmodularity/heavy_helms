@@ -6,6 +6,12 @@ import { motion } from "framer-motion";
 import { ShieldAlert, Trash2, Loader2 } from "lucide-react";
 import { useFarcaster } from "@/store/farcaster-context";
 import { useSupabaseSingleAddressToUserMap } from "@/hooks/use-supabase-players";
+import {
+  RetroCard,
+  RetroCardContent,
+} from "@/components/ui/retro-card";
+import { RetroButton } from "@/components/ui/retro-button";
+import { cn } from "@/lib/utils";
 
 interface CharacterImageProps {
   character: Player;
@@ -23,94 +29,130 @@ export function CharacterImage({
   showRetireButton,
 }: CharacterImageProps) {
   const warriorIdDisplay = character.id.toString().padStart(5, "0");
-  const status = character.isRetired ? "Retired" : "Active";
+  const status = character.isRetired ? "RETIRED" : "ACTIVE";
   const isImmortal = character.isImmortal;
   const { data: userWithAddresses } = useSupabaseSingleAddressToUserMap(
-    // biome-ignore lint/style/noNonNullAssertion: <explanation>
     character.owner?.address!,
   );
   const { viewProfile } = useFarcaster();
 
   return (
     <motion.div
-      className="rounded-lg overflow-hidden border border-yellow-600/40 bg-gradient-to-b from-amber-900/20 to-stone-900/40 relative "
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5 }}
     >
-      <div
-        className="absolute inset-0 bg-gradient-to-tr from-yellow-600/0 via-yellow-500/10 to-yellow-600/0 z-0 animate-pulse group-hover:opacity-50 transition-opacity"
-        style={{ animationDuration: "4s" }}
-      />
-      {/* Character Image - preserve aspect ratio */}
-      <div className="col-span-1 md:col-span-1 aspect-square max-h-[200px] md:max-h-[250px] justify-self-center">
-        <div className="h-full rounded-lg overflow-hidden relative">
-          <Image
-            src={character.currentSkin.imageURL}
-            alt={character.name.fullName || "Character"}
-            width={600}
-            height={800}
-            className="object-contain w-full h-full"
-          />
-        </div>
-      </div>
-      <div className="absolute inset-0 border-4 border-transparent group-hover:border-b-yellow-500/30 group-hover:border-r-yellow-500/30 transition-all duration-300 z-20" />
-
-      {/* Overlays */}
-      {/* ID - Top Left */}
-      <div className="absolute top-3 left-3 bg-black/50 text-yellow-400 px-2 py-1 text-sm font-semibold rounded shadow-md z-30 group-hover:bg-black/70 transition-colors">
-        ID: {warriorIdDisplay}
-      </div>
-
-      {/* Name - Top Right */}
-      {userWithAddresses?.username && (
-        // <div className="absolute top-3 right-3">
-        <button
-          onClick={async () => await viewProfile(userWithAddresses.farcaster_fid)}
-          type="button"
-          className="ml-2 absolute top-3 right-3 z-30"
-        >
-          <Image
-            src="/logos/farcaster-logo.svg"
-            alt={`${userWithAddresses.username} on Farcaster`}
-            width={20}
-            height={20}
-            className="rounded-sm"
-          />
-        </button>
-        // </div>
-      )}
-      {/* Status & Retire - Bottom Right */}
-      <div className="absolute bottom-3 right-3 flex items-center space-x-1 bg-black/50 px-2 py-1 text-sm rounded shadow-md z-30 group-hover:bg-black/70 transition-colors">
-        <span
-          className={`font-semibold ${character.isRetired ? "text-red-500" : "text-green-400"}`}
-        >
-          {status}
-        </span>
-        {showRetireButton && !character.isRetired && (
-          <button
-            type="button"
-            onClick={onRetireClick}
-            disabled={isRetiring}
-            className="text-stone-300 hover:text-white disabled:text-stone-500 p-0.5 rounded transition-colors focus:outline-none focus:ring-1 focus:ring-yellow-500 ml-1"
-            aria-label="Retire Warrior"
-          >
-            {isRetiring ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              <Trash2 className="h-4 w-4 text-stone-400 group-hover:text-stone-200 transition-colors" />
-            )}
-          </button>
+      <RetroCard
+        variant="arcade"
+        className={cn(
+          "relative overflow-hidden retro-glow group hover:scale-[1.02] transition-all duration-300",
+          character.isRetired ? "opacity-75" : ""
         )}
-      </div>
+        withScanlines={!character.isRetired}
+        glow="medium"
+      >
+        <RetroCardContent className="p-0 relative justify-center flex">
+          {/* Character Image - PROPERLY CENTERED */}
+          <div className="aspect-square max-h-[180px] relative flex items-center justify-center">
+            <div className="h-full w-full relative overflow-hidden flex items-center justify-center">
+              <Image
+                src={character.currentSkin.imageURL}
+                alt={character.name.fullName || "Character"}
+                width={400}
+                height={400}
+                className="object-contain w-full h-full pixel-perfect transition-transform duration-500 group-hover:scale-105" 
+                style={{
+                  objectPosition: 'center center'
+                }}
+              />
+              
+              {/* Retro glow overlay when active */}
+              {!character.isRetired && (
+                <motion.div
+                  className="absolute inset-0 bg-gradient-radial from-primary/20 to-transparent z-10"
+                  initial={false}
+                  animate={{ opacity: [0.3, 0.6, 0.3] }}
+                  transition={{ duration: 4, repeat: Infinity }}
+                />
+              )}
+            </div>
+          </div>
 
-      {/* Immortal - Bottom Left */}
-      {isImmortal && (
-        <div className="absolute bottom-3 left-3 flex items-center space-x-1 bg-black/50 text-yellow-400 px-2 py-1 text-sm font-semibold rounded shadow-md z-30 group-hover:bg-black/70 transition-colors">
-          <ShieldAlert className="h-4 w-4" />
-          <span>IMMORTAL</span>
-        </div>
-      )}
+          {/* Overlays - SMALLER BADGES */}
+          {/* ID Badge - Top Left */}
+          <div className="absolute top-1.5 left-1.5 z-30">
+            <div className="bg-arcade-screen/95 backdrop-blur-sm border border-primary/60 px-1.5 py-0.5 rounded-pixel">
+              <span className="font-pixel text-pixel-xs text-primary font-bold">
+                ID: {warriorIdDisplay}
+              </span>
+            </div>
+          </div>
+
+          {/* Farcaster Profile - Top Right */}
+          {userWithAddresses?.username && (
+            <div className="absolute top-1.5 right-1.5 z-30">
+              <RetroButton
+                variant="pixel"
+                size="xs"
+                onClick={async () => await viewProfile(userWithAddresses.farcaster_fid)}
+                className="p-1 retro-glow"
+                glow="subtle"
+              >
+                <Image
+                  src="/logos/farcaster-logo.svg"
+                  alt={`${userWithAddresses.username} on Farcaster`}
+                  width={14}
+                  height={14}
+                  className="rounded-pixel"
+                />
+              </RetroButton>
+            </div>
+          )}
+
+          {/* Status & Retire - Bottom Right */}
+          <div className="absolute bottom-1.5 right-1.5 flex items-center gap-1 z-30">
+            <div className="bg-arcade-screen/95 backdrop-blur-sm border border-primary/60 px-1.5 py-0.5 rounded-pixel">
+              <span
+                className={cn(
+                  "font-pixel text-pixel-xs font-bold",
+                  character.isRetired ? "text-destructive retro-glow" : "text-success retro-glow"
+                )}
+              >
+                {status}
+              </span>
+            </div>
+            
+            {showRetireButton && !character.isRetired && (
+              <RetroButton
+                variant="pixel"
+                size="xs"
+                onClick={onRetireClick}
+                disabled={isRetiring}
+                className="p-1 retro-glow hover:border-destructive"
+                glow="subtle"
+              >
+                {isRetiring ? (
+                  <Loader2 className="h-2.5 w-2.5 animate-spin text-foreground" />
+                ) : (
+                  <Trash2 className="h-2.5 w-2.5 text-destructive" />
+                )}
+              </RetroButton>
+            )}
+          </div>
+
+          {/* Immortal Badge - Bottom Left */}
+          {isImmortal && (
+            <div className="absolute bottom-1.5 left-1.5 z-30">
+              <div className="bg-arcade-screen/95 backdrop-blur-sm border border-warning/60 px-1.5 py-0.5 rounded-pixel">
+                <span className="font-pixel text-pixel-xs text-warning font-bold flex items-center gap-0.5 retro-glow">
+                  <ShieldAlert className="h-2.5 w-2.5" />
+                  IMMORTAL
+                </span>
+              </div>
+            </div>
+          )}
+        </RetroCardContent>
+      </RetroCard>
     </motion.div>
   );
 }

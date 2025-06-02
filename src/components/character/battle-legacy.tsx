@@ -2,11 +2,19 @@
 
 import type { Player } from "@/types/player.types";
 import { motion } from "framer-motion";
-import { Trophy, Share2, Loader2 } from "lucide-react";
+import { Trophy, Share2, Loader2, Zap, Target, Skull } from "lucide-react";
 import { formatBattleRating } from "./profile-helpers";
 import { useFarcaster } from "@/store/farcaster-context";
 import { toast } from "sonner";
 import { useState } from "react";
+import {
+  RetroCard,
+  RetroCardContent,
+  RetroCardHeader,
+  RetroCardTitle,
+} from "@/components/ui/retro-card";
+import { RetroButton } from "@/components/ui/retro-button";
+import { cn } from "@/lib/utils";
 
 interface BattleLegacyProps {
   character: Player;
@@ -64,77 +72,114 @@ export function BattleLegacy({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.2 }}
     >
-      <div className="relative overflow-hidden">
-        <div className="absolute bottom-0 left-0 w-16 h-16 bg-amber-700/5 rounded-full translate-y-1/2 -translate-x-1/2 blur-xl" />
+      <RetroCard variant="arcade" className="retro-glow" withScanlines>
+        <RetroCardHeader variant="arcade">
+          <div className="flex items-center justify-between">
+            <RetroCardTitle variant="arcade" className="font-pixel text-pixel-lg flex items-center gap-2">
+              <Trophy className="h-4 w-4 text-warning retro-glow" />
+              BATTLE LEGACY
+            </RetroCardTitle>
 
-        {/* Header with share button */}
-        <div className="flex items-center justify-between mb-2 relative z-10">
-          <h3 className="text-sm font-semibold text-yellow-500 flex items-center">
-            <Trophy className="mr-1 h-3 w-3" />
-            Battle Legacy
-          </h3>
+            {/* Share button - only visible to character owner */}
+            {isOwner && (
+              <RetroButton
+                variant="pixel"
+                size="sm"
+                onClick={handleShare}
+                disabled={isSharing}
+                className="retro-glow"
+                glow="subtle"
+              >
+                {isSharing ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <Share2 className="h-3 w-3" />
+                )}
+                <span className="hidden sm:inline font-pixel text-pixel-xs">SHARE</span>
+              </RetroButton>
+            )}
+          </div>
+        </RetroCardHeader>
 
-          {/* Share button - only visible to character owner */}
-          {isOwner && (
-            <button
-              onClick={handleShare}
-              disabled={isSharing}
-              className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-600/20 hover:bg-blue-600/30 border border-blue-500/30 rounded-md text-blue-400 hover:text-blue-300 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
-              aria-label="Share character on Farcaster"
-              type="button"
-            >
-              {isSharing ? (
-                <Loader2 className="h-3 w-3 animate-spin" />
-              ) : (
-                <Share2 className="h-3 w-3" />
-              )}
-              <span className="hidden sm:inline">Share</span>
-            </button>
-          )}
-        </div>
-
-        <div className="grid grid-cols-5 gap-1 relative z-10">
-          <CompactStat
-            label="Rank"
-            value={character?.rank ? `#${character.rank}` : "N/A"}
-            className="text-amber-500"
-          />
-          <CompactStat
-            label="Rating"
-            value={formatBattleRating(character.battleRating)}
-            className="text-yellow-400"
-          />
-          <CompactStat
-            label="Wins"
-            value={character.record.wins.toString()}
-            className="text-green-400"
-          />
-          <CompactStat
-            label="Losses"
-            value={character.record.losses.toString()}
-            className="text-red-400"
-          />
-          <CompactStat
-            label="Kills"
-            value={character.record.kills.toString()}
-            className="text-stone-200"
-          />
-        </div>
-      </div>
+        <RetroCardContent className="p-4">
+          <div className="grid grid-cols-5 gap-2">
+            <RetroCompactStat
+              label="RANK"
+              value={character?.rank ? `#${character.rank}` : "N/A"}
+              icon={<Trophy className="h-3 w-3" />}
+              variant="warning"
+            />
+            <RetroCompactStat
+              label="RATING"
+              value={formatBattleRating(character.battleRating)}
+              icon={<Zap className="h-3 w-3" />}
+              variant="primary"
+            />
+            <RetroCompactStat
+              label="WINS"
+              value={character.record.wins.toString()}
+              icon={<Target className="h-3 w-3" />}
+              variant="success"
+            />
+            <RetroCompactStat
+              label="LOSSES"
+              value={character.record.losses.toString()}
+              icon={<Skull className="h-3 w-3" />}
+              variant="destructive"
+            />
+            <RetroCompactStat
+              label="KILLS"
+              value={character.record.kills.toString()}
+              icon={<Zap className="h-3 w-3" />}
+              variant="default"
+            />
+          </div>
+        </RetroCardContent>
+      </RetroCard>
     </motion.div>
   );
 }
 
-// A more compact version of StatBox specifically for this component
-function CompactStat({
+// Retro version of StatBox
+function RetroCompactStat({
   label,
   value,
-  className = "",
-}: { label: string; value: string; className?: string }) {
+  icon,
+  variant = "default",
+}: {
+  label: string;
+  value: string;
+  icon: React.ReactNode;
+  variant?: "default" | "primary" | "success" | "warning" | "destructive";
+}) {
+  const getVariantStyles = () => {
+    switch (variant) {
+      case "primary":
+        return "text-primary retro-glow border-primary/30";
+      case "success":
+        return "text-success retro-glow border-success/30";
+      case "warning":
+        return "text-warning retro-glow border-warning/30";
+      case "destructive":
+        return "text-destructive retro-glow border-destructive/30";
+      default:
+        return "text-foreground border-primary/20";
+    }
+  };
+
   return (
-    <div className="text-center p-1 bg-stone-800/30 rounded border border-yellow-600/10">
-      <div className={`text-sm font-semibold ${className}`}>{value}</div>
-      <div className="text-stone-400 text-xs">{label}</div>
-    </div>
+    <RetroCard variant="pixel" size="sm" className="text-center">
+      <RetroCardContent className="p-2 space-y-1">
+        <div className={cn("flex justify-center", getVariantStyles())}>
+          {icon}
+        </div>
+        <div className={cn("font-pixel text-pixel-sm font-bold", getVariantStyles())}>
+          {value}
+        </div>
+        <div className="font-pixel text-pixel-xs text-foreground/70 uppercase">
+          {label}
+        </div>
+      </RetroCardContent>
+    </RetroCard>
   );
 }

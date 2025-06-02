@@ -1,7 +1,9 @@
-import { SectionHeader } from "@/components/ui/section-header";
 import type { Player } from "@/types/player.types";
 import type { ReactNode } from "react";
 import { useCharacterSubtitle } from "@/hooks/use-character-subtitle";
+import { motion } from "framer-motion";
+import { User, Crown } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 interface HeroSectionProps {
   character: Player;
@@ -16,15 +18,43 @@ export function HeroSection({ character, subtitleElement }: HeroSectionProps) {
   );
 
   return (
-    <div className="p-2 bg-gradient-to-b from-amber-900/10 to-stone-900/40 rounded-lg border border-yellow-600/20 relative overflow-hidden">
-      <div className="flex flex-col items-center">
-        <h2 className="text-xl md:text-2xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-600 uppercase tracking-wider">
-          {character.name.fullName || "Warrior Details"}
-        </h2>
-        <div className="text-yellow-400/90 text-xs md:text-sm font-medium">
-          {subtitle}
-        </div>
+    <motion.div
+      className="text-center space-y-2 py-4"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.4 }}
+    >
+      <div className="flex items-center justify-center gap-2">
+        {character.isImmortal && (
+          <Crown className="h-5 w-5 text-warning" />
+        )}
+        <h1 className="font-pixel text-pixel-lg text-primary font-bold">
+          {character.name.fullName || "UNKNOWN WARRIOR"}
+        </h1>
+        {character.isImmortal && (
+          <Crown className="h-5 w-5 text-warning" />
+        )}
       </div>
-    </div>
+      
+      <motion.div
+        className="font-pixel text-pixel-sm text-primary/70"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.2 }}
+      >
+        {subtitle}
+      </motion.div>
+
+      {character.isImmortal && (
+        <motion.div
+          className="font-pixel text-pixel-xs text-warning font-bold uppercase tracking-wider"
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 0.4, type: "spring" }}
+        >
+          IMMORTAL STATUS
+        </motion.div>
+      )}
+    </motion.div>
   );
 }
