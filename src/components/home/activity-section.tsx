@@ -11,6 +11,7 @@ import {
   Trophy,
   ChevronRight,
   BookMarked,
+  Dumbbell,
 } from "lucide-react";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { formatEther } from "viem";
@@ -24,6 +25,14 @@ import { useRecentGauntlets } from "@/hooks/use-recent-gauntlets";
 import { Accordion } from "@/components/ui/accordion";
 import { GauntletAccordionItem } from "@/components/gauntlet/gauntlet-accordion-item";
 import { useAccount } from "wagmi";
+import {
+  RetroCard,
+  RetroCardContent,
+  RetroCardHeader,
+  RetroCardTitle,
+} from "@/components/ui/retro-card";
+import { RetroButton } from "@/components/ui/retro-button";
+import { cn } from "@/lib/utils";
 
 interface ActivitySectionProps {
   selectedCharacter: Player | null;
@@ -33,28 +42,54 @@ export function ActivitySection({ selectedCharacter }: ActivitySectionProps) {
   const { isConnected } = useAccount();
 
   return (
-    <section className="mb-6" id="activity-section">
-      <div className="text-center mb-3">
-        <h2 className="text-xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-amber-600 uppercase tracking-wider">
-          <BookMarked className="mr-2 h-5 w-5" />
-          Battle Chronicles
-        </h2>
-        <div className="text-yellow-400/90 text-xs font-medium">YOUR SAGA</div>
-      </div>
+    // <section className="mb-4" id="activity-section">
+    //   <motion.div
+    //     className="text-center mb-3"
+    //     initial={{ opacity: 0, y: 10 }}
+    //     animate={{ opacity: 1, y: 0 }}
+    //     transition={{ duration: 0.3 }}
+    //   >
+    //     <div className="flex items-center justify-center gap-1.5 mb-1">
+    //       <BookMarked className="h-4 w-4 text-primary retro-text-glow" />
+    //       <h2 className="font-pixel text-pixel-lg text-primary font-bold uppercase tracking-wider retro-text-glow">
+    //         BATTLE CHRONICLES
+    //       </h2>
+    //     </div>
+    //     <div className="font-pixel text-pixel-xs text-primary/60 uppercase tracking-widest">
+    //       YOUR SAGA UNFOLDS
+    //     </div>
+    //   </motion.div>
 
-      <motion.div
-        className="bg-gradient-to-b from-amber-900/5 to-stone-900/30 rounded-lg border border-yellow-600/10 p-3"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.5, delay: 0.5 }}
-      >
+    //   <motion.div
+    //     initial={{ opacity: 0, y: 20 }}
+    //     animate={{ opacity: 1, y: 0 }}
+    //     transition={{ duration: 0.4, delay: 0.1 }}
+    //   >
+    <RetroCard variant="arcade">
+      <RetroCardHeader variant="arcade">
+        <RetroCardTitle
+          variant="arcade"
+          className="font-pixel text-pixel-lg flex items-center gap-2"
+        >
+          <BookMarked className="h-4 w-4 text-primary retro-box-glow" />
+          BATTLE CHRONICLES
+        </RetroCardTitle>
+      </RetroCardHeader>
+      <RetroCardContent className="py-3 px-0">
         {isConnected ? (
           <BattleTabs selectedCharacter={selectedCharacter} />
         ) : (
-          <></>
+          <div className="text-center py-6">
+            <Shield className="h-8 w-8 mx-auto mb-2 text-primary/50" />
+            <p className="font-pixel text-pixel-sm text-primary/70">
+              CONNECT WALLET TO VIEW CHRONICLES
+            </p>
+          </div>
         )}
-      </motion.div>
-    </section>
+      </RetroCardContent>
+    </RetroCard>
+    //   </motion.div>
+    // </section>
   );
 }
 
@@ -71,32 +106,13 @@ function BattleTabs({
     // ...other properties for fighter challenges
   } = useFighterChallenges(fighterId);
 
-  // If you need a separate list of "all open challenges" for a different tab or purpose:
-  // const {
-  //   challenges: allGlobalOpenChallenges,
-  //   // ...other properties for all open challenges
-  // } = useAllOpenChallenges();
-
-  // Your console.log from before:
-  // The 'challenges' variable for the active character will come from useFighterChallenges
-  // when a character is selected.
   console.log("challenges for selected character", fighterSpecificChallenges);
 
   const activeCharacterChallenges = useMemo(() => {
-    if (!selectedCharacter) return []; // If no character, no specific challenges
-    // fighterSpecificChallenges already contains challenges for the selected character
-    // The filter logic in the original useMemo might still be useful if
-    // useFighterChallenges returns both sent/received and you need to ensure
-    // they are not fulfilled AND match challenger/defender.
-    // However, useFighterChallenges already handles fetching for that specific ID.
-    // The original useChallenges hook was a bit more complex in its filtering.
-    // The new useFighterChallenges is more direct.
-    // Let's assume useFighterChallenges returns only relevant, open challenges for that fighter.
-    // If not, the filtering logic here might need adjustment or be done within useFighterChallenges' select.
-    // For now, I'll keep your existing filter logic as it was applied to the output of useChallenges.
+    if (!selectedCharacter) return [];
     return fighterSpecificChallenges.filter(
       (c) =>
-        !c.fulfilled && // This 'fulfilled' check is important
+        !c.fulfilled &&
         (c.challengerId.toString() === selectedCharacter.id.toString() ||
           c.defenderId.toString() === selectedCharacter.id.toString()),
     );
@@ -129,35 +145,38 @@ function BattleTabs({
       className="w-full"
     >
       <div className="flex items-center justify-between mb-0">
-        <TabsList className="bg-transparent p-0 border-b border-stone-600 rounded-none w-full h-8">
+        <TabsList className="bg-arcade-screen/50 p-1 border border-primary/30 rounded-pixel-md w-full h-auto retro-box-glow">
           <TabsTrigger
             value="gauntlets"
-            className="px-3 py-1.5 text-xs text-stone-400 border-b-2 border-transparent 
-                       data-[state=active]:text-yellow-500 data-[state=active]:border-b-yellow-500/50 data-[state=active]:bg-yellow-500/5 data-[state=active]:rounded-tl-md data-[state=active]:rounded-tr-md
-                       data-[state=inactive]:hover:text-yellow-400 data-[state=inactive]:hover:bg-yellow-500/10 data-[state=inactive]:hover:border-b-yellow-400/50
-                       rounded-none focus-visible:ring-offset-0 focus-visible:ring-0"
+            className="flex-1 px-1 py-1.5 font-pixel text-pixel-xs text-primary/70 border-0 bg-transparent
+                       data-[state=active]:text-primary data-[state=active]:bg-primary/20 data-[state=active]:retro-text-glow
+                       data-[state=inactive]:hover:text-primary/90 data-[state=inactive]:hover:bg-primary/5
+                       rounded-pixel transition-all duration-200 pixel-perfect gap-1 flex items-center justify-center cursor-pointer"
           >
-            Gauntlets
+            <Trophy className="h-2 w-2" />
+            <span className="sm:hidden text-pixel-lg">Gauntlets</span>
           </TabsTrigger>
           <TabsTrigger
             value="duels"
-            className="px-3 py-1.5 text-xs text-stone-400 border-b-2 border-transparent 
-                       data-[state=active]:text-yellow-500 data-[state=active]:border-b-yellow-500/50 data-[state=active]:bg-yellow-500/5 data-[state=active]:rounded-tl-md data-[state=active]:rounded-tr-md
-                       data-[state=inactive]:hover:text-yellow-400 data-[state=inactive]:hover:bg-yellow-500/10 data-[state=inactive]:hover:border-b-yellow-400/50
-                       rounded-none focus-visible:ring-offset-0 focus-visible:ring-0"
+            className="flex-1 px-1 py-1.5 font-pixel text-pixel-xs text-primary/70 border-0 bg-transparent
+                       data-[state=active]:text-primary data-[state=active]:bg-primary/20 data-[state=active]:retro-text-glow
+                       data-[state=inactive]:hover:text-primary/90 data-[state=inactive]:hover:bg-primary/5
+                       rounded-pixel transition-all duration-200 pixel-perfect gap-0.5 flex items-center justify-center cursor-pointer"
           >
-            Duels
+            <Swords className="h-2 w-2" />
+            <span className="sm:hidden text-pixel-lg">History</span>
           </TabsTrigger>
           <TabsTrigger
             value="challenges"
-            className="px-3 py-1.5 text-xs text-stone-400 border-b-2 border-transparent 
-                       data-[state=active]:text-yellow-500 data-[state=active]:border-b-yellow-500/50 data-[state=active]:bg-yellow-500/5 data-[state=active]:rounded-tl-md data-[state=active]:rounded-tr-md
-                       data-[state=inactive]:hover:text-yellow-400 data-[state=inactive]:hover:bg-yellow-500/10 data-[state=inactive]:hover:border-b-yellow-400/50
-                       rounded-none focus-visible:ring-offset-0 focus-visible:ring-0 relative"
+            className="flex-1 px-1 py-1.5 font-pixel text-pixel-xs text-primary/70 border-0 bg-transparent relative
+                       data-[state=active]:text-primary data-[state=active]:bg-primary/20 data-[state=active]:retro-text-glow
+                       data-[state=inactive]:hover:text-primary/90 data-[state=inactive]:hover:bg-primary/5
+                       rounded-pixel transition-all duration-200 pixel-perfect gap-0.5 flex items-center justify-center cursor-pointer"
           >
-            Challenges
+            <Shield className="h-2 w-2" />
+            <span className="sm:hidden text-pixel-lg">Challenges</span>
             {activeCharacterChallenges.length > 0 && (
-              <span className="absolute top-0.5 right-0.5 bg-amber-600 text-amber-50 text-[10px] font-bold rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 bg-warning text-background font-pixel text-[7px] font-bold rounded-pixel min-w-[12px] h-3 px-0.5 flex items-center justify-center retro-text-glow">
                 {activeCharacterChallenges.length}
               </span>
             )}
@@ -165,7 +184,7 @@ function BattleTabs({
         </TabsList>
       </div>
 
-      <div className="mt-0 pt-3 pb-0 px-0">
+      <div className="mt-2 pt-0 pb-0 px-0">
         <TabsContent value="gauntlets" className="space-y-2 mt-0">
           <RecentGauntletsTabContent selectedCharacter={selectedCharacter} />
         </TabsContent>
@@ -199,7 +218,6 @@ function RecentGauntletsTabContent({
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  // State to track the currently expanded accordion item's value
   const [expandedItemValue, setExpandedItemValue] = useState<
     string | undefined
   >();
@@ -226,123 +244,181 @@ function RecentGauntletsTabContent({
 
   if (isLoading && gauntlets.length === 0) {
     return (
-      <div className="flex justify-center py-4">
-        <Loader2 className="h-6 w-6 text-yellow-500 animate-spin" />
+      <div className="flex justify-center py-6">
+        <Loader2 className="h-5 w-5 text-primary animate-spin" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="text-center py-4 text-red-400">
-        <p className="text-sm">Failed to load recent gauntlets</p>
-        <button
+      <div className="text-center py-6">
+        <p className="font-pixel text-pixel-sm text-destructive mb-3">
+          FAILED TO LOAD GAUNTLETS
+        </p>
+        <RetroButton
+          variant="pixel"
+          size="sm"
           onClick={handleRefetch}
-          className="mt-2 py-1 px-2 text-xs border border-yellow-500 text-yellow-500 rounded hover:bg-yellow-500/10 inline-flex items-center"
-          type="button"
+          disabled={isRefetching}
+          className="retro-glow"
         >
-          <Loader2
-            className={`mr-1 h-3 w-3 ${isRefetching ? "animate-spin" : ""}`}
-          />
-          Refresh
-        </button>
+          {isRefetching ? (
+            <Loader2 className="h-3 w-3 animate-spin mr-1" />
+          ) : (
+            <Loader2 className="h-3 w-3 mr-1" />
+          )}
+          REFRESH
+        </RetroButton>
       </div>
     );
   }
 
   if (!selectedCharacter) {
     return (
-      <div className="text-center py-4 text-stone-300">
-        <Trophy className="h-8 w-8 mx-auto mb-2 text-yellow-600/50" />
-        <p className="text-sm text-yellow-500">
-          Please select a warrior to view gauntlets
-        </p>
-      </div>
+      <motion.div
+        className="text-center py-6"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.2, delay: 0.1 }}
+      >
+        <motion.div
+          initial={{ opacity: 0, y: -5 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2, delay: 0.15 }}
+        >
+          <Trophy className="h-8 w-8 mx-auto mb-2 text-primary/30" />
+        </motion.div>
+        <motion.p
+          className="font-pixel text-pixel-sm text-primary/70"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3, delay: 0.25 }}
+        >
+          SELECT WARRIOR TO VIEW GAUNTLETS
+        </motion.p>
+      </motion.div>
     );
   }
 
   if (gauntlets.length === 0) {
     return (
-      <div className="text-center py-4 text-stone-300">
-        <Trophy className="h-8 w-8 mx-auto mb-2 text-yellow-600/50" />
-        <p className="text-sm text-yellow-500 mb-2">
-          This warrior has no recent gauntlets.
+      <div className="text-center py-6">
+        <Trophy className="h-8 w-8 mx-auto mb-2 text-primary/30" />
+        <p className="font-pixel text-pixel-sm text-primary/70 mb-3">
+          NO RECENT GAUNTLETS FOUND
         </p>
-        <button
+        <RetroButton
+          variant="pixel"
+          size="sm"
           onClick={handleRefetch}
-          className="mt-2 py-1 px-2 text-xs border border-yellow-500 text-yellow-500 rounded hover:bg-yellow-500/10 inline-flex items-center"
-          type="button"
+          disabled={isRefetching}
+          className="retro-glow"
         >
-          <Loader2
-            className={`mr-1 h-3 w-3 ${isRefetching ? "animate-spin" : ""}`}
-          />
-          Refresh
-        </button>
+          {isRefetching ? (
+            <Loader2 className="h-3 w-3 animate-spin mr-1" />
+          ) : (
+            <Loader2 className="h-3 w-3 mr-1" />
+          )}
+          REFRESH
+        </RetroButton>
       </div>
     );
   }
 
   return (
-    <div className="space-y-2">
-      <div className="flex justify-end mb-2">
-        <button
+    <motion.div
+      className="space-y-2"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.2, delay: 0.1 }}
+    >
+      <motion.div
+        className="flex justify-end mb-2"
+        initial={{ opacity: 0, y: -5 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2, delay: 0.15 }}
+      >
+        <RetroButton
+          variant="pixel"
+          size="sm"
           onClick={handleRefetch}
-          className="py-1 px-2 text-xs border border-yellow-500 text-yellow-500 rounded hover:bg-yellow-500/10 inline-flex items-center"
           disabled={isRefetching}
-          type="button"
+          className="retro-glow"
         >
           {isRefetching ? (
             <>
-              <Loader2 className="mr-1 h-3 w-3 animate-spin" /> Refreshing...
+              <Loader2 className="h-3 w-3 animate-spin mr-1" />
+              <span className="font-pixel text-pixel-xs">REFRESHING...</span>
             </>
           ) : (
             <>
-              <Loader2 className="mr-1 h-3 w-3" /> Refresh
+              <Loader2 className="h-3 w-3 mr-1" />
+              <span className="font-pixel text-pixel-xs">REFRESH</span>
             </>
           )}
-        </button>
-      </div>
+        </RetroButton>
+      </motion.div>
 
-      <Accordion
-        type="single"
-        collapsible
-        className="w-full space-y-2"
-        value={expandedItemValue}
-        onValueChange={setExpandedItemValue}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3, delay: 0.25 }}
       >
-        {gauntlets.map((gauntlet, index) => {
-          const currentItemValue = `gauntlet-${gauntlet.id}-${index}`;
-          return (
-            <GauntletAccordionItem
-              key={currentItemValue}
-              itemValue={currentItemValue}
-              gauntlet={gauntlet}
-              selectedCharacter={selectedCharacter}
-              isExpanded={expandedItemValue === currentItemValue}
-            />
-          );
-        })}
-      </Accordion>
+        <Accordion
+          type="single"
+          collapsible
+          className="w-full space-y-2"
+          value={expandedItemValue}
+          onValueChange={setExpandedItemValue}
+        >
+          {gauntlets.map((gauntlet, index) => {
+            const currentItemValue = `gauntlet-${gauntlet.id}-${index}`;
+            return (
+              <motion.div
+                key={currentItemValue}
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2, delay: 0.3 + index * 0.05 }}
+              >
+                <GauntletAccordionItem
+                  itemValue={currentItemValue}
+                  gauntlet={gauntlet}
+                  selectedCharacter={selectedCharacter}
+                  isExpanded={expandedItemValue === currentItemValue}
+                />
+              </motion.div>
+            );
+          })}
+        </Accordion>
+      </motion.div>
 
       {/* Loading more indicator */}
-      <div ref={loadMoreRef} className="py-3 flex justify-center">
+      <motion.div
+        ref={loadMoreRef}
+        className="py-3 flex justify-center"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3, delay: 0.4 }}
+      >
         {isFetchingNextPage ? (
-          <Loader2 className="h-5 w-5 text-yellow-500 animate-spin" />
+          <Loader2 className="h-4 w-4 text-primary animate-spin" />
         ) : hasNextPage ? (
-          <button
+          <RetroButton
+            variant="ghost"
+            size="sm"
             onClick={() => fetchNextPage()}
-            className="text-xs text-yellow-500 hover:text-yellow-400"
-            type="button"
+            className="font-pixel text-pixel-xs"
           >
-            Load More
-          </button>
+            LOAD MORE
+          </RetroButton>
         ) : gauntlets.length > 0 ? (
-          <span className="text-xs text-stone-400">
-            End of gauntlet history
+          <span className="font-pixel text-pixel-xs text-primary/50">
+            END OF GAUNTLET HISTORY
           </span>
         ) : null}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -403,162 +479,236 @@ function RecentDuelsTabContent({
 
   if (isLoading && duels.length === 0) {
     return (
-      <div className="flex justify-center py-4">
-        <Loader2 className="h-6 w-6 text-yellow-500 animate-spin" />
+      <div className="flex justify-center py-6">
+        <Loader2 className="h-5 w-5 text-primary animate-spin" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="text-center py-4 text-red-400">
-        <p className="text-sm">Failed to load recent duels</p>
-        <button
+      <div className="text-center py-6">
+        <p className="font-pixel text-pixel-sm text-destructive mb-3">
+          FAILED TO LOAD DUELS
+        </p>
+        <RetroButton
+          variant="pixel"
+          size="sm"
           onClick={handleRefetch}
-          className="mt-2 py-1 px-2 text-xs border border-yellow-500 text-yellow-500 rounded hover:bg-yellow-500/10 inline-flex items-center"
           disabled={isRefetching || isLoading}
-          type="button"
+          className="retro-glow"
         >
-          <Loader2
-            className={`mr-1 h-3 w-3 ${isRefetching ? "animate-spin" : ""}`}
-          />
-          Refresh
-        </button>
+          {isRefetching ? (
+            <Loader2 className="h-3 w-3 animate-spin mr-1" />
+          ) : (
+            <Loader2 className="h-3 w-3 mr-1" />
+          )}
+          REFRESH
+        </RetroButton>
       </div>
     );
   }
 
   if (!selectedCharacter) {
     return (
-      <div className="text-center py-4 text-stone-300">
-        <Swords className="h-8 w-8 mx-auto mb-2 text-yellow-600/50" />
-        <p className="text-sm text-yellow-500">
-          Please select a warrior to view duels
-        </p>
-      </div>
+      <motion.div
+        className="text-center py-6"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.2, delay: 0.1 }}
+      >
+        <motion.div
+          initial={{ opacity: 0, y: -5 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2, delay: 0.15 }}
+        >
+          <Swords className="h-8 w-8 mx-auto mb-2 text-primary/30" />
+        </motion.div>
+        <motion.p
+          className="font-pixel text-pixel-sm text-primary/70"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3, delay: 0.25 }}
+        >
+          SELECT WARRIOR TO VIEW DUELS
+        </motion.p>
+      </motion.div>
     );
   }
 
   if (duels.length === 0) {
     return (
-      <div className="text-center py-4 text-stone-300">
-        <Swords className="h-8 w-8 mx-auto mb-2 text-yellow-600/50" />
-        <p className="text-sm text-yellow-500 mb-2">
-          No recent duels found for this warrior
+      <div className="text-center py-6">
+        <Swords className="h-8 w-8 mx-auto mb-2 text-primary/30" />
+        <p className="font-pixel text-pixel-sm text-primary/70 mb-3">
+          NO RECENT DUELS FOUND
         </p>
-        <button
+        <RetroButton
+          variant="pixel"
+          size="sm"
           onClick={handleRefetch}
-          className="mt-2 py-1 px-2 text-xs border border-yellow-500 text-yellow-500 rounded hover:bg-yellow-500/10 inline-flex items-center"
           disabled={isRefetching || isLoading}
-          type="button"
+          className="retro-glow"
         >
-          <Loader2
-            className={`mr-1 h-3 w-3 ${isRefetching ? "animate-spin" : ""}`}
-          />
-          Refresh
-        </button>
+          {isRefetching ? (
+            <Loader2 className="h-3 w-3 animate-spin mr-1" />
+          ) : (
+            <Loader2 className="h-3 w-3 mr-1" />
+          )}
+          REFRESH
+        </RetroButton>
       </div>
     );
   }
 
   return (
-    <div className="space-y-2">
-      <div className="flex justify-end mb-2">
-        <button
+    <motion.div
+      className="space-y-2"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.2, delay: 0.1 }}
+    >
+      <motion.div
+        className="flex justify-end mb-2"
+        initial={{ opacity: 0, y: -5 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2, delay: 0.15 }}
+      >
+        <RetroButton
+          variant="pixel"
+          size="sm"
           onClick={handleRefetch}
-          className="py-1 px-2 text-xs border border-yellow-500 text-yellow-500 rounded hover:bg-yellow-500/10 inline-flex items-center"
           disabled={isRefetching || isLoading}
-          type="button"
+          className="retro-glow"
         >
           {isRefetching ? (
             <>
-              <Loader2 className="mr-1 h-3 w-3 animate-spin" /> Refreshing...
+              <Loader2 className="h-3 w-3 animate-spin mr-1" />
+              <span className="font-pixel text-pixel-xs">REFRESHING...</span>
             </>
           ) : (
             <>
-              <Loader2 className="mr-1 h-3 w-3" /> Refresh
+              <Loader2 className="h-3 w-3 mr-1" />
+              <span className="font-pixel text-pixel-xs">REFRESH</span>
             </>
           )}
-        </button>
-      </div>
+        </RetroButton>
+      </motion.div>
 
-      {duels.map((duel) => {
-        const isNavigatingThisDuel = navigatingToDuelId === duel.id;
-        const isChallenger =
-          duel.challenge.challengerId.toString() ===
-          selectedCharacter.id.toString();
-        const isVictory = duel.winnerId === selectedCharacter.id.toString();
-        const userFighter = isChallenger
-          ? duel.challenge.challengerSnapshot
-          : duel.challenge.defenderSnapshot;
-        const opponentFighter = isChallenger
-          ? duel.challenge.defenderSnapshot
-          : duel.challenge.challengerSnapshot;
+      <motion.div
+        className="space-y-1"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3, delay: 0.25 }}
+      >
+        {duels.map((duel, index) => {
+          const isNavigatingThisDuel = navigatingToDuelId === duel.id;
+          const isChallenger =
+            duel.challenge.challengerId.toString() ===
+            selectedCharacter.id.toString();
+          const isVictory = duel.winnerId === selectedCharacter.id.toString();
+          const userFighter = isChallenger
+            ? duel.challenge.challengerSnapshot
+            : duel.challenge.defenderSnapshot;
+          const opponentFighter = isChallenger
+            ? duel.challenge.defenderSnapshot
+            : duel.challenge.challengerSnapshot;
 
-        return (
-          <div
-            key={duel.id}
-            className={`block border-b border-stone-700/50 transition-colors ${
-              isNavigatingThisDuel
-                ? "opacity-70 pointer-events-none"
-                : "hover:bg-yellow-600/10 cursor-pointer"
-            }`}
-            onClick={() =>
-              !isNavigatingThisDuel && handleDuelNavigation(duel.id)
-            }
-            onKeyDown={(e) => {
-              if (e.key === "Enter" || e.key === " ") {
-                if (!isNavigatingThisDuel) handleDuelNavigation(duel.id);
+          return (
+            <motion.div
+              key={duel.id}
+              className={cn(
+                "border border-primary/30 rounded-pixel-md overflow-hidden transition-all duration-200 cursor-pointer pixel-perfect",
+                isNavigatingThisDuel
+                  ? "opacity-70 pointer-events-none"
+                  : "hover:border-primary/50 hover:retro-box-glow",
+              )}
+              onClick={() =>
+                !isNavigatingThisDuel && handleDuelNavigation(duel.id)
               }
-            }}
-            // biome-ignore lint/a11y/useSemanticElements: <explanation>
-            role="button"
-            tabIndex={isNavigatingThisDuel ? -1 : 0}
-          >
-            <div className="p-2">
-              <div className="flex justify-between mb-1">
-                <span
-                  className={`text-xs font-medium ${isVictory ? "text-yellow-400" : "text-red-400"}`}
-                >
-                  {isVictory ? "Victory" : "Defeat"}
-                </span>
-                <span className="text-stone-400 text-[10px]">
-                  {new Date(
-                    Number.parseInt(duel.blockTimestamp) * 1000,
-                  ).toLocaleDateString()}
-                </span>
-              </div>
-              <div className="flex justify-between items-center">
-                <p className="text-stone-300 text-xs truncate max-w-[60%]">
-                  vs {opponentFighter.fullName}
-                </p>
-                <div className="flex items-center gap-1">
-                  <span className="text-yellow-500 text-xs font-medium">
-                    {formatEther(BigInt(duel.challenge.wagerAmount))} ETH
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  if (!isNavigatingThisDuel) handleDuelNavigation(duel.id);
+                }
+              }}
+              role="button"
+              tabIndex={isNavigatingThisDuel ? -1 : 0}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.2, delay: 0.3 + index * 0.05 }}
+              whileHover={{ scale: isNavigatingThisDuel ? 1 : 1.02 }}
+            >
+              <div className="p-2.5 bg-arcade-screen/30">
+                <div className="flex justify-between items-center mb-1.5">
+                  <div className="flex items-center gap-1.5">
+                    <div
+                      className={cn(
+                        "w-2 h-2 rounded-pixel",
+                        isVictory ? "bg-success" : "bg-destructive",
+                        isVictory ? "animate-pulse" : "",
+                      )}
+                    />
+                    <span
+                      className={cn(
+                        "font-pixel text-pixel-xs font-bold uppercase",
+                        isVictory ? "text-success" : "text-destructive",
+                      )}
+                    >
+                      {isVictory ? "VICTORY" : "DEFEAT"}
+                    </span>
+                  </div>
+                  <span className="font-pixel text-pixel-xs text-primary/50">
+                    {new Date(
+                      Number.parseInt(duel.blockTimestamp) * 1000,
+                    ).toLocaleDateString()}
                   </span>
-                  {isNavigatingThisDuel ? (
-                    <Loader2 className="h-3 w-3 text-yellow-500 animate-spin" />
-                  ) : (
-                    <ChevronRight className="h-3 w-3 text-yellow-500" />
-                  )}
+                </div>
+
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-1.5">
+                    <Swords className="h-2.5 w-2.5 text-primary/70" />
+                    <p className="font-pixel text-pixel-xs text-foreground truncate max-w-[120px]">
+                      VS {opponentFighter.fullName}
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="font-pixel text-pixel-xs text-warning font-bold">
+                      {formatEther(BigInt(duel.challenge.wagerAmount))} ETH
+                    </span>
+                    {isNavigatingThisDuel ? (
+                      <Loader2 className="h-3 w-3 text-primary animate-spin" />
+                    ) : (
+                      <ChevronRight className="h-3 w-3 text-primary/70" />
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-        );
-      })}
+            </motion.div>
+          );
+        })}
+      </motion.div>
 
       {/* Loading more indicator */}
-      <div ref={loadMoreRef} className="py-2 flex justify-center">
+      <motion.div
+        ref={loadMoreRef}
+        className="py-3 flex justify-center"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3, delay: 0.4 }}
+      >
         {isFetchingNextPage ? (
-          <Loader2 className="h-5 w-5 text-yellow-500 animate-spin" />
+          <Loader2 className="h-4 w-4 text-primary animate-spin" />
         ) : hasNextPage ? (
-          <span className="text-xs text-stone-400">Scroll for more</span>
+          <span className="font-pixel text-pixel-xs text-primary/50">
+            SCROLL FOR MORE
+          </span>
         ) : duels.length > 0 ? (
-          <span className="text-xs text-stone-400">End of duel history</span>
+          <span className="font-pixel text-pixel-xs text-primary/50">
+            END OF DUEL HISTORY
+          </span>
         ) : null}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -575,7 +725,7 @@ function ActiveChallenges({
     isFetchingNextPage,
     isRefetching,
   } = useFighterChallenges(selectedCharacter?.id ?? null);
-  console.log("selectedCharacter", selectedCharacter);
+
   const { cancelChallenge, isCancellingChallenge } = useCancelChallenge();
   const { acceptChallenge, isAcceptingChallenge } = useAcceptChallenge();
   const [expandedChallenge, setExpandedChallenge] = useState<bigint | null>(
@@ -627,58 +777,82 @@ function ActiveChallenges({
 
   if (isLoading && characterChallenges.length === 0) {
     return (
-      <div className="flex justify-center py-4">
-        <Loader2 className="h-6 w-6 text-yellow-500 animate-spin" />
+      <div className="flex justify-center py-6">
+        <Loader2 className="h-5 w-5 text-primary animate-spin" />
       </div>
     );
   }
 
   if (error) {
     return (
-      <div className="text-center py-4 text-red-400">
-        <p className="text-sm">Failed to load challenges</p>
-        <button
+      <div className="text-center py-6">
+        <p className="font-pixel text-pixel-sm text-destructive mb-3">
+          FAILED TO LOAD CHALLENGES
+        </p>
+        <RetroButton
+          variant="pixel"
+          size="sm"
           onClick={handleRefetch}
-          className="mt-2 py-1 px-2 text-xs border border-yellow-500 text-yellow-500 rounded hover:bg-yellow-500/10 inline-flex items-center"
-          type="button"
+          className="retro-glow"
         >
-          <Loader2
-            className={`mr-1 h-3 w-3 ${isRefetching ? "animate-spin" : ""}`}
-          />
-          Refresh
-        </button>
+          {isRefetching ? (
+            <Loader2 className="h-3 w-3 animate-spin mr-1" />
+          ) : (
+            <Loader2 className="h-3 w-3 mr-1" />
+          )}
+          REFRESH
+        </RetroButton>
       </div>
     );
   }
 
   if (!selectedCharacter) {
     return (
-      <div className="text-center py-4 text-stone-300">
-        <Shield className="h-8 w-8 mx-auto mb-2 text-yellow-600/50" />
-        <p className="text-sm text-yellow-500">
-          Please select a warrior to view your challenges
-        </p>
-      </div>
+      <motion.div
+        className="text-center py-6"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.2, delay: 0.1 }}
+      >
+        <motion.div
+          initial={{ opacity: 0, y: -5 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2, delay: 0.15 }}
+        >
+          <Shield className="h-8 w-8 mx-auto mb-2 text-primary/30" />
+        </motion.div>
+        <motion.p
+          className="font-pixel text-pixel-sm text-primary/70"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3, delay: 0.25 }}
+        >
+          SELECT WARRIOR TO VIEW CHALLENGES
+        </motion.p>
+      </motion.div>
     );
   }
 
   if (characterChallenges.length === 0) {
     return (
-      <div className="text-center py-4 text-stone-300">
-        <Shield className="h-8 w-8 mx-auto mb-2 text-yellow-600/50" />
-        <p className="text-sm text-yellow-500 mb-2">
-          This warrior has no active challenges
+      <div className="text-center py-6">
+        <Shield className="h-8 w-8 mx-auto mb-2 text-primary/30" />
+        <p className="font-pixel text-pixel-sm text-primary/70 mb-3">
+          NO ACTIVE CHALLENGES
         </p>
-        <button
+        <RetroButton
+          variant="pixel"
+          size="sm"
           onClick={handleRefetch}
-          className="mt-2 py-1 px-2 text-xs border border-yellow-500 text-yellow-500 rounded hover:bg-yellow-500/10 inline-flex items-center"
-          type="button"
+          className="retro-glow"
         >
-          <Loader2
-            className={`mr-1 h-3 w-3 ${isRefetching ? "animate-spin" : ""}`}
-          />
-          Refresh
-        </button>
+          {isRefetching ? (
+            <Loader2 className="h-3 w-3 animate-spin mr-1" />
+          ) : (
+            <Loader2 className="h-3 w-3 mr-1" />
+          )}
+          REFRESH
+        </RetroButton>
       </div>
     );
   }
@@ -716,55 +890,90 @@ function ActiveChallenges({
   };
 
   return (
-    <div className="space-y-2">
-      <div className="flex justify-end mb-2">
-        <button
+    <motion.div
+      className="space-y-2"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.2, delay: 0.1 }}
+    >
+      <motion.div
+        className="flex justify-end mb-2"
+        initial={{ opacity: 0, y: -5 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.2, delay: 0.15 }}
+      >
+        <RetroButton
+          variant="pixel"
+          size="sm"
           onClick={handleRefetch}
-          className="py-1 px-2 text-xs border border-yellow-500 text-yellow-500 rounded hover:bg-yellow-500/10 inline-flex items-center"
           disabled={isRefetching}
-          type="button"
+          className="retro-glow"
         >
           {isRefetching ? (
             <>
-              <Loader2 className="mr-1 h-3 w-3 animate-spin" /> Refreshing...
+              <Loader2 className="h-3 w-3 animate-spin mr-1" />
+              <span className="font-pixel text-pixel-xs">REFRESHING...</span>
             </>
           ) : (
             <>
-              <Loader2 className="mr-1 h-3 w-3" /> Refresh
+              <Loader2 className="h-3 w-3 mr-1" />
+              <span className="font-pixel text-pixel-xs">REFRESH</span>
             </>
           )}
-        </button>
-      </div>
+        </RetroButton>
+      </motion.div>
 
-      {characterChallenges.map((challenge) => (
-        <ChallengeCard
-          key={challenge.id.toString()}
-          challenge={challenge}
-          selectedCharacter={selectedCharacter}
-          isProcessing={processingChallengeId === challenge.id}
-          isCancellingChallenge={isCancellingChallenge}
-          isAcceptingChallenge={isAcceptingChallenge}
-          onAccept={handleAcceptChallenge}
-          onCancel={handleCancelChallenge}
-          isExpanded={expandedChallenge === challenge.id}
-          onToggleExpand={() =>
-            setExpandedChallenge(
-              expandedChallenge === challenge.id ? null : challenge.id,
-            )
-          }
-        />
-      ))}
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3, delay: 0.25 }}
+      >
+        {characterChallenges.map((challenge, index) => (
+          <motion.div
+            key={challenge.id.toString()}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.2, delay: 0.3 + index * 0.05 }}
+          >
+            <ChallengeCard
+              challenge={challenge}
+              selectedCharacter={selectedCharacter}
+              isProcessing={processingChallengeId === challenge.id}
+              isCancellingChallenge={isCancellingChallenge}
+              isAcceptingChallenge={isAcceptingChallenge}
+              onAccept={handleAcceptChallenge}
+              onCancel={handleCancelChallenge}
+              isExpanded={expandedChallenge === challenge.id}
+              onToggleExpand={() =>
+                setExpandedChallenge(
+                  expandedChallenge === challenge.id ? null : challenge.id,
+                )
+              }
+            />
+          </motion.div>
+        ))}
+      </motion.div>
 
       {/* Loading more indicator */}
-      <div ref={loadMoreRef} className="py-3 flex justify-center">
+      <motion.div
+        ref={loadMoreRef}
+        className="py-3 flex justify-center"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3, delay: 0.4 }}
+      >
         {isFetchingNextPage ? (
-          <Loader2 className="h-5 w-5 text-yellow-500 animate-spin" />
+          <Loader2 className="h-4 w-4 text-primary animate-spin" />
         ) : hasNextPage ? (
-          <span className="text-xs text-stone-400">Scroll for more</span>
+          <span className="font-pixel text-pixel-xs text-primary/50">
+            SCROLL FOR MORE
+          </span>
         ) : characterChallenges.length > 0 ? (
-          <span className="text-xs text-stone-400">End of challenges</span>
+          <span className="font-pixel text-pixel-xs text-primary/50">
+            END OF CHALLENGES
+          </span>
         ) : null}
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }

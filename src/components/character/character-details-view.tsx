@@ -318,7 +318,7 @@ export function CharacterDetailsView({
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4, delay: 0.5 }}
         >
-          <RetroCard variant="arcade" className="retro-glow" withScanlines>
+          {/* <RetroCard variant="arcade" className="retro-glow" withScanlines>
             <RetroCardHeader variant="arcade">
               <RetroCardTitle
                 variant="arcade"
@@ -327,10 +327,10 @@ export function CharacterDetailsView({
                 BATTLE CHRONICLES
               </RetroCardTitle>
             </RetroCardHeader>
-            <RetroCardContent>
-              <ActivitySection selectedCharacter={character as Player} />
-            </RetroCardContent>
-          </RetroCard>
+            <RetroCardContent> */}
+          <ActivitySection selectedCharacter={character as Player} />
+          {/* </RetroCardContent>
+          </RetroCard> */}
         </motion.div>
       )}
 

@@ -187,7 +187,7 @@ export function RetroCharacterCard({
                   }}
                 >
                   <RetroStanceSelector
-                    character={character as any}
+                    character={character}
                     currentStance={character.stance as StanceType}
                     onStanceChange={(newStance) => {
                       console.log(
