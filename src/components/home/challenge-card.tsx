@@ -10,7 +10,6 @@ import {
   Axe,
 } from "lucide-react";
 import { formatEther } from "viem";
-import { YellowButton } from "@/components/ui/yellow-button";
 import type { Challenge } from "@/hooks/use-challenges";
 import { StanceType } from "@/types/equipment.types";
 import type { Player } from "@/types/player.types";
@@ -18,6 +17,8 @@ import {
   getArmorDisplayName,
   getWeaponDisplayName,
 } from "@/lib/equipment-utils";
+import { RetroButton } from "@/components/ui/retro-button";
+import { cn } from "@/lib/utils";
 
 interface ChallengeCardProps {
   challenge: Challenge;
@@ -49,25 +50,28 @@ export function ChallengeCard({
   const canAccept = !isChallenger && selectedCharacter !== null;
   const canCancel = isChallenger;
 
-  // Stance information mapping
+  // Stance information mapping with retro colors
   const stanceInfo = {
     [StanceType.Defensive]: {
-      icon: <Shield className="h-3 w-3" />,
+      icon: <Shield className="h-2.5 w-2.5" />,
       label: "Defensive",
-      color: "text-emerald-500",
-      bgColor: "bg-emerald-500/20",
+      color: "text-success",
+      bgColor: "bg-success/20",
+      borderColor: "border-success/30",
     },
     [StanceType.Balanced]: {
-      icon: <Swords className="h-3 w-3" />,
+      icon: <Swords className="h-2.5 w-2.5" />,
       label: "Balanced",
-      color: "text-blue-500",
-      bgColor: "bg-blue-500/20",
+      color: "text-primary",
+      bgColor: "bg-primary/20",
+      borderColor: "border-primary/30",
     },
     [StanceType.Offensive]: {
-      icon: <Flame className="h-3 w-3" />,
+      icon: <Flame className="h-2.5 w-2.5" />,
       label: "Offensive",
-      color: "text-orange-500",
-      bgColor: "bg-orange-500/20",
+      color: "text-destructive",
+      bgColor: "bg-destructive/20",
+      borderColor: "border-destructive/30",
     },
   };
 
@@ -80,42 +84,49 @@ export function ChallengeCard({
 
   return (
     <motion.div
-      className="border border-yellow-600/20 rounded-lg overflow-hidden bg-gradient-to-r from-amber-900/10 to-transparent"
-      initial={{ opacity: 0, y: 20 }}
+      className="border border-primary/30 rounded-pixel-md overflow-hidden bg-arcade-screen/20 mb-2 pixel-perfect"
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.4 }}
+      transition={{ duration: 0.3 }}
+      whileHover={{ 
+        borderColor: "rgb(var(--color-primary) / 0.5)",
+        boxShadow: "0 0 8px rgb(var(--color-primary) / 0.3)"
+      }}
     >
       {/* Challenge Summary - Always Visible */}
-      {/* biome-ignore lint/a11y/useKeyWithClickEvents: <explanation> */}
-      <div
-        className="p-2 flex justify-between items-center cursor-pointer"
+      <motion.div
+        className="p-2.5 flex justify-between items-center cursor-pointer hover:bg-primary/5 transition-colors duration-200"
         onClick={onToggleExpand}
+        whileTap={{ scale: 0.98 }}
       >
-        <div className="flex items-center space-x-2">
-          <div className="bg-yellow-600/20 p-1.5 rounded-full">
-            <Shield className="h-3.5 w-3.5 text-yellow-500" />
+        <div className="flex items-center gap-2">
+          <div className="bg-primary/20 p-1 rounded-pixel border border-primary/30 retro-box-glow">
+            <Shield className="h-3 w-3 text-primary" />
           </div>
           <div>
-            <h4 className="font-medium text-xs text-yellow-400">
-              {isChallenger ? "Your Challenge" : "Challenge to Defend"}
+            <h4 className="font-pixel text-pixel-xs text-primary font-bold uppercase">
+              {isChallenger ? "YOUR CHALLENGE" : "DEFEND CHALLENGE"}
             </h4>
-            <p className="text-xs text-stone-300">
+            <p className="font-pixel text-pixel-xs text-primary/70 truncate max-w-[180px]">
               {isChallenger
-                ? `You challenged ${challenge.defenderName || `Fighter ${challenge.defenderId}`}`
-                : `${challenge.challengerName || `Fighter ${challenge.challengerId}`} challenged you`}
+                ? `VS ${challenge.defenderName || `FIGHTER ${challenge.defenderId}`}`
+                : `${challenge.challengerName || `FIGHTER ${challenge.challengerId}`} CHALLENGES YOU`}
             </p>
           </div>
         </div>
 
-        <div className="flex items-center">
-          <span className="text-yellow-500 text-xs font-medium mr-2">
+        <div className="flex items-center gap-1.5">
+          <span className="text-warning font-pixel text-pixel-xs font-bold retro-text-glow">
             {formatEther(challenge.wagerAmount)} ETH
           </span>
           <ChevronRight
-            className={`h-4 w-4 text-yellow-500 transition-transform ${isExpanded ? "rotate-90" : ""}`}
+            className={cn(
+              "h-3 w-3 text-primary/70 transition-transform duration-200",
+              isExpanded ? "rotate-90" : ""
+            )}
           />
         </div>
-      </div>
+      </motion.div>
 
       {/* Expanded Challenge Details */}
       <AnimatePresence>
@@ -124,213 +135,254 @@ export function ChallengeCard({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: "auto", opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
             className="overflow-hidden"
           >
-            <div className="border-t border-yellow-600/10 p-2 bg-stone-900/30">
+            <div className="border-t border-primary/20 p-2.5 bg-arcade-bezel/30">
               {/* Challenge Info */}
-              <div className="grid grid-cols-2 gap-y-1 text-xs mb-3">
-                <span className="text-stone-400">Challenge ID:</span>
-                <span className="text-stone-200 font-mono text-xs">
-                  {challenge.id.toString()}
+              <motion.div 
+                className="grid grid-cols-2 gap-y-1 mb-3"
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2, delay: 0.1 }}
+              >
+                <span className="font-pixel text-pixel-xs text-primary/60 uppercase">ID:</span>
+                <span className="font-pixel text-pixel-xs text-primary font-mono">
+                  #{challenge.id.toString().slice(-6)}
                 </span>
 
-                <span className="text-stone-400">Created At:</span>
-                <span className="text-stone-200">
-                  Block #{challenge.createdBlock.toString()}
+                <span className="font-pixel text-pixel-xs text-primary/60 uppercase">Block:</span>
+                <span className="font-pixel text-pixel-xs text-primary">
+                  #{challenge.createdBlock.toString()}
                 </span>
 
-                <span className="text-stone-400">Status:</span>
-                <span className="text-stone-200">
+                <span className="font-pixel text-pixel-xs text-primary/60 uppercase">Status:</span>
+                <span className="font-pixel text-pixel-xs">
                   {challenge.fulfilled ? (
-                    <span className="text-yellow-500">Completed</span>
+                    <span className="text-warning retro-text-glow">COMPLETED</span>
                   ) : (
-                    <span className="text-green-500">Active</span>
+                    <span className="text-success retro-text-glow">ACTIVE</span>
                   )}
                 </span>
-              </div>
+              </motion.div>
 
               {/* Fighter Comparison */}
-              <div className="mt-2 mb-3">
-                <h5 className="text-xs font-medium text-yellow-400 mb-2">
-                  Combatants
+              <motion.div 
+                className="mb-3"
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.2 }}
+              >
+                <h5 className="font-pixel text-pixel-sm text-primary font-bold uppercase mb-2 retro-text-glow">
+                  COMBATANTS
                 </h5>
                 <div className="grid grid-cols-2 gap-2">
                   {/* Challenger */}
-                  <div className="bg-stone-800/40 p-2 rounded-lg border border-yellow-500/10">
-                    <div className="flex justify-between items-center mb-1">
-                      <h6 className="text-xs font-medium text-stone-200">
+                  <motion.div 
+                    className="bg-arcade-screen/30 p-2 rounded-pixel border border-primary/20 pixel-perfect"
+                    initial={{ opacity: 0, x: -10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.2, delay: 0.25 }}
+                  >
+                    <div className="flex justify-between items-center mb-1.5">
+                      <h6 className="font-pixel text-pixel-xs text-primary/70 uppercase">
                         Challenger
                       </h6>
                       {isChallenger && (
-                        <span className="text-[10px] bg-yellow-500/20 text-yellow-400 px-1.5 py-0.5 rounded-full">
-                          You
+                        <span className="font-pixel text-[8px] bg-primary/20 text-primary px-1 py-0.5 rounded-pixel border border-primary/30 retro-text-glow">
+                          YOU
                         </span>
                       )}
                     </div>
-                    <p className="text-yellow-400 text-xs font-medium mb-2 truncate">
+                    <p className="text-primary font-pixel text-pixel-xs font-bold mb-2 truncate">
                       {challenge.challengerName ||
-                        `Fighter #${challenge.challengerId}`}
+                        `FIGHTER #${challenge.challengerId}`}
                     </p>
 
                     {/* Stance Badge */}
-                    <div className="mb-2 flex items-center gap-1.5">
+                    <div className="mb-2 flex items-center gap-1">
                       <div
-                        className={`p-0.5 rounded-md ${stanceInfo[challengerStance]?.bgColor || "bg-gray-500/20"}`}
+                        className={cn(
+                          "p-0.5 rounded-pixel border pixel-perfect",
+                          stanceInfo[challengerStance]?.bgColor || "bg-primary/20",
+                          stanceInfo[challengerStance]?.borderColor || "border-primary/30"
+                        )}
                       >
                         {stanceInfo[challengerStance]?.icon || (
-                          <Swords className="h-3 w-3" />
+                          <Swords className="h-2.5 w-2.5" />
                         )}
                       </div>
                       <span
-                        className={`text-[10px] ${stanceInfo[challengerStance]?.color || "text-gray-400"}`}
+                        className={cn(
+                          "font-pixel text-[9px] uppercase font-bold",
+                          stanceInfo[challengerStance]?.color || "text-primary"
+                        )}
                       >
-                        {stanceInfo[challengerStance]?.label || "Unknown"}{" "}
-                        Stance
+                        {stanceInfo[challengerStance]?.label || "Unknown"}
                       </span>
                     </div>
 
                     {/* Equipment Section */}
-                    <div className="space-y-1.5">
-                      <div className="flex items-center">
-                        <div className="bg-amber-700/30 p-0.5 rounded-md mr-1.5">
-                          <Axe className="h-2.5 w-2.5 text-amber-400" />
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-1">
+                        <div className="bg-warning/20 p-0.5 rounded-pixel border border-warning/30">
+                          <Axe className="h-2 w-2 text-warning" />
                         </div>
-                        <div className="flex-1">
-                          <span className="text-[10px] text-stone-400 block leading-tight">
+                        <div className="flex-1 min-w-0">
+                          <span className="font-pixel text-[8px] text-primary/60 block uppercase">
                             Weapon
                           </span>
-                          <span className="text-[10px] text-amber-300 font-medium">
+                          <span className="font-pixel text-[9px] text-warning font-bold truncate block">
                             {getWeaponDisplayName(challengerWeapon)}
                           </span>
                         </div>
                       </div>
 
-                      <div className="flex items-center">
-                        <div className="bg-slate-600/30 p-0.5 rounded-md mr-1.5">
-                          <Shield className="h-2.5 w-2.5 text-slate-400" />
+                      <div className="flex items-center gap-1">
+                        <div className="bg-primary/20 p-0.5 rounded-pixel border border-primary/30">
+                          <Shield className="h-2 w-2 text-primary" />
                         </div>
-                        <div className="flex-1">
-                          <span className="text-[10px] text-stone-400 block leading-tight">
+                        <div className="flex-1 min-w-0">
+                          <span className="font-pixel text-[8px] text-primary/60 block uppercase">
                             Armor
                           </span>
-                          <span className="text-[10px] text-slate-300 font-medium">
+                          <span className="font-pixel text-[9px] text-primary font-bold truncate block">
                             {getArmorDisplayName(challengerArmor)}
                           </span>
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
 
                   {/* Defender */}
-                  <div className="bg-stone-800/40 p-2 rounded-lg border border-yellow-500/10">
-                    <div className="flex justify-between items-center mb-1">
-                      <h6 className="text-xs font-medium text-stone-200">
+                  <motion.div 
+                    className="bg-arcade-screen/30 p-2 rounded-pixel border border-primary/20 pixel-perfect"
+                    initial={{ opacity: 0, x: 10 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.2, delay: 0.3 }}
+                  >
+                    <div className="flex justify-between items-center mb-1.5">
+                      <h6 className="font-pixel text-pixel-xs text-primary/70 uppercase">
                         Defender
                       </h6>
                       {!isChallenger && (
-                        <span className="text-[10px] bg-yellow-500/20 text-yellow-400 px-1.5 py-0.5 rounded-full">
-                          You
+                        <span className="font-pixel text-[8px] bg-primary/20 text-primary px-1 py-0.5 rounded-pixel border border-primary/30 retro-text-glow">
+                          YOU
                         </span>
                       )}
                     </div>
-                    <p className="text-yellow-400 text-xs font-medium mb-2 truncate">
+                    <p className="text-primary font-pixel text-pixel-xs font-bold mb-2 truncate">
                       {challenge.defenderName ||
-                        `Fighter #${challenge.defenderId}`}
+                        `FIGHTER #${challenge.defenderId}`}
                     </p>
 
                     {/* Stance Badge */}
-                    <div className="mb-2 flex items-center gap-1.5">
+                    <div className="mb-2 flex items-center gap-1">
                       <div
-                        className={`p-0.5 rounded-md ${stanceInfo[defenderStance]?.bgColor || "bg-gray-500/20"}`}
+                        className={cn(
+                          "p-0.5 rounded-pixel border pixel-perfect",
+                          stanceInfo[defenderStance]?.bgColor || "bg-primary/20",
+                          stanceInfo[defenderStance]?.borderColor || "border-primary/30"
+                        )}
                       >
                         {stanceInfo[defenderStance]?.icon || (
-                          <Shield className="h-3 w-3" />
+                          <Shield className="h-2.5 w-2.5" />
                         )}
                       </div>
                       <span
-                        className={`text-[10px] ${stanceInfo[defenderStance]?.color || "text-gray-400"}`}
+                        className={cn(
+                          "font-pixel text-[9px] uppercase font-bold",
+                          stanceInfo[defenderStance]?.color || "text-primary"
+                        )}
                       >
-                        {stanceInfo[defenderStance]?.label || "Unknown"} Stance
+                        {stanceInfo[defenderStance]?.label || "Unknown"}
                       </span>
                     </div>
 
                     {/* Equipment Section */}
-                    <div className="space-y-1.5">
-                      <div className="flex items-center">
-                        <div className="bg-amber-700/30 p-0.5 rounded-md mr-1.5">
-                          <Axe className="h-2.5 w-2.5 text-amber-400" />
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-1">
+                        <div className="bg-warning/20 p-0.5 rounded-pixel border border-warning/30">
+                          <Axe className="h-2 w-2 text-warning" />
                         </div>
-                        <div className="flex-1">
-                          <span className="text-[10px] text-stone-400 block leading-tight">
+                        <div className="flex-1 min-w-0">
+                          <span className="font-pixel text-[8px] text-primary/60 block uppercase">
                             Weapon
                           </span>
-                          <span className="text-[10px] text-amber-300 font-medium">
+                          <span className="font-pixel text-[9px] text-warning font-bold truncate block">
                             {getWeaponDisplayName(defenderWeapon)}
                           </span>
                         </div>
                       </div>
 
-                      <div className="flex items-center">
-                        <div className="bg-slate-600/30 p-0.5 rounded-md mr-1.5">
-                          <Shield className="h-2.5 w-2.5 text-slate-400" />
+                      <div className="flex items-center gap-1">
+                        <div className="bg-primary/20 p-0.5 rounded-pixel border border-primary/30">
+                          <Shield className="h-2 w-2 text-primary" />
                         </div>
-                        <div className="flex-1">
-                          <span className="text-[10px] text-stone-400 block leading-tight">
+                        <div className="flex-1 min-w-0">
+                          <span className="font-pixel text-[8px] text-primary/60 block uppercase">
                             Armor
                           </span>
-                          <span className="text-[10px] text-slate-300 font-medium">
+                          <span className="font-pixel text-[9px] text-primary font-bold truncate block">
                             {getArmorDisplayName(defenderArmor)}
                           </span>
                         </div>
                       </div>
                     </div>
-                  </div>
+                  </motion.div>
                 </div>
-              </div>
+              </motion.div>
 
-              <div className="flex flex-col sm:flex-row gap-1.5 mt-3">
+              <motion.div 
+                className="flex flex-col gap-1.5"
+                initial={{ opacity: 0, y: 5 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.2, delay: 0.35 }}
+              >
                 {canAccept && (
-                  <YellowButton
+                  <RetroButton
+                    variant="arcade"
+                    size="sm"
                     onClick={(e) => {
                       e.stopPropagation();
                       onAccept(challenge);
                     }}
-                    className="w-full text-xs py-1.5 h-auto sm:text-xs sm:w-auto"
+                    className="w-full retro-glow"
                     disabled={isProcessing || isAcceptingChallenge}
                   >
                     {isProcessing && isAcceptingChallenge ? (
                       <>
-                        <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />{" "}
-                        Accepting...
+                        <Loader2 className="mr-1 h-2.5 w-2.5 animate-spin" />
+                        <span className="font-pixel text-pixel-xs">ACCEPTING...</span>
                       </>
                     ) : (
-                      "Accept Challenge"
+                      <span className="font-pixel text-pixel-xs">ACCEPT CHALLENGE</span>
                     )}
-                  </YellowButton>
+                  </RetroButton>
                 )}
 
                 {canCancel && (
-                  <YellowButton
+                  <RetroButton
+                    variant="pixel"
+                    size="sm"
                     onClick={(e) => {
                       e.stopPropagation();
                       onCancel(challenge);
                     }}
-                    className="w-full text-xs py-1.5 h-auto sm:text-xs sm:w-auto"
-                    variant="outline"
+                    className="w-full"
                     disabled={isProcessing || isCancellingChallenge}
                   >
                     {isProcessing && isCancellingChallenge ? (
                       <>
-                        <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />{" "}
-                        Cancelling...
+                        <Loader2 className="mr-1 h-2.5 w-2.5 animate-spin" />
+                        <span className="font-pixel text-pixel-xs">CANCELLING...</span>
                       </>
                     ) : (
-                      "Cancel Challenge"
+                      <span className="font-pixel text-pixel-xs">CANCEL CHALLENGE</span>
                     )}
-                  </YellowButton>
+                  </RetroButton>
                 )}
-              </div>
+              </motion.div>
             </div>
           </motion.div>
         )}

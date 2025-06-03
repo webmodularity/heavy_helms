@@ -835,25 +835,47 @@ function ActiveChallenges({
 
   if (characterChallenges.length === 0) {
     return (
-      <div className="text-center py-6">
-        <Shield className="h-8 w-8 mx-auto mb-2 text-primary/30" />
-        <p className="font-pixel text-pixel-sm text-primary/70 mb-3">
-          NO ACTIVE CHALLENGES
-        </p>
-        <RetroButton
-          variant="pixel"
-          size="sm"
-          onClick={handleRefetch}
-          className="retro-glow"
+      <motion.div
+        className="text-center py-6"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.2, delay: 0.1 }}
+      >
+        <motion.div
+          initial={{ opacity: 0, y: -5 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2, delay: 0.15 }}
         >
-          {isRefetching ? (
-            <Loader2 className="h-3 w-3 animate-spin mr-1" />
-          ) : (
-            <Loader2 className="h-3 w-3 mr-1" />
-          )}
-          REFRESH
-        </RetroButton>
-      </div>
+          <Shield className="h-8 w-8 mx-auto mb-2 text-primary/30" />
+        </motion.div>
+        <motion.p
+          className="font-pixel text-pixel-sm text-primary/70 mb-3"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3, delay: 0.25 }}
+        >
+          NO ACTIVE CHALLENGES
+        </motion.p>
+        <motion.div
+          initial={{ opacity: 0, y: 5 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.2, delay: 0.35 }}
+        >
+          <RetroButton
+            variant="pixel"
+            size="sm"
+            onClick={handleRefetch}
+            className="retro-glow"
+          >
+            {isRefetching ? (
+              <Loader2 className="h-3 w-3 animate-spin mr-1" />
+            ) : (
+              <Loader2 className="h-3 w-3 mr-1" />
+            )}
+            REFRESH
+          </RetroButton>
+        </motion.div>
+      </motion.div>
     );
   }
 
@@ -890,17 +912,12 @@ function ActiveChallenges({
   };
 
   return (
-    <motion.div
-      className="space-y-2"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.2, delay: 0.1 }}
-    >
+    <div className="space-y-2">
       <motion.div
         className="flex justify-end mb-2"
         initial={{ opacity: 0, y: -5 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.2, delay: 0.15 }}
+        transition={{ duration: 0.2, delay: 0.1 }}
       >
         <RetroButton
           variant="pixel"
@@ -926,14 +943,15 @@ function ActiveChallenges({
       <motion.div
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.3, delay: 0.25 }}
+        transition={{ duration: 0.3, delay: 0.15 }}
+        className="space-y-2"
       >
         {characterChallenges.map((challenge, index) => (
           <motion.div
             key={challenge.id.toString()}
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.2, delay: 0.3 + index * 0.05 }}
+            transition={{ duration: 0.2, delay: 0.25 + index * 0.05 }}
           >
             <ChallengeCard
               challenge={challenge}
@@ -960,7 +978,7 @@ function ActiveChallenges({
         className="py-3 flex justify-center"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ duration: 0.3, delay: 0.4 }}
+        transition={{ duration: 0.3, delay: 0.3 }}
       >
         {isFetchingNextPage ? (
           <Loader2 className="h-4 w-4 text-primary animate-spin" />
@@ -974,6 +992,6 @@ function ActiveChallenges({
           </span>
         ) : null}
       </motion.div>
-    </motion.div>
+    </div>
   );
 }
