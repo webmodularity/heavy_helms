@@ -24,21 +24,42 @@ export function useCharacterSubtitle(ownerAddress?: string, id?: string) {
 
     if (!ownerAddress) {
       return isSystemEntity ? (
-        <span className={subtitleStyle}>GAME OWNED</span>
+        <span className="font-pixel text-pixel-xs text-warning font-bold uppercase tracking-widest pixel-perfect retro-glow">
+          GAME OWNED
+        </span>
       ) : (
-        `ID: ${id}`
+        <span className="font-pixel text-pixel-sm text-primary/60 pixel-perfect">
+          ID: {id}
+        </span>
       );
     }
 
     // Has owner - show loading state or resolved name
     if (isLoading) {
-      return <Skeleton className="h-4 w-40 bg-yellow-500/20" />;
+      return (
+        <Skeleton 
+          className="h-3 w-32 bg-primary/10 border border-primary/20 rounded-pixel-sm retro-glow" 
+          shimmer={true}
+        />
+      );
     }
 
-    // Show ENS or full address with consistent styling
+    // Show ENS or full address with retro styling
+    const displayName = ensName || truncateAddress(ownerAddress);
+    
     return (
-      <span className={subtitleStyle}>
-        {ensName || truncateAddress(ownerAddress)}
+      <span className="font-pixel text-pixel-sm text-primary/80 font-medium tracking-wider pixel-perfect">
+        {ensName ? (
+          // ENS names get special treatment with subtle glow
+          <span className="text-secondary retro-glow">
+            {ensName}
+          </span>
+        ) : (
+          // Truncated addresses get muted styling
+          <span className="text-primary/60 font-mono">
+            {truncateAddress(ownerAddress)}
+          </span>
+        )}
       </span>
     );
   };

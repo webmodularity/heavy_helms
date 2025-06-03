@@ -175,7 +175,7 @@ export function RetroBattleSection({
       <RetroSectionHeader
         variant="battle"
         title="BATTLE SELECTION MATRIX"
-        subtitle="CHOOSE ENGAGEMENT TYPE • CONFIGURE PARAMETERS • INITIATE COMBAT"
+        subtitle="CHOOSE MODE • CONFIGURE PARAMETERS • INITIATE COMBAT"
         animationDelay={0.1}
       />
 
