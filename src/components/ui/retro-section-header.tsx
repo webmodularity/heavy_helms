@@ -1,5 +1,5 @@
 import { type VariantProps, cva } from "class-variance-authority";
-import { motion } from "framer-motion";
+import { motion, type HTMLMotionProps } from "framer-motion";
 import * as React from "react";
 import { cn } from "@/lib/utils";
 
@@ -9,12 +9,14 @@ const retroSectionHeaderVariants = cva(
     variants: {
       variant: {
         battle: "text-primary retro-glow",
+        battleFramed:
+          "text-primary retro-glow border-b-2 border-primary/30 pb-2",
         activity: "text-secondary",
         default: "text-foreground",
       },
       size: {
         sm: "mb-2",
-        default: "mb-4", 
+        default: "mb-4",
         lg: "mb-6",
       },
     },
@@ -22,51 +24,62 @@ const retroSectionHeaderVariants = cva(
       variant: "default",
       size: "default",
     },
-  }
+  },
 );
 
 const retroSectionTitleVariants = cva(
-  "font-bold text-transparent bg-clip-text uppercase tracking-wider pixel-perfect",
+  "font-bold text-transparent bg-clip-text uppercase tracking-wider",
   {
     variants: {
       variant: {
         battle: "bg-gradient-to-r from-primary to-primary/80 text-pixel-lg",
-        activity: "bg-gradient-to-r from-secondary to-secondary/80 text-pixel-lg",
-        default: "bg-gradient-to-r from-foreground to-foreground/80 text-pixel-lg",
+        activity:
+          "bg-gradient-to-r from-secondary to-secondary/80 text-pixel-lg",
+        default:
+          "bg-gradient-to-r from-foreground to-foreground/80 text-pixel-lg",
+        battleFramed:
+          "bg-gradient-to-r from-primary to-primary/80 text-pixel-lg",
       },
     },
     defaultVariants: {
       variant: "default",
     },
-  }
+  },
 );
 
 const retroSectionSubtitleVariants = cva(
-  "font-medium font-pixeloid text-pixel-xs uppercase tracking-wide",
+  "font-pixeloid uppercase tracking-wide text-pixel-sm",
   {
     variants: {
       variant: {
-        battle: "text-primary/90",
-        activity: "text-secondary/90", 
+        battle: "text-primary/90 text-pixel-base",
+        activity: "text-secondary/90",
         default: "text-foreground/90",
+        battleFramed: "text-primary/90",
       },
     },
     defaultVariants: {
       variant: "default",
     },
-  }
+  },
 );
 
 export interface RetroSectionHeaderProps
-  extends React.HTMLAttributes<HTMLDivElement>,
+  extends Omit<HTMLMotionProps<"div">, "children">,
     VariantProps<typeof retroSectionHeaderVariants> {
   title: string;
   subtitle?: string;
   animationDelay?: number;
 }
 
-const RetroSectionHeader = React.forwardRef<HTMLDivElement, RetroSectionHeaderProps>(
-  ({ className, variant, size, title, subtitle, animationDelay = 0, ...props }, ref) => {
+const RetroSectionHeader = React.forwardRef<
+  HTMLDivElement,
+  RetroSectionHeaderProps
+>(
+  (
+    { className, variant, size, title, subtitle, animationDelay = 0, ...props },
+    ref,
+  ) => {
     return (
       <motion.div
         className={cn(retroSectionHeaderVariants({ variant, size }), className)}
@@ -76,10 +89,8 @@ const RetroSectionHeader = React.forwardRef<HTMLDivElement, RetroSectionHeaderPr
         ref={ref}
         {...props}
       >
-        <h2 className={cn(retroSectionTitleVariants({ variant }))}>
-          {title}
-        </h2>
-        {subtitle && (
+        <h2 className={cn(retroSectionTitleVariants({ variant }))}>{title}</h2>
+        {subtitle ? (
           <motion.div
             className={cn(retroSectionSubtitleVariants({ variant }))}
             initial={{ opacity: 0 }}
@@ -88,12 +99,12 @@ const RetroSectionHeader = React.forwardRef<HTMLDivElement, RetroSectionHeaderPr
           >
             {subtitle}
           </motion.div>
-        )}
+        ) : null}
       </motion.div>
     );
-  }
+  },
 );
 
 RetroSectionHeader.displayName = "RetroSectionHeader";
 
-export { RetroSectionHeader, retroSectionHeaderVariants }; 
+export { RetroSectionHeader, retroSectionHeaderVariants };

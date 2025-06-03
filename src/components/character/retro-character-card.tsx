@@ -103,12 +103,12 @@ export function RetroCharacterCard({
               )}
 
               {/* Status Indicators */}
-              <div className="absolute bottom-0.5 left-0.5 flex items-center gap-0.5 z-20">
+              {/* <div className="absolute bottom-0.5 left-0.5 flex items-center gap-0.5 z-20">
                 <div className="w-1 h-1 bg-success rounded-pixel animate-pulse" />
                 <span className="font-pixel text-pixel-xs text-success">
                   READY
                 </span>
-              </div>
+              </div> */}
             </div>
           </div>
 

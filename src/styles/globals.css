@@ -2,25 +2,8 @@
 
 @plugin "tailwindcss-animate";
 
-@theme inline {
-  --font-pixeloid: var(--font-pixeloid);
-  --font-bokor: var(--font-bokor);
-  --font-cinzel: var(--font-cinzel);
-  --font-cormorant-unicase: var(--font-cormorant-unicase);
-  --font-medieval: var(--font-cormorant-unicase);
-  --font-pixel: var(--font-pixeloid);
-}
-
 /* RETRO-PIXEL THEME SYSTEM - Tailwind CSS v4 */
 @theme {
-  /* Font Family Configuration */
-  --font-family-pixeloid: var(--font-pixeloid);
-  --font-family-bokor: var(--font-bokor);
-  --font-family-cormorant: var(--font-cormorant-unicase);
-  --font-family-cinzel: var(--font-cinzel);
-  --font-family-medieval: var(--font-cormorant-unicase);
-  --font-family-pixel: var(--font-pixeloid);
-
   /* Primary theme colors - Use RGB space-separated values for opacity support */
   --color-primary: 0 212 255;                     /* Bright teal/cyan */
   --color-primary-foreground: 10 15 28;           /* Dark background for contrast */
@@ -66,25 +49,25 @@
   --radius-retro: 6px;
   --radius-retro-lg: 8px;
 
-  /* Pixel-perfect font sizes */
+  /* Pixel-perfect font sizes - Mobile-first compact sizing */
   --font-size-pixel-xs: 8px;
-  --font-size-pixel-sm: 12px;
-  --font-size-pixel-base: 14px;
-  --font-size-pixel-lg: 16px;
-  --font-size-pixel-xl: 20px;
-  --font-size-pixel-2xl: 24px;
-  --font-size-pixel-3xl: 30px;
-  --font-size-pixel-4xl: 36px;
+  --font-size-pixel-sm: 9px;
+  --font-size-pixel-base: 10px;
+  --font-size-pixel-lg: 12px;
+  --font-size-pixel-xl: 14px;
+  --font-size-pixel-2xl: 16px;
+  --font-size-pixel-3xl: 20px;
+  --font-size-pixel-4xl: 24px;
 
   /* Line heights for pixel fonts */
   --line-height-pixel-xs: 12px;
-  --line-height-pixel-sm: 16px;
-  --line-height-pixel-base: 20px;
-  --line-height-pixel-lg: 24px;
-  --line-height-pixel-xl: 28px;
-  --line-height-pixel-2xl: 32px;
-  --line-height-pixel-3xl: 36px;
-  --line-height-pixel-4xl: 40px;
+  --line-height-pixel-sm: 12px;
+  --line-height-pixel-base: 14px;
+  --line-height-pixel-lg: 16px;
+  --line-height-pixel-xl: 18px;
+  --line-height-pixel-2xl: 20px;
+  --line-height-pixel-3xl: 24px;
+  --line-height-pixel-4xl: 28px;
 
   /* Enhanced box shadows for retro effects */
   --shadow-pixel: 2px 2px 0px rgba(0,0,0,0.8);
@@ -133,8 +116,17 @@
 }
 
 /* Custom utility classes using the correct @utility syntax */
+/* Font utilities that directly reference Next.js font variables */
 @utility font-pixeloid {
-  font-family: var(--font-family-pixel);
+  font-family: var(--font-pixeloid);
+  font-feature-settings: normal;
+  image-rendering: pixelated;
+  image-rendering: -moz-crisp-edges;
+  image-rendering: crisp-edges;
+}
+
+@utility font-pixel {
+  font-family: var(--font-pixeloid);
   font-feature-settings: normal;
   image-rendering: pixelated;
   image-rendering: -moz-crisp-edges;
@@ -142,15 +134,51 @@
 }
 
 @utility font-medieval {
-  font-family: var(--font-family-medieval);
+  font-family: var(--font-cormorant-unicase);
 }
 
 @utility font-bokor {
-  font-family: var(--font-family-bokor);
+  font-family: var(--font-bokor);
 }
 
 @utility font-cinzel {
-  font-family: var(--font-family-cinzel);
+  font-family: var(--font-cinzel);
+}
+
+/* Pixel font size utilities */
+@utility text-pixel-xs {
+  font-size: var(--font-size-pixel-xs);
+  line-height: var(--line-height-pixel-xs);
+}
+
+@utility text-pixel-sm {
+  font-size: var(--font-size-pixel-sm);
+  line-height: var(--line-height-pixel-sm);
+}
+
+@utility text-pixel-base {
+  font-size: var(--font-size-pixel-base);
+  line-height: var(--line-height-pixel-base);
+}
+
+@utility text-pixel-lg {
+  font-size: var(--font-size-pixel-lg);
+  line-height: var(--line-height-pixel-lg);
+}
+
+@utility text-pixel-xl {
+  font-size: var(--font-size-pixel-xl);
+  line-height: var(--line-height-pixel-xl);
+}
+
+@utility text-pixel-2xl {
+  font-size: var(--font-size-pixel-2xl);
+  line-height: var(--line-height-pixel-2xl);
+}
+
+@utility text-pixel-3xl {
+  font-size: var(--font-size-pixel-3xl);
+  line-height: var(--line-height-pixel-3xl);
 }
 
 @utility pixel-perfect {
@@ -238,35 +266,6 @@
   border-radius: var(--radius-retro-lg);
 }
 
-@utility text-pixel-xs {
-  font-size: var(--font-size-pixel-xs);
-}
-
-@utility text-pixel-sm {
-  font-size: var(--font-size-pixel-sm);
-}
-
-@utility text-pixel-base {
-  font-size: var(--font-size-pixel-base);
-}
-
-@utility text-pixel-lg {
-  font-size: var(--font-size-pixel-lg);
-}
-
-@utility text-pixel-xl {
-  font-size: var(--font-size-pixel-xl);
-}
-
-@utility text-pixel-2xl {
-  font-size: var(--font-size-pixel-2xl);
-}
-
-@utility text-pixel-3xl {
-  font-size: var(--font-size-pixel-3xl);
-}
-
-
 /* Component classes using @apply - these should now work */
 @layer components {
   .btn-retro {
@@ -327,7 +326,7 @@
 
 /* Base styles */
 body {
-  font-family: var(--font-family-pixel);
+  font-family: var(--font-pixeloid);
   background-color: rgb(var(--color-background));
   color: rgb(var(--color-foreground));
   image-rendering: pixelated;

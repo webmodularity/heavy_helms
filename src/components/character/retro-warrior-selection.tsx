@@ -18,6 +18,7 @@ import type { StanceType } from "@/types/equipment.types";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAccount } from "wagmi";
 import { cn } from "@/lib/utils";
+import { RetroSectionHeader } from "@/components/ui/retro-section-header";
 
 type NamePreference = "male" | "female";
 
@@ -149,19 +150,13 @@ export function RetroWarriorSelection({
 
   return (
     <section className="mt-3">
-      {/* Section Header */}
-      <RetroCard variant="arcade" className="mb-6" size="sm">
-        <RetroCardHeader variant="arcade">
-          <RetroCardTitle variant="arcade" className="text-center">
-            WARRIOR ROSTER
-          </RetroCardTitle>
-        </RetroCardHeader>
-        <RetroCardContent>
-          <div className="text-center font-pixel text-pixel-xs text-primary/80">
-            SELECT COMBAT UNIT • CONFIGURE STANCE • DEPLOY TO BATTLEFIELD
-          </div>
-        </RetroCardContent>
-      </RetroCard>
+      {/* Section Header - Much cleaner! */}
+      <RetroSectionHeader
+        variant="battle"
+        title="WARRIOR ROSTER"
+        subtitle="select combat unit • configure stance • deploy to battlefield"
+        animationDelay={0.1}
+      />
 
       {/* Character Selection Scroll - IMPROVED SPACING */}
       <div className="relative max-w-full">
