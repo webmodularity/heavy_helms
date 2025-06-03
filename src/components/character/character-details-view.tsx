@@ -35,13 +35,6 @@ import { useAccount, useConfig } from "wagmi";
 import { watchAccount } from "@wagmi/core";
 import { CharacterImage } from "./character-image";
 import { BattleLegacy } from "./battle-legacy";
-import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { useCharacterSubtitle } from "@/hooks/use-character-subtitle";
 import { ActivitySection } from "@/components/home/activity-section";
 import {
   getWeaponDisplayName,
