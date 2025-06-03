@@ -63,7 +63,12 @@ interface RetroModalProps {
   children: React.ReactNode;
 }
 
-const RetroModal: React.FC<RetroModalProps> = ({ isOpen, onClose, title, children }) => {
+const RetroModal: React.FC<RetroModalProps> = ({
+  isOpen,
+  onClose,
+  title,
+  children,
+}) => {
   if (!isOpen) return null;
 
   return (
@@ -82,10 +87,17 @@ const RetroModal: React.FC<RetroModalProps> = ({ isOpen, onClose, title, childre
           transition={{ duration: 0.3, type: "spring" }}
           className="w-full max-w-4xl max-h-[90vh] flex flex-col"
         >
-          <RetroCard variant="arcade" className="flex flex-col h-full retro-glow" withScanlines>
+          <RetroCard
+            variant="arcade"
+            className="flex flex-col h-full retro-glow"
+            withScanlines
+          >
             <RetroCardHeader variant="arcade" className="flex-shrink-0">
               <div className="flex justify-between items-center">
-                <RetroCardTitle variant="arcade" className="font-pixel text-pixel-lg">
+                <RetroCardTitle
+                  variant="arcade"
+                  className="font-pixel text-pixel-lg"
+                >
                   {title}
                 </RetroCardTitle>
                 <RetroButton
@@ -215,19 +227,18 @@ export function CharacterDetailsView({
             variant={isOwner && !character.isRetired ? "arcade" : "pixel"}
             className={cn(
               "cursor-pointer transition-all duration-300",
-              isOwner && !character.isRetired 
-                ? "hover:scale-[1.02] retro-glow" 
-                : "opacity-80"
+              isOwner && !character.isRetired
+                ? "hover:scale-[1.02] retro-glow"
+                : "opacity-80",
             )}
             onClick={() =>
               isOwner && !character.isRetired && setIsSkinsModalOpen(true)
             }
             withScanlines={isOwner && !character.isRetired}
-            glow={isOwner && !character.isRetired ? "subtle" : "none"}
           >
-            <RetroCardContent className="p-3">
+            <RetroCardContent className="p-4">
               <div className="flex items-center mb-2 w-full">
-                <Shirt className="h-4 w-4 text-primary flex-shrink-0 mr-2 retro-glow" />
+                <Shirt className="h-4 w-4 text-primary flex-shrink-0 mr-2 retro-box-glow" />
                 <div className="flex-grow">
                   <span className="block font-pixel text-pixel-sm text-primary font-bold">
                     CURRENT LOADOUT
@@ -242,7 +253,7 @@ export function CharacterDetailsView({
                   <ChevronRight className="h-4 w-4 text-primary/70 flex-shrink-0 ml-auto animate-pulse" />
                 )}
               </div>
-              
+
               <div className="space-y-1.5 pt-2 border-t border-primary/30 w-full">
                 <div className="flex items-center font-pixel text-pixel-xs">
                   <Swords className="h-2.5 w-2.5 text-primary mr-2 flex-shrink-0" />
@@ -280,7 +291,7 @@ export function CharacterDetailsView({
           <div className="hidden md:block">
             <HeroSection character={character as Player} />
           </div>
-          
+
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -288,7 +299,7 @@ export function CharacterDetailsView({
           >
             <AttributesSection character={character as Player} />
           </motion.div>
-          
+
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -309,7 +320,10 @@ export function CharacterDetailsView({
         >
           <RetroCard variant="arcade" className="retro-glow" withScanlines>
             <RetroCardHeader variant="arcade">
-              <RetroCardTitle variant="arcade" className="font-pixel text-pixel-lg">
+              <RetroCardTitle
+                variant="arcade"
+                className="font-pixel text-pixel-lg"
+              >
                 BATTLE CHRONICLES
               </RetroCardTitle>
             </RetroCardHeader>

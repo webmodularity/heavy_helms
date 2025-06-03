@@ -60,11 +60,11 @@ const retroCardTitleVariants = cva(
     variants: {
       variant: {
         default: "font-pixeloid text-base",
-        arcade: "font-pixeloid text-base retro-glow",
+        arcade: "font-pixeloid text-base retro-text-glow",
         medieval: "font-bokor text-base text-medieval-gold",
         pixel: "font-pixeloid text-base",
         crt: "font-pixeloid text-base text-primary",
-        glow: "font-pixeloid text-base retro-glow",
+        glow: "font-pixeloid text-base retro-text-glow",
       },
     },
     defaultVariants: {

@@ -187,18 +187,28 @@
   image-rendering: crisp-edges;
 }
 
+@utility retro-box-glow {
+  box-shadow: 0 0 8px rgb(var(--color-primary));
+}
+
+@utility retro-text-glow {
+  text-shadow: 0 0 6px currentColor;
+}
+
 @utility retro-glow {
-  box-shadow: 0 0 10px rgb(var(--color-primary));
-  text-shadow: 0 0 10px currentColor;
+  /* Keep this for backwards compatibility, but make it more subtle */
+  box-shadow: 0 0 6px rgb(var(--color-primary));
 }
 
 @utility retro-glow-lg {
   box-shadow: 
-    0 0 20px rgb(var(--color-primary)), 
-    0 0 30px rgb(var(--color-primary));
-  text-shadow: 
-    0 0 20px currentColor, 
-    0 0 30px currentColor;
+    0 0 12px rgb(var(--color-primary)), 
+    0 0 18px rgb(var(--color-primary));
+}
+
+@utility retro-full-glow {
+  box-shadow: 0 0 8px rgb(var(--color-primary));
+  text-shadow: 0 0 6px currentColor;
 }
 
 @utility pixel-shadow {

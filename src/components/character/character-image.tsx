@@ -6,10 +6,7 @@ import { motion } from "framer-motion";
 import { ShieldAlert, Trash2, Loader2 } from "lucide-react";
 import { useFarcaster } from "@/store/farcaster-context";
 import { useSupabaseSingleAddressToUserMap } from "@/hooks/use-supabase-players";
-import {
-  RetroCard,
-  RetroCardContent,
-} from "@/components/ui/retro-card";
+import { RetroCard, RetroCardContent } from "@/components/ui/retro-card";
 import { RetroButton } from "@/components/ui/retro-button";
 import { cn } from "@/lib/utils";
 
@@ -45,11 +42,10 @@ export function CharacterImage({
       <RetroCard
         variant="arcade"
         className={cn(
-          "relative overflow-hidden retro-glow group hover:scale-[1.02] transition-all duration-300",
-          character.isRetired ? "opacity-75" : ""
+          "relative overflow-hidden retro-box-glow group hover:scale-[1.02] transition-all duration-300",
+          character.isRetired ? "opacity-75" : "",
         )}
         withScanlines={!character.isRetired}
-        glow="medium"
       >
         <RetroCardContent className="p-0 relative justify-center flex">
           {/* Character Image - PROPERLY CENTERED */}
@@ -60,19 +56,19 @@ export function CharacterImage({
                 alt={character.name.fullName || "Character"}
                 width={400}
                 height={400}
-                className="object-contain w-full h-full pixel-perfect transition-transform duration-500 group-hover:scale-105" 
+                className="object-contain w-full h-full pixel-perfect transition-transform duration-500 group-hover:scale-105"
                 style={{
-                  objectPosition: 'center center'
+                  objectPosition: "center center",
                 }}
               />
-              
+
               {/* Retro glow overlay when active */}
               {!character.isRetired && (
                 <motion.div
                   className="absolute inset-0 bg-gradient-radial from-primary/20 to-transparent z-10"
                   initial={false}
                   animate={{ opacity: [0.3, 0.6, 0.3] }}
-                  transition={{ duration: 4, repeat: Infinity }}
+                  transition={{ duration: 4, repeat: Number.POSITIVE_INFINITY }}
                 />
               )}
             </div>
@@ -82,7 +78,7 @@ export function CharacterImage({
           {/* ID Badge - Top Left */}
           <div className="absolute top-1.5 left-1.5 z-30">
             <div className="bg-arcade-screen/95 backdrop-blur-sm border border-primary/60 px-1.5 py-0.5 rounded-pixel">
-              <span className="font-pixel text-pixel-xs text-primary font-bold">
+              <span className="font-pixel text-pixel-xs text-primary font-bold retro-text-glow">
                 ID: {warriorIdDisplay}
               </span>
             </div>
@@ -94,8 +90,10 @@ export function CharacterImage({
               <RetroButton
                 variant="pixel"
                 size="xs"
-                onClick={async () => await viewProfile(userWithAddresses.farcaster_fid)}
-                className="p-1 retro-glow"
+                onClick={async () =>
+                  await viewProfile(userWithAddresses.farcaster_fid)
+                }
+                className="p-1 retro-box-glow"
                 glow="subtle"
               >
                 <Image
@@ -115,20 +113,22 @@ export function CharacterImage({
               <span
                 className={cn(
                   "font-pixel text-pixel-xs font-bold",
-                  character.isRetired ? "text-destructive retro-glow" : "text-success retro-glow"
+                  character.isRetired
+                    ? "text-destructive retro-text-glow"
+                    : "text-success retro-text-glow",
                 )}
               >
                 {status}
               </span>
             </div>
-            
+
             {showRetireButton && !character.isRetired && (
               <RetroButton
                 variant="pixel"
                 size="xs"
                 onClick={onRetireClick}
                 disabled={isRetiring}
-                className="p-1 retro-glow hover:border-destructive"
+                className="p-1 retro-box-glow hover:border-destructive"
                 glow="subtle"
               >
                 {isRetiring ? (

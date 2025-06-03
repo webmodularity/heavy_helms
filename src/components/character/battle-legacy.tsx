@@ -72,11 +72,14 @@ export function BattleLegacy({
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.2 }}
     >
-      <RetroCard variant="arcade" className="retro-glow" withScanlines>
+      <RetroCard variant="arcade" withScanlines>
         <RetroCardHeader variant="arcade">
           <div className="flex items-center justify-between">
-            <RetroCardTitle variant="arcade" className="font-pixel text-pixel-lg flex items-center gap-2">
-              <Trophy className="h-4 w-4 text-warning retro-glow" />
+            <RetroCardTitle
+              variant="arcade"
+              className="font-pixel text-pixel-lg flex items-center gap-2"
+            >
+              <Trophy className="h-4 w-4 text-warning retro-box-glow" />
               BATTLE LEGACY
             </RetroCardTitle>
 
@@ -95,7 +98,9 @@ export function BattleLegacy({
                 ) : (
                   <Share2 className="h-3 w-3" />
                 )}
-                <span className="hidden sm:inline font-pixel text-pixel-xs">SHARE</span>
+                <span className="hidden sm:inline font-pixel text-pixel-xs">
+                  SHARE
+                </span>
               </RetroButton>
             )}
           </div>
@@ -155,13 +160,13 @@ function RetroCompactStat({
   const getVariantStyles = () => {
     switch (variant) {
       case "primary":
-        return "text-primary retro-glow border-primary/30";
+        return "text-primary border-primary/30";
       case "success":
-        return "text-success retro-glow border-success/30";
+        return "text-success border-success/30";
       case "warning":
-        return "text-warning retro-glow border-warning/30";
+        return "text-warning border-warning/30";
       case "destructive":
-        return "text-destructive retro-glow border-destructive/30";
+        return "text-destructive border-destructive/30";
       default:
         return "text-foreground border-primary/20";
     }
@@ -169,11 +174,16 @@ function RetroCompactStat({
 
   return (
     <RetroCard variant="pixel" size="sm" className="text-center">
-      <RetroCardContent className="p-2 space-y-1">
+      <RetroCardContent className="p-2 space-y-1 flex flex-col items-center">
         <div className={cn("flex justify-center", getVariantStyles())}>
           {icon}
         </div>
-        <div className={cn("font-pixel text-pixel-sm font-bold", getVariantStyles())}>
+        <div
+          className={cn(
+            "font-pixel text-pixel-sm font-bold",
+            getVariantStyles(),
+          )}
+        >
           {value}
         </div>
         <div className="font-pixel text-pixel-xs text-foreground/70 uppercase">

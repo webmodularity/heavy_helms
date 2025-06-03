@@ -27,9 +27,9 @@ export function HeroSection({
   return (
     <motion.div
       className={cn(
-        "text-center space-y-1.5 py-3 pixel-perfect",
+        "text-center space-y-1.5 py-3 px-4",
         "bg-card/80 backdrop-blur-sm rounded-retro",
-        "border border-primary/30 retro-glow",
+        "border border-primary/30 retro-box-glow",
         withCrtEffect && "crt-container",
         withScanlines && "scanlines"
       )}
@@ -43,21 +43,21 @@ export function HeroSection({
       }}
     >
       {/* Character Name with Immortal Crown */}
-      <div className="flex items-center justify-center gap-1.5 px-2">
+      <div className="flex items-center justify-center gap-1.5">
         {character.isImmortal && (
           <motion.div
             initial={{ rotate: -20, scale: 0 }}
             animate={{ rotate: 0, scale: 1 }}
             transition={{ delay: 0.3, type: "spring" }}
           >
-            <Crown className="h-3 w-3 text-warning retro-glow" />
+            <Crown className="h-3 w-3 text-warning retro-text-glow" />
           </motion.div>
         )}
         
         <motion.h1 
           className={cn(
             "font-pixel text-pixel-xl text-primary font-bold",
-            "pixel-perfect retro-glow tracking-wider",
+            "pixel-perfect retro-text-glow tracking-wider",
             character.isImmortal && "text-warning"
           )}
           initial={{ opacity: 0, letterSpacing: "0.2em" }}
@@ -73,14 +73,14 @@ export function HeroSection({
             animate={{ rotate: 0, scale: 1 }}
             transition={{ delay: 0.3, type: "spring" }}
           >
-            <Crown className="h-3 w-3 text-warning retro-glow" />
+            <Crown className="h-3 w-3 text-warning retro-text-glow" />
           </motion.div>
         )}
       </div>
       
       {/* Character Subtitle */}
       <motion.div
-        className="font-pixel text-pixel-sm text-primary/80 pixel-perfect px-3 flex justify-center"
+        className="font-pixel text-pixel-sm text-primary/80 pixel-perfect flex justify-center"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2, duration: 0.3 }}
@@ -95,7 +95,7 @@ export function HeroSection({
             "inline-flex items-center gap-1 px-2 py-1",
             "font-pixel text-pixel-xs text-warning font-bold uppercase",
             "bg-warning/10 border border-warning/50",
-            "rounded-pixel-sm retro-glow tracking-widest",
+            "rounded-pixel-sm retro-box-glow tracking-widest",
             "pixel-perfect backdrop-blur-xs"
           )}
           initial={{ opacity: 0, scale: 0.8, y: 10 }}

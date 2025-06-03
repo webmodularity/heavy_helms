@@ -5,7 +5,7 @@ import * as React from "react";
 import { cn } from "@/lib/utils";
 
 const retroButtonVariants = cva(
-  "inline-flex items-center justify-center gap-1.5 whitespace-nowrap font-pixeloid text-sm font-medium transition-all duration-200 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-3 [&_svg]:shrink-0 outline-none pixel-perfect relative overflow-hidden",
+  "inline-flex items-center justify-center gap-1.5 whitespace-nowrap font-pixeloid text-sm font-medium transition-all duration-200 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg:not([class*='size-'])]:size-3 [&_svg]:shrink-0 outline-none pixel-perfect relative overflow-hidden cursor-pointer",
   {
     variants: {
       variant: {

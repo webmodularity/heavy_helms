@@ -21,7 +21,6 @@ import {
 } from "@/components/ui/retro-card";
 import { RetroButton } from "@/components/ui/retro-button";
 import { RetroAttributeBar } from "@/components/ui/retro-attribute-bar";
-import { cn } from "@/lib/utils";
 
 interface AttributesSectionProps {
   character: Player;
@@ -123,7 +122,7 @@ export function AttributesSection({ character }: AttributesSectionProps) {
     <RetroCard variant="arcade" withScanlines>
       <RetroCardHeader variant="arcade">
         <RetroCardTitle variant="arcade" className="font-pixel text-pixel-lg flex items-center gap-2">
-          <Dumbbell className="h-4 w-4 text-primary" />
+          <Dumbbell className="h-4 w-4 text-primary retro-box-glow" />
           COMBAT ATTRIBUTES
         </RetroCardTitle>
       </RetroCardHeader>
