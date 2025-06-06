@@ -55,7 +55,7 @@ export function RetroHeader() {
         {/* Mobile Navigation Menu Button - COMPACTED */}
         <RetroButton
           variant="arcade"
-          size="icon-sm"
+          size="icon-lg"
           glow="subtle"
           onClick={toggleMenu}
           className="relative overflow-hidden"
@@ -114,9 +114,6 @@ export function RetroHeader() {
               <h3 className="font-bokor text-base text-primary retro-glow text-center">
                 NAVIGATION
               </h3>
-              <div className="text-center text-xs text-primary/60 font-pixeloid mt-0.5">
-                SELECT DESTINATION
-              </div>
             </div>
 
             {/* Navigation Items - COMPACTED SPACING */}
@@ -134,7 +131,9 @@ export function RetroHeader() {
                     )}
                   >
                     <item.icon className="h-3 w-3 flex-shrink-0" />
-                    <span className="text-left font-pixeloid">{item.label}</span>
+                    <span className="text-left font-pixeloid">
+                      {item.label}
+                    </span>
                     {isActive(item.path) && (
                       <div className="ml-auto text-xs">●</div>
                     )}

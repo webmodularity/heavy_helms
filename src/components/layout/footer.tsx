@@ -1,9 +1,20 @@
+"use client";
+
 import Link from "next/link";
-// Import icons needed for navigation links (assuming they are same as header)
-import { Trophy, Scroll, Shield, ListOrdered, HelpCircle } from "lucide-react";
+import { motion } from "framer-motion";
+import {
+  Trophy,
+  Scroll,
+  Shield,
+  ListOrdered,
+  HelpCircle,
+  ExternalLink,
+  Github,
+  MessageCircle,
+} from "lucide-react";
+import { RetroCard, RetroCardContent } from "@/components/ui/retro-card";
 
 export function Footer() {
-  // Re-define navigation items here for the footer, or import from a shared config
   const navigationItems = [
     { label: "Warrior's Hall", path: "/", icon: Shield },
     { label: "Battle Archives", path: "/battle-archives", icon: Trophy },
@@ -12,350 +23,312 @@ export function Footer() {
     { label: "FAQ", path: "/faq", icon: HelpCircle },
   ];
 
+  const contractLinks = [
+    {
+      label: "Player Contract",
+      url: "https://shapescan.xyz/address/0x75B4750D41A9a04e989FAD58544C37930AEf2e5B",
+    },
+    {
+      label: "Game Engine (v0.22)",
+      url: "https://shapescan.xyz/address/0x60567795F7a60986204A5507538600b53adeE42a",
+    },
+    {
+      label: "Practice Game",
+      url: "https://shapescan.xyz/address/0xee5Ccf602AA0E5ff1C6F78CAB3AaC0dA317aF0b3",
+    },
+    {
+      label: "Duel Game",
+      url: "https://shapescan.xyz/address/0x805b44fadbCBA7a65b37875551820593a45a8716",
+    },
+    {
+      label: "Gauntlet Game",
+      url: "https://shapescan.xyz/address/0x684055392575eF42A6f04490dB50FFdC34309681",
+    },
+    {
+      label: "Skin Registry",
+      url: "https://shapescan.xyz/address/0x70FA59BA4FbD253850c76B6d1A12a7DFaC744072",
+    },
+  ];
+
+  const socialLinks = [
+    {
+      label: "Discord",
+      url: "https://discord.gg/5XHu76FmpJ",
+      icon: MessageCircle,
+      description: "Join our community",
+    },
+    {
+      label: "X (Twitter)",
+      url: "https://x.com/HeavyHelms",
+      icon: "twitter",
+      description: "Follow for updates",
+    },
+    {
+      label: "Shape Network",
+      url: "https://shape.network/",
+      icon: "shape",
+      description: "Built on Shape",
+    },
+    {
+      label: "GitHub",
+      url: "https://github.com/warlock-forge/heavy-helms-contracts",
+      icon: Github,
+      description: "View source code",
+    },
+  ];
+
+  const containerVariants = {
+    initial: { opacity: 0 },
+    animate: {
+      opacity: 1,
+      transition: {
+        duration: 0.4,
+        staggerChildren: 0.1,
+      },
+    },
+  };
+
+  const itemVariants = {
+    initial: { opacity: 0, y: 20 },
+    animate: {
+      opacity: 1,
+      y: 0,
+      transition: { duration: 0.3 },
+    },
+  };
+
   return (
     <footer className="relative mt-12">
-      {/* Dark overlay with stone base - matching banner background */}
-      <div className="absolute inset-0 bg-stone-900/75" />
+      {/* Distinct footer background with retro elements */}
+      <div className="absolute inset-0 bg-gradient-to-b from-background via-arcade-bezel to-arcade-screen" />
 
-      <div className="relative max-w-7xl mx-auto py-6 px-3 sm:px-4 lg:px-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* About Section - Definition List Style */}
-          <div className="bg-gradient-to-b from-stone-800/60 to-stone-900/60 backdrop-blur-sm p-3 rounded border border-stone-600/30 shadow-lg transform transition-transform hover:scale-[1.01]">
-            <h3 className="text-yellow-400/80 text-sm font-bold mb-2 uppercase tracking-wider">
-              About Heavy Helms
-            </h3>
-            {/* Changed to definition list (dl, dt, dd) */}
-            <dl className="space-y-2 text-stone-300 text-xs leading-relaxed">
-              <div>
-                <dt className="font-semibold text-yellow-500/90 mb-0.5">
-                  Web3 Native Auto-Battler:
-                </dt>
-                <dd className="pl-1.5 text-stone-300/90">
-                  {" "}
-                  {/* Indent definition slightly */}
-                  Where VRF guides the hand of fate!
-                </dd>
-              </div>
-              <div>
-                <dt className="font-semibold text-yellow-500/90 mb-0.5">
-                  Fair Combat:
-                </dt>
-                <dd className="pl-1.5 text-stone-300/90">
-                  Equal stats, victory forged by strategy, not coin (No P2W!).
-                </dd>
-              </div>
-              <div>
-                <dt className="font-semibold text-yellow-500/90 mb-0.5">
-                  {" "}
-                  {/* Corrected 3rd point */}
-                  Modular & Open:
-                </dt>
-                <dd className="pl-1.5 text-stone-300/90">
-                  Game engine is onchain and open source.
-                </dd>
-              </div>
-            </dl>
-          </div>
+      {/* Retro grid pattern overlay */}
+      <div
+        className="absolute inset-0 opacity-20 pointer-events-none"
+        style={{
+          backgroundImage: `
+               linear-gradient(rgba(0, 212, 255, 0.1) 1px, transparent 1px),
+               linear-gradient(90deg, rgba(0, 212, 255, 0.1) 1px, transparent 1px)
+             `,
+          backgroundSize: "20px 20px",
+        }}
+      />
 
-          {/* Navigation Links - Removed "Powered by" link */}
-          <div className="bg-gradient-to-b from-stone-800/60 to-stone-900/60 backdrop-blur-sm p-3 rounded border border-stone-600/30 shadow-lg transform transition-transform hover:scale-[1.01]">
-            <h3 className="text-yellow-400/80 text-sm font-bold mb-2 uppercase tracking-wider">
-              Navigation
-            </h3>
-            <ul className="space-y-1.5">
-              {navigationItems.map((item) => {
-                // Assign the icon component to a variable for easier use
-                const IconComponent = item.icon;
-                return (
-                  <li key={item.path} className="flex items-center group">
-                    {/* Keep the dot */}
-                    <div className="w-1 h-1 rounded-full bg-stone-600/50 mr-1.5 group-hover:bg-yellow-400 transition-colors" />
-                    <Link
-                      href={item.path}
-                      className="text-stone-200 text-xs hover:text-yellow-400 transition-colors flex items-center"
-                    >
-                      {/* Render the icon before the label */}
-                      <IconComponent className="mr-1 h-3 w-3 text-stone-400 group-hover:text-yellow-400 transition-colors" />
-                      {item.label}
-                      {/* Keep the arrow SVG */}
-                      <svg
-                        className="w-3 h-3 ml-1 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-yellow-400"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        xmlns="http://www.w3.org/2000/svg"
-                        aria-label="Arrow icon"
-                      >
-                        <path
-                          d="M5 12H19M19 12L12 5M19 12L12 19"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                        />
-                      </svg>
-                    </Link>
-                  </li>
-                );
-              })}
-              {/* REMOVED "Powered by Shape Network" link and divider */}
-            </ul>
+      {/* Scanlines effect */}
+      <div
+        className="absolute inset-0 opacity-30 pointer-events-none"
+        style={{
+          backgroundImage: `repeating-linear-gradient(
+               0deg,
+               transparent,
+               transparent 2px,
+               rgba(0, 212, 255, 0.03) 2px,
+               rgba(0, 212, 255, 0.03) 4px
+             )`,
+        }}
+      />
+
+      {/* Top border with glow effect */}
+      <div className="absolute top-0 left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-primary to-transparent retro-box-glow" />
+
+      {/* Decorative corner elements */}
+      <div className="absolute top-4 left-4 w-8 h-8 border-l-2 border-t-2 border-primary/50 rounded-tl-pixel" />
+      <div className="absolute top-4 right-4 w-8 h-8 border-r-2 border-t-2 border-primary/50 rounded-tr-pixel" />
+      <div className="absolute bottom-4 left-4 w-8 h-8 border-l-2 border-b-2 border-primary/50 rounded-bl-pixel" />
+      <div className="absolute bottom-4 right-4 w-8 h-8 border-r-2 border-b-2 border-primary/50 rounded-br-pixel" />
+
+      <motion.div
+        className="relative max-w-7xl mx-auto py-12 px-6"
+        variants={containerVariants}
+        initial="initial"
+        animate="animate"
+      >
+        {/* Header section */}
+        <motion.div variants={itemVariants} className="text-center mb-8">
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <div className="w-12 h-0.5 bg-gradient-to-r from-transparent to-primary" />
+            <Shield className="h-6 w-6 text-primary retro-box-glow animate-pulse" />
+            <h2 className="font-pixel text-pixel-lg text-primary font-bold uppercase tracking-wider retro-text-glow">
+              HEAVY HELMS ARCHIVE
+            </h2>
+            <Shield className="h-6 w-6 text-primary retro-box-glow animate-pulse" />
+            <div className="w-12 h-0.5 bg-gradient-to-l from-transparent to-primary" />
           </div>
+          <p className="font-pixel text-pixel-xs text-primary/70 uppercase">
+            WEB3 AUTO-BATTLER • ONCHAIN COMBAT SYSTEM
+          </p>
+        </motion.div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          {/* About Section */}
+          <motion.div variants={itemVariants}>
+            <RetroCard
+              variant="arcade"
+              className="h-full retro-glow"
+              withScanlines
+            >
+              <RetroCardContent className="p-4 space-y-3">
+                <h3 className="font-pixel text-pixel-sm text-primary font-bold uppercase tracking-wider retro-text-glow mb-3">
+                  ABOUT HEAVY HELMS
+                </h3>
+
+                <div className="space-y-3">
+                  <div className="space-y-1">
+                    <dt className="font-pixel text-pixel-xs text-warning font-bold uppercase">
+                      WEB3 AUTO-BATTLER:
+                    </dt>
+                    <dd className="font-pixel text-pixel-xs text-primary/80 pl-2 border-l-2 border-primary/30">
+                      Where VRF guides the hand of fate!
+                    </dd>
+                  </div>
+
+                  <div className="space-y-1">
+                    <dt className="font-pixel text-pixel-xs text-warning font-bold uppercase">
+                      FAIR COMBAT:
+                    </dt>
+                    <dd className="font-pixel text-pixel-xs text-primary/80 pl-2 border-l-2 border-primary/30">
+                      Equal stats, victory by strategy (No P2W!)
+                    </dd>
+                  </div>
+
+                  <div className="space-y-1">
+                    <dt className="font-pixel text-pixel-xs text-warning font-bold uppercase">
+                      MODULAR & OPEN:
+                    </dt>
+                    <dd className="font-pixel text-pixel-xs text-primary/80 pl-2 border-l-2 border-primary/30">
+                      Game engine is onchain and open source
+                    </dd>
+                  </div>
+                </div>
+              </RetroCardContent>
+            </RetroCard>
+          </motion.div>
+
+          {/* Navigation Links */}
+          <motion.div variants={itemVariants}>
+            <RetroCard variant="arcade" className="h-full retro-glow">
+              <RetroCardContent className="p-4">
+                <h3 className="font-pixel text-pixel-sm text-primary font-bold uppercase tracking-wider retro-text-glow mb-3">
+                  NAVIGATION
+                </h3>
+
+                <ul className="space-y-2">
+                  {navigationItems.map((item) => {
+                    const IconComponent = item.icon;
+                    return (
+                      <li key={item.path} className="group">
+                        <Link
+                          href={item.path}
+                          className="flex items-center gap-2 p-1.5 rounded-pixel hover:bg-primary/10 transition-all duration-200 pixel-perfect"
+                        >
+                          <div className="w-1.5 h-1.5 rounded-pixel bg-primary/50 group-hover:bg-primary transition-colors flex-shrink-0" />
+                          <IconComponent className="h-3 w-3 text-primary/70 group-hover:text-primary transition-colors flex-shrink-0" />
+                          <span className="font-pixel text-pixel-xs text-primary/80 group-hover:text-primary transition-colors">
+                            {item.label}
+                          </span>
+                          <ExternalLink className="h-2.5 w-2.5 text-primary/50 opacity-0 group-hover:opacity-100 transition-all ml-auto flex-shrink-0" />
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </RetroCardContent>
+            </RetroCard>
+          </motion.div>
 
           {/* Smart Contracts */}
-          <div className="bg-gradient-to-b from-stone-800/60 to-stone-900/60 backdrop-blur-sm p-3 rounded border border-stone-600/30 shadow-lg transform transition-transform hover:scale-[1.01]">
-            <h3 className="text-yellow-400/80 text-sm font-bold mb-2 uppercase tracking-wider">
-              Smart Contracts
-            </h3>
-            <ul className="space-y-1.5">
-              <li className="flex items-center group">
-                <div className="w-1 h-1 rounded-full bg-stone-600/50 mr-1.5 group-hover:bg-yellow-400 transition-colors" />
-                <a
-                  href={
-                    "https://shapescan.xyz/address/0x75B4750D41A9a04e989FAD58544C37930AEf2e5B"
-                  }
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-stone-200 text-xs hover:text-yellow-400 transition-colors flex items-center"
-                >
-                  Player Contract
-                  <svg
-                    className="w-3 h-3 ml-1 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-yellow-400"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M5 12H19M19 12L12 5M19 12L12 19"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </a>
-              </li>
-              <li className="flex items-center group">
-                <div className="w-1 h-1 rounded-full bg-stone-600/50 mr-1.5 group-hover:bg-yellow-400 transition-colors" />
-                <a
-                  href={
-                    "https://shapescan.xyz/address/0x60567795F7a60986204A5507538600b53adeE42a"
-                  }
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-stone-200 text-xs hover:text-yellow-400 transition-colors flex items-center"
-                >
-                  Game Engine Contract (v0.22)
-                  <svg
-                    className="w-3 h-3 ml-1 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-yellow-400"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M5 12H19M19 12L12 5M19 12L12 19"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </a>
-              </li>
-              <li className="flex items-center group">
-                <div className="w-1 h-1 rounded-full bg-stone-600/50 mr-1.5 group-hover:bg-yellow-400 transition-colors" />
-                <a
-                  href={
-                    "https://shapescan.xyz/address/0xee5Ccf602AA0E5ff1C6F78CAB3AaC0dA317aF0b3"
-                  }
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-stone-200 text-xs hover:text-yellow-400 transition-colors flex items-center"
-                >
-                  Practice Game Contract
-                  <svg
-                    className="w-3 h-3 ml-1 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-yellow-400"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M5 12H19M19 12L12 5M19 12L12 19"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </a>
-              </li>
-              <li className="flex items-center group">
-                <div className="w-1 h-1 rounded-full bg-stone-600/50 mr-1.5 group-hover:bg-yellow-400 transition-colors" />
-                <a
-                  href={
-                    "https://shapescan.xyz/address/0x805b44fadbCBA7a65b37875551820593a45a8716"
-                  }
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-stone-200 text-xs hover:text-yellow-400 transition-colors flex items-center"
-                >
-                  Duel Game Contract
-                  <svg
-                    className="w-3 h-3 ml-1 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-yellow-400"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M5 12H19M19 12L12 5M19 12L12 19"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </a>
-              </li>
-              <li className="flex items-center group">
-                <div className="w-1 h-1 rounded-full bg-stone-600/50 mr-1.5 group-hover:bg-yellow-400 transition-colors" />
-                <a
-                  href={
-                    "https://shapescan.xyz/address/0x684055392575eF42A6f04490dB50FFdC34309681"
-                  }
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-stone-200 text-sm hover:text-yellow-400 transition-colors flex items-center"
-                >
-                  Gauntlet Game Contract
-                  <svg
-                    className="w-4 h-4 ml-1 opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-yellow-400"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M5 12H19M19 12L12 5M19 12L12 19"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </a>
-              </li>
-              <li className="flex items-center group">
-                <div className="w-1.5 h-1.5 rounded-full bg-stone-600/50 mr-2 group-hover:bg-yellow-400 transition-colors" />
-                <a
-                  href={
-                    "https://shapescan.xyz/address/0x70FA59BA4FbD253850c76B6d1A12a7DFaC744072"
-                  }
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-stone-200 text-xs hover:text-yellow-400 transition-colors flex items-center"
-                >
-                  Player Skin Registry
-                  <svg
-                    className="w-3 h-3 ml-1 opacity-0 -translate-x-1 group-hover:opacity-100 group-hover:translate-x-0 transition-all text-yellow-400"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M5 12H19M19 12L12 5M19 12L12 19"
-                      stroke="currentColor"
-                      strokeWidth="2"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
-                </a>
-              </li>
-            </ul>
-          </div>
+          <motion.div variants={itemVariants}>
+            <RetroCard variant="arcade" className="h-full retro-glow">
+              <RetroCardContent className="p-4">
+                <h3 className="font-pixel text-pixel-sm text-primary font-bold uppercase tracking-wider retro-text-glow mb-3">
+                  SMART CONTRACTS
+                </h3>
+
+                <ul className="space-y-2">
+                  {contractLinks.map((contract, index) => (
+                    <li key={index} className="group">
+                      <a
+                        href={contract.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 p-1.5 rounded-pixel hover:bg-primary/10 transition-all duration-200 pixel-perfect"
+                      >
+                        <div className="w-1.5 h-1.5 rounded-pixel bg-primary/50 group-hover:bg-primary transition-colors flex-shrink-0" />
+                        <span className="font-pixel text-pixel-xs text-primary/80 group-hover:text-primary transition-colors flex-1 min-w-0">
+                          {contract.label}
+                        </span>
+                        <ExternalLink className="h-2.5 w-2.5 text-primary/50 opacity-0 group-hover:opacity-100 transition-all flex-shrink-0" />
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </RetroCardContent>
+            </RetroCard>
+          </motion.div>
         </div>
 
         {/* Social Links */}
-        <div className="mt-4 pt-4 border-t border-stone-600/30">
-          <div className="flex justify-center space-x-3">
-            <a
-              href="https://discord.gg/5XHu76FmpJ"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group"
-            >
-              <div className="bg-gradient-to-b from-stone-800/60 to-stone-900/60 backdrop-blur-sm p-2 rounded-full transform transition-all duration-200 hover:scale-110 border border-stone-600/30 shadow-lg">
-                <svg
-                  className="h-4 w-4 text-stone-400 group-hover:text-yellow-400 transition-colors"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path d="M20.317 4.492c-1.53-.69-3.17-1.2-4.885-1.49a.075.075 0 00-.079.036c-.21.369-.444.85-.608 1.23a18.566 18.566 0 00-5.487 0 12.36 12.36 0 00-.617-1.23A.077.077 0 008.562 3c-1.714.29-3.354.8-4.885 1.491a.07.07 0 00-.032.027C.533 9.093-.32 13.555.099 17.961a.08.08 0 00.031.055 20.03 20.03 0 005.993 2.98.078.078 0 00.084-.026 13.83 13.83 0 001.226-1.963.074.074 0 00-.041-.104 13.175 13.175 0 01-1.872-.878.075.075 0 01-.008-.125c.126-.093.252-.19.372-.287a.075.075 0 01.078-.01c3.927 1.764 8.18 1.764 12.061 0a.075.075 0 01.079.009c.12.098.245.195.372.288a.075.075 0 01-.006.125c-.598.344-1.22.635-1.873.877a.075.075 0 00-.041.105c.36.687.772 1.341 1.225 1.962a.077.077 0 00.084.028 19.963 19.963 0 006.002-2.981.076.076 0 00.032-.054c.5-5.094-.838-9.52-3.549-13.442a.06.06 0 00-.031-.028zM8.02 15.278c-1.182 0-2.157-1.069-2.157-2.38 0-1.312.956-2.38 2.157-2.38 1.21 0 2.176 1.077 2.157 2.38 0 1.312-.956 2.38-2.157 2.38zm7.975 0c-1.183 0-2.157-1.069-2.157-2.38 0-1.312.955-2.38 2.157-2.38 1.21 0 2.176 1.077 2.157 2.38 0 1.312-.946 2.38-2.157 2.38z" />
-                </svg>
-              </div>
-            </a>
-            <a
-              href="https://x.com/HeavyHelms"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group"
-              aria-label="Heavy Helms on X (formerly Twitter)"
-            >
-              <div className="bg-gradient-to-b from-stone-800/60 to-stone-900/60 backdrop-blur-sm p-2 rounded-full transform transition-all duration-200 hover:scale-110 border border-stone-600/30 shadow-lg">
-                <svg
-                  className="h-4 w-4 text-stone-400 group-hover:text-yellow-400 transition-colors"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <title>X (formerly Twitter)</title>
-                  <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" />
-                </svg>
-              </div>
-            </a>
-            <a
-              href="https://shape.network/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group"
-              aria-label="Shape Network"
-            >
-              <div className="bg-gradient-to-b from-stone-800/60 to-stone-900/60 backdrop-blur-sm p-2 rounded-full transform transition-all duration-200 hover:scale-110 border border-stone-600/30 shadow-lg">
-                <svg
-                  className="h-4 w-4 text-stone-400 group-hover:text-yellow-400 transition-colors"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <title>Shape Network</title>
-                  <circle cx="12" cy="12" r="10" />
-                </svg>
-              </div>
-            </a>
-            <a
-              href="https://github.com/warlock-forge/heavy-helms-contracts"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="group"
-              aria-label="Heavy Helms Contracts on GitHub"
-            >
-              <div className="bg-gradient-to-b from-stone-800/60 to-stone-900/60 backdrop-blur-sm p-2 rounded-full transform transition-all duration-200 hover:scale-110 border border-stone-600/30 shadow-lg">
-                <svg
-                  className="h-4 w-4 text-stone-400 group-hover:text-yellow-400 transition-colors"
-                  fill="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <title>GitHub</title>
-                  <path
-                    fillRule="evenodd"
-                    d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
-                    clipRule="evenodd"
-                  />
-                </svg>
-              </div>
-            </a>
+        <motion.div
+          variants={itemVariants}
+          className="pt-6 border-t border-primary/30"
+        >
+          <div className="flex justify-center">
+            <div className="flex items-center gap-4">
+              {socialLinks.map((social) => {
+                const IconComponent = social.icon;
+                return (
+                  <motion.a
+                    key={social.label}
+                    href={social.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="group relative"
+                    whileHover={{ scale: 1.1 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    <div className="bg-primary/20 p-3 rounded-pixel border border-primary/30 retro-box-glow group-hover:retro-glow transition-all duration-200 pixel-perfect">
+                      {typeof IconComponent === "string" ? (
+                        social.icon === "twitter" ? (
+                          <svg
+                            className="h-4 w-4 text-primary group-hover:text-warning transition-colors"
+                            fill="currentColor"
+                            viewBox="0 0 24 24"
+                            aria-hidden="true"
+                          >
+                            <path d="M8.29 20.251c7.547 0 11.675-6.253 11.675-11.675 0-.178 0-.355-.012-.53A8.348 8.348 0 0022 5.92a8.19 8.19 0 01-2.357.646 4.118 4.118 0 001.804-2.27 8.224 8.224 0 01-2.605.996 4.107 4.107 0 00-6.993 3.743 11.65 11.65 0 01-8.457-4.287 4.106 4.106 0 001.27 5.477A4.072 4.072 0 012.8 9.713v.052a4.105 4.105 0 003.292 4.022 4.095 4.095 0 01-1.853.07 4.108 4.108 0 003.834 2.85A8.233 8.233 0 012 18.407a11.616 11.616 0 006.29 1.84" />
+                          </svg>
+                        ) : (
+                          <div className="w-4 h-4 rounded-pixel bg-primary group-hover:bg-warning transition-colors" />
+                        )
+                      ) : (
+                        <IconComponent className="h-4 w-4 text-primary group-hover:text-warning transition-colors" />
+                      )}
+                    </div>
+
+                    {/* Tooltip */}
+                    <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                      <div className="bg-arcade-screen border border-primary/30 rounded-pixel px-2 py-1 pixel-perfect">
+                        <span className="font-pixel text-pixel-xs text-primary whitespace-nowrap">
+                          {social.description}
+                        </span>
+                      </div>
+                    </div>
+                  </motion.a>
+                );
+              })}
+            </div>
           </div>
-        </div>
-      </div>
+        </motion.div>
+
+        {/* Copyright */}
+        <motion.div variants={itemVariants} className="mt-8 text-center">
+          <div className="bg-primary/10 border border-primary/20 rounded-pixel px-4 py-2 inline-block pixel-perfect retro-box-glow">
+            <p className="font-pixel text-pixel-xs text-primary/60 uppercase">
+              © 2024 HEAVY HELMS • BUILT ON SHAPE NETWORK
+            </p>
+          </div>
+        </motion.div>
+      </motion.div>
     </footer>
   );
 }

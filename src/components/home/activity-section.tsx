@@ -244,85 +244,243 @@ function RecentGauntletsTabContent({
 
   if (isLoading && gauntlets.length === 0) {
     return (
-      <div className="flex justify-center py-6">
-        <Loader2 className="h-5 w-5 text-primary animate-spin" />
-      </div>
+      <motion.div
+        className="flex flex-col items-center justify-center py-8 space-y-4"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.3 }}
+      >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
+          className="bg-primary/20 p-3 rounded-pixel border border-primary/30 retro-box-glow"
+        >
+          <Loader2 className="h-6 w-6 text-primary animate-spin" />
+        </motion.div>
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3, delay: 0.2 }}
+          className="text-center"
+        >
+          <span className="font-pixel text-pixel-sm text-primary retro-text-glow">
+            LOADING GAUNTLET DATA...
+          </span>
+          <div className="flex justify-center mt-2">
+            <div className="flex gap-1">
+              {[...Array(3)].map((_, i) => (
+                <motion.div
+                  key={`dot-${i}`}
+                  className="w-1 h-1 bg-primary rounded-pixel"
+                  animate={{
+                    opacity: [0.3, 1, 0.3],
+                    scale: [0.8, 1.2, 0.8],
+                  }}
+                  transition={{
+                    duration: 1.5,
+                    repeat: Number.POSITIVE_INFINITY,
+                    delay: i * 0.2,
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        </motion.div>
+      </motion.div>
     );
   }
 
   if (error) {
     return (
-      <div className="text-center py-6">
-        <p className="font-pixel text-pixel-sm text-destructive mb-3">
-          FAILED TO LOAD GAUNTLETS
-        </p>
-        <RetroButton
-          variant="pixel"
-          size="sm"
-          onClick={handleRefetch}
-          disabled={isRefetching}
-          className="retro-glow"
+      <motion.div
+        className="flex flex-col items-center justify-center py-8"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
         >
-          {isRefetching ? (
-            <Loader2 className="h-3 w-3 animate-spin mr-1" />
-          ) : (
-            <Loader2 className="h-3 w-3 mr-1" />
-          )}
-          REFRESH
-        </RetroButton>
-      </div>
+          <RetroCard variant="pixel" className="max-w-sm retro-glow">
+            <RetroCardContent className="p-4 text-center space-y-3">
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.2 }}
+              >
+                <div className="bg-destructive/20 p-2 rounded-pixel border border-destructive/30 w-fit mx-auto mb-2 retro-box-glow">
+                  <Trophy className="h-5 w-5 text-destructive animate-pulse" />
+                </div>
+                <p className="font-pixel text-pixel-sm text-destructive font-bold uppercase retro-text-glow">
+                  GAUNTLET DATA ERROR
+                </p>
+              </motion.div>
+
+              <motion.p
+                className="font-pixel text-pixel-xs text-primary/70 uppercase"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3, delay: 0.3 }}
+              >
+                FAILED TO LOAD GAUNTLET HISTORY
+              </motion.p>
+
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.4 }}
+              >
+                <RetroButton
+                  variant="arcade"
+                  size="sm"
+                  onClick={handleRefetch}
+                  disabled={isRefetching}
+                  className="retro-glow"
+                  glow="medium"
+                >
+                  {isRefetching ? (
+                    <>
+                      <Loader2 className="h-2.5 w-2.5 animate-spin mr-1" />
+                      <span className="font-pixel text-pixel-xs">
+                        RETRYING...
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <Loader2 className="h-2.5 w-2.5 mr-1" />
+                      <span className="font-pixel text-pixel-xs">RETRY</span>
+                    </>
+                  )}
+                </RetroButton>
+              </motion.div>
+            </RetroCardContent>
+          </RetroCard>
+        </motion.div>
+      </motion.div>
     );
   }
 
   if (!selectedCharacter) {
     return (
       <motion.div
-        className="text-center py-6"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.2, delay: 0.1 }}
+        className="flex flex-col items-center justify-center py-8"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
       >
         <motion.div
-          initial={{ opacity: 0, y: -5 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.2, delay: 0.15 }}
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
         >
-          <Trophy className="h-8 w-8 mx-auto mb-2 text-primary/30" />
+          <RetroCard variant="pixel" className="max-w-sm">
+            <RetroCardContent className="p-6 text-center space-y-4">
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.2 }}
+              >
+                <div className="bg-primary/20 p-3 rounded-pixel border border-primary/30 w-fit mx-auto mb-3 retro-box-glow">
+                  <Trophy className="h-6 w-6 text-primary/40 animate-pulse" />
+                </div>
+                <h3 className="font-pixel text-pixel-sm text-primary font-bold uppercase retro-text-glow">
+                  NO WARRIOR SELECTED
+                </h3>
+              </motion.div>
+
+              <motion.p
+                className="font-pixel text-pixel-xs text-primary/70 uppercase leading-relaxed"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3, delay: 0.3 }}
+              >
+                SELECT A WARRIOR FROM YOUR ROSTER
+                <br />
+                TO VIEW GAUNTLET HISTORY
+              </motion.p>
+            </RetroCardContent>
+          </RetroCard>
         </motion.div>
-        <motion.p
-          className="font-pixel text-pixel-sm text-primary/70"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3, delay: 0.25 }}
-        >
-          SELECT WARRIOR TO VIEW GAUNTLETS
-        </motion.p>
       </motion.div>
     );
   }
 
   if (gauntlets.length === 0) {
     return (
-      <div className="text-center py-6">
-        <Trophy className="h-8 w-8 mx-auto mb-2 text-primary/30" />
-        <p className="font-pixel text-pixel-sm text-primary/70 mb-3">
-          NO RECENT GAUNTLETS FOUND
-        </p>
-        <RetroButton
-          variant="pixel"
-          size="sm"
-          onClick={handleRefetch}
-          disabled={isRefetching}
-          className="retro-glow"
+      <motion.div
+        className="flex flex-col items-center justify-center py-8"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.4 }}
+      >
+        <motion.div
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
         >
-          {isRefetching ? (
-            <Loader2 className="h-3 w-3 animate-spin mr-1" />
-          ) : (
-            <Loader2 className="h-3 w-3 mr-1" />
-          )}
-          REFRESH
-        </RetroButton>
-      </div>
+          <RetroCard variant="pixel" className="max-w-sm retro-glow">
+            <RetroCardContent className="p-6 text-center space-y-4">
+              <motion.div
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.2 }}
+              >
+                <div className="bg-warning/20 p-3 rounded-pixel border border-warning/30 w-fit mx-auto mb-3 retro-box-glow">
+                  <Trophy className="h-6 w-6 text-warning animate-pulse" />
+                </div>
+                <h3 className="font-pixel text-pixel-sm text-warning font-bold uppercase retro-text-glow">
+                  NO GAUNTLETS FOUND
+                </h3>
+              </motion.div>
+
+              <motion.p
+                className="font-pixel text-pixel-xs text-primary/70 uppercase leading-relaxed"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3, delay: 0.3 }}
+              >
+                THIS WARRIOR HAS NOT
+                <br />
+                PARTICIPATED IN ANY GAUNTLETS
+              </motion.p>
+
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.4 }}
+              >
+                <RetroButton
+                  variant="arcade"
+                  size="sm"
+                  onClick={handleRefetch}
+                  disabled={isRefetching}
+                  className="retro-glow"
+                  glow="subtle"
+                >
+                  {isRefetching ? (
+                    <>
+                      <Loader2 className="h-2.5 w-2.5 animate-spin mr-1" />
+                      <span className="font-pixel text-pixel-xs">
+                        CHECKING...
+                      </span>
+                    </>
+                  ) : (
+                    <>
+                      <Loader2 className="h-2.5 w-2.5 mr-1" />
+                      <span className="font-pixel text-pixel-xs">
+                        CHECK AGAIN
+                      </span>
+                    </>
+                  )}
+                </RetroButton>
+              </motion.div>
+            </RetroCardContent>
+          </RetroCard>
+        </motion.div>
+      </motion.div>
     );
   }
 
@@ -345,6 +503,7 @@ function RecentGauntletsTabContent({
           onClick={handleRefetch}
           disabled={isRefetching}
           className="retro-glow"
+          glow="subtle"
         >
           {isRefetching ? (
             <>
@@ -396,26 +555,48 @@ function RecentGauntletsTabContent({
       {/* Loading more indicator */}
       <motion.div
         ref={loadMoreRef}
-        className="py-3 flex justify-center"
+        className="py-4 flex justify-center"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3, delay: 0.4 }}
       >
         {isFetchingNextPage ? (
-          <Loader2 className="h-4 w-4 text-primary animate-spin" />
+          <motion.div
+            className="flex items-center gap-2"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className="bg-primary/20 p-2 rounded-pixel border border-primary/30 retro-box-glow">
+              <Loader2 className="h-3 w-3 text-primary animate-spin" />
+            </div>
+            <span className="font-pixel text-pixel-xs text-primary retro-text-glow">
+              LOADING MORE...
+            </span>
+          </motion.div>
         ) : hasNextPage ? (
           <RetroButton
             variant="ghost"
             size="sm"
             onClick={() => fetchNextPage()}
-            className="font-pixel text-pixel-xs"
+            className="font-pixel text-pixel-xs retro-glow"
+            glow="subtle"
           >
-            LOAD MORE
+            LOAD MORE GAUNTLETS
           </RetroButton>
         ) : gauntlets.length > 0 ? (
-          <span className="font-pixel text-pixel-xs text-primary/50">
-            END OF GAUNTLET HISTORY
-          </span>
+          <motion.div
+            className="text-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            <div className="bg-primary/10 border border-primary/20 rounded-pixel px-3 py-1.5 pixel-perfect">
+              <span className="font-pixel text-pixel-xs text-primary/50 uppercase">
+                END OF GAUNTLET HISTORY
+              </span>
+            </div>
+          </motion.div>
         ) : null}
       </motion.div>
     </motion.div>

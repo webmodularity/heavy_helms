@@ -148,9 +148,9 @@ export function RetroAuthenticatedView() {
         />
 
         {/* Scroll indicator - COMPACTED */}
-        {selectedCharacter && !hasBattleInView && (
+        {/* {selectedCharacter && !hasBattleInView && (
           <RetroScrollIndicator onClick={scrollToBattleSection} />
-        )}
+        )} */}
 
         <RetroBattleSection
           selectedCharacter={selectedCharacter}
@@ -173,23 +173,23 @@ export function RetroAuthenticatedView() {
 }
 
 // COMPACTED ScrollIndicator component
-function RetroScrollIndicator({ onClick }: RetroScrollIndicatorProps) {
-  return (
-    <motion.div
-      className="fixed bottom-6 left-0 right-0 z-50 flex justify-center items-center"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 20 }}
-    >
-      <RetroButton
-        variant="arcade"
-        size="default"
-        glow="medium"
-        onClick={onClick}
-        className="gap-1.5"
-      >
-        View Battle Options <ChevronDown className="h-3 w-3" />
-      </RetroButton>
-    </motion.div>
-  );
-}
+// function RetroScrollIndicator({ onClick }: RetroScrollIndicatorProps) {
+//   return (
+//     <motion.div
+//       className="fixed bottom-6 left-0 right-0 z-50 flex justify-center items-center"
+//       initial={{ opacity: 0, y: 20 }}
+//       animate={{ opacity: 1, y: 0 }}
+//       exit={{ opacity: 0, y: 20 }}
+//     >
+//       <RetroButton
+//         variant="arcade"
+//         size="default"
+//         glow="medium"
+//         onClick={onClick}
+//         className="gap-1.5"
+//       >
+//         View Battle Options <ChevronDown className="h-3 w-3" />
+//       </RetroButton>
+//     </motion.div>
+//   );
+// }

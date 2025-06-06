@@ -198,7 +198,9 @@ export function RetroWarriorSelection({
                             character.stance,
                         );
                       }}
-                      onViewDetails={() => handleViewDetails(character as Player)}
+                      onViewDetails={() =>
+                        handleViewDetails(character as Player)
+                      }
                     />
                   </div>
                 ))}
@@ -214,10 +216,12 @@ export function RetroWarriorSelection({
                     )}
                   >
                     <RetroNewCharacterCard
-                      delay={0.5}
-                      onClick={() => {}}
-                      isCreating={false}
-                      txHash={null}
+                      delay={players?.length || 0}
+                      onClick={(namePreference: NamePreference) =>
+                        createCharacter(namePreference)
+                      }
+                      isCreating={isCreatingCharacter}
+                      txHash={txHash}
                     />
                   </div>
                 )}
