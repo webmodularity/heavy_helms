@@ -112,16 +112,11 @@ export function AttributesSection({ character }: AttributesSectionProps) {
 
   return (
     <motion.div
-      className="mb-12"
+      className="mb-6"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.2 }}
     >
-      <h3 className="text-2xl font-semibold text-yellow-500 mb-6 flex items-center">
-        <Dumbbell className="mr-2 h-5 w-5" />
-        Attributes
-      </h3>
-
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         <AttributeCard
           label="Strength"

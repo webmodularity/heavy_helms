@@ -2,12 +2,11 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { SectionHeader } from "@/components/ui/section-header";
 import { motion } from "framer-motion";
 import { useCancelChallenge } from "@/hooks/use-cancel-challenge";
 import { useAcceptChallenge } from "@/hooks/use-accept-challenge";
 import { usePrivy } from "@privy-io/react-auth";
-import { Loader2, Shield, Swords, Trophy } from "lucide-react";
+import { Loader2, Shield, Swords, Trophy, BookMarked } from "lucide-react";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { formatEther } from "viem";
 import { YellowButton } from "@/components/ui/yellow-button";
@@ -31,7 +30,10 @@ export function ActivitySection({ selectedCharacter }: ActivitySectionProps) {
 
   return (
     <section className="mb-8" id="activity-section">
-      <SectionHeader title="Battle Chronicles" subtitle="YOUR SAGA" />
+      <h3 className="text-xl font-semibold text-yellow-500 mb-4 flex items-center">
+        <BookMarked className="mr-2 h-5 w-5" />
+        Battle Chronicles
+      </h3>
 
       <motion.div
         className="bg-gradient-to-b from-amber-900/5 to-stone-900/30 rounded-lg border border-yellow-600/10 p-6"
@@ -101,30 +103,33 @@ function BattleTabs({
         <TabsList className="bg-transparent p-0 border-b border-stone-600 rounded-none w-full">
           <TabsTrigger
             value="gauntlets"
-            className="px-5 py-3 text-stone-400 border-b-2 border-transparent 
+            className="sm:px-5 px-3 py-3 text-stone-400 border-b-2 border-transparent 
                        data-[state=active]:text-yellow-500 data-[state=active]:border-b-yellow-500/50 data-[state=active]:bg-yellow-500/5 data-[state=active]:rounded-tl-md data-[state=active]:rounded-tr-md
                        data-[state=inactive]:hover:text-yellow-400 data-[state=inactive]:hover:bg-yellow-500/10 data-[state=inactive]:hover:border-b-yellow-400/50
                        rounded-none focus-visible:ring-offset-0 focus-visible:ring-0"
           >
-            Recent Gauntlets
+            <span className="inline sm:hidden">Gauntlets</span>
+            <span className="hidden sm:inline">Recent Gauntlets</span>
           </TabsTrigger>
           <TabsTrigger
             value="duels"
-            className="px-5 py-3 text-stone-400 border-b-2 border-transparent 
+            className="sm:px-5 px-3 py-3 text-stone-400 border-b-2 border-transparent 
                        data-[state=active]:text-yellow-500 data-[state=active]:border-b-yellow-500/50 data-[state=active]:bg-yellow-500/5 data-[state=active]:rounded-tl-md data-[state=active]:rounded-tr-md
                        data-[state=inactive]:hover:text-yellow-400 data-[state=inactive]:hover:bg-yellow-500/10 data-[state=inactive]:hover:border-b-yellow-400/50
                        rounded-none focus-visible:ring-offset-0 focus-visible:ring-0"
           >
-            Recent Duels
+            <span className="inline sm:hidden">Duels</span>
+            <span className="hidden sm:inline">Recent Duels</span>
           </TabsTrigger>
           <TabsTrigger
             value="challenges"
-            className="px-5 py-3 text-stone-400 border-b-2 border-transparent 
+            className="sm:px-5 px-3 py-3 text-stone-400 border-b-2 border-transparent 
                        data-[state=active]:text-yellow-500 data-[state=active]:border-b-yellow-500/50 data-[state=active]:bg-yellow-500/5 data-[state=active]:rounded-tl-md data-[state=active]:rounded-tr-md
                        data-[state=inactive]:hover:text-yellow-400 data-[state=inactive]:hover:bg-yellow-500/10 data-[state=inactive]:hover:border-b-yellow-400/50
                        rounded-none focus-visible:ring-offset-0 focus-visible:ring-0 relative"
           >
-            Active Challenges
+            <span className="inline sm:hidden">Challenges</span>
+            <span className="hidden sm:inline">Active Challenges</span>
             {activeCharacterChallenges.length > 0 && (
               <span className="absolute top-1.5 right-1.5 bg-amber-600 text-amber-50 text-xs font-bold rounded-full min-w-[20px] h-5 px-1.5 flex items-center justify-center">
                 {activeCharacterChallenges.length}

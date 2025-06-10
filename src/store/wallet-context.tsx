@@ -2,7 +2,7 @@
 import { wagmiConfig } from "@/config";
 import { usePrivy, useWallets } from "@privy-io/react-auth";
 import { useSetActiveWallet } from "@privy-io/wagmi";
-import { getChainId, switchChain } from "@wagmi/core";
+import { getChainId, switchChain, disconnect } from "@wagmi/core";
 import { type ReactNode, createContext, useEffect, useState } from "react";
 import { toast } from "sonner";
 import { baseSepolia, shape } from "viem/chains";
@@ -106,6 +106,13 @@ export function WalletProvider({ children }: { children: ReactNode }) {
     currentChainName,
     switchToPrimaryNetwork,
   };
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
+  useEffect(() => {
+    if (!ready || !authenticated) {
+      disconnect(wagmiConfig);
+    }
+  }, [ready, authenticated, wagmiConfig]);
 
   return (
     <WalletContext.Provider value={value}>{children}</WalletContext.Provider>
