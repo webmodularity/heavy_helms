@@ -23,9 +23,13 @@ import { GauntletAccordionItem } from "@/components/gauntlet/gauntlet-accordion-
 
 interface ActivitySectionProps {
   selectedCharacter: Player | null;
+  isOwner?: boolean;
 }
 
-export function ActivitySection({ selectedCharacter }: ActivitySectionProps) {
+export function ActivitySection({
+  selectedCharacter,
+  isOwner,
+}: ActivitySectionProps) {
   const { authenticated, login } = usePrivy();
 
   return (
@@ -42,7 +46,7 @@ export function ActivitySection({ selectedCharacter }: ActivitySectionProps) {
         transition={{ duration: 0.7, delay: 0.7 }}
       >
         {authenticated ? (
-          <BattleTabs selectedCharacter={selectedCharacter} />
+          <BattleTabs selectedCharacter={selectedCharacter} isOwner={isOwner} />
         ) : (
           <div className="flex flex-col items-center justify-center py-8 space-y-4">
             <p className="text-stone-300 text-center">
@@ -58,7 +62,8 @@ export function ActivitySection({ selectedCharacter }: ActivitySectionProps) {
 
 function BattleTabs({
   selectedCharacter,
-}: { selectedCharacter: Player | null }) {
+  isOwner,
+}: { selectedCharacter: Player | null; isOwner?: boolean }) {
   const [activeTab, setActiveTab] = useState("gauntlets");
   const { challenges } = useChallenges(selectedCharacter?.id || "");
 
@@ -121,21 +126,23 @@ function BattleTabs({
             <span className="inline sm:hidden">Duels</span>
             <span className="hidden sm:inline">Recent Duels</span>
           </TabsTrigger>
-          <TabsTrigger
-            value="challenges"
-            className="sm:px-5 px-3 py-3 text-stone-400 border-b-2 border-transparent 
-                       data-[state=active]:text-yellow-500 data-[state=active]:border-b-yellow-500/50 data-[state=active]:bg-yellow-500/5 data-[state=active]:rounded-tl-md data-[state=active]:rounded-tr-md
-                       data-[state=inactive]:hover:text-yellow-400 data-[state=inactive]:hover:bg-yellow-500/10 data-[state=inactive]:hover:border-b-yellow-400/50
-                       rounded-none focus-visible:ring-offset-0 focus-visible:ring-0 relative"
-          >
-            <span className="inline sm:hidden">Challenges</span>
-            <span className="hidden sm:inline">Active Challenges</span>
-            {activeCharacterChallenges.length > 0 && (
-              <span className="absolute top-1.5 right-1.5 bg-amber-600 text-amber-50 text-xs font-bold rounded-full min-w-[20px] h-5 px-1.5 flex items-center justify-center">
-                {activeCharacterChallenges.length}
-              </span>
-            )}
-          </TabsTrigger>
+          {isOwner && (
+            <TabsTrigger
+              value="challenges"
+              className="sm:px-5 px-3 py-3 text-stone-400 border-b-2 border-transparent 
+                         data-[state=active]:text-yellow-500 data-[state=active]:border-b-yellow-500/50 data-[state=active]:bg-yellow-500/5 data-[state=active]:rounded-tl-md data-[state=active]:rounded-tr-md
+                         data-[state=inactive]:hover:text-yellow-400 data-[state=inactive]:hover:bg-yellow-500/10 data-[state=inactive]:hover:border-b-yellow-400/50
+                         rounded-none focus-visible:ring-offset-0 focus-visible:ring-0 relative"
+            >
+              <span className="inline sm:hidden">Challenges</span>
+              <span className="hidden sm:inline">Active Challenges</span>
+              {activeCharacterChallenges.length > 0 && (
+                <span className="absolute top-1.5 right-1.5 bg-amber-600 text-amber-50 text-xs font-bold rounded-full min-w-[20px] h-5 px-1.5 flex items-center justify-center">
+                  {activeCharacterChallenges.length}
+                </span>
+              )}
+            </TabsTrigger>
+          )}
         </TabsList>
       </div>
 
@@ -148,9 +155,11 @@ function BattleTabs({
           <RecentDuelsTabContent selectedCharacter={selectedCharacter} />
         </TabsContent>
 
-        <TabsContent value="challenges" className="mt-0">
-          <ActiveChallenges selectedCharacter={selectedCharacter} />
-        </TabsContent>
+        {isOwner && (
+          <TabsContent value="challenges" className="mt-0">
+            <ActiveChallenges selectedCharacter={selectedCharacter} />
+          </TabsContent>
+        )}
       </div>
     </Tabs>
   );

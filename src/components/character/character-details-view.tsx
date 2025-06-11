@@ -197,7 +197,10 @@ export function CharacterDetailsView({
       {/* Battle Chronicles Section */}
       {character && (
         <div className="mt-8">
-          <ActivitySection selectedCharacter={character as Player} />
+          <ActivitySection
+            selectedCharacter={character as Player}
+            isOwner={isOwner}
+          />
         </div>
       )}
 
