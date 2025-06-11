@@ -227,8 +227,8 @@ export const GET_USER_CHALLENGES = gql`
 `;
 
 export const GET_ACTIVE_PLAYERS_QUERY = gql`
-  query GetActivePlayers {
-    players(where: { isRetired: false }) {
+  query GetActivePlayers($first: Int = 100) {
+    players(where: { isRetired: false }, first: $first, orderBy: id, orderDirection: asc) {
       ...FighterBaseFields
     }
   }
@@ -871,6 +871,36 @@ export const GET_PLAYER_GAUNTLETS_PAGINATED = gql`
 export const GET_QUEUED_GAUNTLET_PLAYERS = gql`
   query GetQueuedGauntletPlayers {
     players(where: { gauntletStatus: QUEUED, isRetired: false }) {
+      ...FighterCompleteFields
+    }
+  }
+  ${FIGHTER_COMPLETE_FRAGMENT}
+`;
+
+// Enhanced query for challenger selection with server-side filtering
+export const SEARCH_ACTIVE_PLAYERS = gql`
+  query SearchActivePlayers(
+    $first: Int = 50
+    $skip: Int = 0
+    $where: Fighter_filter
+  ) {
+    players(
+      where: $where
+      first: $first
+      skip: $skip
+      orderBy: battleRating
+      orderDirection: desc
+    ) {
+      ...FighterCompleteFields
+    }
+  }
+  ${FIGHTER_COMPLETE_FRAGMENT}
+`;
+
+// Alternative ID-based search for manual ID input
+export const SEARCH_PLAYERS_BY_ID = gql`
+  query SearchPlayersByID($playerIds: [String!]!) {
+    players(where: { id_in: $playerIds, isRetired: false }) {
       ...FighterCompleteFields
     }
   }
