@@ -8,8 +8,14 @@ const subtitleStyle = "text-yellow-400/90 text-sm font-medium tracking-widest";
 
 export function useCharacterSubtitle(ownerAddress?: string, id?: string) {
   // ENS resolution
+  // Explicitly convert null to undefined for the hook
+  const addressForEnsHook =
+    ownerAddress === null
+      ? undefined
+      : (ownerAddress as `0x${string}` | undefined);
+
   const { data: ensName, isLoading } = useEnsName({
-    address: ownerAddress as `0x${string}` | undefined,
+    address: addressForEnsHook,
     chainId: mainnet.id,
   });
 
