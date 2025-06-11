@@ -344,42 +344,6 @@ export function GauntletRegistrationForm({
             )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4 pt-0">
-            <div className="space-y-2">
-              <Label htmlFor="gauntletEntryFee" className="text-stone-300">
-                Entry Fee
-              </Label>
-              {!isReady ? (
-                <Skeleton className="h-10 w-full" />
-              ) : (
-                <Input
-                  id="gauntletEntryFee"
-                  readOnly
-                  value={`${formattedEntryFee} ETH`}
-                  className="bg-stone-900/50 border-yellow-600/20 text-stone-200 text-center font-medium"
-                  aria-label="Gauntlet entry fee"
-                />
-              )}
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="gauntletPayout" className="text-stone-300">
-                Gauntlet Prize
-              </Label>
-              {!isReady || requiredSize === 0 ? (
-                <Skeleton className="h-10 w-full" />
-              ) : (
-                <Input
-                  id="gauntletPayout"
-                  readOnly
-                  value={`${formattedPrecisePayout} ETH`}
-                  className="bg-stone-900/50 border-yellow-600/20 text-stone-200 text-center font-medium"
-                  aria-label="Calculated gauntlet prize"
-                />
-              )}
-            </div>
-          </div>
-
           {errorStats && !isProcessing && (
             <div className="flex items-center gap-2 p-2 text-sm text-red-400 bg-red-900/20 border border-red-500/30 rounded-md">
               <AlertTriangle className="h-4 w-4 flex-shrink-0" />
