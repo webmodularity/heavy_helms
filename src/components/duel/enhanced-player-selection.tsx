@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Loader2, Search, Filter, Users, ChevronDown, X } from "lucide-react";
 import { useOwnPlayers } from "@/hooks/use-own-players";
 import type { Player } from "@/types/player.types";
+import type { Fighter } from "@/types/fighter-types";
 import {
   getWeaponDisplayName,
   getArmorDisplayName,
@@ -21,10 +22,9 @@ import {
 import { usePlayerSearch } from "@/hooks/use-player-search";
 import { YellowButton } from "@/components/ui/yellow-button";
 import { useSkinMetadata } from "@/hooks/use-skin-metadata";
-import { Slider } from "@/components/ui/slider";
 
 interface EnhancedPlayerSelectionProps {
-  onSelectPlayer: (player: Player) => void;
+  onSelectPlayer: (player: Fighter) => void;
   currentPlayerId?: string;
 }
 
@@ -547,13 +547,13 @@ export function EnhancedPlayerSelection({
 }
 
 interface PlayerCardProps {
-  player: Player;
-  onSelect: (player: Player) => void;
+  player: Fighter;
+  onSelect: (player: Fighter) => void;
 }
 
 function PlayerCard({ player, onSelect }: PlayerCardProps) {
   const { data: skinMetadata } = useSkinMetadata(
-    player.currentSkin?.metadataURI,
+    player.currentSkin?.metadataURL,
   );
   const imageUrl = skinMetadata?.imageUrl || "/placeholder-skin.jpg";
 
@@ -567,7 +567,7 @@ function PlayerCard({ player, onSelect }: PlayerCardProps) {
         <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full overflow-hidden bg-stone-800">
           <img
             src={imageUrl}
-            alt={player.fullName || ""}
+            alt={player.name?.fullName || ""}
             className="w-full h-full object-cover"
             onError={(e) => {
               const target = e.target as HTMLImageElement;
@@ -578,24 +578,24 @@ function PlayerCard({ player, onSelect }: PlayerCardProps) {
       </div>
       <div className="flex-1 min-w-0">
         <h4 className="font-medium text-stone-200 truncate text-sm">
-          {player.fullName}
+          {player.name?.fullName || `Fighter #${player.id}`}
         </h4>
         {/* Mobile: Everything on fewer lines */}
         <div className="sm:hidden">
           <div className="flex items-center gap-2 text-xs text-stone-400 flex-wrap">
             <span>ID: {player.id}</span>
-            <span>W: {player.wins}</span>
-            <span>L: {player.losses}</span>
-            <span>K: {player.kills}</span>
+            <span>W: {player.record?.wins || 0}</span>
+            <span>L: {player.record?.losses || 0}</span>
+            <span>K: {player.record?.kills || 0}</span>
             <span>R: {player.battleRating || 0}</span>
           </div>
           <div className="flex items-center gap-1 text-xs text-stone-400 mt-0.5 flex-wrap">
-            <span>STR: {player.strength}</span>
-            <span>CON: {player.constitution}</span>
-            <span>SIZ: {player.size}</span>
-            <span>AGI: {player.agility}</span>
-            <span>STA: {player.stamina}</span>
-            <span>LUK: {player.luck}</span>
+            <span>STR: {player.attributes?.strength || 0}</span>
+            <span>CON: {player.attributes?.constitution || 0}</span>
+            <span>SIZ: {player.attributes?.size || 0}</span>
+            <span>AGI: {player.attributes?.agility || 0}</span>
+            <span>STA: {player.attributes?.stamina || 0}</span>
+            <span>LUK: {player.attributes?.luck || 0}</span>
             <span className="ml-1">|</span>
             <span>{getWeaponDisplayName(player.currentSkin?.weapon || 0)}</span>
             <span>•</span>
@@ -608,18 +608,18 @@ function PlayerCard({ player, onSelect }: PlayerCardProps) {
         <div className="hidden sm:block">
           <div className="flex items-center gap-3 text-xs text-stone-400 flex-wrap">
             <span>ID: {player.id}</span>
-            <span>W: {player.wins}</span>
-            <span>L: {player.losses}</span>
-            <span>K: {player.kills}</span>
+            <span>W: {player.record?.wins || 0}</span>
+            <span>L: {player.record?.losses || 0}</span>
+            <span>K: {player.record?.kills || 0}</span>
             <span>Rating: {player.battleRating || 0}</span>
           </div>
           <div className="flex items-center gap-1 text-xs text-stone-400 mt-1 flex-wrap">
-            <span>STR: {player.strength}</span>
-            <span>CON: {player.constitution}</span>
-            <span>SIZ: {player.size}</span>
-            <span>AGI: {player.agility}</span>
-            <span>STA: {player.stamina}</span>
-            <span>LUK: {player.luck}</span>
+            <span>STR: {player.attributes?.strength || 0}</span>
+            <span>CON: {player.attributes?.constitution || 0}</span>
+            <span>SIZ: {player.attributes?.size || 0}</span>
+            <span>AGI: {player.attributes?.agility || 0}</span>
+            <span>STA: {player.attributes?.stamina || 0}</span>
+            <span>LUK: {player.attributes?.luck || 0}</span>
           </div>
         </div>
       </div>

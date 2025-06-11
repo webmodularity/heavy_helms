@@ -2,22 +2,24 @@ import { CharacterDetailsView } from "@/components/character/character-details-v
 import type { Metadata } from "next";
 
 interface CharacterPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export async function generateMetadata({
   params,
 }: CharacterPageProps): Promise<Metadata> {
+  const { id } = await params;
   // This would be enhanced with real character data in production
   return {
-    title: `Character Details #${params.id} | Heavy Helms`,
+    title: `Character Details #${id} | Heavy Helms`,
     description: "View detailed information about your warrior character",
   };
 }
 
-export default function CharacterPage({ params }: CharacterPageProps) {
+export default async function CharacterPage({ params }: CharacterPageProps) {
+  const { id } = await params;
   return (
     <div className="min-h-screen bg-stone-950 relative overflow-hidden">
       {/* Decorative Background Elements - Using CSS only */}
@@ -31,7 +33,7 @@ export default function CharacterPage({ params }: CharacterPageProps) {
 
       {/* Main Content */}
       <main className="container max-w-6xl mx-auto px-4 py-8 relative z-10">
-        <CharacterDetailsView characterId={params.id} />
+        <CharacterDetailsView characterId={id} />
       </main>
     </div>
   );

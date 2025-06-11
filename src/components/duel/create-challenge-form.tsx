@@ -35,7 +35,7 @@ export function CreateChallengeForm({
 
   // Load challenger image from metadata
   const { data: skinMetadata } = useSkinMetadata(
-    selectedChallenger?.currentSkin?.metadataURI,
+    selectedChallenger?.currentSkin?.metadataURL,
   );
   const challengerImageUrl = skinMetadata?.imageUrl || "/placeholder-skin.jpg";
 
@@ -93,18 +93,20 @@ export function CreateChallengeForm({
                 <div className="h-10 w-10 rounded-full overflow-hidden bg-stone-800 relative">
                   <Image
                     src={challengerImageUrl}
-                    alt={selectedChallenger.fullName || ""}
+                    alt={selectedChallenger.name?.fullName || ""}
                     fill
                     className="object-cover"
                   />
                 </div>
                 <div className="flex-1">
                   <h4 className="font-medium text-stone-200">
-                    {selectedChallenger.fullName}
+                    {selectedChallenger.name?.fullName ||
+                      `Fighter #${selectedChallenger.id}`}
                   </h4>
                   <p className="text-xs text-stone-400">
-                    ID: {selectedChallenger.id} • W: {selectedChallenger.wins} /
-                    L: {selectedChallenger.losses}
+                    ID: {selectedChallenger.id} • W:{" "}
+                    {selectedChallenger.record?.wins || 0} / L:{" "}
+                    {selectedChallenger.record?.losses || 0}
                   </p>
                 </div>
                 <YellowButton

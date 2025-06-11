@@ -171,6 +171,7 @@ export function usePlayerSearch({
 
       return response.players;
     },
+    initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) => {
       // If the last page has fewer items than pageSize, we've reached the end
       if (lastPage.length < pageSize) return undefined;
@@ -183,8 +184,8 @@ export function usePlayerSearch({
   });
 
   // Flatten the paginated results
-  const players = useMemo(() => {
-    return data?.pages.flat() ?? [];
+  const players = useMemo((): Fighter[] => {
+    return data?.pages?.flat() ?? [];
   }, [data]);
 
   // Reset search function
