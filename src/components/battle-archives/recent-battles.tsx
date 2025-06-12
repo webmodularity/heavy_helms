@@ -7,6 +7,7 @@ import { Sword, Shield, Trophy, Clock, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRecentDuels } from "@/hooks/use-recent-duels";
 import { useRouter } from "next/navigation";
+import { useGlobalFightModal } from "@/hooks/use-global-fight-modal";
 import { formatEther } from "viem";
 
 // Loading skeleton for a battle card
@@ -65,8 +66,12 @@ export function RecentDuels() {
     isRefetching,
   } = useRecentDuels();
   const router = useRouter();
+  const { openFightModal } = useGlobalFightModal();
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
+
+  // State to track which duel is currently active/selected
+  const [activeDuelId, setActiveDuelId] = useState<string | null>(null);
 
   const handleRefetch = async () => {
     await refetch();
@@ -179,16 +184,27 @@ export function RecentDuels() {
               const defenderImageUrl =
                 duel.challenge.defenderSnapshot.currentSkin?.imageURL;
 
+              const isActive = activeDuelId === duel.id;
+
               return (
                 <motion.div
                   key={duel.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className="cursor-pointer p-4 hover:bg-amber-900/10 transition-colors"
+                  className={`cursor-pointer p-4 transition-colors ${
+                    isActive
+                      ? "bg-yellow-600/15 border-l-4 border-yellow-500/60"
+                      : "hover:bg-amber-900/10"
+                  }`}
                   onClick={() => {
-                    router.push(`/duel?txId=${duel.id}`);
+                    setActiveDuelId(duel.id);
+                    openFightModal({
+                      txId: duel.id,
+                      title: `Duel: ${winner.fullName} vs ${loser.fullName}`,
+                    });
                   }}
+                  onMouseEnter={() => setActiveDuelId(null)} // Clear active state on hover to allow normal hover behavior
                 >
                   <div className="flex flex-col md:flex-row items-start md:items-center">
                     <div className="flex-1 flex items-center mb-2 md:mb-0">

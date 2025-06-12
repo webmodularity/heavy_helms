@@ -9,7 +9,6 @@ import {
 import { toast } from "sonner";
 import type { Player } from "@/types/player.types";
 import type { Challenge } from "./use-challenges";
-import { useRouter } from "next/navigation";
 import {
   useDuelActions,
   useDuelChallengeId,
@@ -22,6 +21,7 @@ import {
   useWatchContractEvent,
 } from "wagmi";
 import { useState, useEffect } from "react";
+import { useGlobalFightModal } from "./use-global-fight-modal";
 
 // This is a placeholder - replace with your actual contract address
 const DUEL_GAME_CONTRACT_ADDRESS = process.env
@@ -43,10 +43,10 @@ export function useAcceptChallenge() {
   const { authenticated } = usePrivy();
   const { isWrongNetwork, switchToPrimaryNetwork } = useWallet();
   const queryClient = useQueryClient();
-  const router = useRouter();
   const { address } = useAccount();
   const [pendingChallenge, setPendingChallenge] =
     useState<AcceptChallengeResult | null>(null);
+  const [isWaitingForDuel, setIsWaitingForDuel] = useState(false);
 
   // Get duel store state and actions
   const {
@@ -58,6 +58,31 @@ export function useAcceptChallenge() {
     clearState,
   } = useDuelActions();
   const watchedChallengeId = useDuelChallengeId();
+  const duelTxHash = useDuelTxHash();
+
+  // Get global fight modal actions
+  const { openFightModal, setLoading, updateFightData } = useGlobalFightModal();
+
+  // Watch for duel completion and update modal
+  useEffect(() => {
+    if (duelTxHash && isWaitingForDuel) {
+      console.log("Duel completed! Updating modal with txId:", duelTxHash);
+      // Duel completed! Update the modal to show the actual fight
+      updateFightData({
+        txId: duelTxHash,
+        isLoading: false,
+        loadingText: undefined,
+      });
+      setIsWaitingForDuel(false);
+    }
+  }, [duelTxHash, isWaitingForDuel, updateFightData]);
+
+  // Cleanup effect
+  useEffect(() => {
+    return () => {
+      setIsWaitingForDuel(false);
+    };
+  }, []);
 
   // Using wagmi's contract hooks
   const {
@@ -167,6 +192,9 @@ export function useAcceptChallenge() {
     onError: (error) => {
       console.error("Error accepting challenge:", error);
 
+      // Reset waiting state on error
+      setIsWaitingForDuel(false);
+
       // Show error toast
       toast.error("Error accepting challenge", {
         description:
@@ -201,12 +229,29 @@ export function useAcceptChallenge() {
       duration: 5000,
     });
 
+    // Open the modal in loading state instead of navigating to loading page
+    openFightModal({
+      title: "Duel Arena",
+      isLoading: true,
+      loadingText: "Preparing for Battle...",
+      challengeId,
+    });
+
+    // Set flag that we're waiting for duel completion
+    setIsWaitingForDuel(true);
+
     // Start listening for the new challenge
     startListening(challengeId);
 
     // Set up a timeout for the duel completion
     const timeoutId = window.setTimeout(() => {
       markAsTimedOut();
+      setIsWaitingForDuel(false);
+      // Update modal to show timeout state
+      updateFightData({
+        isLoading: false,
+        loadingText: "Battle processing timed out",
+      });
       toast.error("Duel processing timeout", {
         description:
           "The duel is taking longer than expected to process. You can check back later.",
@@ -217,10 +262,6 @@ export function useAcceptChallenge() {
 
     // Update the cache
     if (address) {
-      // queryClient.invalidateQueries({
-      //   queryKey: ["active-challenges", address, characterId],
-      // });
-
       queryClient.setQueryData(
         ["active-challenges", address, characterId],
         (oldData: InfiniteData<Challenge[]> | undefined) => {
@@ -235,8 +276,7 @@ export function useAcceptChallenge() {
       );
     }
 
-    // Navigate to the loading screen
-    router.push("/duel/loading");
+    // No need to navigate - stay on current page with modal open
   };
 
   const acceptChallenge = async (params: AcceptChallengeParams) => {

@@ -15,8 +15,8 @@ import { toast } from "sonner";
 import type { Player } from "@/types/player.types";
 import { type Challenge, useChallenges } from "@/hooks/use-challenges";
 import { useRecentDuels } from "@/hooks/use-recent-duels";
-import Link from "next/link";
 import { ChallengeCard } from "@/components/home/challenge-card";
+import { useGlobalFightModal } from "@/hooks/use-global-fight-modal";
 import { useRecentGauntlets } from "@/hooks/use-recent-gauntlets";
 import { Accordion } from "@/components/ui/accordion";
 import { GauntletAccordionItem } from "@/components/gauntlet/gauntlet-accordion-item";
@@ -187,6 +187,9 @@ function RecentGauntletsTabContent({
     string | undefined
   >();
 
+  // State to track which gauntlet fight is currently active/selected
+  const [activeFightKey, setActiveFightKey] = useState<string>("");
+
   const handleRefetch = async () => {
     await refetch();
   };
@@ -305,6 +308,8 @@ function RecentGauntletsTabContent({
               gauntlet={gauntlet}
               selectedCharacter={selectedCharacter}
               isExpanded={expandedItemValue === currentItemValue}
+              activeFightKey={activeFightKey}
+              onFightClick={setActiveFightKey}
             />
           );
         })}
@@ -345,8 +350,12 @@ function RecentDuelsTabContent({
     isFetchingNextPage,
     isRefetching,
   } = useRecentDuels(selectedCharacter?.id || "");
+  const { openFightModal } = useGlobalFightModal();
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
+
+  // State to track which duel is currently active/selected
+  const [activeDuelId, setActiveDuelId] = useState<string | null>(null);
 
   const handleRefetch = async () => {
     await refetch();
@@ -475,9 +484,29 @@ function RecentDuelsTabContent({
           ? duel.challenge.defenderSnapshot
           : duel.challenge.challengerSnapshot;
 
+        const isActive = activeDuelId === duel.id;
+
         return (
-          <Link href={`/duel?txId=${duel.id}`} key={duel.id} className="block">
-            <div className="p-4 border-b border-stone-700/50 hover:bg-yellow-600/10 transition-colors">
+          <button
+            key={duel.id}
+            type="button"
+            className="block cursor-pointer w-full text-left"
+            onClick={() => {
+              setActiveDuelId(duel.id);
+              openFightModal({
+                txId: duel.id,
+                title: `Duel: ${userFighter.fullName} vs ${opponentFighter.fullName}`,
+              });
+            }}
+            onMouseEnter={() => setActiveDuelId(null)} // Clear active state on hover to allow normal hover behavior
+          >
+            <div
+              className={`p-4 border-b border-stone-700/50 transition-colors ${
+                isActive
+                  ? "bg-yellow-600/15 border-yellow-500/30"
+                  : "hover:bg-yellow-600/10"
+              }`}
+            >
               <div className="flex justify-between mb-1">
                 <span
                   className={`font-medium ${isVictory ? "text-yellow-400" : "text-red-400"}`}
@@ -506,7 +535,7 @@ function RecentDuelsTabContent({
                 {opponentFighter.fullName}
               </p>
             </div>
-          </Link>
+          </button>
         );
       })}
 
