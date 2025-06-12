@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { useDuelActions } from "@/stores/duel-store";
+import { useGlobalFightModal } from "@/hooks/use-global-fight-modal";
 
 // Fallback component for when the game fails to load
 function GameErrorFallback() {
@@ -32,32 +33,33 @@ function GameErrorFallback() {
 // Component that uses txId from URL
 function DuelGame() {
   const searchParams = useSearchParams();
-  const txId = searchParams.get("txId") ?? undefined;
   const router = useRouter();
   const { clearState } = useDuelActions();
+  const { openFightModal } = useGlobalFightModal();
 
   useEffect(() => {
-    // Redirect if no transaction ID is provided
-    if (!txId) {
+    const txId = searchParams.get("txId");
+
+    if (txId) {
+      // Open modal and redirect to home
+      openFightModal({
+        txId,
+        title: "Duel Arena",
+      });
+      router.replace("/");
+    } else {
+      // No valid fight data, redirect to home
       router.push("/");
-      return;
     }
 
     // Add this cleanup function - will run when component unmounts
     return () => {
       clearState(); // Clear duel state when leaving the page
     };
-  }, [txId, router, clearState]);
+  }, [searchParams, router, clearState, openFightModal]);
 
-  if (!txId) {
-    return <LoadingSpinner size="lg" text="Loading game..." />;
-  }
-
-  return (
-    <ErrorBoundary FallbackComponent={GameErrorFallback}>
-      <GameWrapper />
-    </ErrorBoundary>
-  );
+  // This component now only handles redirects, no game rendering
+  return <LoadingSpinner size="lg" text="Loading..." />;
 }
 
 export default function DuelPage() {

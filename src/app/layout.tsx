@@ -8,6 +8,7 @@ import { Cinzel, Cormorant_Unicase } from "next/font/google";
 import Image from "next/image";
 import { Toaster } from "sonner";
 import { ConditionalBackButtonWrapper } from "@/components/layout/conditional-back-button-wrapper";
+import { GlobalFightModal } from "@/components/modals/global-fight-modal";
 
 // Load Bokor
 const bokor = localFont({
@@ -80,6 +81,7 @@ export default function RootLayout({
             <Toaster />
             <Footer />
           </div>
+          <GlobalFightModal />
         </Providers>
       </body>
     </html>

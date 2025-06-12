@@ -15,6 +15,7 @@ import { decodePlayerIdFromPackedData } from "@/lib/utils";
 import { SUBGRAPH_URL } from "@/config";
 import Link from "next/link";
 import type { Fighter } from "@/types/fighter-types";
+import { useGlobalFightModal } from "@/hooks/use-global-fight-modal";
 import { convertRawFighterToFighter } from "@/lib/player-api";
 import { getFantasyGauntletName } from "@/lib/gauntlet-naming";
 import type { GauntletChronicle } from "@/hooks/use-recent-gauntlets";
@@ -62,6 +63,8 @@ interface GauntletAccordionItemProps {
   selectedCharacter: Player | null;
   itemValue: string;
   isExpanded: boolean;
+  activeFightKey?: string;
+  onFightClick?: (fightKey: string) => void;
 }
 
 export function GauntletAccordionItem({
@@ -69,7 +72,10 @@ export function GauntletAccordionItem({
   selectedCharacter,
   itemValue,
   isExpanded,
+  activeFightKey,
+  onFightClick,
 }: GauntletAccordionItemProps) {
+  const { openFightModal } = useGlobalFightModal();
   const { data: participants, isLoading: isLoadingParticipants } = useQuery<
     Fighter[]
   >({
@@ -183,7 +189,9 @@ export function GauntletAccordionItem({
         const roundFightsJsx = [];
 
         for (let j = 0; j < fightsInThisRound; j++) {
-          if (fightCounter >= combatResults.length) break;
+          if (fightCounter >= combatResults.length) {
+            break;
+          }
           const fight = combatResults[fightCounter];
 
           const p1IdNum = decodePlayerIdFromPackedData(fight.player1Data);
@@ -286,20 +294,52 @@ export function GauntletAccordionItem({
             fightDescription = `Fight ${fightCounter + 1}: Details incomplete.`;
           }
 
-          roundFightsJsx.push(
-            <Link
-              key={fight.id || fightCounter}
-              href={`/gauntlet?txId=${gauntlet.completedTx}&logIndex=${fightCounter}`}
-              className="block"
-            >
-              <div className="bg-stone-700/40 p-3 rounded-md mb-2 flex justify-between items-center group hover:bg-stone-600/60 transition-colors duration-150 ease-in-out cursor-pointer">
-                <span className="text-sm text-stone-300 group-hover:text-stone-100 transition-colors duration-150 ease-in-out">
-                  {fightDescription}
-                </span>
-                <ChevronRight className="h-5 w-5 text-stone-400 group-hover:text-stone-200 group-hover:translate-x-0.5 transition-all duration-150 ease-in-out" />
-              </div>
-            </Link>,
-          );
+          if (gauntlet.completedTx) {
+            // Double-check that we're not creating a button for an out-of-bounds fight
+            if (fightCounter >= combatResults.length) {
+              console.error(
+                `ERROR: Attempting to create button for out-of-bounds fight! fightCounter=${fightCounter}, combatResults.length=${combatResults.length}`,
+              );
+              break;
+            }
+
+            // Capture the current fightCounter value to avoid closure issues
+            const currentFightIndex = fightCounter;
+            const currentFightTitle = `Gauntlet Fight ${fightCounter + 1}`;
+            const fightKey = `${gauntlet.id}-${currentFightIndex}`;
+            const isActiveFight = activeFightKey === fightKey;
+
+            roundFightsJsx.push(
+              <button
+                key={fight.id || fightCounter}
+                type="button"
+                className="block w-full text-left"
+                onClick={() => {
+                  onFightClick?.(fightKey);
+                  openFightModal({
+                    txId: gauntlet.completedTx || undefined,
+                    logIndex: currentFightIndex.toString(),
+                    title: currentFightTitle,
+                  });
+                }}
+                onMouseEnter={() => onFightClick?.("")} // Clear active state on hover
+              >
+                <div
+                  className={`p-3 rounded-md mb-2 flex justify-between items-center group transition-colors duration-150 ease-in-out cursor-pointer ${
+                    isActiveFight
+                      ? "bg-yellow-600/20 border border-yellow-500/40"
+                      : "bg-stone-700/40 hover:bg-stone-600/60"
+                  }`}
+                >
+                  <span className="text-sm text-stone-300 group-hover:text-stone-100 transition-colors duration-150 ease-in-out">
+                    {fightDescription}
+                  </span>
+                  <ChevronRight className="h-5 w-5 text-stone-400 group-hover:text-stone-200 group-hover:translate-x-0.5 transition-all duration-150 ease-in-out" />
+                </div>
+              </button>,
+            );
+          }
+
           fightCounter++;
         }
 

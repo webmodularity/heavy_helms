@@ -35,6 +35,8 @@ import {
   getArmorDisplayName,
   getStanceDisplayName,
 } from "@/lib/equipment-utils";
+import { useFightModal } from "@/hooks/use-fight-modal";
+import { FightModal } from "@/components/modals/fight-modal";
 
 interface CharacterDetailsViewProps {
   characterId: string;
@@ -77,6 +79,14 @@ export function CharacterDetailsView({
   const [showConfirmRetirement, setShowConfirmRetirement] = useState(false);
   const wagmiConfig = useConfig();
   const [isSkinsModalOpen, setIsSkinsModalOpen] = useState(false);
+
+  // Fight modal hook
+  const {
+    isOpen: isFightModalOpen,
+    fightData,
+    openFightModal,
+    closeFightModal,
+  } = useFightModal();
 
   const isOwner =
     status === "connected" &&
@@ -242,6 +252,16 @@ export function CharacterDetailsView({
           />
         )}
       </div>
+
+      {/* Fight Modal */}
+      <FightModal
+        isOpen={isFightModalOpen}
+        onClose={closeFightModal}
+        player1={fightData?.player1}
+        txId={fightData?.txId}
+        logIndex={fightData?.logIndex}
+        title={fightData?.title}
+      />
     </>
   );
 }

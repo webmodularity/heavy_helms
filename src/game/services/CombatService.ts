@@ -148,9 +148,25 @@ export class CombatService {
         { txHash: txHash },
       );
 
-      // Check if the combatResults array has at least one item
+      // Check if the combatResults array has the required logIndex
       if (response.combatResults && response.combatResults.length > 0) {
-        return response.combatResults[logIndex];
+        console.log(
+          `CombatService: Found ${response.combatResults.length} combat results for txHash ${txHash}, requesting logIndex ${logIndex}`,
+        );
+
+        if (logIndex < response.combatResults.length) {
+          const result = response.combatResults[logIndex];
+          if (result) {
+            return result;
+          }
+          console.warn(
+            `CombatService: Combat result at logIndex ${logIndex} is null/undefined`,
+          );
+        }
+
+        console.warn(
+          `CombatService: logIndex ${logIndex} out of bounds, array has ${response.combatResults.length} items`,
+        );
       }
 
       console.log(
@@ -218,8 +234,25 @@ export class CombatService {
         );
       }
 
+      console.log(
+        `CombatService: Found ${combatResultLogs.length} CombatResult events in blockchain, requesting logIndex ${logIndex}`,
+      );
+
+      // Check if logIndex is valid
+      if (logIndex >= combatResultLogs.length) {
+        throw new Error(
+          `logIndex ${logIndex} is out of bounds. Transaction ${txHash} only has ${combatResultLogs.length} CombatResult events.`,
+        );
+      }
+
       // Parse the CombatResult event using the standalone decodeEventLog function
       const log = combatResultLogs[logIndex];
+
+      if (!log) {
+        throw new Error(
+          `CombatResult event at logIndex ${logIndex} is null/undefined in transaction ${txHash}`,
+        );
+      }
       const decoded = decodeEventLog({
         abi: [combatResultEvent],
         data: log.data,

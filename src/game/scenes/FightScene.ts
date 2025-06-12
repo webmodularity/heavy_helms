@@ -116,6 +116,12 @@ export class FightScene extends Scene {
     this.network = data.network;
     this.blockNumber = data.blockNumber;
     this.txId = data.txId;
+
+    // Store player data in registry so modal wrapper can access it for Twitter sharing
+    this.game.registry.set("player1", this.player1);
+    this.game.registry.set("player2", this.player2);
+    this.game.registry.set("player1Id", this.player1.id);
+    this.game.registry.set("player2Id", this.player2.id);
   }
 
   async create(data: SceneData) {
@@ -384,6 +390,15 @@ export class FightScene extends Scene {
       let index = 0;
 
       const showNumber = () => {
+        // Guard against scene destruction
+        if (!this.scene || !this.cameras || !this.cameras.main) {
+          console.warn(
+            "FightScene: Scene or cameras destroyed during countdown",
+          );
+          resolve();
+          return;
+        }
+
         if (index >= numbers.length) {
           resolve();
           return;
@@ -430,6 +445,14 @@ export class FightScene extends Scene {
             ease: "Back.out",
             onComplete: () => {
               this.time.delayedCall(750, () => {
+                // Guard against scene destruction
+                if (!this.scene || !this.tweens) {
+                  console.warn(
+                    "FightScene: Scene destroyed during countdown animation",
+                  );
+                  return;
+                }
+
                 this.tweens.add({
                   targets: [
                     texts.shadowText,
@@ -441,6 +464,14 @@ export class FightScene extends Scene {
                   duration: 500,
                   ease: "Power2",
                   onComplete: () => {
+                    // Guard against scene destruction
+                    if (!this.scene) {
+                      console.warn(
+                        "FightScene: Scene destroyed during countdown cleanup",
+                      );
+                      return;
+                    }
+
                     texts.shadowText.destroy();
                     texts.mainText.destroy();
                     texts.metalGradient.destroy();
@@ -472,6 +503,14 @@ export class FightScene extends Scene {
             duration: this.countdownConfig.duration,
             ease: "Power2",
             onComplete: () => {
+              // Guard against scene destruction
+              if (!this.scene) {
+                console.warn(
+                  "FightScene: Scene destroyed during countdown cleanup",
+                );
+                return;
+              }
+
               texts.shadowText.destroy();
               texts.mainText.destroy();
               texts.metalGradient.destroy();
@@ -487,6 +526,18 @@ export class FightScene extends Scene {
   }
 
   createStyledText(x: number, y: number, text: string, scale = 1): TextStyles {
+    // Guard against scene destruction
+    if (!this.add || !this.scene) {
+      console.warn("FightScene: Scene destroyed, cannot create styled text");
+      // Return dummy objects to prevent further errors
+      const dummyText = { destroy: () => {} } as Phaser.GameObjects.Text;
+      return {
+        shadowText: dummyText,
+        mainText: dummyText,
+        metalGradient: dummyText,
+      };
+    }
+
     const shadowText = this.add
       .text(x + 4, y, text, this.titleTextConfig.shadow)
       .setOrigin(0.5)

@@ -26,9 +26,12 @@ export class PracticeGameStrategy implements GameModeStrategy {
   }
 
   canHandle(scene: Scene): boolean {
-    // This logic assumes that if 'txId' is not present, it's practice mode.
+    // This logic assumes that if 'txId' is not present in registry or URL, it's practice mode.
+    const txIdFromRegistry = scene.game.registry.get("txId");
     const params = new URLSearchParams(window.location.search);
-    return !params.get("txId");
+    const txIdFromUrl = params.get("txId");
+
+    return !(txIdFromRegistry || txIdFromUrl);
   }
 
   async loadPlayerData(): Promise<{ player1: Fighter; player2: Fighter }> {

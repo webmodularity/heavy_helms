@@ -19,11 +19,12 @@ export class DuelGameStrategy implements GameModeStrategy {
   async initialize(scene: Scene): Promise<void> {
     this.scene = scene;
 
-    // Parse URL parameters
+    // Get transaction ID from registry first, then URL parameters
+    const txIdFromRegistry = scene.game.registry.get("txId");
     const params = new URLSearchParams(window.location.search);
+    const txIdFromUrl = params.get("txId");
 
-    // Get transaction ID
-    this.txId = params.get("txId") || "";
+    this.txId = txIdFromRegistry || txIdFromUrl || "";
 
     // Get network
     this.network =
@@ -37,15 +38,22 @@ export class DuelGameStrategy implements GameModeStrategy {
   }
 
   canHandle(scene: Scene): boolean {
-    // Check if we're in duel mode (txId provided)
+    // Check if we're in duel mode (txId provided via registry or URL)
+    const txIdFromRegistry = scene.game.registry.get("txId");
     const params = new URLSearchParams(window.location.search);
-    return !!params.get("txId");
+    const txIdFromUrl = params.get("txId");
+
+    return !!(txIdFromRegistry || txIdFromUrl);
   }
 
   async loadPlayerData(): Promise<{ player1: Fighter; player2: Fighter }> {
     // Load combat result data to get player info
     const { player1, player2, blockNumber, decodedCombatBytes } =
-      await CombatService.loadCombatResultFromTx(this.txId, 0, this.duelGameContractAddress);
+      await CombatService.loadCombatResultFromTx(
+        this.txId,
+        0,
+        this.duelGameContractAddress,
+      );
 
     this.player1 = player1;
     this.player2 = player2;
