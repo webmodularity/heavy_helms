@@ -11,15 +11,13 @@ import { useCreateChallenge } from "@/hooks/use-create-challenge";
 import { SelectChallengerModal } from "@/components/dialogs/select-challenger-modal";
 import Image from "next/image";
 import type { Fighter } from "@/types/fighter-types";
+import { useSkinMetadata } from "@/hooks/use-skin-metadata";
 
 interface CreateChallengeFormProps {
   character: Player;
   onSuccess?: () => void;
   onCancel?: () => void;
 }
-
-const MIN_WAGER_AMOUNT = 0.001;
-const MAX_WAGER_AMOUNT = 100;
 
 export function CreateChallengeForm({
   character,
@@ -28,30 +26,33 @@ export function CreateChallengeForm({
 }: CreateChallengeFormProps) {
   const [defenderId, setDefenderId] = useState<string>("");
   const [wagerAmount, setWagerAmount] = useState<string>("0");
-  const [selectedChallenger, setSelectedChallenger] = useState<Fighter | null>(null);
+  const [selectedChallenger, setSelectedChallenger] = useState<Fighter | null>(
+    null,
+  );
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const { createChallenge, isCreatingChallenge, error } = useCreateChallenge();
 
+  // Load challenger image from metadata
+  // const { data: skinMetadata } = useSkinMetadata(
+  //   selectedChallenger?.currentSkin?.metadataURL,
+  // );
+  // const challengerImageUrl = skinMetadata?.imageUrl || "/placeholder-skin.jpg";
+
   // Validate inputs
-  const isValidDefenderId = defenderId.trim() !== "" && !Number.isNaN(Number(defenderId));
-  const isValidWager =
-    wagerAmount.trim() !== "" &&
-    !Number.isNaN(Number.parseFloat(wagerAmount)) &&
-    (Number.parseFloat(wagerAmount) === 0 ||
-      (Number.parseFloat(wagerAmount) >= MIN_WAGER_AMOUNT &&
-        Number.parseFloat(wagerAmount) <= MAX_WAGER_AMOUNT));
+  const isValidDefenderId =
+    defenderId.trim() !== "" && !Number.isNaN(Number(defenderId));
 
   // Handle form submission
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if ((isValidDefenderId || selectedChallenger) && isValidWager) {
+    if (isValidDefenderId || selectedChallenger) {
       await createChallenge({
         character,
         defenderId: selectedChallenger
           ? Number(selectedChallenger.id)
           : Number.parseInt(defenderId, 10),
-        wagerAmount,
+        wagerAmount: "0",
       });
 
       // If successfully created, call onSuccess
@@ -101,7 +102,9 @@ export function CreateChallengeForm({
                   {selectedChallenger.name.fullName}
                 </h4>
                 <p className="text-[10px] text-stone-400">
-                  ID: {selectedChallenger.id} • W: {selectedChallenger.record.wins} / L: {selectedChallenger.record.losses}
+                  ID: {selectedChallenger.id} • W:{" "}
+                  {selectedChallenger.record.wins} / L:{" "}
+                  {selectedChallenger.record.losses}
                 </p>
               </div>
               <button
@@ -150,7 +153,6 @@ export function CreateChallengeForm({
             id="wagerAmount"
             type="number"
             min={0}
-            max={MAX_WAGER_AMOUNT}
             step="0.001"
             value={wagerAmount}
             onChange={(e) => {
@@ -159,33 +161,10 @@ export function CreateChallengeForm({
                 setWagerAmount("");
                 return;
               }
-
-              const numericValue = Number.parseFloat(value);
-              if (
-                !Number.isNaN(numericValue) &&
-                (numericValue === 0 ||
-                  (numericValue >= MIN_WAGER_AMOUNT &&
-                    numericValue <= MAX_WAGER_AMOUNT))
-              ) {
-                setWagerAmount(value);
-              }
-            }}
-            onBlur={() => {
-              if (
-                wagerAmount === "" ||
-                Number.isNaN(Number.parseFloat(wagerAmount))
-              ) {
-                setWagerAmount(MIN_WAGER_AMOUNT.toString());
-              }
             }}
             className="bg-stone-900/50 border-yellow-600/20 focus:border-yellow-500 text-stone-200 h-8 text-xs"
             placeholder="Enter wager amount"
           />
-          {!isValidWager && wagerAmount !== "" && (
-            <p className="text-red-400 text-[10px]">
-              Please enter a valid wager amount
-            </p>
-          )}
         </div>
 
         {error && (
@@ -202,21 +181,18 @@ export function CreateChallengeForm({
           <button
             type="submit"
             disabled={
-              (!isValidDefenderId && !selectedChallenger) ||
-              !isValidWager ||
-              isCreatingChallenge
+              (!isValidDefenderId && !selectedChallenger) || isCreatingChallenge
             }
             className={`w-full py-1 px-2 bg-gradient-to-b from-amber-700/40 to-stone-900/80 rounded border border-yellow-600/30 text-yellow-400/90 text-xs font-medium ${
-              (!isValidDefenderId && !selectedChallenger) ||
-              !isValidWager ||
-              isCreatingChallenge
+              (!isValidDefenderId && !selectedChallenger) || isCreatingChallenge
                 ? "opacity-50 cursor-not-allowed"
                 : ""
             }`}
           >
             {isCreatingChallenge ? (
               <>
-                <Loader2 className="inline-block mr-1 h-3 w-3 animate-spin" /> Creating...
+                <Loader2 className="inline-block mr-1 h-3 w-3 animate-spin" />{" "}
+                Creating...
               </>
             ) : (
               "Create Challenge"

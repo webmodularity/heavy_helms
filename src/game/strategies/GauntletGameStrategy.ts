@@ -20,29 +20,51 @@ export class GauntletGameStrategy implements GameModeStrategy {
   async initialize(scene: Scene): Promise<void> {
     this.scene = scene;
 
-    // Parse URL parameters
+    // Try to get data from URL parameters first (for direct page access)
     const params = new URLSearchParams(window.location.search);
+    const txIdFromUrl = params.get("txId");
+    const logIndexFromUrl = params.get("logIndex");
+    const networkFromUrl = params.get("network");
 
-    // Get transaction ID
-    this.txId = params.get("txId") || "";
+    // Determine final values, starting with URL values
+    let finalTxId = txIdFromUrl;
+    let finalLogIndexStr = logIndexFromUrl;
 
-    // Get logIndex - canHandle ensures it's a non-null, non-empty string
-    // biome-ignore lint/style/noNonNullAssertion: assertion is safe due to canHandle
-    const logIndexStr = params.get("logIndex")!;
-    const parsedLogIndex = Number.parseInt(logIndexStr);
+    // If not in URL, try to get from registry (for modal access)
+    if (!finalTxId) {
+      finalTxId = scene.game.registry.get("txId");
+    }
 
+    if (!finalLogIndexStr) {
+      const registryLogIndex = scene.game.registry.get("logIndex");
+      if (typeof registryLogIndex === "number") {
+        finalLogIndexStr = registryLogIndex.toString();
+      } else if (typeof registryLogIndex === "string") {
+        finalLogIndexStr = registryLogIndex;
+      }
+    }
+
+    // Validate we have the required data
+    if (!finalTxId || !finalLogIndexStr) {
+      throw new Error(
+        "GauntletGameStrategy: Missing txId or logIndex in both URL and registry",
+      );
+    }
+
+    this.txId = finalTxId;
+
+    // Parse and validate logIndex
+    const parsedLogIndex = Number.parseInt(finalLogIndexStr);
     if (Number.isNaN(parsedLogIndex) || parsedLogIndex < 0) {
       throw new Error(
-        `GauntletGameStrategy: Invalid or negative logIndex in URL: "${logIndexStr}".`,
+        `GauntletGameStrategy: Invalid or negative logIndex: "${finalLogIndexStr}".`,
       );
     }
     this.logIndex = parsedLogIndex;
 
     // Get network
     this.network =
-      params.get("network") ||
-      process.env.NEXT_PUBLIC_ALCHEMY_NETWORK ||
-      "mainnet";
+      networkFromUrl || process.env.NEXT_PUBLIC_ALCHEMY_NETWORK || "mainnet";
 
     // Get gauntlet game contract address
     this.gauntletGameContractAddress = process.env
@@ -51,8 +73,16 @@ export class GauntletGameStrategy implements GameModeStrategy {
 
   canHandle(scene: Scene): boolean {
     // Check if we're in gauntlet mode (txId + logIndex provided)
+    // First check URL parameters (for direct page access)
     const params = new URLSearchParams(window.location.search);
-    return !!params.get("txId") && !!params.get("logIndex");
+    if (params.get("txId") && params.get("logIndex")) {
+      return true;
+    }
+
+    // Also check game registry (for modal access)
+    const txId = scene.game.registry.get("txId");
+    const logIndex = scene.game.registry.get("logIndex");
+    return !!txId && logIndex !== undefined && logIndex !== null;
   }
 
   async loadPlayerData(): Promise<{ player1: Fighter; player2: Fighter }> {

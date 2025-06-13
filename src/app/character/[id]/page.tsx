@@ -6,15 +6,15 @@ import { GET_FIGHTERS_BY_IDS } from "@/lib/gql-queries";
 import { convertRawFighterToFighter, type FightersResponse } from "@/lib/player-api";
 
 interface CharacterPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export async function generateMetadata({
   params,
 }: CharacterPageProps): Promise<Metadata> {
-  const characterId = params.id;
+  const characterId = (await params).id;
   
   try {
     // Fetch character data server-side for metadata
@@ -104,7 +104,8 @@ export async function generateMetadata({
   }
 }
 
-export default function CharacterPage({ params }: CharacterPageProps) {
+export default async function CharacterPage({ params }: CharacterPageProps) {
+  const { id } = await params;
   return (
     <div className="min-h-screen bg-stone-950 relative overflow-hidden">
       {/* Decorative Background Elements - Using CSS only */}
@@ -117,8 +118,8 @@ export default function CharacterPage({ params }: CharacterPageProps) {
       <div className="hidden lg:block absolute -right-20 top-2/3 w-64 h-64 rounded-full bg-amber-700/5 blur-3xl z-0" />
 
       {/* Main Content */}
-      <main className="container max-w-6xl mx-auto px-4 py-4 md:py-8 relative z-10">
-        <CharacterDetailsView characterId={params.id} />
+      <main className="container max-w-6xl mx-auto px-4 py-8 relative z-10">
+        <CharacterDetailsView characterId={id} />
       </main>
     </div>
   );

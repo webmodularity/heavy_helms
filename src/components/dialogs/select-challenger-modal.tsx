@@ -1,7 +1,15 @@
 "use client";
 
-import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { PlayerSelectionTable } from "@/components/duel/player-selection-table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { EnhancedPlayerSelection } from "@/components/duel/enhanced-player-selection";
+import type { Player } from "@/types/player.types";
 import { useEffect } from "react";
 import type { Fighter } from "@/types/fighter-types";
 import { CompactDialogHeader } from "@/components/ui/compact/CompactDialogHeader";
@@ -39,14 +47,14 @@ export function SelectChallengerModal({
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <DialogContent className="sm:max-w-3xl bg-gradient-to-b from-stone-900 to-stone-950 border-yellow-600/20 h-[90vh] my-2.5 overflow-hidden flex flex-col">
+      <DialogContent className="sm:max-w-4xl bg-gradient-to-b from-stone-900 to-stone-950 border-yellow-600/20 h-[90vh] my-4 overflow-hidden flex flex-col">
         <CompactDialogHeader
           title="Select a Challenger"
-          description="Browse and select a warrior to challenge to a duel."
+          description="Search and filter to find the perfect opponent for your warrior."
         />
 
-        <div className="mt-2.5 overflow-y-auto pr-1 h-full">
-          <PlayerSelectionTable
+        <div className="mt-4 overflow-y-auto pr-1 h-full">
+          <EnhancedPlayerSelection
             onSelectPlayer={handleSelectPlayer}
             currentPlayerId={currentPlayerId}
           />

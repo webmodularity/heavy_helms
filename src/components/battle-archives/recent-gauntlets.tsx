@@ -84,6 +84,9 @@ export function RecentGauntlets() {
     null,
   );
 
+  // State to track which fight is currently active/selected
+  const [activeFightKey, setActiveFightKey] = useState<string | null>(null);
+
   const handleRefetch = async () => {
     await refetch();
   };
@@ -176,6 +179,8 @@ export function RecentGauntlets() {
               selectedCharacter={null}
               itemValue={gauntlet.id}
               isExpanded={expandedGauntletId === gauntlet.id}
+              activeFightKey={activeFightKey || undefined}
+              onFightClick={setActiveFightKey}
             />
           ))}
         </Accordion>

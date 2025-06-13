@@ -20,6 +20,7 @@ import { type Challenge, useFighterChallenges } from "@/hooks/use-challenges";
 import { useRecentDuels } from "@/hooks/use-recent-duels";
 import { useRouter } from "next/navigation";
 import { ChallengeCard } from "@/components/home/challenge-card";
+import { useGlobalFightModal } from "@/hooks/use-global-fight-modal";
 import { useRecentGauntlets } from "@/hooks/use-recent-gauntlets";
 import { Accordion } from "@/components/ui/accordion";
 import { GauntletAccordionItem } from "@/components/gauntlet/gauntlet-accordion-item";
@@ -27,9 +28,13 @@ import { useAccount } from "wagmi";
 
 interface ActivitySectionProps {
   selectedCharacter: Player | null;
+  isOwner?: boolean;
 }
 
-export function ActivitySection({ selectedCharacter }: ActivitySectionProps) {
+export function ActivitySection({
+  selectedCharacter,
+  isOwner,
+}: ActivitySectionProps) {
   const { isConnected } = useAccount();
 
   return (
@@ -49,7 +54,10 @@ export function ActivitySection({ selectedCharacter }: ActivitySectionProps) {
         transition={{ duration: 0.5, delay: 0.5 }}
       >
         {isConnected ? (
-          <BattleTabs selectedCharacter={selectedCharacter} />
+          <BattleTabs
+            selectedCharacter={selectedCharacter}
+            isOwner={isOwner}
+          />
         ) : (
           <></>
         )}
@@ -60,7 +68,8 @@ export function ActivitySection({ selectedCharacter }: ActivitySectionProps) {
 
 function BattleTabs({
   selectedCharacter,
-}: { selectedCharacter: Player | null }) {
+  isOwner,
+}: { selectedCharacter: Player | null; isOwner?: boolean }) {
   const [activeTab, setActiveTab] = useState("gauntlets");
 
   // Determine which hook to use based on selectedCharacter
@@ -148,20 +157,22 @@ function BattleTabs({
           >
             Duels
           </TabsTrigger>
-          <TabsTrigger
-            value="challenges"
-            className="px-3 py-1.5 text-xs text-stone-400 border-b-2 border-transparent 
+          {isOwner && (
+            <TabsTrigger
+              value="challenges"
+              className="px-3 py-1.5 text-xs text-stone-400 border-b-2 border-transparent 
                        data-[state=active]:text-yellow-500 data-[state=active]:border-b-yellow-500/50 data-[state=active]:bg-yellow-500/5 data-[state=active]:rounded-tl-md data-[state=active]:rounded-tr-md
                        data-[state=inactive]:hover:text-yellow-400 data-[state=inactive]:hover:bg-yellow-500/10 data-[state=inactive]:hover:border-b-yellow-400/50
                        rounded-none focus-visible:ring-offset-0 focus-visible:ring-0 relative"
-          >
-            Challenges
-            {activeCharacterChallenges.length > 0 && (
-              <span className="absolute top-0.5 right-0.5 bg-amber-600 text-amber-50 text-[10px] font-bold rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center">
-                {activeCharacterChallenges.length}
-              </span>
-            )}
-          </TabsTrigger>
+            >
+              Challenges
+              {activeCharacterChallenges.length > 0 && (
+                <span className="absolute top-0.5 right-0.5 bg-amber-600 text-amber-50 text-[10px] font-bold rounded-full min-w-[16px] h-4 px-1 flex items-center justify-center">
+                  {activeCharacterChallenges.length}
+                </span>
+              )}
+            </TabsTrigger>
+          )}
         </TabsList>
       </div>
 
@@ -174,9 +185,11 @@ function BattleTabs({
           <RecentDuelsTabContent selectedCharacter={selectedCharacter} />
         </TabsContent>
 
-        <TabsContent value="challenges" className="mt-0">
-          <ActiveChallenges selectedCharacter={selectedCharacter} />
-        </TabsContent>
+        {isOwner && (
+          <TabsContent value="challenges" className="mt-0">
+            <ActiveChallenges selectedCharacter={selectedCharacter} />
+          </TabsContent>
+        )}
       </div>
     </Tabs>
   );
@@ -203,6 +216,9 @@ function RecentGauntletsTabContent({
   const [expandedItemValue, setExpandedItemValue] = useState<
     string | undefined
   >();
+
+  // State to track which gauntlet fight is currently active/selected
+  const [activeFightKey, setActiveFightKey] = useState<string>("");
 
   const handleRefetch = async () => {
     await refetch();
@@ -319,6 +335,8 @@ function RecentGauntletsTabContent({
               gauntlet={gauntlet}
               selectedCharacter={selectedCharacter}
               isExpanded={expandedItemValue === currentItemValue}
+              activeFightKey={activeFightKey}
+              onFightClick={setActiveFightKey}
             />
           );
         })}
@@ -359,12 +377,16 @@ function RecentDuelsTabContent({
     isFetchingNextPage,
     isRefetching,
   } = useRecentDuels(selectedCharacter?.id || "");
+  const { openFightModal } = useGlobalFightModal();
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
   const [navigatingToDuelId, setNavigatingToDuelId] = useState<string | null>(
     null,
   );
+
+  // State to track which duel is currently active/selected
+  const [activeDuelId, setActiveDuelId] = useState<string | null>(null);
 
   const handleRefetch = async () => {
     await refetch();
@@ -495,6 +517,8 @@ function RecentDuelsTabContent({
           ? duel.challenge.defenderSnapshot
           : duel.challenge.challengerSnapshot;
 
+        const isActive = activeDuelId === duel.id;
+
         return (
           <div
             key={duel.id}
@@ -503,9 +527,14 @@ function RecentDuelsTabContent({
                 ? "opacity-70 pointer-events-none"
                 : "hover:bg-yellow-600/10 cursor-pointer"
             }`}
-            onClick={() =>
-              !isNavigatingThisDuel && handleDuelNavigation(duel.id)
-            }
+            onClick={() => {
+              setActiveDuelId(duel.id);
+              openFightModal({
+                txId: duel.id,
+                title: `Duel: ${userFighter.fullName} vs ${opponentFighter.fullName}`,
+              });
+            }}
+            onMouseEnter={() => setActiveDuelId(null)}
             onKeyDown={(e) => {
               if (e.key === "Enter" || e.key === " ") {
                 if (!isNavigatingThisDuel) handleDuelNavigation(duel.id);

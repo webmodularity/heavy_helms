@@ -9,6 +9,7 @@ import Image from "next/image";
 import { Toaster } from "sonner";
 import { ConditionalBackButtonWrapper } from "@/components/layout/conditional-back-button-wrapper";
 import { usersService } from "@/services/users";
+import { GlobalFightModal } from "@/components/modals/global-fight-modal";
 
 // Load Bokor
 const bokor = localFont({
@@ -88,6 +89,7 @@ export default async function RootLayout({
             <Toaster />
             <Footer />
           </div>
+          <GlobalFightModal />
         </Providers>
       </body>
     </html>

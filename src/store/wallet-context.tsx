@@ -23,7 +23,7 @@ interface WalletContextType {
   checking: boolean;
   hasWallet: boolean;
   currentChainName: string;
-  switchToPrimaryNetwork: () => Promise<void>;
+  switchToPrimaryNetwork: (showToast?: boolean) => Promise<void>;
 }
 
 export const WalletContext = createContext<WalletContextType>({
@@ -63,24 +63,32 @@ export function WalletProvider({ children }: { children: ReactNode }) {
 
   // Check current chain when authenticated
   useEffect(() => {
-    switchToPrimaryNetwork();
-    // if (getChainId(wagmiConfig) !== shape.id) {
-    if (getChainId(wagmiConfig) !== baseSepolia.id) {
-      switchToPrimaryNetwork();
+    // if (!ready || !authenticated || !wallets || wallets.length === 0) return;
+
+    if (
+      getChainId(wagmiConfig) !==
+      (process.env.NEXT_PUBLIC_ALCHEMY_NETWORK === "base-sepolia"
+        ? baseSepolia.id
+        : shape.id)
+    ) {
+      // Don't show toast on automatic network switching during page load
+      switchToPrimaryNetwork(false);
     }
   }, []);
 
   // Switch network function
-  const switchToPrimaryNetwork = async () => {
+  const switchToPrimaryNetwork = async (showToast = true) => {
     switchChain(wagmiConfig, {
       chainId:
         process.env.NEXT_PUBLIC_ALCHEMY_NETWORK === "base-sepolia"
           ? baseSepolia.id
           : shape.id,
     });
-    toast("Network switched", {
-      description: `Successfully connected to ${process.env.NEXT_PUBLIC_ALCHEMY_NETWORK === "base-sepolia" ? "Base Sepolia" : "Shape"}`,
-    });
+    if (showToast) {
+      toast("Network switched", {
+        description: `Successfully connected to ${process.env.NEXT_PUBLIC_ALCHEMY_NETWORK === "base-sepolia" ? "Base Sepolia" : "Shape"}`,
+      });
+    }
   };
 
   // Calculate derived state

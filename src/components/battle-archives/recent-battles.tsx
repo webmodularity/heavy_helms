@@ -7,6 +7,7 @@ import { Sword, Shield, Trophy, Clock, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRecentDuels } from "@/hooks/use-recent-duels";
 import { useRouter } from "next/navigation";
+import { useGlobalFightModal } from "@/hooks/use-global-fight-modal";
 import { formatEther } from "viem";
 
 // Loading skeleton for a battle card
@@ -65,11 +66,15 @@ export function RecentDuels() {
     isRefetching,
   } = useRecentDuels();
   const router = useRouter();
+  const { openFightModal } = useGlobalFightModal();
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
   const [navigatingToDuelId, setNavigatingToDuelId] = useState<string | null>(
     null,
   );
+
+  // State to track which duel is currently active/selected
+  const [activeDuelId, setActiveDuelId] = useState<string | null>(null);
 
   const handleRefetch = async () => {
     await refetch();
@@ -186,29 +191,29 @@ export function RecentDuels() {
               const defenderImageUrl =
                 duel.challenge.defenderSnapshot.currentSkin?.imageURL;
 
+              const isActive = activeDuelId === duel.id;
+
               return (
                 <motion.div
                   key={duel.id}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className={`p-2.5 transition-colors ${
-                    isNavigatingThisDuel
-                      ? "opacity-60 pointer-events-none"
-                      : "cursor-pointer hover:bg-amber-900/10"
+                  className={`cursor-pointer p-4 transition-colors ${
+                    isActive
+                      ? "bg-yellow-600/15 border-l-4 border-yellow-500/60"
+                      : "hover:bg-amber-900/10"
                   }`}
-                  onClick={() =>
-                    !isNavigatingThisDuel && handleDuelNavigation(duel.id)
-                  }
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter" || e.key === " ") {
-                      if (!isNavigatingThisDuel) handleDuelNavigation(duel.id);
-                    }
+                  onClick={() => {
+                    setActiveDuelId(duel.id);
+                    openFightModal({
+                      txId: duel.id,
+                      title: `Duel: ${winner.fullName} vs ${loser.fullName}`,
+                    });
                   }}
-                  // biome-ignore lint/a11y/useSemanticElements: <explanation>
-                  role="link"
                   tabIndex={isNavigatingThisDuel ? -1 : 0}
                   aria-busy={isNavigatingThisDuel}
+                  onMouseEnter={() => setActiveDuelId(null)} // Clear active state on hover to allow normal hover behavior
                 >
                   <div className="flex flex-col md:flex-row items-start md:items-center">
                     <div className="flex-1 flex items-center mb-1.5 md:mb-0">

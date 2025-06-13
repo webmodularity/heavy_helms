@@ -9,6 +9,7 @@ import { useDuelActions } from "@/stores/duel-store";
 import { GameEvents } from "@/game/EventBus";
 import { FightEndDialog } from "@/components/dialogs/FightEndDialog";
 import { usePhaserBridge } from "@/hooks/usePhaserBridge";
+import { useGlobalFightModal } from "@/hooks/use-global-fight-modal";
 
 // Fallback component for when the game fails to load
 function GameErrorFallback() {
@@ -39,6 +40,7 @@ function DuelGame() {
   const selectedCharacterId = searchParams.get("player1Id") ?? undefined;
   const router = useRouter();
   const { clearState } = useDuelActions();
+  const { openFightModal } = useGlobalFightModal();
 
   const [isFightEndDialogOpen, setIsFightEndDialogOpen] = useState(false);
   const [fightWinnerName, setFightWinnerName] = useState<string | undefined>(
@@ -49,12 +51,17 @@ function DuelGame() {
   );
 
   useEffect(() => {
-    // Redirect if no transaction ID is provided
-    if (!txId) {
-      router.push(
-        `/${selectedCharacterId ? `?selectedCharacter=${selectedCharacterId}` : ""}`,
-      );
-      return;
+
+    if (txId) {
+      // Open modal and redirect to home
+      openFightModal({
+        txId,
+        title: "Duel Arena",
+      });
+      router.replace("/");
+    } else {
+      // No valid fight data, redirect to home
+      router.push("/");
     }
 
     // Add this cleanup function - will run when component unmounts

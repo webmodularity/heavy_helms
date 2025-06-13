@@ -26,7 +26,6 @@ import {
 import { SkinsBrowser } from "./skins-browser";
 import type { Player } from "@/types/player.types";
 import { useAccount, useConfig } from "wagmi";
-import { watchAccount } from "@wagmi/core";
 import { CharacterImage } from "./character-image";
 import { BattleLegacy } from "./battle-legacy";
 import {
@@ -43,6 +42,8 @@ import {
   getStanceDisplayName,
 } from "@/lib/equipment-utils";
 import { HeroSection } from "./hero-section";
+import { useFightModal } from "@/hooks/use-fight-modal";
+import { FightModal } from "@/components/modals/fight-modal";
 
 interface CharacterDetailsViewProps {
   characterId: string;
@@ -77,13 +78,7 @@ const Modal: React.FC<ModalProps> = ({ isOpen, onClose, title, children }) => {
 export function CharacterDetailsView({
   characterId,
 }: CharacterDetailsViewProps) {
-  const initialAccountState = useAccount();
-  // Force initial status to 'disconnected', let watchAccount provide the true status
-  const [internalStatus, setInternalStatus] =
-    useState<typeof initialAccountState.status>("disconnected");
-  const [internalAddress, setInternalAddress] = useState(
-    initialAccountState.address,
-  );
+  const { address, status } = useAccount();
 
   const { data: character, isLoading, error } = usePlayerById(characterId);
   const router = useRouter();
@@ -93,21 +88,13 @@ export function CharacterDetailsView({
   const wagmiConfig = useConfig();
   const [isSkinsModalOpen, setIsSkinsModalOpen] = useState(false);
 
-  useEffect(() => {
-    const unwatch = watchAccount(wagmiConfig, {
-      onChange: (account) => {
-        setInternalStatus(account.status);
-        setInternalAddress(account.address);
-      },
-    });
-    // Update status on mount/hydration from useAccount() as a fallback/initial sync
-    setInternalStatus(initialAccountState.status);
-    setInternalAddress(initialAccountState.address);
-    return () => unwatch();
-  }, [initialAccountState.status, initialAccountState.address, wagmiConfig]);
-
-  const status = internalStatus;
-  const address = internalAddress;
+  // Fight modal hook
+  const {
+    isOpen: isFightModalOpen,
+    fightData,
+    openFightModal,
+    closeFightModal,
+  } = useFightModal();
 
   const isOwner =
     status === "connected" &&
@@ -228,7 +215,10 @@ export function CharacterDetailsView({
       {/* Battle Chronicles Section */}
       {character && (
         <div className="mt-8">
-          <ActivitySection selectedCharacter={character as Player} />
+          <ActivitySection
+            selectedCharacter={character as Player}
+            isOwner={isOwner}
+          />
         </div>
       )}
 
@@ -270,6 +260,16 @@ export function CharacterDetailsView({
           />
         )}
       </div>
+
+      {/* Fight Modal */}
+      <FightModal
+        isOpen={isFightModalOpen}
+        onClose={closeFightModal}
+        player1={fightData?.player1}
+        txId={fightData?.txId}
+        logIndex={fightData?.logIndex}
+        title={fightData?.title}
+      />
     </>
   );
 }

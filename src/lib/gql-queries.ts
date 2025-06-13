@@ -876,3 +876,33 @@ export const GET_QUEUED_GAUNTLET_PLAYERS = gql`
   }
   ${FIGHTER_COMPLETE_FRAGMENT}
 `;
+
+// Enhanced query for challenger selection with server-side filtering
+export const SEARCH_ACTIVE_PLAYERS = gql`
+  query SearchActivePlayers(
+    $first: Int = 50
+    $skip: Int = 0
+    $where: Fighter_filter
+  ) {
+    players(
+      where: $where
+      first: $first
+      skip: $skip
+      orderBy: battleRating
+      orderDirection: desc
+    ) {
+      ...FighterCompleteFields
+    }
+  }
+  ${FIGHTER_COMPLETE_FRAGMENT}
+`;
+
+// Alternative ID-based search for manual ID input
+export const SEARCH_PLAYERS_BY_ID = gql`
+  query SearchPlayersByID($playerIds: [String!]!) {
+    players(where: { id_in: $playerIds, isRetired: false }) {
+      ...FighterCompleteFields
+    }
+  }
+  ${FIGHTER_COMPLETE_FRAGMENT}
+`;

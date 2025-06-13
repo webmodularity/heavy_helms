@@ -77,7 +77,12 @@ const config: Phaser.Types.Core.GameConfig = {
   },
 };
 
-const StartGame = (parent: string, gameConfig?: GameConfig) => {
+const StartGame = (
+  parent: string,
+  gameConfig?: GameConfig,
+): Phaser.Game | null => {
+  console.log("StartGame: Creating game with parent container:", parent);
+
   // Update the global gameData object with the provided config
   if (gameConfig?.player1Id) {
     gameData.player1Id = gameConfig.player1Id;
@@ -91,13 +96,66 @@ const StartGame = (parent: string, gameConfig?: GameConfig) => {
     gameData.player1 = gameConfig.player1;
   }
 
+  // Verify the parent container exists with retry
+  let parentElement = document.getElementById(parent);
+  if (!parentElement) {
+    console.warn(
+      "StartGame: Parent container not found immediately, waiting...",
+      parent,
+    );
+    // Wait a bit for the DOM to be ready
+    setTimeout(() => {
+      parentElement = document.getElementById(parent);
+      if (!parentElement) {
+        console.error(
+          "StartGame: Parent container still not found after delay:",
+          parent,
+        );
+      }
+    }, 50);
+
+    // Try one more time synchronously
+    parentElement = document.getElementById(parent);
+    if (!parentElement) {
+      console.error("StartGame: Parent container not found:", parent);
+      return null;
+    }
+  }
+
+  console.log("StartGame: Parent container found:", {
+    id: parent,
+    element: parentElement,
+    clientWidth: parentElement.clientWidth,
+    clientHeight: parentElement.clientHeight,
+  });
+
+  // Create dynamic config with the correct parent
+  const dynamicConfig: Phaser.Types.Core.GameConfig = {
+    ...config,
+    parent,
+    scale: {
+      ...config.scale,
+      parent,
+    },
+  };
+
   // Create the game instance
-  const game = new Game({ ...config, parent });
+  const game = new Game(dynamicConfig);
 
   // Store the initial data in the game registry for access across scenes
   game.registry.set("player1Id", gameData.player1Id);
   game.registry.set("player2Id", gameData.player2Id);
   game.registry.set("player1", gameData.player1);
+
+  // Add a small delay to check if canvas was created
+  setTimeout(() => {
+    const canvas = parentElement?.querySelector("canvas");
+    console.log("StartGame: Canvas creation check:", {
+      parent,
+      canvasFound: !!canvas,
+      canvasElement: canvas,
+    });
+  }, 100);
 
   return game;
 };
