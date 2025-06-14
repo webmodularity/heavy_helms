@@ -88,15 +88,15 @@ export function SkinCard({
         <div className="w-full h-full flex items-center justify-center bg-stone-800/50">
           <Loader className="h-8 w-8 text-yellow-500 animate-spin" />
         </div>
-      ) : (
+      ) : imageUrl ? (
         <Image
-          src={imageUrl || "/placeholder-skin.jpg"}
+          src={imageUrl}
           alt={`Skin ${skin.tokenId}`}
           width={300}
           height={300}
           className="object-cover w-full h-full z-10"
         />
-      )}
+      ) : null}
 
       {/* Skin Type Badge */}
       <div className="absolute top-2 right-2 z-20">
