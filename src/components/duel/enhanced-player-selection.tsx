@@ -504,7 +504,7 @@ export function EnhancedPlayerSelection({
       </div>
 
       {/* Players Grid */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto pr-4">
         {isLoading && totalLoaded === 0 ? (
           <div className="flex justify-center items-center h-64">
             <Loader2 className="h-8 w-8 text-yellow-500 animate-spin" />
@@ -555,7 +555,7 @@ function PlayerCard({ player, onSelect }: PlayerCardProps) {
   const { data: skinMetadata } = useSkinMetadata(
     player.currentSkin?.metadataURL,
   );
-  const imageUrl = skinMetadata?.imageUrl || "/placeholder-skin.jpg";
+  const imageUrl = skinMetadata?.imageUrl;
 
   return (
     <button
@@ -565,15 +565,13 @@ function PlayerCard({ player, onSelect }: PlayerCardProps) {
     >
       <div className="relative flex-shrink-0">
         <div className="h-10 w-10 sm:h-12 sm:w-12 rounded-full overflow-hidden bg-stone-800">
-          <img
-            src={imageUrl}
-            alt={player.name?.fullName || ""}
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              const target = e.target as HTMLImageElement;
-              target.src = "/placeholder-skin.jpg";
-            }}
-          />
+          {imageUrl ? (
+            <img
+              src={imageUrl}
+              alt={player.name?.fullName || ""}
+              className="w-full h-full object-cover"
+            />
+          ) : null}
         </div>
       </div>
       <div className="flex-1 min-w-0">

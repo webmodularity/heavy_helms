@@ -2,9 +2,10 @@ import { useInfiniteQuery } from "@tanstack/react-query";
 import { request } from "graphql-request";
 import { SUBGRAPH_URL } from "@/config";
 import { SEARCH_ACTIVE_PLAYERS } from "@/lib/gql-queries";
-import type { Fighter } from "@/types/fighter-types";
+import type { Fighter, RawFighterData } from "@/types/fighter-types";
 import { useMemo, useCallback } from "react";
 import { useDebounce } from "@/hooks/use-debounce";
+import { convertRawFighterToFighter } from "@/lib/player-api";
 
 interface SearchFilters {
   searchTerm?: string;
@@ -31,7 +32,7 @@ interface UsePlayerSearchParams extends SearchFilters {
 }
 
 interface SearchResponse {
-  players: Fighter[];
+  players: RawFighterData[];
 }
 
 interface WhereClause {
@@ -169,7 +170,12 @@ export function usePlayerSearch({
         variables,
       );
 
-      return response.players;
+      // Map each raw player to a proper Fighter object
+      const fighters = await Promise.all(
+        response.players.map(convertRawFighterToFighter),
+      );
+
+      return fighters;
     },
     initialPageParam: 0,
     getNextPageParam: (lastPage, allPages) => {

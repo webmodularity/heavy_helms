@@ -84,13 +84,15 @@ export function SkinDetailsDialog({
           {/* Skin Image */}
           <div className="relative aspect-square rounded-lg overflow-hidden border border-yellow-600/30">
             <div className="absolute inset-0 bg-gradient-to-b from-amber-900/10 to-stone-900/40 z-0" />
-            <Image
-              src={skin.imageURL || "/placeholder-skin.jpg"}
-              alt={`Skin ${skin.tokenId}`}
-              width={400}
-              height={400}
-              className="object-cover w-full h-full z-10"
-            />
+            {skin.imageURL ? (
+              <Image
+                src={skin.imageURL}
+                alt={`Skin ${skin.tokenId}`}
+                width={400}
+                height={400}
+                className="object-cover w-full h-full z-10"
+              />
+            ) : null}
 
             {/* Skin Type Badge */}
             <div className="absolute top-2 right-2 z-20">
