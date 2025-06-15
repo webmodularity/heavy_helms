@@ -164,18 +164,6 @@ export function AuthenticatedView() {
         isVisible={showPortalButton}
         selectedCharacterId={selectedCharacter?.id}
       />
-
-      {/* <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <ActivitySection selectedCharacter={selectedCharacter} />
-      </div> */}
-
-      {selectedCharacter && <AlternateDimension
-        isOpen={isDimensionOpen}
-        onClose={handleClose}
-        selectedCharacter={selectedCharacter as Player}
-        onChallengePlayer={handleChallengePlayer}
-        skipPortalAnimation={false}
-      />}
     </>
   );
 }
