@@ -184,6 +184,7 @@ export function FarcasterProvider({ children }: { children: ReactNode }) {
 
       if (farcasterAccount) {
         registerUserWithBackend(identityToken);
+        sdk.back.enableWebNavigation();
       } else {
         console.log(
           "FarcasterProvider: User authenticated with Privy, but no verified Farcaster account for backend registration. No backend sync performed.",
