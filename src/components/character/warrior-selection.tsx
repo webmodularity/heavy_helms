@@ -11,7 +11,7 @@ import { useOwnPlayers } from "@/hooks/use-own-players";
 import type { StanceType } from "@/types/equipment.types";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAccount } from "wagmi";
-import { HapticFeedback } from '@/lib/miniapp-utils';
+import { HapticFeedback } from "@/lib/miniapp-utils";
 
 // Define type for name preference - can be shared or defined locally
 type NamePreference = "male" | "female";
@@ -130,7 +130,10 @@ export function WarriorSelection({
     queryClient,
   ]);
 
-  const handleCharacterSelect = async (character: Player, newStance?: StanceType) => {
+  const handleCharacterSelect = async (
+    character: Player,
+    newStance?: StanceType,
+  ) => {
     onSelectCharacter(character, newStance ?? character.stance);
     await HapticFeedback.SELECT();
   };
@@ -150,10 +153,10 @@ export function WarriorSelection({
         </div>
       </div>
 
-      <div className="relative max-w-full">
+      <div className="relative max-w-full py-4">
         <div
           ref={characterListRef}
-          className="flex gap-4 mt-3 overflow-x-auto pb-3 pt-1 snap-x snap-mandatory scrollbar-none items-start overscroll-x-contain px-[10%]"
+          className="flex gap-4 mt-3 overflow-x-auto pb-6 snap-x snap-mandatory scrollbar-none items-start overscroll-x-contain px-[10%] pt-4"
         >
           {isLoading ? (
             renderSkeletons()
@@ -173,7 +176,10 @@ export function WarriorSelection({
                     index={index}
                     isSelected={selectedCharacter?.id === character.id}
                     onSelect={(newStance) => {
-                      handleCharacterSelect(character as Player, newStance as unknown as StanceType);
+                      handleCharacterSelect(
+                        character as Player,
+                        newStance as unknown as StanceType,
+                      );
                     }}
                     onViewDetails={() => handleViewDetails(character as Player)}
                   />
