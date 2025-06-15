@@ -17,6 +17,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { baseSepolia } from "wagmi/chains";
+import { HapticFeedback } from '@/lib/miniapp-utils';
 
 /**
  * Farcaster context interface exposed to consumers
@@ -228,9 +229,11 @@ export function FarcasterProvider({ children }: { children: ReactNode }) {
   const addFrame = useCallback(async (): Promise<void> => {
     try {
       await sdk.actions.addFrame();
+      await HapticFeedback.SUCCESS();
     } catch (error) {
       console.error("Error in sdk.actions.addFrame():", error);
       toast.error("Failed to add app");
+      await HapticFeedback.ERROR();
     }
   }, []);
 
@@ -296,9 +299,11 @@ export function FarcasterProvider({ children }: { children: ReactNode }) {
     async ({ text, url }: { text?: string; url: string }): Promise<void> => {
       try {
         await sdk.actions.composeCast({ text, embeds: [url] });
+        await HapticFeedback.SUCCESS();
       } catch (error) {
         console.error("Error in sdk.actions.composeCast():", error);
         toast.error("Failed to compose cast");
+        await HapticFeedback.ERROR();
       }
     },
     [],

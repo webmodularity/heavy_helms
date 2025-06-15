@@ -11,6 +11,7 @@ import { useOwnPlayers } from "@/hooks/use-own-players";
 import type { StanceType } from "@/types/equipment.types";
 import { useQueryClient } from "@tanstack/react-query";
 import { useAccount } from "wagmi";
+import { HapticFeedback } from '@/lib/miniapp-utils';
 
 // Define type for name preference - can be shared or defined locally
 type NamePreference = "male" | "female";
@@ -129,6 +130,11 @@ export function WarriorSelection({
     queryClient,
   ]);
 
+  const handleCharacterSelect = async (character: Player, newStance?: StanceType) => {
+    onSelectCharacter(character, newStance ?? character.stance);
+    await HapticFeedback.SELECT();
+  };
+
   // Render skeleton loaders while characters are loading
   const renderSkeletons = () => {
     return <CharacterCardSkeleton index={0} />;
@@ -167,11 +173,7 @@ export function WarriorSelection({
                     index={index}
                     isSelected={selectedCharacter?.id === character.id}
                     onSelect={(newStance) => {
-                      onSelectCharacter(
-                        character as Player,
-                        (newStance as unknown as StanceType) ??
-                          character.stance,
-                      );
+                      handleCharacterSelect(character as Player, newStance as unknown as StanceType);
                     }}
                     onViewDetails={() => handleViewDetails(character as Player)}
                   />
