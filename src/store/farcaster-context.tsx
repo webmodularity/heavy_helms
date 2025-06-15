@@ -17,7 +17,7 @@ import {
 } from "react";
 import { toast } from "sonner";
 import { baseSepolia } from "wagmi/chains";
-import { HapticFeedback } from '@/lib/miniapp-utils';
+import { HapticFeedback } from "@/lib/miniapp-utils";
 
 /**
  * Farcaster context interface exposed to consumers
@@ -150,8 +150,6 @@ export function FarcasterProvider({ children }: { children: ReactNode }) {
           return;
         }
 
-        const data = await response.json();
-
         setIsBackendSynced(true);
         // biome-ignore lint/suspicious/noExplicitAny: <explanation>
       } catch (error: any) {
@@ -207,9 +205,14 @@ export function FarcasterProvider({ children }: { children: ReactNode }) {
    */
   const signalReady = useCallback(async (): Promise<void> => {
     try {
-      await isInMiniAppContext();
-      await sdk.actions.ready();
-      console.log("Signaled ready to Farcaster client");
+      const isMiniApp = await sdk.isInMiniApp();
+      setIsInFarcasterClient(isMiniApp);
+      
+      // Only signal ready if we're in a mini app context
+      if (isMiniApp) {
+        await sdk.actions.ready();
+        console.log("Signaled ready to Farcaster client");
+      }
     } catch (error) {
       console.error("Error in sdk.actions.ready():", error);
       toast.error("Failed to signal ready to Farcaster client");
@@ -217,12 +220,12 @@ export function FarcasterProvider({ children }: { children: ReactNode }) {
   }, []);
 
   useEffect(() => {
-    if (privyReady && privyAuthenticated && isBackendSynced) {
+    if (privyReady && privyAuthenticated && isBackendSynced && readyWallets) {
       switchChain(wagmiConfig, { chainId: baseSepolia.id });
 
       signalReady();
     }
-  }, [privyReady, privyAuthenticated, isBackendSynced, signalReady]);
+  }, [privyReady, privyAuthenticated, isBackendSynced, signalReady, readyWallets]);
 
   /**
    * Request the user to add this frame to their favorites
