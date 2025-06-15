@@ -7,7 +7,7 @@ import type { Player } from "@/types/player.types";
 import type { StanceType } from "@/types/equipment.types";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { AttributesPopover } from "./attributes-popover";
+// import { AttributesPopover } from "./attributes-popover";
 import { StanceSelectionModal } from "./stance-selection-modal";
 import { cn } from "@/lib/utils";
 
@@ -51,7 +51,7 @@ export function EnhancedCompactCharacterCard({
       e.preventDefault();
       return;
     }
-    
+
     if (!isSelected) {
       e.preventDefault();
       onSelect(character);
@@ -93,27 +93,27 @@ export function EnhancedCompactCharacterCard({
       <motion.div
         data-character-id={character.id}
         initial={{ opacity: 0, y: 20 }}
-        animate={{ 
-          opacity: 1, 
+        animate={{
+          opacity: 1,
           y: 0,
-        //   scale: isSelected ? 1.02 : 1,
+          //   scale: isSelected ? 1.02 : 1,
         }}
-        transition={{ 
-          duration: 0.5, 
+        transition={{
+          duration: 0.5,
           delay: index * 0.05,
-          scale: { duration: 0.3, ease: "easeInOut" }
+          scale: { duration: 0.3, ease: "easeInOut" },
         }}
         className={cn(
           "rounded-lg overflow-hidden bg-stone-900/80 border border-stone-800/60",
           "shadow-lg transform transition-all duration-300 relative",
           "group isolate flex flex-col cursor-pointer",
-          isSelected 
-            ? "ring-2 ring-yellow-500 border-yellow-500/50 shadow-yellow-500/20" 
+          isSelected
+            ? "ring-2 ring-yellow-500 border-yellow-500/50 shadow-yellow-500/20"
             : "",
           // Enhanced hover effect for non-selected cards - only when THIS card is hovered
           !isSelected && isCurrentlyHovered
             ? "border-yellow-400/60 shadow-yellow-400/10 ring-1 ring-yellow-400/30 hover:shadow-xl"
-            : "hover:border-yellow-500/30 hover:shadow-xl"
+            : "hover:border-yellow-500/30 hover:shadow-xl",
         )}
         onClick={handleCardClick}
         onMouseEnter={handleMouseEnter}
@@ -127,7 +127,7 @@ export function EnhancedCompactCharacterCard({
             <motion.div
               key={`selection-pulse-${character.id}`}
               initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ 
+              animate={{
                 opacity: [0, 0.8, 0],
                 scale: [0.8, 1.2, 1.4],
               }}
@@ -144,14 +144,14 @@ export function EnhancedCompactCharacterCard({
             <motion.div
               key={`hover-glow-${character.id}`}
               initial={{ opacity: 0 }}
-              animate={{ 
+              animate={{
                 opacity: [0.2, 0.4, 0.2],
               }}
               exit={{ opacity: 0, transition: { duration: 0.2 } }}
-              transition={{ 
+              transition={{
                 duration: 1.5,
-                repeat: Infinity,
-                ease: "easeInOut"
+                repeat: Number.POSITIVE_INFINITY,
+                ease: "easeInOut",
               }}
               className="absolute inset-0 bg-gradient-to-r from-yellow-400/10 via-yellow-500/15 to-yellow-400/10 rounded-lg z-5"
             />
@@ -161,30 +161,33 @@ export function EnhancedCompactCharacterCard({
         {/* Magical Sparkles - Only when selected AND currently hovered */}
         <AnimatePresence>
           {isSelected && isCurrentlyHovered && (
-            <div key={`sparkles-container-${character.id}`} className="absolute inset-0 pointer-events-none z-20">
+            <div
+              key={`sparkles-container-${character.id}`}
+              className="absolute inset-0 pointer-events-none z-20"
+            >
               {Array.from({ length: 3 }).map((_, i) => (
                 <motion.div
                   key={`sparkle-${character.id}-${i}`}
                   initial={{ opacity: 0, scale: 0 }}
-                  animate={{ 
+                  animate={{
                     opacity: [0, 1, 0],
                     scale: [0, 1, 0],
                     x: [
-                      Math.random() * 100 + "%",
-                      Math.random() * 100 + "%",
-                      Math.random() * 100 + "%"
+                      `${Math.random() * 100}%`,
+                      `${Math.random() * 100}%`,
+                      `${Math.random() * 100}%`,
                     ],
                     y: [
-                      Math.random() * 100 + "%", 
-                      Math.random() * 100 + "%",
-                      Math.random() * 100 + "%"
+                      `${Math.random() * 100}%`,
+                      `${Math.random() * 100}%`,
+                      `${Math.random() * 100}%`,
                     ],
                   }}
                   exit={{ opacity: 0, transition: { duration: 0.1 } }}
-                  transition={{ 
+                  transition={{
                     duration: 2,
                     delay: i * 0.5,
-                    repeat: Infinity,
+                    repeat: Number.POSITIVE_INFINITY,
                     repeatDelay: 1,
                   }}
                   className="absolute text-yellow-400"
@@ -210,7 +213,11 @@ export function EnhancedCompactCharacterCard({
           <motion.div
             className="absolute inset-0 bg-gradient-radial from-yellow-400/5 to-transparent opacity-0 z-5"
             initial={false}
-            animate={!isSelected && isCurrentlyHovered ? { opacity: 0.3 } : { opacity: 0 }}
+            animate={
+              !isSelected && isCurrentlyHovered
+                ? { opacity: 0.3 }
+                : { opacity: 0 }
+            }
             transition={{ duration: 0.3 }}
           />
 
@@ -221,7 +228,7 @@ export function EnhancedCompactCharacterCard({
             height={200}
             className={cn(
               "object-cover w-full h-full transition-transform duration-500",
-            //   showAnimations ? "group-hover:scale-105" : ""
+              //   showAnimations ? "group-hover:scale-105" : ""
             )}
             priority={index < 4}
           />
@@ -232,7 +239,7 @@ export function EnhancedCompactCharacterCard({
           </div>
 
           {/* Info Button */}
-          <div className="absolute top-2 right-2 z-20">
+          {/* <div className="absolute top-2 right-2 z-20">
             <AttributesPopover character={character}>
               <Button
                 variant="ghost"
@@ -246,7 +253,7 @@ export function EnhancedCompactCharacterCard({
                 <Info className="h-3 w-3" />
               </Button>
             </AttributesPopover>
-          </div>
+          </div> */}
 
           {/* Selected Badge - Always visible when selected */}
           <AnimatePresence>
@@ -254,16 +261,16 @@ export function EnhancedCompactCharacterCard({
               <motion.div
                 key={`selected-badge-${character.id}`}
                 initial={{ opacity: 0, scale: 0.5, y: 10 }}
-                animate={{ 
-                  opacity: 1, 
-                  scale: 1, 
+                animate={{
+                  opacity: 1,
+                  scale: 1,
                   y: 0,
                 }}
                 exit={{ opacity: 0, scale: 0.5, y: 10 }}
-                transition={{ 
-                  type: "spring", 
-                  stiffness: 300, 
-                  damping: 20 
+                transition={{
+                  type: "spring",
+                  stiffness: 300,
+                  damping: 20,
                 }}
                 className="absolute bottom-2 right-2 bg-gradient-to-r from-yellow-400 to-yellow-500 text-black px-2 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1 z-20 shadow-lg"
               >
@@ -271,7 +278,11 @@ export function EnhancedCompactCharacterCard({
                 {isCurrentlyHovered ? (
                   <motion.div
                     animate={{ rotate: 360 }}
-                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                    transition={{
+                      duration: 2,
+                      repeat: Number.POSITIVE_INFINITY,
+                      ease: "linear",
+                    }}
                   >
                     <Check size={10} />
                   </motion.div>
@@ -279,30 +290,6 @@ export function EnhancedCompactCharacterCard({
                   <Check size={10} />
                 )}
                 Selected
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          {/* Hover Preview Badge - Only when THIS card is hovered and not selected */}
-          <AnimatePresence>
-            {!isSelected && isCurrentlyHovered && (
-              <motion.div
-                key={`preview-badge-${character.id}`}
-                initial={{ opacity: 0, scale: 0.5, y: 10 }}
-                animate={{ 
-                  opacity: 0.7, 
-                  scale: 1, 
-                  y: 0,
-                }}
-                exit={{ opacity: 0, scale: 0.5, y: 10, transition: { duration: 0.2 } }}
-                transition={{ 
-                  type: "spring", 
-                  stiffness: 300, 
-                  damping: 20 
-                }}
-                className="absolute bottom-2 right-2 bg-gradient-to-r from-yellow-400/70 to-yellow-500/70 text-black px-2 py-0.5 rounded-full text-[10px] font-medium flex items-center gap-1 z-20 shadow-lg border border-yellow-300/50"
-              >
-                Preview
               </motion.div>
             )}
           </AnimatePresence>
@@ -323,21 +310,21 @@ export function EnhancedCompactCharacterCard({
 
           {/* Button animations only when card has focus */}
           <motion.div
-            // whileHover={showAnimations ? { scale: 1.02 } : undefined}
-            // whileTap={{ scale: 0.98 }}
+          // whileHover={showAnimations ? { scale: 1.02 } : undefined}
+          // whileTap={{ scale: 0.98 }}
           >
             <Button
               variant={isSelected ? "default" : "outline"}
               size="sm"
               className={cn(
-                "w-full text-xs h-7 transition-all duration-300",
+                "w-full text-xs h-7 transition-all duration-300 z-10",
                 isSelected
                   ? "bg-gradient-to-r from-yellow-500 to-yellow-400 text-black hover:from-yellow-400 hover:to-yellow-300 shadow-lg shadow-yellow-500/25"
                   : "border-yellow-500/50 text-yellow-500 hover:bg-yellow-500/10 hover:border-yellow-500/70",
                 // Enhanced hover state for non-selected - only when THIS card is hovered
                 !isSelected && isCurrentlyHovered
                   ? "border-yellow-400/70 text-yellow-400 bg-yellow-400/5"
-                  : ""
+                  : "",
               )}
               onClick={handleSelectClick}
             >
