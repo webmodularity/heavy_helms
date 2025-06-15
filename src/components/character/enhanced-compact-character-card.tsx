@@ -16,8 +16,10 @@ interface EnhancedCompactCharacterCardProps {
   index: number;
   isSelected: boolean;
   wasJustSelected: boolean;
+  isCurrentlyHovered: boolean;
   onSelect: (character: Player, stance?: StanceType) => void;
   onViewDetails: () => void;
+  onHover: (characterId: string | number | null) => void;
 }
 
 export function EnhancedCompactCharacterCard({
@@ -25,8 +27,10 @@ export function EnhancedCompactCharacterCard({
   index,
   isSelected,
   wasJustSelected,
+  isCurrentlyHovered,
   onSelect,
   onViewDetails,
+  onHover,
 }: EnhancedCompactCharacterCardProps) {
   const [showStanceModal, setShowStanceModal] = useState(false);
   const [showSelectEffect, setShowSelectEffect] = useState(false);
@@ -71,6 +75,19 @@ export function EnhancedCompactCharacterCard({
     setShowStanceModal(false);
   };
 
+  const handleMouseEnter = () => {
+    if (!isSelected) {
+      onHover(character.id);
+    }
+  };
+
+  const handleMouseLeave = () => {
+    onHover(null);
+  };
+
+  // Only show animations when this specific card is hovered or selected
+  const showAnimations = isCurrentlyHovered || isSelected;
+
   return (
     <>
       <motion.div
@@ -79,7 +96,7 @@ export function EnhancedCompactCharacterCard({
         animate={{ 
           opacity: 1, 
           y: 0,
-          scale: isSelected ? 1.02 : 1,
+        //   scale: isSelected ? 1.02 : 1,
         }}
         transition={{ 
           duration: 0.5, 
@@ -90,19 +107,25 @@ export function EnhancedCompactCharacterCard({
           "rounded-lg overflow-hidden bg-stone-900/80 border border-stone-800/60",
           "shadow-lg transform transition-all duration-300 relative",
           "group isolate flex flex-col cursor-pointer",
-          "hover:border-yellow-500/30 hover:shadow-xl",
           isSelected 
             ? "ring-2 ring-yellow-500 border-yellow-500/50 shadow-yellow-500/20" 
-            : ""
+            : "",
+          // Enhanced hover effect for non-selected cards - only when THIS card is hovered
+          !isSelected && isCurrentlyHovered
+            ? "border-yellow-400/60 shadow-yellow-400/10 ring-1 ring-yellow-400/30 hover:shadow-xl"
+            : "hover:border-yellow-500/30 hover:shadow-xl"
         )}
         onClick={handleCardClick}
-        whileHover={{ y: -2 }}
-        whileTap={{ scale: 0.98 }}
+        onMouseEnter={handleMouseEnter}
+        onMouseLeave={handleMouseLeave}
+        whileHover={showAnimations ? { y: -2 } : undefined}
+        // whileTap={{ scale: 0.98 }}
       >
-        {/* Selection Pulse Effect */}
+        {/* Selection Pulse Effect - Only on actual selection */}
         <AnimatePresence>
           {showSelectEffect && (
             <motion.div
+              key={`selection-pulse-${character.id}`}
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ 
                 opacity: [0, 0.8, 0],
@@ -115,13 +138,33 @@ export function EnhancedCompactCharacterCard({
           )}
         </AnimatePresence>
 
-        {/* Magical Sparkles for Selected Card */}
+        {/* Hover Preview Glow - Only when THIS card is hovered and not selected */}
         <AnimatePresence>
-          {isSelected && (
-            <div className="absolute inset-0 pointer-events-none z-20">
+          {!isSelected && isCurrentlyHovered && (
+            <motion.div
+              key={`hover-glow-${character.id}`}
+              initial={{ opacity: 0 }}
+              animate={{ 
+                opacity: [0.2, 0.4, 0.2],
+              }}
+              exit={{ opacity: 0, transition: { duration: 0.2 } }}
+              transition={{ 
+                duration: 1.5,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+              className="absolute inset-0 bg-gradient-to-r from-yellow-400/10 via-yellow-500/15 to-yellow-400/10 rounded-lg z-5"
+            />
+          )}
+        </AnimatePresence>
+
+        {/* Magical Sparkles - Only when selected AND currently hovered */}
+        <AnimatePresence>
+          {isSelected && isCurrentlyHovered && (
+            <div key={`sparkles-container-${character.id}`} className="absolute inset-0 pointer-events-none z-20">
               {Array.from({ length: 3 }).map((_, i) => (
                 <motion.div
-                  key={`sparkle-${i}`}
+                  key={`sparkle-${character.id}-${i}`}
                   initial={{ opacity: 0, scale: 0 }}
                   animate={{ 
                     opacity: [0, 1, 0],
@@ -137,7 +180,7 @@ export function EnhancedCompactCharacterCard({
                       Math.random() * 100 + "%"
                     ],
                   }}
-                  exit={{ opacity: 0 }}
+                  exit={{ opacity: 0, transition: { duration: 0.1 } }}
                   transition={{ 
                     duration: 2,
                     delay: i * 0.5,
@@ -155,6 +198,7 @@ export function EnhancedCompactCharacterCard({
 
         {/* Character Image */}
         <div className="aspect-square relative bg-gradient-to-b from-stone-800/30 to-stone-900/30 overflow-hidden">
+          {/* Selected character glow */}
           <motion.div
             className="absolute inset-0 bg-gradient-radial from-yellow-500/10 to-transparent opacity-0 z-10"
             initial={false}
@@ -162,12 +206,23 @@ export function EnhancedCompactCharacterCard({
             transition={{ duration: 0.6 }}
           />
 
+          {/* Hover connection preview glow - Only when THIS card is hovering and not selected */}
+          <motion.div
+            className="absolute inset-0 bg-gradient-radial from-yellow-400/5 to-transparent opacity-0 z-5"
+            initial={false}
+            animate={!isSelected && isCurrentlyHovered ? { opacity: 0.3 } : { opacity: 0 }}
+            transition={{ duration: 0.3 }}
+          />
+
           <Image
             src={character.currentSkin.imageURL}
             alt={`Character ${character.name.fullName}`}
             width={200}
             height={200}
-            className="object-cover w-full h-full transition-transform duration-500 group-hover:scale-105"
+            className={cn(
+              "object-cover w-full h-full transition-transform duration-500",
+            //   showAnimations ? "group-hover:scale-105" : ""
+            )}
             priority={index < 4}
           />
 
@@ -193,10 +248,11 @@ export function EnhancedCompactCharacterCard({
             </AttributesPopover>
           </div>
 
-          {/* Enhanced Selected Badge */}
+          {/* Selected Badge - Always visible when selected */}
           <AnimatePresence>
             {isSelected && (
               <motion.div
+                key={`selected-badge-${character.id}`}
                 initial={{ opacity: 0, scale: 0.5, y: 10 }}
                 animate={{ 
                   opacity: 1, 
@@ -211,13 +267,42 @@ export function EnhancedCompactCharacterCard({
                 }}
                 className="absolute bottom-2 right-2 bg-gradient-to-r from-yellow-400 to-yellow-500 text-black px-2 py-0.5 rounded-full text-[10px] font-bold flex items-center gap-1 z-20 shadow-lg"
               >
-                <motion.div
-                  animate={{ rotate: 360 }}
-                  transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-                >
+                {/* Only animate the check icon when currently hovered */}
+                {isCurrentlyHovered ? (
+                  <motion.div
+                    animate={{ rotate: 360 }}
+                    transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+                  >
+                    <Check size={10} />
+                  </motion.div>
+                ) : (
                   <Check size={10} />
-                </motion.div>
+                )}
                 Selected
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Hover Preview Badge - Only when THIS card is hovered and not selected */}
+          <AnimatePresence>
+            {!isSelected && isCurrentlyHovered && (
+              <motion.div
+                key={`preview-badge-${character.id}`}
+                initial={{ opacity: 0, scale: 0.5, y: 10 }}
+                animate={{ 
+                  opacity: 0.7, 
+                  scale: 1, 
+                  y: 0,
+                }}
+                exit={{ opacity: 0, scale: 0.5, y: 10, transition: { duration: 0.2 } }}
+                transition={{ 
+                  type: "spring", 
+                  stiffness: 300, 
+                  damping: 20 
+                }}
+                className="absolute bottom-2 right-2 bg-gradient-to-r from-yellow-400/70 to-yellow-500/70 text-black px-2 py-0.5 rounded-full text-[10px] font-medium flex items-center gap-1 z-20 shadow-lg border border-yellow-300/50"
+              >
+                Preview
               </motion.div>
             )}
           </AnimatePresence>
@@ -225,12 +310,10 @@ export function EnhancedCompactCharacterCard({
 
         {/* Character Info */}
         <div className="p-3 space-y-2">
-          {/* Character Name */}
           <h3 className="font-bold text-sm text-yellow-500 truncate">
             {character.name.fullName}
           </h3>
 
-          {/* Quick Stats */}
           <div className="flex justify-between text-xs text-stone-400">
             <span>W: {character.record.wins}</span>
             <span>L: {character.record.losses}</span>
@@ -238,10 +321,10 @@ export function EnhancedCompactCharacterCard({
             <span>R: {character.battleRating}</span>
           </div>
 
-          {/* Enhanced Action Button */}
+          {/* Button animations only when card has focus */}
           <motion.div
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
+            // whileHover={showAnimations ? { scale: 1.02 } : undefined}
+            // whileTap={{ scale: 0.98 }}
           >
             <Button
               variant={isSelected ? "default" : "outline"}
@@ -250,7 +333,11 @@ export function EnhancedCompactCharacterCard({
                 "w-full text-xs h-7 transition-all duration-300",
                 isSelected
                   ? "bg-gradient-to-r from-yellow-500 to-yellow-400 text-black hover:from-yellow-400 hover:to-yellow-300 shadow-lg shadow-yellow-500/25"
-                  : "border-yellow-500/50 text-yellow-500 hover:bg-yellow-500/10 hover:border-yellow-500/70"
+                  : "border-yellow-500/50 text-yellow-500 hover:bg-yellow-500/10 hover:border-yellow-500/70",
+                // Enhanced hover state for non-selected - only when THIS card is hovered
+                !isSelected && isCurrentlyHovered
+                  ? "border-yellow-400/70 text-yellow-400 bg-yellow-400/5"
+                  : ""
               )}
               onClick={handleSelectClick}
             >
@@ -269,4 +356,4 @@ export function EnhancedCompactCharacterCard({
       />
     </>
   );
-} 
+}

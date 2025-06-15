@@ -34,6 +34,7 @@ export function WarriorSelectionGridAnimated({
   const { createCharacter, isCreatingCharacter, txHash } = useCreateCharacter();
   const [previousSelectedId, setPreviousSelectedId] = useState<string | number | null>(null);
   const [justSelectedId, setJustSelectedId] = useState<string | number | null>(null);
+  const [hoveredCharacterId, setHoveredCharacterId] = useState<string | number | null>(null);
 
   useEffect(() => {
     if (selectedCharacter && players && players.length > 0) {
@@ -73,6 +74,9 @@ export function WarriorSelectionGridAnimated({
       setPreviousSelectedId(selectedCharacter.id);
       setJustSelectedId(character.id);
       
+      // Clear hover state immediately when selecting
+      setHoveredCharacterId(null);
+      
       // Clear the "just selected" state after animation
       setTimeout(() => {
         setJustSelectedId(null);
@@ -82,6 +86,11 @@ export function WarriorSelectionGridAnimated({
     onSelectCharacter(character, newStance ?? character.stance);
     await HapticFeedback.SELECT();
   }, [onSelectCharacter, selectedCharacter]);
+
+  const handleCharacterHover = useCallback((characterId: string | number | null) => {
+    // Immediately update hover state - this ensures clean transitions
+    setHoveredCharacterId(characterId);
+  }, []);
 
   const showNewCharacterCard = players && players.length < MAX_PLAYERS;
 
@@ -138,8 +147,10 @@ export function WarriorSelectionGridAnimated({
                 index={index}
                 isSelected={selectedCharacter?.id === character.id}
                 wasJustSelected={justSelectedId === character.id}
+                isCurrentlyHovered={hoveredCharacterId === character.id}
                 onSelect={(char, stance) => handleCharacterSelect(char, stance)}
                 onViewDetails={() => handleViewDetails(character as Player)}
+                onHover={handleCharacterHover}
               />
             ))}
 
@@ -169,6 +180,7 @@ export function WarriorSelectionGridAnimated({
         <SelectionAnimationEffects
           selectedCharacterId={selectedCharacter?.id || null}
           previousSelectedId={previousSelectedId}
+          hoveredCharacterId={hoveredCharacterId}
           containerRef={containerRef}
         />
       </div>
