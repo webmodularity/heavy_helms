@@ -8,6 +8,7 @@ const privyAppSecret = process.env.PRIVY_APP_SECRET;
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
+// Add new type for auth addresses
 type LinkedAccount = {
   type: "farcaster" | "wallet";
   fid?: number;
@@ -17,6 +18,8 @@ type LinkedAccount = {
   latestVerifiedAt: string;
   username?: string;
   chainType?: "ethereum";
+  // Auth addresses will be included in the linkedAccounts array
+  // with type: "wallet" and additional metadata from Farcaster
 };
 
 // biome-ignore lint/style/noNonNullAssertion: <explanation>
@@ -70,8 +73,9 @@ export async function POST(request: NextRequest) {
     }
 
     const privyUser = await privyClient.getUser({ idToken });
+    console.log("privyUser from backend", privyUser);
 
-    if (!privyUser || !privyUser.id) {
+    if (!privyUser) {
       console.warn(
         "API WARN: Privy user not found or ID missing after token verification.",
       );
@@ -81,78 +85,91 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // const { fid: farcasterFid, username, displayName, pfp } = farcasterAccount;
     const privyDid = privyUser.id;
 
-    const { data: userData, error: userError } = await supabase
+    // First, check if user exists and get current data
+    const { data: existingUser } = await supabase
       .from("users")
-      .upsert(
-        {
-          privy_did: privyDid,
-          // biome-ignore lint/style/noNonNullAssertion: <explanation>
-          farcaster_fid: privyUser.farcaster?.fid!,
-          // biome-ignore lint/style/noNonNullAssertion: <explanation>
-          username: privyUser.farcaster?.username!,
-          // biome-ignore lint/style/noNonNullAssertion: <explanation>
-          display_name: privyUser.farcaster?.username!,
-          pfp_url: null,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: "privy_did", ignoreDuplicates: false },
-      )
-      .select()
+      .select(`
+        *,
+        user_wallets (*)
+      `)
+      .eq("privy_did", privyDid)
       .single();
 
-    if (userError) {
-      console.error("API ERROR: Supabase user upsert error:", userError);
-      throw new Error(`Supabase user upsert failed: ${userError.message}`);
-    }
+    const needsUpdate = !existingUser || 
+      existingUser.farcaster_fid !== privyUser.farcaster?.fid ||
+      existingUser.username !== privyUser.farcaster?.username;
 
-    const walletUpserts = (
-      privyUser.linkedAccounts as unknown as LinkedAccount[]
-    )
-      .filter((acc) => !!acc.address)
-      .map((acc) => {
-        return {
-          privy_did: privyDid,
-          // biome-ignore lint/style/noNonNullAssertion: <explanation>
-          address: acc.address!,
-          chain_id: "8543",
-          wallet_type: acc.type,
-          is_primary: false, // Set is_primary based on the active wallet sent from frontend
-          // Or use your existing logic for is_primary if it's different
-        };
-      });
+    console.log("needsUpdate", needsUpdate);
 
-    if (walletUpserts.length > 0) {
-      const { error: walletError } = await supabase
-        .from("user_wallets")
-        .upsert(walletUpserts, {
-          onConflict: "privy_did, address",
-          ignoreDuplicates: false,
-        });
-      if (walletError) {
-        console.error("API ERROR: Supabase wallet upsert error:", walletError);
-        // Not throwing here, as user upsert might be more critical
+    // Only upsert if needed
+    if (needsUpdate) {
+      const { data: userData, error: userError } = await supabase
+        .from("users")
+        .upsert(
+          {
+            privy_did: privyUser.id,
+            farcaster_fid: privyUser.farcaster?.fid,
+            username: privyUser.farcaster?.username,
+            display_name: privyUser.farcaster?.username,
+            pfp_url: null,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "privy_did", ignoreDuplicates: false },
+        )
+        .select()
+        .single();
+
+      if (userError) {
+        console.error("API ERROR: Supabase user upsert error:", userError);
+        throw new Error(`Supabase user upsert failed: ${userError.message}`);
       }
     }
 
-    // If activeWalletAddressFromBody was provided but wasn't found in linkedAccounts,
-    // you might want to add it separately or handle it.
-    // For instance, if it's an EOA connected via a non-Privy client that Privy's server-auth might not list in linkedAccounts
-    // but is known to the frontend via useWallets(). This scenario needs careful consideration.
-    // For now, we only mark 'is_primary' if it's ALREADY in linkedAccounts.
+    // Compare existing wallets with new ones
+    const existingWallets = existingUser?.user_wallets || [];
+    const newWallets = (privyUser.linkedAccounts as unknown as LinkedAccount[])
+      .filter((acc) => !!acc.address)
+      .map((acc) => ({
+        privy_did: privyUser.id,
+        // biome-ignore lint/style/noNonNullAssertion: <explanation>
+        address: acc.address!,
+        chain_id: acc.chainId || "8543",
+        wallet_type: acc.type,
+        is_primary: false,
+        is_auth_address: acc.type === "wallet" && acc.ownerAddress === acc.address,
+        verified_at: new Date().toISOString(),
+      }));
+
+    // Only upsert if wallets have changed
+    const walletsChanged = JSON.stringify(existingWallets) !== JSON.stringify(newWallets);
+    
+    if (walletsChanged && newWallets.length > 0) {
+      const { error: walletError } = await supabase
+        .from("user_wallets")
+        .upsert(newWallets, {
+          onConflict: "privy_did, address",
+          ignoreDuplicates: false,
+        });
+      
+      if (walletError) {
+        console.error("API ERROR: Supabase wallet upsert error:", walletError);
+      }
+    }
 
     return NextResponse.json(
       {
         message: "User registered/logged in successfully",
-        userId: userData?.privy_did,
-        farcasterFid: userData?.farcaster_fid,
+        userId: existingUser?.privy_did || privyUser.id,
+        farcasterFid: existingUser?.farcaster_fid || privyUser.farcaster?.fid,
+        updated: needsUpdate || walletsChanged,
       },
       { status: 200 },
     );
-    // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   } catch (error: any) {
+    console.error("API ERROR:", error);
     return NextResponse.json(
       {
         message: error.message || "Internal Server Error",

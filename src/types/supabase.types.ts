@@ -50,8 +50,10 @@ export type Database = {
           chain_id: string
           created_at: string
           id: number
+          is_auth_address: boolean | null
           is_primary: boolean | null
           privy_did: string
+          verified_at: string | null
           wallet_type: string | null
         }
         Insert: {
@@ -59,8 +61,10 @@ export type Database = {
           chain_id: string
           created_at?: string
           id?: number
+          is_auth_address?: boolean | null
           is_primary?: boolean | null
           privy_did: string
+          verified_at?: string | null
           wallet_type?: string | null
         }
         Update: {
@@ -68,8 +72,10 @@ export type Database = {
           chain_id?: string
           created_at?: string
           id?: number
+          is_auth_address?: boolean | null
           is_primary?: boolean | null
           privy_did?: string
+          verified_at?: string | null
           wallet_type?: string | null
         }
         Relationships: [

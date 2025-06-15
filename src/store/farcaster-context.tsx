@@ -79,7 +79,11 @@ export function FarcasterProvider({ children }: { children: ReactNode }) {
       const performLogin = async () => {
         try {
           const { nonce } = await initLoginToFrame();
-          const result = await sdk.actions.signIn({ nonce: nonce });
+          console.log("nonce", nonce);
+          const result = await sdk.actions.signIn({
+            nonce: nonce,
+            acceptAuthAddress: true,
+          });
           await loginToFrame({
             message: result.message,
             signature: result.signature,
