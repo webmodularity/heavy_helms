@@ -14,7 +14,7 @@ import type { Player } from "@/types/player.types";
 interface AlternateDimensionProps {
   isOpen: boolean;
   onClose: () => void;
-  selectedCharacter: Player;
+  selectedCharacter: Player | null;
   onChallengePlayer: (player: Fighter) => void;
   skipPortalAnimation?: boolean;
 }
@@ -30,7 +30,6 @@ export function AlternateDimension({
   const [emberIndex, setEmberIndex] = useState(0);
   const [portalPhase, setPortalPhase] = useState(0); // 0: closed, 1: opening, 2: open
   const [embersComplete, setEmbersComplete] = useState(false);
-  const [emberPositions, setEmberPositions] = useState<Array<{x: number, y: number}>>([]);
 
   // NEW: Refresh functionality
   const [refreshSeed, setRefreshSeed] = useState(0);
@@ -42,6 +41,8 @@ export function AlternateDimension({
     useActivePlayers();
   const { data: addressToUserMap, isLoading: isAddressMapLoading } =
     useSupabaseAddressToUserMap();
+
+  console.log("selectedCharacter", selectedCharacter);
 
   // Get all challengeable following players
   const allChallengeableFriends = useMemo(() => {
@@ -95,30 +96,32 @@ export function AlternateDimension({
     // Use both character ID and refresh seed for variety
     const baseSeed = Number(selectedCharacter.id) * 12345 + refreshSeed * 67890;
     const seededRandom = createSeededRandom(baseSeed);
-    
+
     // Shuffle with better randomness
     const shuffled = [...allChallengeableFriends]
-      .map(player => ({ player, sort: seededRandom() }))
+      .map((player) => ({ player, sort: seededRandom() }))
       .sort((a, b) => a.sort - b.sort)
-      .map(item => item.player);
+      .map((item) => item.player);
 
     return shuffled.slice(0, 10); // Limit to 10 friends max
   }, [allChallengeableFriends, selectedCharacter.id, refreshSeed]);
 
-  // Enhanced positioning system with collision detection - NOW INCLUDES REFRESH SEED
-  const generateNonOverlappingPositions = useMemo(() => {
+  // Instead of using a separate state for positions, calculate them directly in the render
+  const emberPositions = useMemo(() => {
     if (challengeableFriends.length === 0) return [];
 
-    const positions: Array<{x: number, y: number}> = [];
+    const positions: Array<{ x: number; y: number }> = [];
     const emberSize = 80;
     const minDistance = emberSize * 1.2;
-    
+
     // Define safe boundaries
-    const viewportWidth = typeof window !== 'undefined' ? window.innerWidth : 1200;
-    const viewportHeight = typeof window !== 'undefined' ? window.innerHeight : 800;
+    const viewportWidth =
+      typeof window !== "undefined" ? window.innerWidth : 1200;
+    const viewportHeight =
+      typeof window !== "undefined" ? window.innerHeight : 800;
     const centerBuffer = 120;
     const edgeBuffer = 100;
-    
+
     const maxX = Math.min(viewportWidth * 0.4, 400);
     const maxY = Math.min(viewportHeight * 0.35, 300);
 
@@ -130,96 +133,100 @@ export function AlternateDimension({
         return (seedValue - 1) / 2147483646;
       };
     };
-    
+
     for (let i = 0; i < challengeableFriends.length; i++) {
       const player = challengeableFriends[i];
       let position = { x: 0, y: 0 };
       let attempts = 0;
       const maxAttempts = 50;
-      
+
       // Include refresh seed in position calculation for variety
       const seed1 = Number(player.id) * 1234 + i * 5678 + refreshSeed * 9999;
       const seed2 = Number(player.id) * 9876 + i * 4321 + refreshSeed * 7777;
-      
+
       const seededRandom1 = createSeededRandom(seed1);
       const seededRandom2 = createSeededRandom(seed2);
-      
+
       do {
         // Generate random angle and radius with more variation
         const angle = seededRandom1() * Math.PI * 2;
         const radiusMultiplier = 0.4 + seededRandom2() * 0.6;
         const radius = centerBuffer + radiusMultiplier * (maxX - centerBuffer);
-        
+
         // Add some randomness to break patterns
         const angleOffset = (seededRandom1() - 0.5) * 0.5; // ±0.25 radians
         const radiusOffset = (seededRandom2() - 0.5) * 50; // ±25px
-        
+
         position.x = Math.cos(angle + angleOffset) * (radius + radiusOffset);
         position.y = Math.sin(angle + angleOffset) * (radius + radiusOffset);
-        
+
         // Ensure within bounds
-        position.x = Math.max(-maxX + edgeBuffer, Math.min(maxX - edgeBuffer, position.x));
-        position.y = Math.max(-maxY + edgeBuffer, Math.min(maxY - edgeBuffer, position.y));
-        
+        position.x = Math.max(
+          -maxX + edgeBuffer,
+          Math.min(maxX - edgeBuffer, position.x),
+        );
+        position.y = Math.max(
+          -maxY + edgeBuffer,
+          Math.min(maxY - edgeBuffer, position.y),
+        );
+
         // Check for overlaps with existing positions
-        const hasOverlap = positions.some(existingPos => {
+        const hasOverlap = positions.some((existingPos) => {
           const distance = Math.sqrt(
-            Math.pow(position.x - existingPos.x, 2) + 
-            Math.pow(position.y - existingPos.y, 2)
+            Math.pow(position.x - existingPos.x, 2) +
+              Math.pow(position.y - existingPos.y, 2),
           );
           return distance < minDistance;
         });
-        
+
         if (!hasOverlap) {
           break;
         }
-        
+
         attempts++;
       } while (attempts < maxAttempts);
-      
+
       // If we couldn't find a non-overlapping position, use a spiral with refresh variation
       if (attempts >= maxAttempts) {
         const spiralAngle = (i * 137.5 + refreshSeed * 45) * (Math.PI / 180); // Add refresh variation
-        const spiralRadius = centerBuffer + ((i + refreshSeed) * 25) % (maxX - centerBuffer);
+        const spiralRadius =
+          centerBuffer + (((i + refreshSeed) * 25) % (maxX - centerBuffer));
         position.x = Math.cos(spiralAngle) * spiralRadius;
         position.y = Math.sin(spiralAngle) * spiralRadius;
       }
-      
+
       positions.push(position);
     }
-    
-    return positions;
-  }, [challengeableFriends, refreshSeed]); // Add refreshSeed as dependency
 
-  // Update ember positions when they change
-  useEffect(() => {
-    setEmberPositions(generateNonOverlappingPositions);
-  }, [generateNonOverlappingPositions]);
+    return positions;
+  }, [challengeableFriends, refreshSeed]);
 
   // Simplified portal opening sequence
   useEffect(() => {
-    if (isOpen) {
-      if (skipPortalAnimation) {
-        // Immediate open state for page navigation
-        setPortalPhase(2);
-        setShowEmbers(true);
-        setEmbersComplete(false);
-      } else {
-        // Natural center-opening animation for overlay mode
-        setPortalPhase(1);
-        setEmbersComplete(false);
-        const timer1 = setTimeout(() => {
-          setPortalPhase(2);
-          setShowEmbers(true);
-        }, 800); // Faster opening
-        return () => clearTimeout(timer1);
-      }
-    } else {
+    if (!isOpen) {
+      // Reset all states when closing
       setShowEmbers(false);
       setEmberIndex(0);
       setPortalPhase(0);
       setEmbersComplete(false);
+      return;
     }
+
+    // Handle opening sequence
+    if (skipPortalAnimation) {
+      setPortalPhase(2);
+      setShowEmbers(true);
+      return;
+    }
+
+    // Natural opening sequence
+    setPortalPhase(1);
+    const timer1 = setTimeout(() => {
+      setPortalPhase(2);
+      setShowEmbers(true);
+    }, 800);
+
+    return () => clearTimeout(timer1);
   }, [isOpen, skipPortalAnimation]);
 
   // Stagger ember appearances with enhanced timing
@@ -248,23 +255,23 @@ export function AlternateDimension({
   // NEW: Refresh functionality
   const handleRefresh = async () => {
     if (isRefreshing || challengeableFriends.length === 0) return;
-    
+
     setIsRefreshing(true);
-    
+
     // Reset ember states
     setShowEmbers(false);
     setEmberIndex(0);
     setEmbersComplete(false);
-    
+
     // Wait for fade out
-    await new Promise(resolve => setTimeout(resolve, 300));
-    
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
     // Update refresh seed to get new random selection
-    setRefreshSeed(prev => prev + 1);
-    
+    setRefreshSeed((prev) => prev + 1);
+
     // Wait a bit more for positions to update
-    await new Promise(resolve => setTimeout(resolve, 200));
-    
+    await new Promise((resolve) => setTimeout(resolve, 200));
+
     // Start showing new embers
     setShowEmbers(true);
     setIsRefreshing(false);
@@ -283,7 +290,7 @@ export function AlternateDimension({
           {/* Clean dimensional background - no competing elements */}
           <motion.div
             className="absolute inset-0"
-            initial={{ 
+            initial={{
               scale: skipPortalAnimation ? 1 : 0,
             }}
             animate={{
@@ -295,7 +302,8 @@ export function AlternateDimension({
               ease: [0.25, 0.46, 0.45, 0.94],
             }}
             style={{
-              background: "radial-gradient(circle at center, rgba(245, 158, 11, 0.15) 0%, rgba(139, 69, 19, 0.3) 40%, rgba(0, 0, 0, 0.95) 100%)",
+              background:
+                "radial-gradient(circle at center, rgba(245, 158, 11, 0.15) 0%, rgba(139, 69, 19, 0.3) 40%, rgba(0, 0, 0, 0.95) 100%)",
             }}
           />
 
@@ -359,9 +367,7 @@ export function AlternateDimension({
                 animate={{
                   opacity: [0, 0.8, 0],
                   scale: [0, 1, 0],
-                  y: showEmbers
-                    ? [0, -30]
-                    : [0, -50 - Math.random() * 30],
+                  y: showEmbers ? [0, -30] : [0, -50 - Math.random() * 30],
                   x: showEmbers
                     ? [(Math.random() - 0.5) * 10]
                     : [(Math.random() - 0.5) * 20, (Math.random() - 0.5) * 30],
@@ -423,7 +429,11 @@ export function AlternateDimension({
             className="absolute top-12 left-1/2 transform -translate-x-1/2 text-center"
             initial={{ opacity: 0, y: -50, scale: 0.5 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ delay: skipPortalAnimation ? 0.1 : 1.2, type: "spring", stiffness: 150 }}
+            transition={{
+              delay: skipPortalAnimation ? 0.1 : 1.2,
+              type: "spring",
+              stiffness: 150,
+            }}
           >
             <motion.h1
               className="text-3xl md:text-4xl font-bold text-transparent bg-clip-text 
@@ -462,7 +472,10 @@ export function AlternateDimension({
                   Showing {challengeableFriends.length} of{" "}
                   {allChallengeableFriends.length} friends
                   {allChallengeableFriends.length > 10 && (
-                    <span className="text-yellow-300/60"> • Refresh for more</span>
+                    <span className="text-yellow-300/60">
+                      {" "}
+                      • Refresh for more
+                    </span>
                   )}
                 </span>
               )}
@@ -471,169 +484,179 @@ export function AlternateDimension({
 
           {/* Fixed position magical refresh button - TOP RIGHT */}
           <AnimatePresence>
-            {challengeableFriends.length > 0 && allChallengeableFriends.length > 10 && (
-              <motion.button
-                onClick={handleRefresh}
-                disabled={isRefreshing}
-                className="fixed top-6 right-6 z-[60] w-12 h-12 rounded-full border-2 border-yellow-400/30 
+            {challengeableFriends.length > 0 &&
+              allChallengeableFriends.length > 10 && (
+                <motion.button
+                  onClick={handleRefresh}
+                  disabled={isRefreshing}
+                  className="fixed top-6 right-6 z-[60] w-12 h-12 rounded-full border-2 border-yellow-400/30 
                            bg-gradient-to-br from-amber-500/20 to-orange-600/20 
                            backdrop-blur-sm hover:border-yellow-300/50 
                            transition-all duration-300 group
                            disabled:opacity-50 disabled:cursor-not-allowed
                            shadow-lg hover:shadow-yellow-400/20
                            touch-manipulation"
-                whileHover={{ 
-                  scale: isRefreshing ? 1 : 1.15,
-                  boxShadow: "0 0 25px rgba(251, 146, 60, 0.5)",
-                }}
-                whileTap={{ scale: isRefreshing ? 1 : 0.9 }}
-                initial={{ opacity: 0, scale: 0, rotate: -180 }}
-                animate={{ 
-                  opacity: 1, 
-                  scale: 1,
-                  rotate: 0,
-                }}
-                exit={{ 
-                  opacity: 0, 
-                  scale: 0, 
-                  rotate: 180,
-                  transition: { duration: 0.3 }
-                }}
-                transition={{ 
-                  delay: skipPortalAnimation ? 0.3 : 1.8,
-                  type: "spring",
-                  stiffness: 200,
-                  damping: 15
-                }}
-              >
-                {/* Enhanced magical aura */}
-                <motion.div
-                  className="absolute inset-0 rounded-full pointer-events-none"
-                  style={{
-                    background: "radial-gradient(circle, rgba(255, 215, 0, 0.4) 0%, rgba(255, 165, 0, 0.2) 50%, transparent 80%)",
-                    filter: "blur(8px)",
+                  whileHover={{
+                    scale: isRefreshing ? 1 : 1.15,
+                    boxShadow: "0 0 25px rgba(251, 146, 60, 0.5)",
                   }}
+                  whileTap={{ scale: isRefreshing ? 1 : 0.9 }}
+                  initial={{ opacity: 0, scale: 0, rotate: -180 }}
                   animate={{
-                    scale: isRefreshing ? [1, 1.4, 1] : [1, 1.3, 1],
-                    opacity: isRefreshing ? [0.4, 0.8, 0.4] : [0.3, 0.6, 0.3],
-                    rotate: [0, 360],
+                    opacity: 1,
+                    scale: 1,
+                    rotate: 0,
+                  }}
+                  exit={{
+                    opacity: 0,
+                    scale: 0,
+                    rotate: 180,
+                    transition: { duration: 0.3 },
                   }}
                   transition={{
-                    scale: {
-                      duration: isRefreshing ? 0.8 : 2,
-                      repeat: Number.POSITIVE_INFINITY,
-                      ease: "easeInOut",
-                    },
-                    opacity: {
-                      duration: isRefreshing ? 0.8 : 2,
-                      repeat: Number.POSITIVE_INFINITY,
-                      ease: "easeInOut",
-                    },
-                    rotate: {
-                      duration: 8,
-                      repeat: Number.POSITIVE_INFINITY,
-                      ease: "linear",
-                    },
-                  }}
-                />
-
-                {/* Outer ring */}
-                <motion.div
-                  className="absolute inset-1 rounded-full border border-yellow-400/20 pointer-events-none"
-                  animate={{
-                    borderColor: isRefreshing 
-                      ? ["rgba(255, 215, 0, 0.6)", "rgba(255, 165, 0, 0.8)", "rgba(255, 215, 0, 0.6)"]
-                      : ["rgba(255, 215, 0, 0.2)", "rgba(255, 165, 0, 0.4)", "rgba(255, 215, 0, 0.2)"],
-                    rotate: [0, -360],
-                  }}
-                  transition={{
-                    borderColor: {
-                      duration: 2,
-                      repeat: Number.POSITIVE_INFINITY,
-                      ease: "easeInOut",
-                    },
-                    rotate: {
-                      duration: isRefreshing ? 2 : 6,
-                      repeat: Number.POSITIVE_INFINITY,
-                      ease: "linear",
-                    },
-                  }}
-                />
-
-                {/* Refresh icon */}
-                <motion.div
-                  className="relative z-10 flex items-center justify-center w-full h-full"
-                  animate={{
-                    rotate: isRefreshing ? 360 : 0,
-                  }}
-                  transition={{
-                    duration: isRefreshing ? 0.8 : 0.3,
-                    repeat: isRefreshing ? Number.POSITIVE_INFINITY : 0,
-                    ease: isRefreshing ? "linear" : "easeOut",
+                    delay: skipPortalAnimation ? 0.3 : 1.8,
+                    type: "spring",
+                    stiffness: 200,
+                    damping: 15,
                   }}
                 >
-                  <RefreshCw className="w-6 h-6 text-yellow-300 group-hover:text-yellow-200 drop-shadow-sm" />
-                </motion.div>
+                  {/* Enhanced magical aura */}
+                  <motion.div
+                    className="absolute inset-0 rounded-full pointer-events-none"
+                    style={{
+                      background:
+                        "radial-gradient(circle, rgba(255, 215, 0, 0.4) 0%, rgba(255, 165, 0, 0.2) 50%, transparent 80%)",
+                      filter: "blur(8px)",
+                    }}
+                    animate={{
+                      scale: isRefreshing ? [1, 1.4, 1] : [1, 1.3, 1],
+                      opacity: isRefreshing ? [0.4, 0.8, 0.4] : [0.3, 0.6, 0.3],
+                      rotate: [0, 360],
+                    }}
+                    transition={{
+                      scale: {
+                        duration: isRefreshing ? 0.8 : 2,
+                        repeat: Number.POSITIVE_INFINITY,
+                        ease: "easeInOut",
+                      },
+                      opacity: {
+                        duration: isRefreshing ? 0.8 : 2,
+                        repeat: Number.POSITIVE_INFINITY,
+                        ease: "easeInOut",
+                      },
+                      rotate: {
+                        duration: 8,
+                        repeat: Number.POSITIVE_INFINITY,
+                        ease: "linear",
+                      },
+                    }}
+                  />
 
-                {/* Floating sparkles around the button */}
-                <AnimatePresence>
-                  {embersComplete && !isRefreshing && (
-                    <>
-                      {[...Array(4)].map((_, i) => (
-                        <motion.div
-                          key={`refresh-sparkle-${i}`}
-                          className="absolute w-1.5 h-1.5 bg-yellow-300 rounded-full pointer-events-none"
-                          style={{
-                            left: "50%",
-                            top: "50%",
-                          }}
-                          initial={{ opacity: 0, scale: 0 }}
-                          animate={{
-                            opacity: [0, 1, 0.7, 0],
-                            scale: [0, 1.2, 1, 0],
-                            x: [0, Math.cos((i * 90 * Math.PI) / 180) * 28],
-                            y: [0, Math.sin((i * 90 * Math.PI) / 180) * 28],
-                          }}
-                          transition={{
-                            duration: 2,
-                            repeat: Number.POSITIVE_INFINITY,
-                            delay: i * 0.3,
-                            ease: "easeOut",
-                          }}
-                        />
-                      ))}
-                    </>
-                  )}
-                </AnimatePresence>
+                  {/* Outer ring */}
+                  <motion.div
+                    className="absolute inset-1 rounded-full border border-yellow-400/20 pointer-events-none"
+                    animate={{
+                      borderColor: isRefreshing
+                        ? [
+                            "rgba(255, 215, 0, 0.6)",
+                            "rgba(255, 165, 0, 0.8)",
+                            "rgba(255, 215, 0, 0.6)",
+                          ]
+                        : [
+                            "rgba(255, 215, 0, 0.2)",
+                            "rgba(255, 165, 0, 0.4)",
+                            "rgba(255, 215, 0, 0.2)",
+                          ],
+                      rotate: [0, -360],
+                    }}
+                    transition={{
+                      borderColor: {
+                        duration: 2,
+                        repeat: Number.POSITIVE_INFINITY,
+                        ease: "easeInOut",
+                      },
+                      rotate: {
+                        duration: isRefreshing ? 2 : 6,
+                        repeat: Number.POSITIVE_INFINITY,
+                        ease: "linear",
+                      },
+                    }}
+                  />
 
-                {/* Tooltip */}
-                <motion.div
-                  className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 
+                  {/* Refresh icon */}
+                  <motion.div
+                    className="relative z-10 flex items-center justify-center w-full h-full"
+                    animate={{
+                      rotate: isRefreshing ? 360 : 0,
+                    }}
+                    transition={{
+                      duration: isRefreshing ? 0.8 : 0.3,
+                      repeat: isRefreshing ? Number.POSITIVE_INFINITY : 0,
+                      ease: isRefreshing ? "linear" : "easeOut",
+                    }}
+                  >
+                    <RefreshCw className="w-6 h-6 text-yellow-300 group-hover:text-yellow-200 drop-shadow-sm" />
+                  </motion.div>
+
+                  {/* Floating sparkles around the button */}
+                  <AnimatePresence>
+                    {embersComplete && !isRefreshing && (
+                      <>
+                        {[...Array(4)].map((_, i) => (
+                          <motion.div
+                            key={`refresh-sparkle-${i}`}
+                            className="absolute w-1.5 h-1.5 bg-yellow-300 rounded-full pointer-events-none"
+                            style={{
+                              left: "50%",
+                              top: "50%",
+                            }}
+                            initial={{ opacity: 0, scale: 0 }}
+                            animate={{
+                              opacity: [0, 1, 0.7, 0],
+                              scale: [0, 1.2, 1, 0],
+                              x: [0, Math.cos((i * 90 * Math.PI) / 180) * 28],
+                              y: [0, Math.sin((i * 90 * Math.PI) / 180) * 28],
+                            }}
+                            transition={{
+                              duration: 2,
+                              repeat: Number.POSITIVE_INFINITY,
+                              delay: i * 0.3,
+                              ease: "easeOut",
+                            }}
+                          />
+                        ))}
+                      </>
+                    )}
+                  </AnimatePresence>
+
+                  {/* Tooltip */}
+                  <motion.div
+                    className="absolute -bottom-10 left-1/2 transform -translate-x-1/2 
                              bg-stone-900/95 border border-yellow-400/40 rounded-lg px-3 py-1
                              text-yellow-300 text-xs whitespace-nowrap backdrop-blur-sm
                              shadow-lg pointer-events-none"
-                  initial={{ opacity: 0, y: -5, scale: 0.8 }}
-                  animate={{
-                    opacity: isRefreshing ? 0 : 1,
-                    y: isRefreshing ? -5 : 0,
-                    scale: isRefreshing ? 0.8 : 1,
-                  }}
-                  transition={{ duration: 0.2 }}
-                >
-                  {isRefreshing ? "Refreshing..." : "Refresh Friends"}
-                  
-                  {/* Tooltip arrow */}
-                  <div
-                    className="absolute top-[-6px] left-1/2 transform -translate-x-1/2 w-0 h-0"
-                    style={{
-                      borderLeft: "6px solid transparent",
-                      borderRight: "6px solid transparent",
-                      borderBottom: "6px solid rgba(28, 25, 23, 0.95)",
+                    initial={{ opacity: 0, y: -5, scale: 0.8 }}
+                    animate={{
+                      opacity: isRefreshing ? 0 : 1,
+                      y: isRefreshing ? -5 : 0,
+                      scale: isRefreshing ? 0.8 : 1,
                     }}
-                  />
-                </motion.div>
-              </motion.button>
-            )}
+                    transition={{ duration: 0.2 }}
+                  >
+                    {isRefreshing ? "Refreshing..." : "Refresh Friends"}
+
+                    {/* Tooltip arrow */}
+                    <div
+                      className="absolute top-[-6px] left-1/2 transform -translate-x-1/2 w-0 h-0"
+                      style={{
+                        borderLeft: "6px solid transparent",
+                        borderRight: "6px solid transparent",
+                        borderBottom: "6px solid rgba(28, 25, 23, 0.95)",
+                      }}
+                    />
+                  </motion.div>
+                </motion.button>
+              )}
           </AnimatePresence>
 
           {/* Enhanced content area with refresh state handling */}
@@ -700,7 +723,10 @@ export function AlternateDimension({
                 className="text-center max-w-md"
                 initial={{ opacity: 0, scale: 0.8, y: 20 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{ delay: skipPortalAnimation ? 0.1 : 1.5, type: "spring" }}
+                transition={{
+                  delay: skipPortalAnimation ? 0.1 : 1.5,
+                  type: "spring",
+                }}
               >
                 <motion.div
                   className="mb-4"
@@ -735,17 +761,17 @@ export function AlternateDimension({
                       className="relative w-full h-full"
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      exit={{ 
+                      exit={{
                         opacity: 0,
                         scale: 0.9,
-                        transition: { duration: 0.3 }
+                        transition: { duration: 0.3 },
                       }}
                     >
                       {challengeableFriends
                         .slice(0, emberIndex)
                         .map((player, index) => (
                           <EmberCharacter
-                            key={`${player.id}-${refreshSeed}-${index}-${emberPositions[index]?.x}-${emberPositions[index]?.y}`} // Ultra-unique key
+                            key={`${player?.id}-${refreshSeed}-${index}-${emberPositions[index]?.x}-${emberPositions[index]?.y}`} // Ultra-unique key
                             player={player}
                             index={index}
                             total={challengeableFriends.length}

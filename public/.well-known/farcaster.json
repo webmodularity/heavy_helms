@@ -7,11 +7,11 @@
     "frame": {
       "name": "HeavyHelms",
       "version": "1",
-      "iconUrl": "https://msie-reservation-neutral-archives.trycloudflare.com/heavy_helms_header_drop_shadow.png",
-      "homeUrl": "https://msie-reservation-neutral-archives.trycloudflare.com",
-      "imageUrl": "https://msie-reservation-neutral-archives.trycloudflare.com/heavy_helms_header_drop_shadow.png",
+      "iconUrl": "https://int-mlb-permitted-manhattan.trycloudflare.com/heavy_helms_header_drop_shadow.png",
+      "homeUrl": "https://int-mlb-permitted-manhattan.trycloudflare.com",
+      "imageUrl": "https://int-mlb-permitted-manhattan.trycloudflare.com/heavy_helms_header_drop_shadow.png",
       "buttonTitle": "Play",
-      "splashImageUrl": "https://msie-reservation-neutral-archives.trycloudflare.com/warlock_forge.png",
+      "splashImageUrl": "https://int-mlb-permitted-manhattan.trycloudflare.com/warlock_forge.png",
       "splashBackgroundColor": "#2e1b3b"
     }
 }

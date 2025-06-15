@@ -11,13 +11,10 @@ import { WarriorSelection } from "../character/warrior-selection";
 import type { StanceType } from "@/types/equipment.types";
 import { useOwnPlayers } from "@/hooks/use-own-players";
 import { useRouter, useSearchParams } from "next/navigation";
-import { 
-  MagicalPortalButton, 
-  AlternateDimension, 
-  EmberChallengeConfirmation 
-} from "../magical-dimension";
+import { MagicalPortalButton } from "../magical-dimension";
 import type { Fighter } from "@/types/fighter-types";
 import { useFollowingData } from "@/hooks/use-following-data";
+import { AlternateDimension } from "../magical-dimension/alternate-dimension";
 
 export function AuthenticatedView() {
   const searchParams = useSearchParams();
@@ -137,6 +134,10 @@ export function AuthenticatedView() {
   //   }
   // }, [selectedCharacter, hasBattleInView, scrollToBattleSection]);
 
+  const handleClose = useCallback(() => {
+    // Your close logic
+  }, []);
+
   return (
     <>
       <div className="max-w-7xl mx-auto px-0 sm:px-2 md:px-4">
@@ -167,6 +168,14 @@ export function AuthenticatedView() {
       {/* <div className="max-w-7xl mx-auto px-4 sm:px-6">
         <ActivitySection selectedCharacter={selectedCharacter} />
       </div> */}
+
+      {selectedCharacter && <AlternateDimension
+        isOpen={isDimensionOpen}
+        onClose={handleClose}
+        selectedCharacter={selectedCharacter as Player}
+        onChallengePlayer={handleChallengePlayer}
+        skipPortalAnimation={false}
+      />}
     </>
   );
 }
