@@ -14,6 +14,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { MagicalPortalButton } from "../magical-dimension";
 import type { Fighter } from "@/types/fighter-types";
 import { useFollowingData } from "@/hooks/use-following-data";
+import { BattlePromptSection } from "../battle/battle-prompt-section";
+import { MagicalBattlePortals } from "../battle/magical-battle-portals";
 
 export function AuthenticatedView() {
   const searchParams = useSearchParams();
@@ -111,6 +113,7 @@ export function AuthenticatedView() {
   }, []);
 
   const showPortalButton = Boolean(selectedCharacter && currentUserFid);
+  const showBattlePortals = Boolean(selectedCharacter);
 
   return (
     <>
@@ -121,48 +124,21 @@ export function AuthenticatedView() {
           onDeselectCharacter={handleDeselectCharacter}
         />
 
-        {/* Scroll indicator - only show when a character is selected and battle section is not in view */}
-        {selectedCharacter && !hasBattleInView && (
-          <ScrollIndicator onClick={scrollToBattleSection} />
-        )}
-
-        <BattleSection
+        <BattlePromptSection
           selectedCharacter={selectedCharacter}
-          hasBattleInView={hasBattleInView}
           battleSectionRef={battleSectionRef}
         />
       </div>
 
-      {/* Magical Portal Button */}
       <MagicalPortalButton
         isVisible={showPortalButton}
         selectedCharacterId={selectedCharacter?.id}
       />
+
+      <MagicalBattlePortals
+        isVisible={showBattlePortals}
+        selectedCharacter={selectedCharacter}
+      />
     </>
-  );
-}
-
-// ScrollIndicator component remains the same
-interface ScrollIndicatorProps {
-  onClick: () => void;
-}
-
-function ScrollIndicator({ onClick }: ScrollIndicatorProps) {
-  return (
-    <motion.div
-      className="fixed bottom-8 left-0 right-0 z-50 flex justify-center items-center"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 20 }}
-    >
-      <motion.button
-        className="bg-yellow-500/10 backdrop-blur-sm border border-yellow-500/20 text-yellow-500 px-4 py-2 rounded-full flex items-center gap-2 hover:bg-yellow-500/20 transition-all"
-        onClick={onClick}
-        whileHover={{ scale: 1.05 }}
-        whileTap={{ scale: 0.95 }}
-      >
-        View Battle Options <ChevronDown className="h-4 w-4" />
-      </motion.button>
-    </motion.div>
   );
 }

@@ -66,7 +66,7 @@ export function BattleSection({
         </div>
       </div>
 
-      <div className="mt-3 grid grid-cols-1 md:grid-cols-3 gap-3">
+      <div className="mt-3 grid grid-cols-3 md:grid-cols-3 gap-3">
         {battleTypes.map((battleType, index) => (
           <BattleCard
             key={battleType.id}
