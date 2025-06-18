@@ -8,8 +8,6 @@ import { OpenChallenges } from "@/components/battle-archives/open-challenges";
 import { RecentDuels } from "@/components/battle-archives/recent-battles";
 import { ExpiredChallenges } from "@/components/battle-archives/expired-challenges";
 import { RecentGauntlets } from "@/components/battle-archives/recent-gauntlets";
-// import { TopDuelsByWager } from "@/components/battle-archives/top-duels-by-wager";
-// import { WarriorLeaderboard } from "@/components/battle-archives/warrior-leaderboard";
 import {
   // Remove unused icons
   // RefreshCw, Shield, Swords, CircleDollarSign, Trophy, Users

@@ -701,18 +701,15 @@ export const CHALLENGE_FIGHTER_SNAPSHOT_FRAGMENT = gql`
   }
 `;
 
-export const GET_OPEN_WAGER_CHALLENGES = gql`
-  # Add $minTimestamp variable (use BigInt for Unix timestamps)
-  query GetOpenWagerChallenges($limit: Int!, $skip: Int!, $minTimestamp: BigInt!) {
+export const GET_OPEN_CHALLENGES = gql`
+  query GetOpenChallenges($limit: Int!, $skip: Int!) {
     duelChallenges(
       first: $limit,
       skip: $skip,
       orderBy: createdAt,
       orderDirection: desc,
       where: {
-        state: OPEN,
-        wagerAmount_gt: "0", # Filter for wagers greater than 0
-        createdAt_gte: $minTimestamp # Filter for challenges created >= 7 days ago
+        state: OPEN
       }
     ) {
       id
@@ -729,19 +726,18 @@ export const GET_OPEN_WAGER_CHALLENGES = gql`
   ${CHALLENGE_FIGHTER_SNAPSHOT_FRAGMENT}
 `;
 
-// Add this new query for expired challenges
-export const GET_EXPIRED_WAGER_CHALLENGES = gql`
-  # Use $maxTimestamp variable (challenges created BEFORE 7 days ago)
-  query GetExpiredWagerChallenges($limit: Int!, $skip: Int!, $maxTimestamp: BigInt!) {
+// Query for expired challenges (older than 7 days but less than 3 months)
+export const GET_EXPIRED_CHALLENGES = gql`
+  query GetExpiredChallenges($limit: Int!, $skip: Int!, $maxTimestamp: BigInt!, $minTimestamp: BigInt!) {
     duelChallenges(
       first: $limit,
       skip: $skip,
-      orderBy: createdAt, # Still order by creation, might want oldest expired first? (desc)
+      orderBy: createdAt,
       orderDirection: desc,
       where: {
-        state: OPEN, # Still technically OPEN in subgraph data
-        wagerAmount_gt: "0",
-        createdAt_lt: $maxTimestamp # Filter for challenges created < 7 days ago
+        state: OPEN,
+        createdAt_lt: $maxTimestamp, # Filter for challenges created < 7 days ago
+        createdAt_gt: $minTimestamp # Filter for challenges created > 3 months ago
       }
     ) {
       id

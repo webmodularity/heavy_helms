@@ -1,6 +1,13 @@
 import Link from "next/link";
 // Import icons needed for navigation links (assuming they are same as header)
-import { Trophy, Scroll, Shield, ListOrdered, HelpCircle } from "lucide-react";
+import {
+  Trophy,
+  Scroll,
+  Shield,
+  ListOrdered,
+  HelpCircle,
+  ShieldCheck,
+} from "lucide-react";
 
 export function Footer() {
   // Re-define navigation items here for the footer, or import from a shared config
@@ -10,6 +17,8 @@ export function Footer() {
     { label: "Leaderboards", path: "/leaderboards", icon: ListOrdered },
     { label: "Game Statistics", path: "/stats", icon: Scroll },
     { label: "FAQ", path: "/faq", icon: HelpCircle },
+    { label: "Privacy Policy", path: "/privacy", icon: ShieldCheck },
+    { label: "Terms of Service", path: "/terms", icon: ShieldCheck },
   ];
 
   return (
@@ -85,6 +94,7 @@ export function Footer() {
                         xmlns="http://www.w3.org/2000/svg"
                         aria-label="Arrow icon"
                       >
+                        <title>Arrow</title>
                         <path
                           d="M5 12H19M19 12L12 5M19 12L12 19"
                           stroke="currentColor"
@@ -108,7 +118,7 @@ export function Footer() {
             </h3>
             <ul className="space-y-3">
               <li className="flex items-center group">
-                <div className="w-1.5 h-1.5 rounded-full bg-stone-600/50 mr-2 group-hover:bg-yellow-400 transition-colors"></div>
+                <div className="w-1.5 h-1.5 rounded-full bg-stone-600/50 mr-2 group-hover:bg-yellow-400 transition-colors" />
                 <a
                   href={
                     "https://shapescan.xyz/address/0x75B4750D41A9a04e989FAD58544C37930AEf2e5B"
@@ -123,7 +133,9 @@ export function Footer() {
                     viewBox="0 0 24 24"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
+                    aria-label="Arrow icon"
                   >
+                    <title>Arrow</title>
                     <path
                       d="M5 12H19M19 12L12 5M19 12L12 19"
                       stroke="currentColor"
@@ -150,7 +162,9 @@ export function Footer() {
                     viewBox="0 0 24 24"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
+                    aria-label="Arrow icon"
                   >
+                    <title>Arrow</title>
                     <path
                       d="M5 12H19M19 12L12 5M19 12L12 19"
                       stroke="currentColor"
@@ -177,7 +191,9 @@ export function Footer() {
                     viewBox="0 0 24 24"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
+                    aria-label="Arrow icon"
                   >
+                    <title>Arrow</title>
                     <path
                       d="M5 12H19M19 12L12 5M19 12L12 19"
                       stroke="currentColor"
@@ -204,7 +220,9 @@ export function Footer() {
                     viewBox="0 0 24 24"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
+                    aria-label="Arrow icon"
                   >
+                    <title>Arrow</title>
                     <path
                       d="M5 12H19M19 12L12 5M19 12L12 19"
                       stroke="currentColor"
@@ -231,7 +249,9 @@ export function Footer() {
                     viewBox="0 0 24 24"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
+                    aria-label="Arrow icon"
                   >
+                    <title>Arrow</title>
                     <path
                       d="M5 12H19M19 12L12 5M19 12L12 19"
                       stroke="currentColor"
@@ -258,7 +278,9 @@ export function Footer() {
                     viewBox="0 0 24 24"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
+                    aria-label="Arrow icon"
                   >
+                    <title>Arrow</title>
                     <path
                       d="M5 12H19M19 12L12 5M19 12L12 19"
                       stroke="currentColor"
@@ -287,7 +309,9 @@ export function Footer() {
                   className="h-6 w-6 text-stone-400 group-hover:text-yellow-400 transition-colors"
                   fill="currentColor"
                   viewBox="0 0 24 24"
+                  aria-label="Discord icon"
                 >
+                  <title>Discord</title>
                   <path d="M20.317 4.492c-1.53-.69-3.17-1.2-4.885-1.49a.075.075 0 00-.079.036c-.21.369-.444.85-.608 1.23a18.566 18.566 0 00-5.487 0 12.36 12.36 0 00-.617-1.23A.077.077 0 008.562 3c-1.714.29-3.354.8-4.885 1.491a.07.07 0 00-.032.027C.533 9.093-.32 13.555.099 17.961a.08.08 0 00.031.055 20.03 20.03 0 005.993 2.98.078.078 0 00.084-.026 13.83 13.83 0 001.226-1.963.074.074 0 00-.041-.104 13.175 13.175 0 01-1.872-.878.075.075 0 01-.008-.125c.126-.093.252-.19.372-.287a.075.075 0 01.078-.01c3.927 1.764 8.18 1.764 12.061 0a.075.075 0 01.079.009c.12.098.245.195.372.288a.075.075 0 01-.006.125c-.598.344-1.22.635-1.873.877a.075.075 0 00-.041.105c.36.687.772 1.341 1.225 1.962a.077.077 0 00.084.028 19.963 19.963 0 006.002-2.981.076.076 0 00.032-.054c.5-5.094-.838-9.52-3.549-13.442a.06.06 0 00-.031-.028zM8.02 15.278c-1.182 0-2.157-1.069-2.157-2.38 0-1.312.956-2.38 2.157-2.38 1.21 0 2.176 1.077 2.157 2.38 0 1.312-.956 2.38-2.157 2.38zm7.975 0c-1.183 0-2.157-1.069-2.157-2.38 0-1.312.955-2.38 2.157-2.38 1.21 0 2.176 1.077 2.157 2.38 0 1.312-.946 2.38-2.157 2.38z" />
                 </svg>
               </div>

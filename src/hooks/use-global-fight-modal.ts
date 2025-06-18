@@ -17,7 +17,8 @@ interface FightData {
 interface GlobalFightModalState {
   isOpen: boolean;
   fightData: FightData | null;
-  openFightModal: (data: FightData) => void;
+  onCloseCallback: (() => void) | null;
+  openFightModal: (data: FightData, onClose?: () => void) => void;
   closeFightModal: () => void;
   setLoading: (
     isLoading: boolean,
@@ -30,16 +31,25 @@ interface GlobalFightModalState {
 export const useGlobalFightModal = create<GlobalFightModalState>((set) => ({
   isOpen: false,
   fightData: null,
-  openFightModal: (data: FightData) => {
+  onCloseCallback: null,
+  openFightModal: (data: FightData, onClose?: () => void) => {
     console.log("Opening global fight modal:", data);
-    set({ isOpen: true, fightData: data });
+    set({ isOpen: true, fightData: data, onCloseCallback: onClose });
   },
   closeFightModal: () => {
     console.log("Closing global fight modal");
+
+    // Call the onClose callback if provided
+    const currentState = useGlobalFightModal.getState();
+    if (currentState.onCloseCallback) {
+      console.log("Calling onClose callback");
+      currentState.onCloseCallback();
+    }
+
     set({ isOpen: false });
     // Keep fightData for a moment to allow for smooth closing animation
     setTimeout(() => {
-      set({ fightData: null });
+      set({ fightData: null, onCloseCallback: null });
     }, 300);
   },
   setLoading: (

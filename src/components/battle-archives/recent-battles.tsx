@@ -277,39 +277,20 @@ export function RecentDuels() {
                       </div>
                     </div>
 
-                    {/* Outcome */}
+                    {/* Outcome - Simplified */}
                     <div className="flex-1 md:text-center">
-                      <div className="flex items-center text-sm font-medium">
-                        <Trophy className="h-4 w-4 text-yellow-500 mr-1" />
+                      <div className="flex items-center justify-center md:justify-center text-sm font-medium">
+                        <Trophy className="h-4 w-4 text-yellow-500 mr-2" />
                         <span className="text-yellow-400">
                           {winner.fullName}
                         </span>
-                        <span className="text-stone-500 mx-1">defeated</span>
-                        <span className="text-red-400">{loser.fullName}</span>
                       </div>
-                      {duel.challenge.wagerAmount &&
-                        Number.parseFloat(duel.challenge.wagerAmount) > 0 && (
-                          <div className="text-xs text-green-400 mt-1">
-                            Wager:{" "}
-                            {formatEther(BigInt(duel.challenge.wagerAmount))}{" "}
-                            ETH
-                          </div>
-                        )}
                     </div>
 
                     {/* Timestamp */}
-                    <div className="text-xs text-stone-500 mt-2 md:mt-0">
+                    <div className="text-xs text-stone-500 mt-2 md:mt-0 text-center md:text-right">
                       {formatDate(duel.blockTimestamp)}
                     </div>
-                  </div>
-
-                  {/* Battle details - can expand in future */}
-                  <div className="mt-3 text-xs text-stone-600 flex justify-between">
-                    <span>Block #: {duel.blockNumber}</span>
-                    <span>
-                      TX: {duel.id.substring(0, 10)}...
-                      {duel.id.substring(duel.id.length - 4)}
-                    </span>
                   </div>
                 </motion.div>
               );

@@ -3,8 +3,7 @@
 import { useRef, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Scroll, Clock, Loader2 } from "lucide-react";
-import { useExpiredWagerChallenges } from "@/hooks/use-expired-wager-challenges";
-import { formatEther } from "viem";
+import { useExpiredChallenges } from "@/hooks/use-expired-challenges";
 import { Button } from "@/components/ui/button";
 
 // Reusable skeleton (can keep the same one)
@@ -46,7 +45,7 @@ export function ExpiredChallenges() {
     hasNextPage,
     isFetchingNextPage,
     isRefetching,
-  } = useExpiredWagerChallenges();
+  } = useExpiredChallenges();
 
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
@@ -140,7 +139,7 @@ export function ExpiredChallenges() {
         </div>
       ) : challenges.length === 0 ? (
         <div className="text-center py-8 text-stone-300">
-          <p>No expired wager challenges found</p>
+          <p>No expired challenges found</p>
           <Button
             onClick={handleRefetch}
             className="mt-4 border-yellow-600/20 hover:bg-yellow-500/10 hover:text-yellow-400 text-yellow-500"
@@ -187,22 +186,13 @@ export function ExpiredChallenges() {
                     </div>
                   </div>
 
-                  <div className="text-center border-y border-stone-700/50 py-2 my-2">
+                  <div className="text-center">
                     <div className="text-stone-400 text-sm font-semibold">
                       Sought combat with:
                     </div>
                     <div className="text-stone-100 font-semibold">
                       {challenge.defenderSnapshot?.fullName ||
                         "Anyone Brave Enough"}
-                    </div>
-                  </div>
-
-                  <div className="text-center">
-                    <div className="text-stone-400 text-sm font-semibold">
-                      Wager Amount:
-                    </div>
-                    <div className="text-yellow-500 font-bold text-lg">
-                      {formatEther(BigInt(challenge.wagerAmount))} ETH
                     </div>
                   </div>
                 </div>

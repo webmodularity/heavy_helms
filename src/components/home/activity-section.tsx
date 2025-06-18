@@ -520,9 +520,6 @@ function RecentDuelsTabContent({
                 </span>
                 <div className="flex items-center gap-2">
                   <div className="flex items-center">
-                    <span className="text-yellow-500 font-medium mr-3">
-                      {formatEther(BigInt(duel.challenge.wagerAmount))} ETH
-                    </span>
                     <ChevronRight
                       className={"h-5 w-5 text-yellow-500 transition-transform"}
                     />
@@ -694,7 +691,15 @@ function ActiveChallenges({
         character: selectedCharacter,
         challengeId: challenge.id,
         wagerAmount: challenge.wagerAmount,
+        onModalClose: async () => {
+          await refetch();
+        },
       });
+
+      // Don't refetch here - the optimistic update handles the UI immediately
+      // We'll refetch when the modal closes and the subgraph has been updated
+    } catch (error) {
+      console.error("🔥 Error in handleAcceptChallenge:", error);
     } finally {
       setProcessingChallengeId(null);
     }

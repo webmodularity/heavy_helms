@@ -386,65 +386,48 @@ export function GauntletAccordionItem({
       className="bg-stone-800/30 border border-stone-700/50 rounded-md px-0"
     >
       <AccordionTrigger className="px-4 py-3 hover:no-underline hover:bg-stone-700/30 rounded-t-md data-[state=open]:rounded-b-none data-[state=open]:border-b data-[state=open]:border-stone-700/50">
-        <div className="flex justify-between items-start w-full">
-          <div className="flex items-start gap-3">
-            <div className="flex flex-col items-center mr-2 pt-1">
-              <Trophy
-                className={`h-7 w-7 ${
-                  isSelectedPlayerTheChampion
-                    ? "text-yellow-400"
-                    : "text-stone-500"
-                }`}
-              />
-              <span className="text-lg font-bold text-stone-300 mt-1">
-                {gauntlet.size}
-              </span>
-            </div>
-            <div className="text-left">
-              <div className="flex items-center">
-                <span className="font-semibold text-lg text-stone-300">
-                  {displayGauntletName}
-                </span>
-                {gauntlet.isPublic && (
-                  <TooltipProvider delayDuration={200}>
-                    <Tooltip>
-                      <TooltipTriggerPrimitive asChild>
-                        <Info className="h-3.5 w-3.5 text-blue-400 ml-2" />
-                      </TooltipTriggerPrimitive>
-                      <TooltipContent
-                        side="top"
-                        className="bg-stone-800 text-stone-200 border-stone-700"
-                      >
-                        <p>This is a public gauntlet.</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                )}
-              </div>
-              {gauntlet.isCompleted && gauntlet.champion?.fullName && (
-                <p className="text-sm text-yellow-500 mt-0.5">
-                  Champion: {gauntlet.champion.fullName}
-                </p>
-              )}
-              <p className="text-xs text-stone-400 mt-0.5">
-                {gauntlet.isCompleted ? "Completed" : "Started"}:{" "}
-                {formatDate(gauntlet.displayTimestamp)}
-              </p>
-            </div>
+        <div className="flex items-start gap-3 w-full">
+          <div className="flex flex-col items-center mr-2 pt-1">
+            <Trophy
+              className={`h-7 w-7 ${
+                isSelectedPlayerTheChampion
+                  ? "text-yellow-400"
+                  : "text-stone-500"
+              }`}
+            />
+            <span className="text-lg font-bold text-stone-300 mt-1">
+              {gauntlet.size}
+            </span>
           </div>
-          <div className="text-right flex-shrink-0 pl-2">
-            <p className="text-sm font-medium mb-1 text-stone-300">
-              {gauntlet.isCompleted
-                ? "Completed"
-                : gauntlet.state !== "PENDING"
-                  ? gauntlet.state
-                  : "Pending Start"}
-            </p>
-            <p className="text-sm text-stone-300">
-              Prize: {formatEther(BigInt(gauntlet.prizeAwarded))} ETH
-            </p>
-            <p className="text-xs text-stone-500">
-              Entry: {formatEther(BigInt(gauntlet.entryFee))} ETH
+          <div className="text-left">
+            <div className="flex items-center">
+              <span className="font-semibold text-lg text-stone-300">
+                {displayGauntletName}
+              </span>
+              {gauntlet.isPublic && (
+                <TooltipProvider delayDuration={200}>
+                  <Tooltip>
+                    <TooltipTriggerPrimitive asChild>
+                      <Info className="h-3.5 w-3.5 text-blue-400 ml-2" />
+                    </TooltipTriggerPrimitive>
+                    <TooltipContent
+                      side="top"
+                      className="bg-stone-800 text-stone-200 border-stone-700"
+                    >
+                      <p>This is a public gauntlet.</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+            </div>
+            {gauntlet.isCompleted && gauntlet.champion?.fullName && (
+              <p className="text-sm text-yellow-500 mt-0.5">
+                Champion: {gauntlet.champion.fullName}
+              </p>
+            )}
+            <p className="text-xs text-stone-400 mt-0.5">
+              {gauntlet.isCompleted ? "Completed" : "Started"}:{" "}
+              {formatDate(gauntlet.displayTimestamp)}
             </p>
           </div>
         </div>

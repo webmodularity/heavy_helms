@@ -13,7 +13,6 @@ interface ChallengeFighterSnapshot {
 interface ExpiredChallenge {
   // Renamed interface for clarity
   id: string;
-  wagerAmount: string;
   createdAt: string;
   challengerSnapshot: ChallengeFighterSnapshot | null;
   defenderSnapshot: ChallengeFighterSnapshot | null;

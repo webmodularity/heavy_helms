@@ -108,9 +108,6 @@ export function ChallengeCard({
         </div>
 
         <div className="flex items-center">
-          <span className="text-yellow-500 font-medium mr-3">
-            {formatEther(challenge.wagerAmount)} ETH
-          </span>
           <ChevronRight
             className={`h-5 w-5 text-yellow-500 transition-transform ${isExpanded ? "rotate-90" : ""}`}
           />
@@ -137,7 +134,9 @@ export function ChallengeCard({
 
                 <span className="text-stone-400">Created At:</span>
                 <span className="text-stone-200">
-                  Block #{challenge.createdBlock.toString()}
+                  {new Date(
+                    Number(challenge.createdBlock) * 1000,
+                  ).toLocaleString()}
                 </span>
 
                 <span className="text-stone-400">Status:</span>

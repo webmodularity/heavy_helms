@@ -5,14 +5,11 @@ import { SectionHeader } from "./section-header";
 import { StatsCard } from "./stats-card";
 
 interface FighterStats {
-  playerCount: number;
+  uniqueOwnersCount: number; // Players (unique wallets)
+  playerCount: number; // Fighters (characters)
   activePlayerCount: number;
   retiredPlayerCount: number;
   defaultPlayerCount: number;
-  monsterCount: number;
-  activeMonsterCount: number;
-  retiredMonsterCount: number;
-  totalFightersCount: number;
 }
 
 interface FighterStatsSectionProps {
@@ -21,70 +18,41 @@ interface FighterStatsSectionProps {
 
 export function FighterStatsSection({ stats }: FighterStatsSectionProps) {
   return (
-    <section>
+    <div className="bg-stone-900/20 border border-stone-800/30 rounded-lg p-6">
       <SectionHeader
-        title="Fighter Statistics"
-        description="Overview of all fighters in Heavy Helms, including players and monsters."
-        icon={<Shield className="h-6 w-6" />}
+        title="Fighter & Player Stats"
+        icon={<Users className="h-6 w-6 text-yellow-500" />}
       />
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatsCard
-          title="Total Fighters"
-          value={stats.totalFightersCount.toLocaleString()}
-          icon={<Users className="h-5 w-5" />}
-          description="All fighters in the game"
-        />
-
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
         <StatsCard
           title="Players"
-          value={stats.playerCount.toLocaleString()}
-          icon={<Users className="h-5 w-5" />}
-          description={`${stats.activePlayerCount} active, ${stats.retiredPlayerCount} retired`}
+          value={stats.uniqueOwnersCount}
+          icon={<Users className="h-5 w-5 text-blue-400" />}
+          description="Unique wallets that own at least one fighter"
+          valueClassName="text-blue-400"
         />
-
         <StatsCard
-          title="Default Players"
-          value={stats.defaultPlayerCount.toLocaleString()}
-          description="System-generated players"
+          title="Fighters"
+          value={stats.playerCount}
+          icon={<Users className="h-5 w-5 text-yellow-400" />}
+          description="All fighters created by players"
+          valueClassName="text-yellow-400"
         />
-
         <StatsCard
-          title="Monsters"
-          value={stats.monsterCount.toLocaleString()}
-          icon={<Skull className="h-5 w-5" />}
-          description={`${stats.activeMonsterCount} active, ${stats.retiredMonsterCount} retired`}
+          title="Retired"
+          value={stats.retiredPlayerCount}
+          icon={<Shield className="h-5 w-5 text-stone-400" />}
+          description="Fighters that have been retired"
+          valueClassName="text-stone-400"
+        />
+        <StatsCard
+          title="Game-Controlled"
+          value={stats.defaultPlayerCount}
+          icon={<Skull className="h-5 w-5 text-purple-400" />}
+          description="Practice and fill-in fighters controlled by the game"
+          valueClassName="text-purple-400"
         />
       </div>
-
-      <div className="mt-6 bg-stone-900/80 border border-stone-800/60 rounded-lg p-4 shadow-lg">
-        <h3 className="text-lg font-semibold text-yellow-500 mb-2">
-          Fighter Breakdown
-        </h3>
-
-        <div className="w-full h-6 bg-stone-800 rounded-full overflow-hidden">
-          {/* Player percentage */}
-          <div
-            className="h-full bg-gradient-to-r from-yellow-600 to-yellow-500 flex items-center justify-center text-xs text-white"
-            style={{
-              width: `${(stats.playerCount / stats.totalFightersCount) * 100}%`,
-            }}
-          >
-            {Math.round((stats.playerCount / stats.totalFightersCount) * 100)}%
-          </div>
-        </div>
-
-        <div className="mt-2 flex justify-between text-xs text-stone-400">
-          <div className="flex items-center">
-            <div className="w-3 h-3 bg-gradient-to-r from-yellow-600 to-yellow-500 rounded-full mr-1" />
-            Players
-          </div>
-          <div className="flex items-center">
-            <div className="w-3 h-3 bg-stone-800 rounded-full mr-1" />
-            Monsters
-          </div>
-        </div>
-      </div>
-    </section>
+    </div>
   );
 }

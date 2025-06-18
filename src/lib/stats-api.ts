@@ -19,18 +19,24 @@ export interface GameStats {
 
   // Duel statistics
   totalDuels: number;
-  totalWagerDuels: number;
-  totalNonWagerDuels: number;
   openChallenges: number;
   completedDuels: number;
   cancelledDuels: number;
   forfeitedDuels: number;
 
-  // Wager statistics
-  totalWageredAmount: number;
+  // Gauntlet statistics
+  totalGauntletsStarted: number;
+  totalGauntletsCompleted: number;
+  totalGauntletsRecovered: number;
+  totalGauntletPrizeMoneyAwarded: bigint | number | string;
+  totalGauntletFeesCollected: bigint | number | string;
+  currentGauntletQueueSize: number;
+  currentGauntletEntryFee: bigint | number | string;
+  currentGauntletSize: number;
+  currentGauntletFeePercentage: number;
+  currentMinTimeBetweenGauntlets: number;
+
   totalFeesCollected: number;
-  totalWinnerPayouts: number;
-  averageWagerAmount: number;
 
   // Skin statistics
   skinCollectionsCount: number;

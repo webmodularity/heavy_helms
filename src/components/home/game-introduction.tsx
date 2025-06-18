@@ -38,7 +38,7 @@ export function GameIntroduction() {
     {
       title: "👑 Climb the Leaderboard",
       description:
-        "Challenge your friends or duel anons. Place wagers, watch replays, and fight your way to the top.",
+        "Challenge your friends or duel anons. Share replays and fight your way to the top.",
       imageUrl: "/images/intro/combat.jpg",
     },
   ];
