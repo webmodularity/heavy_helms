@@ -12,6 +12,7 @@ import {
   ListOrdered,
   Menu,
   MessageCircleQuestion,
+  ShieldCheck,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import {

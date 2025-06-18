@@ -63,8 +63,7 @@ export function useCancelChallenge() {
     try {
       // Update the UI
       toast.success("Challenge cancelled", {
-        description:
-          "Your challenge has been successfully cancelled. Any wager amount will be returned to your wallet.",
+        description: "Your challenge has been successfully cancelled.",
         action: {
           label:
             process.env.NEXT_PUBLIC_ALCHEMY_NETWORK === "base-sepolia"

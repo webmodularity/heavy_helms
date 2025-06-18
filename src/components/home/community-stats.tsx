@@ -18,20 +18,20 @@ export function CommunityStats() {
   // Hardcoded values for now
   const stats = [
     {
-      label: "Active Users",
+      label: "Active Players",
       value: gameStats?.uniqueOwnersCount,
       icon: "👥",
     },
-    { label: "Duels Completed", value: gameStats?.totalDuels, icon: "⚔️" },
     {
-      label: "Players Created",
+      label: "Fighters Created",
       value: gameStats?.totalFightersCount,
       icon: "🎲",
     },
+    { label: "Total Fights", value: gameStats?.totalWins, icon: "⚔️" },
     {
-      label: "Total Wagers",
-      value: `${formatEther(BigInt(gameStats?.totalWageredAmount || 0))} ETH`,
-      icon: "💰",
+      label: "Total Gauntlets",
+      value: gameStats?.totalGauntletsCompleted,
+      icon: "🏰",
     },
   ];
 
@@ -120,7 +120,7 @@ export function CommunityStats() {
               title={createAction.label}
               onClick={() => {
                 if (authenticated) {
-                  createCharacter('male');
+                  createCharacter("male");
                 } else {
                   login();
                 }
@@ -134,7 +134,7 @@ export function CommunityStats() {
               <Link
                 key={link.id}
                 href={link.href}
-                className="group inline-flex items-center text-sm text-stone-300 hover:text-yellow-400 transition-colors uppercase tracking-wider font-medium font-bokor"
+                className="group inline-flex items-center text-sm text-stone-200 italic hover:text-yellow-400 transition-colors font-medium"
               >
                 {link.icon}
                 <span className="group-hover:underline decoration-yellow-500/70 underline-offset-4">

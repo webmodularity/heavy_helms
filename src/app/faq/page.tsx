@@ -6,6 +6,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import React from "react";
+import { EthPriceProvider, EthUsdPrice } from "@/components/ui/eth-usd-price";
 
 export const metadata: Metadata = {
   title: "FAQ - Heavy Helms",
@@ -87,19 +88,58 @@ const equipmentRequirements = {
 const faqDataCategorized = {
   "Costs & Limits": [
     {
-      question: "How much does it cost to create a player?",
-      answer:
-        "During early access we have set the cost of creating a new player to 0.002 ETH",
+      question: "How much does it cost to create a fighter?",
+      answer: (
+        <>
+          During early access we have set the cost of creating a new fighter to{" "}
+          <EthUsdPrice ethAmount={0.002} />
+        </>
+      ),
     },
     {
-      question: "How much does it cost to duel?",
-      answer:
-        "The cost for a duel is 0.0002 ETH per duel. If a wager is made we collect an aditional 2% of the wager amount.",
+      question: "How much does it cost to duel or play a gauntlet?",
+      answer: (
+        <>
+          A small <b>service fee</b> is required to cover blockchain/network
+          costs (VRF, gas, storage).
+          <br />
+          <b>Duels:</b> <EthUsdPrice ethAmount={0.00002} /> (paid by the
+          challenger)
+          <br />
+          <b>Gauntlets:</b> <EthUsdPrice ethAmount={0.00001} /> (to register for
+          a gauntlet)
+          <br />
+          <br />
+          <span className="italic">
+            These fees are non-refundable. This is not an entry fee or wager.
+            The fee is solely to cover backend costs and is not used for prize
+            pools or awarded as a prize.
+          </span>
+        </>
+      ),
     },
     {
-      question: "How many players can I manage?",
+      question: "Why is there a fee for duels and gauntlets?",
+      answer: (
+        <>
+          The service fee covers the backend costs of running the game on the
+          blockchain, including randomness (VRF), gas, and data storage.
+          <br />
+          <br />
+          <span className="italic">
+            We do not profit from these fees—they are calculated as an average
+            of recent network costs and are solely to keep the service running.
+            <br />
+            This is not an entry fee for a contest or a wager, and no tradeable
+            prizes are awarded for paid duels or gauntlets.
+          </span>
+        </>
+      ),
+    },
+    {
+      question: "How many fighters can I manage?",
       answer:
-        "We are currently limiting the amount of active warriors each user can own to five during early access. You will be able to purchase additional active warrior slots in the future. In the meantime you can retire warriors that you aren't attached to and free up a slot.",
+        "We are currently limiting the amount of active fighters each user can own to five during early access. You will be able to purchase additional active fighter slots in the future. In the meantime you can retire fighters that you aren't attached to and free up a slot.",
     },
   ],
   "General Gameplay": [
@@ -111,17 +151,35 @@ const faqDataCategorized = {
     {
       question: "What makes Heavy Helms combat fair?",
       answer:
-        "All players have the same total attribute points, just distributed differently. Skins determine weapon and armor, offering strategic choices with strengths and weaknesses, but do not provide a pay-to-win advantage.",
+        "All fighters have the same total attribute points, just distributed differently. Skins determine weapon and armor, offering strategic choices with strengths and weaknesses, but do not provide a pay-to-win advantage.",
     },
     {
       question: "What types of skins are there and what do they do?",
       answer:
-        "All skins are NFTs. There are game-owned skins that any player can always equip without owing any NFTs. There are also skins that require NFT ownership to equip that can be purchased from a marketplace. The equipped skin determines your Weapon and Armor, influencing strategy and combat modifiers.",
+        "All skins are NFTs. There are game-owned skins that any player can always equip without owning any NFTs. There are also skins that require NFT ownership to equip that can be purchased from a marketplace. The equipped skin determines your Weapon and Armor, influencing strategy and combat modifiers.",
     },
     {
       question: "Do you plan to release more skins?",
       answer:
         "Yes! During early access we will be releasing several new skins on a weekly basis. We are also working with artists to bring you some 1 of 1 custom skins.",
+    },
+    {
+      question: "What is Gauntlet Mode?",
+      answer: (
+        <>
+          Gauntlet Mode is a tournament-style mode where fighters join a queue
+          and, once enough have entered, compete in a bracket of elimination
+          matches (4, 8, 16, or 32 fighters). It's an on-demand tournament that
+          runs whenever enough fighters are queued.{" "}
+          <a
+            href="/stats#gauntlet-section"
+            className="text-yellow-500 hover:text-yellow-400 underline"
+          >
+            See Game Statistics for the current gauntlet size
+          </a>
+          .
+        </>
+      ),
     },
   ],
   "Equipment & Attributes": [
@@ -171,7 +229,7 @@ const faqDataCategorized = {
     {
       question: "How do attributes and skins affect gameplay?",
       answer:
-        "Your player's base attributes (Strength, Constitution, Size, Agility, Stamina, and Luck) calculate stats like Max Health, Hit Chance, and Crit Chance. The onchain Game Engine combines these base stats with modifiers based on your equipped skin's weapon and armor and your chosen stance to determine combat outcomes.",
+        "Your fighter's base attributes (Strength, Constitution, Size, Agility, Stamina, and Luck) calculate stats like Max Health, Hit Chance, and Crit Chance. The onchain Game Engine combines these base stats with modifiers based on your equipped skin's weapon and armor and your chosen stance to determine combat outcomes.",
     },
   ],
   "Web3 & Technical": [
@@ -200,7 +258,7 @@ const faqDataCategorized = {
     {
       question: "What happens if the game engine needs updates or balancing?",
       answer:
-        "The Game Engine is modular and versioned. Updates can be deployed without affecting player contracts. Game modes can specify which engine version they use, and the game client can interpret different combat result versions.",
+        "The Game Engine is modular and versioned. Updates can be deployed without affecting fighter contracts. Game modes can specify which engine version they use, and the game client can interpret different combat result versions.",
     },
     {
       question: "Where can I find the community and contract details?",
@@ -212,7 +270,7 @@ const faqDataCategorized = {
     {
       question: "What does early access mean?",
       answer:
-        "It simply means that we are still tweaking balance as well as adding new game modes and features. Your players will NOT be lost when we leave early access and all skins acquired will still be available. Basically you can expect some aggressive balance changes as well as some updates to the look and feel of the game.",
+        "It simply means that we are still tweaking balance as well as adding new game modes and features. Your fighters will NOT be lost when we leave early access and all skins acquired will still be available. You can expect some balance changes as well as updates to the look and feel of the game.",
     },
     {
       question: "When do you plan to leave early access?",
@@ -221,81 +279,125 @@ const faqDataCategorized = {
     },
     {
       question: "What game modes are currently available?",
-      answer:
-        "Currently, there are two modes: Practice Game (free, uses block entropy for pseudo-random outcomes, no permanent record) and Duel Game (records Wins/Losses onchain, uses VRF for randomness, logs results publicly, allows optional ETH wagers).",
+      answer: (
+        <>
+          Currently, there are three modes: Practice Game (free, uses block
+          entropy for pseudo-random outcomes, no permanent record), Duel Game
+          (records Wins/Losses onchain, uses VRF for randomness, logs results
+          publicly), and Gauntlet Game (tournament-style mode where 4, 8, 16, or
+          32 fighters enter a bracket and compete in elimination matches;{" "}
+          <a
+            href="/stats#gauntlet-section"
+            className="text-yellow-500 hover:text-yellow-400 underline"
+          >
+            see Game Statistics for current size
+          </a>
+          ).
+        </>
+      ),
     },
     {
       question: "Are new game modes planned?",
       answer:
-        "Yes! The contracts are modular. A tournament mode is planned, and the permission system allows other approved game contracts to modify player state (like records or granting rewards) in the future.",
+        "Yes! The contracts are modular. A tournament mode is planned, and the permission system allows other approved game contracts to modify fighter state (like records or granting rewards) in the future.",
+    },
+    {
+      question: "Where can I find your Privacy Policy and Terms of Service?",
+      answer: (
+        <>
+          You can review our{" "}
+          <a
+            href="/privacy"
+            className="text-yellow-300 hover:text-yellow-400 underline"
+          >
+            Privacy Policy
+          </a>{" "}
+          and{" "}
+          <a
+            href="/terms"
+            className="text-yellow-300 hover:text-yellow-400 underline"
+          >
+            Terms of Service
+          </a>{" "}
+          for details on eligibility, data handling, and game rules.
+        </>
+      ),
     },
   ],
 };
 
 export default function FaqPage() {
   return (
-    <div className="space-y-8">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-yellow-500">
-              Frequently Asked Questions
-            </h1>
-            <p className="text-sm text-stone-400 mt-1">
-              Find answers to common questions about Heavy Helms.
+    <EthPriceProvider>
+      <div className="space-y-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-10">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-yellow-500">
+                Frequently Asked Questions
+              </h1>
+              <p className="text-sm text-stone-400 mt-1">
+                Find answers to common questions about Heavy Helms.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="relative mt-8">
+          <div className="absolute inset-0 bg-stone-900/60" />
+          <div className="absolute inset-0 shadow-[inset_0_0_100px_rgba(30,20,10,0.6)]" />
+          <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-700/30 via-yellow-500/50 to-amber-700/30" />
+          <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-700/30 via-yellow-500/50 to-amber-700/30" />
+
+          <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-12">
+            {Object.entries(faqDataCategorized).map(
+              ([category, questions], categoryIndex) => (
+                <div
+                  key={category}
+                  className={categoryIndex > 0 ? "mt-10" : ""}
+                >
+                  <h3 className="text-2xl font-bold text-stone-100 tracking-wide mb-4 border-b border-stone-600/50 pb-2">
+                    {category}
+                  </h3>
+                  <Accordion type="single" collapsible className="w-full">
+                    {questions.map((faq, questionIndex) => (
+                      <AccordionItem
+                        key={`${categoryIndex}-${
+                          // biome-ignore lint/suspicious/noArrayIndexKey: <explanation>
+                          questionIndex
+                        }`}
+                        value={`item-${categoryIndex}-${questionIndex}`}
+                        className="border-stone-700/50"
+                      >
+                        <AccordionTrigger className="text-lg hover:no-underline text-left font-semibold text-yellow-400">
+                          {faq.question}
+                        </AccordionTrigger>
+                        <AccordionContent className="text-stone-300 pt-2 pb-4 leading-relaxed text-base font-sans">
+                          {faq.answer}
+                        </AccordionContent>
+                      </AccordionItem>
+                    ))}
+                  </Accordion>
+                </div>
+              ),
+            )}
+          </div>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
+          <div className="text-center mt-8 pt-8 border-t border-stone-800/60">
+            <p className="text-stone-400 mb-3">
+              Can't find the answer you're looking for?
             </p>
+            <a
+              href="https://discord.gg/5XHu76FmpJ"
+              className="text-yellow-500 hover:text-yellow-400 underline font-medium"
+            >
+              Join our Discord
+            </a>
           </div>
         </div>
       </div>
-
-      <div className="relative mt-8">
-        <div className="absolute inset-0 bg-stone-900/60" />
-        <div className="absolute inset-0 shadow-[inset_0_0_100px_rgba(30,20,10,0.6)]" />
-        <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-700/30 via-yellow-500/50 to-amber-700/30" />
-        <div className="absolute bottom-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-700/30 via-yellow-500/50 to-amber-700/30" />
-
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-12">
-          {Object.entries(faqDataCategorized).map(
-            ([category, questions], categoryIndex) => (
-              <div key={category} className={categoryIndex > 0 ? "mt-10" : ""}>
-                <h3 className="text-2xl font-bold text-stone-100 tracking-wide mb-4 border-b border-stone-600/50 pb-2">
-                  {category}
-                </h3>
-                <Accordion type="single" collapsible className="w-full">
-                  {questions.map((faq, questionIndex) => (
-                    <AccordionItem
-                      key={`${categoryIndex}-${questionIndex}`}
-                      value={`item-${categoryIndex}-${questionIndex}`}
-                      className="border-stone-700/50"
-                    >
-                      <AccordionTrigger className="text-lg hover:no-underline text-left font-semibold text-yellow-400">
-                        {faq.question}
-                      </AccordionTrigger>
-                      <AccordionContent className="text-stone-300 pt-2 pb-4 leading-relaxed text-base font-sans">
-                        {faq.answer}
-                      </AccordionContent>
-                    </AccordionItem>
-                  ))}
-                </Accordion>
-              </div>
-            ),
-          )}
-        </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10">
-        <div className="text-center mt-8 pt-8 border-t border-stone-800/60">
-          <p className="text-stone-400 mb-3">
-            Can't find the answer you're looking for?
-          </p>
-          <a
-            href="https://discord.gg/5XHu76FmpJ"
-            className="text-yellow-500 hover:text-yellow-400 underline font-medium"
-          >
-            Join our Discord
-          </a>
-        </div>
-      </div>
-    </div>
+    </EthPriceProvider>
   );
 }

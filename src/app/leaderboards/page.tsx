@@ -56,12 +56,6 @@ export default function LeaderboardsPage() {
             <Trophy className="h-4 w-4" />
             Warrior Leaderboard
           </button>
-          {/* Add placeholders for future tabs if desired */}
-          {/*
-          <button type="button" className="... styles ... opacity-50 cursor-not-allowed">Top Wagers</button>
-          <button type="button" className="... styles ... opacity-50 cursor-not-allowed">Most Accepted</button>
-          <button type="button" className="... styles ... opacity-50 cursor-not-allowed">Most Created</button>
-          */}
         </div>
       </div>
 

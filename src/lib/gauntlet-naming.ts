@@ -1,3 +1,7 @@
+// (Removed inline declare module statement; will add a .d.ts file instead)
+
+import romanize from "romanize";
+
 export const GAUNTLET_BASE_PHRASES = [
   "Emberstone",
   "Frostwind",
@@ -16,16 +20,11 @@ export const GAUNTLET_BASE_PHRASES = [
   "Winter's Bite", // 15 base phrases
 ];
 
-// Simplified Roman numeral suffix generator
+// Roman numeral suffix generator (always Roman numerals, blank for first instance)
 function getRomanSuffix(numeralIndex: number): string {
   if (numeralIndex === 0) return ""; // No suffix for the first instance
-  if (numeralIndex === 1) return " II";
-  if (numeralIndex === 2) return " III";
-  if (numeralIndex === 3) return " IV";
-  if (numeralIndex === 4) return " V";
-  // For simplicity, beyond V, we'll use Arabic numbers with a space.
-  if (numeralIndex > 0) return ` ${numeralIndex + 1}`;
-  return "";
+  // Add a space and the Roman numeral (e.g., ' II', ' III', ...)
+  return ` ${romanize(numeralIndex + 1)}`;
 }
 
 /**

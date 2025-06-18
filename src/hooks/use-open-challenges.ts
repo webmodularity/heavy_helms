@@ -1,5 +1,5 @@
 import { SUBGRAPH_URL } from "@/config";
-import { GET_OPEN_WAGER_CHALLENGES } from "@/lib/gql-queries";
+import { GET_OPEN_CHALLENGES } from "@/lib/gql-queries";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import request from "graphql-request";
 
@@ -11,46 +11,37 @@ interface ChallengeFighterSnapshot {
   fullName: string | null; // Subgraph might return null
 }
 
-interface OpenWagerChallenge {
+interface OpenChallenge {
   id: string;
-  wagerAmount: string; // Subgraph typically returns BigInt as string
   createdAt: string; // Timestamp as string
   challengerSnapshot: ChallengeFighterSnapshot | null; // Snapshot could be null
   defenderSnapshot: ChallengeFighterSnapshot | null; // Snapshot could be null
 }
 
 // Define the structure for the overall query result
-interface OpenWagerChallengeQueryResult {
-  duelChallenges: OpenWagerChallenge[];
+interface OpenChallengeQueryResult {
+  duelChallenges: OpenChallenge[];
 }
 
 // --- Hook Implementation ---
 
-export function useOpenWagerChallenges(pageSize = 10) {
+export function useOpenChallenges(pageSize = 10) {
   const queryResult = useInfiniteQuery({
-    queryKey: ["open-wager-challenges", pageSize],
+    queryKey: ["open-challenges", pageSize],
     queryFn: async ({ pageParam = 0 }) => {
-      // Calculate timestamp for 7 days ago (in seconds)
-      const sevenDaysInSeconds = 7 * 24 * 60 * 60;
-      const nowInSeconds = Math.floor(Date.now() / 1000);
-      const minTimestamp = nowInSeconds - sevenDaysInSeconds;
-
       try {
-        const response = await request<OpenWagerChallengeQueryResult>(
+        const response = await request<OpenChallengeQueryResult>(
           SUBGRAPH_URL,
-          GET_OPEN_WAGER_CHALLENGES,
+          GET_OPEN_CHALLENGES,
           {
             limit: pageSize,
             skip: pageParam,
-            // Pass the calculated timestamp as a string for BigInt variable
-            minTimestamp: String(minTimestamp),
           },
         );
         return response.duelChallenges || [];
       } catch (error) {
-        console.error("Error fetching open wager challenges:", error);
-        // Consider throwing a more specific error or handling differently
-        throw new Error("Failed to fetch open wager challenges");
+        console.error("Error fetching open challenges:", error);
+        throw new Error("Failed to fetch open challenges");
       }
     },
     initialPageParam: 0,

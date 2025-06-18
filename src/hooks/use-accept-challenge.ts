@@ -31,12 +31,14 @@ interface AcceptChallengeParams {
   character: Player;
   challengeId: bigint;
   wagerAmount: bigint;
+  onModalClose?: () => void;
 }
 
 interface AcceptChallengeResult {
   txHash: string;
   challengeId: bigint;
   characterId: string;
+  onModalClose?: () => void;
 }
 
 export function useAcceptChallenge() {
@@ -108,7 +110,10 @@ export function useAcceptChallenge() {
       console.log("Transaction confirmed, handling challenge acceptance");
 
       // Handle the UI updates for challenge acceptance
-      handleChallengeAccepted(pendingChallenge);
+      handleChallengeAccepted({
+        ...pendingChallenge,
+        onModalClose: pendingChallenge.onModalClose,
+      });
       setPendingChallenge(null);
     }
   }, [txReceipt, pendingChallenge]);
@@ -119,6 +124,7 @@ export function useAcceptChallenge() {
       character,
       challengeId,
       wagerAmount,
+      onModalClose,
     }: AcceptChallengeParams): Promise<AcceptChallengeResult> => {
       if (!authenticated) {
         throw new Error("Authentication required");
@@ -164,10 +170,11 @@ export function useAcceptChallenge() {
         txHash,
         challengeId,
         characterId: character.id,
+        onModalClose,
       };
     },
 
-    onSuccess: (result) => {
+    onSuccess: async (result) => {
       // Store the pending challenge to process once transaction is confirmed
       setPendingChallenge(result);
 
@@ -204,11 +211,12 @@ export function useAcceptChallenge() {
   });
 
   // Function to handle successful challenge acceptance after transaction is confirmed
-  const handleChallengeAccepted = ({
+  const handleChallengeAccepted = async ({
     txHash,
     challengeId,
     characterId,
-  }: AcceptChallengeResult) => {
+    onModalClose,
+  }: AcceptChallengeResult & { onModalClose?: () => void }) => {
     // Add this at the beginning - clear any previous state first
     clearState();
 
@@ -229,13 +237,42 @@ export function useAcceptChallenge() {
       duration: 5000,
     });
 
-    // Open the modal in loading state instead of navigating to loading page
-    openFightModal({
-      title: "Duel Arena",
-      isLoading: true,
-      loadingText: "Preparing for Battle...",
-      challengeId,
-    });
+    // Open the modal in loading state and pass the onClose callback
+    openFightModal(
+      {
+        title: "Duel Arena",
+        isLoading: true,
+        loadingText: "Preparing for Battle...",
+        challengeId,
+      },
+      onModalClose,
+    );
+
+    // Now that the modal is open, optimistically remove the challenge from the cache
+    if (address) {
+      // Update all possible query key variations to remove the accepted challenge
+      const queryKeys = [
+        ["active-challenges", address, characterId, 10],
+        ["active-challenges", address, characterId],
+        ["active-challenges", address, 10],
+        ["active-challenges", address],
+      ];
+
+      for (const queryKey of queryKeys) {
+        queryClient.setQueryData(
+          queryKey,
+          (oldData: InfiniteData<Challenge[]> | undefined) => {
+            if (!oldData) return oldData;
+            return {
+              ...oldData,
+              pages: oldData.pages.map((page) =>
+                page.filter((challenge) => challenge.id !== challengeId),
+              ),
+            };
+          },
+        );
+      }
+    }
 
     // Set flag that we're waiting for duel completion
     setIsWaitingForDuel(true);
@@ -260,22 +297,6 @@ export function useAcceptChallenge() {
 
     setListenerTimeout(timeoutId);
 
-    // Update the cache
-    if (address) {
-      queryClient.setQueryData(
-        ["active-challenges", address, characterId],
-        (oldData: InfiniteData<Challenge[]> | undefined) => {
-          if (!oldData) return oldData;
-          return {
-            ...oldData,
-            pages: oldData.pages.map((page) =>
-              page.filter((challenge) => challenge.id !== challengeId),
-            ),
-          };
-        },
-      );
-    }
-
     // No need to navigate - stay on current page with modal open
   };
 
@@ -287,7 +308,8 @@ export function useAcceptChallenge() {
       return;
     }
 
-    mutation.mutate(params);
+    const result = await mutation.mutateAsync(params);
+    return result;
   };
 
   return {
