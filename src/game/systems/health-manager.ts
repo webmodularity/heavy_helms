@@ -50,18 +50,18 @@ export class HealthManager {
     this.player1 = player1;
     this.player2 = player2;
     this.barConfig = {
-      width: 400,
-      staminaWidth: 300,
-      height: 26,
-      staminaHeight: 15,
-      fillHeight: 27,
+      width: 180,
+      staminaWidth: 135,
+      height: 18,
+      staminaHeight: 12,
+      fillHeight: 19,
       padding: 2,
       y: 40,
-      labelPadding: 20,
-      staminaGap: 8,
-      p1x: scene.cameras.main.centerX - 420,
-      p2x: scene.cameras.main.centerX + 20,
-      nudgeFactor: 3,
+      labelPadding: 30,
+      staminaGap: 6,
+      p1x: 20,
+      p2x: 280, // Moved from 260 to 280 for perfect symmetry (480 - 180 - 20 = 280)
+      nudgeFactor: 2,
     };
     this.p1Bars = null;
     this.p2Bars = null;
@@ -202,18 +202,18 @@ export class HealthManager {
     const p1Name = this.player1.name.fullName || "";
     const p2Name = this.player2.name.fullName || "";
 
-    // Player labels
+    // Player labels - larger font for better readability
     this.scene.add
       .text(
         this.barConfig.p1x + this.barConfig.width - 5,
-        this.barConfig.y - this.barConfig.labelPadding - 10,
+        this.barConfig.y - this.barConfig.labelPadding,
         p1Name,
         {
           fontFamily: "Bokor",
-          fontSize: "24px",
+          fontSize: "20px",
           color: "#ffffff",
           stroke: "#000000",
-          strokeThickness: 6,
+          strokeThickness: 5,
         },
       )
       .setOrigin(1, 0)
@@ -222,14 +222,14 @@ export class HealthManager {
     this.scene.add
       .text(
         this.barConfig.p2x + 5,
-        this.barConfig.y - this.barConfig.labelPadding - 10,
+        this.barConfig.y - this.barConfig.labelPadding,
         p2Name,
         {
           fontFamily: "Bokor",
-          fontSize: "24px",
+          fontSize: "20px",
           color: "#ffffff",
           stroke: "#000000",
-          strokeThickness: 6,
+          strokeThickness: 5,
         },
       )
       .setOrigin(0, 0)

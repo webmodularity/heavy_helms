@@ -42,6 +42,14 @@ export class CombatAnimator {
     animationType: AnimationType,
     isPlayer2 = false,
   ): void {
+    // Add null checks for sprite and scene
+    if (!sprite || !this.scene || !this.scene.anims || !sprite.anims) {
+      console.warn(
+        "CombatAnimator: Sprite or scene not available for animation",
+      );
+      return;
+    }
+
     const suffix = isPlayer2 ? "2" : "";
     const animKey = `${animationType}${suffix}`;
 
