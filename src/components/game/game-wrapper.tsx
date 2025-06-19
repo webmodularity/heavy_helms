@@ -8,6 +8,7 @@ import { Button } from "../ui/button";
 import type { Fighter } from "@/types/fighter-types";
 import type { IRefPhaserGame } from "@/game/PhaserGame";
 import type Phaser from "phaser";
+import { FighterInfoDisplay } from "./fighter-info-display";
 
 // Dynamically import PhaserGame with no SSR
 const PhaserGame = dynamic(() => import("@/game/PhaserGame"), {
@@ -27,6 +28,8 @@ export function GameWrapper({ player1, txId, logIndex }: GameWrapperProps) {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const [isGameReady, setIsGameReady] = useState(false);
+  const [gamePlayer1, setGamePlayer1] = useState<Fighter | undefined>();
+  const [gamePlayer2, setGamePlayer2] = useState<Fighter | undefined>();
   const containerRef = useRef<HTMLDivElement>(null);
   const phaserInstanceRef = useRef<IRefPhaserGame>({ game: null, scene: null });
   const router = useRouter();
@@ -75,6 +78,18 @@ export function GameWrapper({ player1, txId, logIndex }: GameWrapperProps) {
     if (gameInstance) {
       phaserInstanceRef.current.game = gameInstance;
       setIsGameReady(true);
+
+      // Extract both players from game registry
+      setTimeout(() => {
+        const player1Data = gameInstance.registry.get("player1") as Fighter;
+        const player2Data = gameInstance.registry.get("player2") as Fighter;
+        if (player1Data) {
+          setGamePlayer1(player1Data);
+        }
+        if (player2Data) {
+          setGamePlayer2(player2Data);
+        }
+      }, 500);
     } else {
       console.error(
         "handleGameReady received invalid game instance:",
@@ -121,14 +136,14 @@ export function GameWrapper({ player1, txId, logIndex }: GameWrapperProps) {
   if (!isClient) return null;
 
   return (
-    <div className="w-full flex justify-center items-center">
+    <div className="w-full flex flex-col justify-center items-center">
       <div
         ref={containerRef}
         id="game-container-outer"
         className="relative bg-black w-full overflow-hidden rounded-md"
         style={{
-          maxWidth: "960px",
-          aspectRatio: "16/9",
+          maxWidth: "540px",
+          aspectRatio: "9/16",
         }}
       >
         <PhaserGame

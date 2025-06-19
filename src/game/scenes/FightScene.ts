@@ -5,13 +5,23 @@ import { DamageNumbers } from "../systems/damage-numbers";
 import { CombatAnimator } from "../systems/combat-animator";
 import { CombatAudioManager } from "../systems/combat-audio-manager";
 import { HealthManager } from "../systems/health-manager";
-import { PlayerStatsDisplay } from "../systems/player-stats-display";
+// PlayerStatsDisplay removed - using external UI instead
 import type {
   CombatAction,
   DecodedCombatResult,
   SceneData,
 } from "@/types/game.types";
 import type { Fighter } from "@/types/fighter-types";
+import {
+  getWeaponDisplayName,
+  getArmorDisplayName,
+  getStanceDisplayName,
+} from "@/lib/equipment-utils";
+import type {
+  WeaponType,
+  ArmorType,
+  StanceType,
+} from "@/types/equipment.types";
 
 interface TextStyles {
   mainText: Phaser.GameObjects.Text;
@@ -40,8 +50,7 @@ export class FightScene extends Scene {
   private animator: CombatAnimator;
   private damageNumbers: DamageNumbers;
   private audioManager: CombatAudioManager;
-  private player1Stats: PlayerStatsDisplay;
-  private player2Stats: PlayerStatsDisplay;
+  // Stats displays removed - using external UI instead
 
   // Game state
   private isInitialized = false;
@@ -49,6 +58,20 @@ export class FightScene extends Scene {
   private playerStartX = 0;
   private player2StartX = 0;
   private centerX = 0;
+  private countdownInterval?: NodeJS.Timeout;
+  private fighterInfoPanel?: { panelY: number; sidePadding: number };
+  private fighterInfoTexts: {
+    p1Health?: Phaser.GameObjects.Text;
+    p1Stamina?: Phaser.GameObjects.Text;
+    p2Health?: Phaser.GameObjects.Text;
+    p2Stamina?: Phaser.GameObjects.Text;
+  } = {};
+  private currentDisplayValues = {
+    p1Health: 0,
+    p1Stamina: 0,
+    p2Health: 0,
+    p2Stamina: 0,
+  };
   // private fKey?: Phaser.Input.Keyboard.Key;
   // private rKey?: Phaser.Input.Keyboard.Key;
 
@@ -60,11 +83,11 @@ export class FightScene extends Scene {
   private WALK_DURATION = 1000;
   // UI Configurations
   private countdownConfig = {
-    fontSize: "120px",
+    fontSize: "80px",
     fontFamily: "Bokor",
     color: "#ffffff",
     stroke: "#000000",
-    strokeThickness: 8,
+    strokeThickness: 6,
     duration: 750,
     scale: { from: 2, to: 0.5 },
     alpha: { from: 1, to: 0 },
@@ -73,10 +96,10 @@ export class FightScene extends Scene {
   private titleTextConfig = {
     main: {
       fontFamily: "Bokor",
-      fontSize: "140px",
+      fontSize: "90px",
       color: "#ffd700",
       stroke: "#8b0000",
-      strokeThickness: 12,
+      strokeThickness: 8,
       shadow: {
         offsetX: 2,
         offsetY: 2,
@@ -88,13 +111,13 @@ export class FightScene extends Scene {
     },
     shadow: {
       fontFamily: "Bokor",
-      fontSize: "144px",
+      fontSize: "94px",
       color: "#000000",
       alpha: 0.7,
     },
     metallic: {
       fontFamily: "Bokor",
-      fontSize: "140px",
+      fontSize: "90px",
       color: "#ffffff",
     },
   };
@@ -150,12 +173,37 @@ export class FightScene extends Scene {
       .setOrigin(0.5);
 
     let count = 3;
-    const countdownInterval = setInterval(() => {
+    this.countdownInterval = setInterval(() => {
+      // Check if scene is still active with better null safety
+      try {
+        if (
+          !this.scene ||
+          !this.scene.manager ||
+          !this.scene.manager.isActive(this.scene.key)
+        ) {
+          if (this.countdownInterval) {
+            clearInterval(this.countdownInterval);
+            this.countdownInterval = undefined;
+          }
+          return;
+        }
+      } catch (error) {
+        // Scene is likely destroyed, clean up interval
+        if (this.countdownInterval) {
+          clearInterval(this.countdownInterval);
+          this.countdownInterval = undefined;
+        }
+        return;
+      }
+
       count--;
       if (count > 0) {
         this.countdownText?.setText(count.toString());
       } else {
-        clearInterval(countdownInterval);
+        if (this.countdownInterval) {
+          clearInterval(this.countdownInterval);
+          this.countdownInterval = undefined;
+        }
         this.countdownText?.destroy();
         // Start the fight sequence
         this.startFightSequence();
@@ -176,27 +224,27 @@ export class FightScene extends Scene {
 
     for (const layer of layers) {
       this.add
-        .image(0, 0, layer.key)
+        .image(0, -130, layer.key) // Moved up 80px to match taller stats panel
         .setOrigin(0, 0)
-        .setScale(0.5)
+        .setScale(0.6)
         .setDepth(layer.depth)
         .setAlpha(layer.alpha);
     }
 
-    // 2. Player Setup
-    const groundY = 600;
+    // 2. Player Setup - positioned properly on the ground (adjusted for taller stats panel)
+    const groundY = 530;
     this.player1Sprite = this.physics.add
-      .sprite(125, groundY - 40, `fighter${this.player1.id}-spritesheet`)
+      .sprite(120, groundY, `fighter${this.player1.id}-spritesheet`)
       .setFlipX(false)
       .setOrigin(0.5, 1)
-      .setDisplaySize(300, 300)
+      .setDisplaySize(280, 280)
       .setDepth(5);
 
     this.player2Sprite = this.physics.add
-      .sprite(835, groundY - 40, `fighter${this.player2.id}-spritesheet`)
+      .sprite(360, groundY, `fighter${this.player2.id}-spritesheet`)
       .setFlipX(true)
       .setOrigin(0.5, 1)
-      .setDisplaySize(300, 300)
+      .setDisplaySize(280, 280)
       .setDepth(5);
 
     // 3. Animation Setup
@@ -232,15 +280,15 @@ export class FightScene extends Scene {
       }
     });
 
-    // Replace both text elements with a single combined text element
+    // Network info text - positioned above the taller stats panel
     this.networkText = this.add
       .text(
         5,
-        this.cameras.main.height - 5,
-        `Network: ${this.network} | Block#: ${this.blockNumber} | GameEngine: v${Math.floor((this.decodedCombatBytes.gameEngineVersion || 0) / 100)}.${(this.decodedCombatBytes?.gameEngineVersion || 0) % 100} | Transaction: ${this.txId}`,
+        this.cameras.main.height - 285, // Adjusted for taller panel
+        `${this.network} | Block#: ${this.blockNumber} | v${Math.floor((this.decodedCombatBytes.gameEngineVersion || 0) / 100)}.${(this.decodedCombatBytes?.gameEngineVersion || 0) % 100} | ${this.txId}`,
         {
           fontFamily: "Arial",
-          fontSize: "10px",
+          fontSize: "12px",
           color: "#cccccc",
           align: "left",
         },
@@ -248,18 +296,8 @@ export class FightScene extends Scene {
       .setOrigin(0, 1)
       .setDepth(100);
 
-    // Create player stats displays immediately but don't show them yet
-    this.player1Stats = new PlayerStatsDisplay(this, 10, 160, false);
-    this.player2Stats = new PlayerStatsDisplay(
-      this,
-      this.cameras.main.width - 150,
-      160,
-      true,
-    );
-
-    // Update stats but don't show yet
-    this.player1Stats.update(this.player1);
-    this.player2Stats.update(this.player2);
+    // Create fighter info UI at bottom of game
+    this.createFighterInfoUI();
 
     // Add the mute event listener
     this.game.events.on("set-mute", this.handleMuteToggle, this);
@@ -311,59 +349,119 @@ export class FightScene extends Scene {
 
   // Combat Sequence Methods
   startFightSequence() {
+    // Enhanced checks for scene state
     if (
       this.isFightSequencePlaying ||
       !this.player1Sprite ||
-      !this.player2Sprite
+      !this.player2Sprite ||
+      !this.scene ||
+      !this.scene.manager ||
+      !this.animator
     ) {
-      // Handle error silently
+      console.warn(
+        "FightScene: Cannot start fight sequence - scene not ready or already playing",
+      );
+      return;
+    }
+
+    // Additional scene active check with error handling
+    try {
+      if (!this.scene.manager.isActive(this.scene.key)) {
+        console.warn(
+          "FightScene: Scene is not active, aborting fight sequence",
+        );
+        return;
+      }
+    } catch (error) {
+      console.warn(
+        "FightScene: Scene validation failed, aborting fight sequence",
+      );
       return;
     }
     this.isFightSequencePlaying = true;
 
-    this.startCountdown().then(() => {
-      if (!this.player1Sprite || !this.player2Sprite) return;
+    this.startCountdown()
+      .then(() => {
+        // Additional checks after countdown
+        if (
+          !this.player1Sprite ||
+          !this.player2Sprite ||
+          !this.scene ||
+          !this.scene.manager ||
+          !this.animator
+        ) {
+          console.warn(
+            "FightScene: Scene destroyed during countdown, aborting fight sequence",
+          );
+          return;
+        }
 
-      // Initial run to center
-      this.animator?.playAnimation(this.player1Sprite, "running");
-      this.animator?.playAnimation(this.player2Sprite, "running", true);
-
-      // Move players to center and show stats during the run
-      this.tweens.add({
-        targets: this.player1Sprite,
-        x: this.centerX - 75,
-        duration: 1000,
-        onStart: () => {
-          this.time.delayedCall(300, () => {
-            this.player1Stats?.show();
-            this.refreshPlayerStats();
-          });
-        },
-        onComplete: () => {
-          this.animator?.playAnimation(this.player1Sprite, "idle");
-        },
-      });
-
-      this.tweens.add({
-        targets: this.player2Sprite,
-        x: this.centerX + 75,
-        duration: 1000,
-        onStart: () => {
-          this.time.delayedCall(300, () => {
-            this.player2Stats?.show();
-            this.refreshPlayerStats();
-          });
-        },
-        onComplete: () => {
-          this.animator?.playAnimation(this.player2Sprite, "idle", true);
-          if (this.decodedCombatBytes.actions) {
-            this.time.delayedCall(500, () => {
-              this.playCombatSequence(0);
-            });
+        // Additional scene active check with error handling
+        try {
+          if (!this.scene.manager.isActive(this.scene.key)) {
+            console.warn(
+              "FightScene: Scene not active after countdown, aborting",
+            );
+            return;
           }
-        },
+        } catch (error) {
+          console.warn(
+            "FightScene: Scene validation failed after countdown, aborting",
+          );
+          return;
+        }
+
+        // Initial run to center
+        this.animator.playAnimation(this.player1Sprite, "running");
+        this.animator.playAnimation(this.player2Sprite, "running", true);
+
+        // Move players to center with responsive run-in distance
+        this.tweens.add({
+          targets: this.player1Sprite,
+          x: this.centerX - 60,
+          duration: 500,
+          onStart: () => {
+            // Stats panels removed - no need to show them
+          },
+          onComplete: () => {
+            if (this.animator && this.player1Sprite) {
+              this.animator.playAnimation(this.player1Sprite, "idle");
+            }
+          },
+        });
+
+        this.tweens.add({
+          targets: this.player2Sprite,
+          x: this.centerX + 60,
+          duration: 500,
+          onStart: () => {
+            // Stats panels removed - no need to show them
+          },
+          onComplete: () => {
+            if (this.animator && this.player2Sprite) {
+              this.animator.playAnimation(this.player2Sprite, "idle", true);
+            }
+            if (
+              this.decodedCombatBytes.actions &&
+              this.scene &&
+              this.scene.manager
+            ) {
+              this.time?.delayedCall(300, () => {
+                try {
+                  if (this.scene?.manager?.isActive(this.scene.key)) {
+                    this.playCombatSequence(0);
+                  }
+                } catch (error) {
+                  console.warn("FightScene: Scene check failed in delayedCall");
+                }
+              });
+            }
+          },
+        });
+      })
+      .catch((error) => {
+        console.error("FightScene: Error in startCountdown:", error);
       });
-    });
   }
 
   playCombatSequence(actionIndex: number) {
@@ -377,7 +475,7 @@ export class FightScene extends Scene {
 
     this.events.once("sequenceComplete", (isLast: boolean) => {
       if (!isLast) {
-        this.time.delayedCall(this.SEQUENCE_DELAY, () => {
+        this.time?.delayedCall(this.SEQUENCE_DELAY, () => {
           this.playCombatSequence(actionIndex + 1);
         });
       }
@@ -408,7 +506,7 @@ export class FightScene extends Scene {
         const scale = number === "Fight!" ? 1.25 : 2;
         const texts = this.createStyledText(
           this.cameras.main.centerX,
-          this.cameras.main.centerY,
+          this.cameras.main.centerY - 150, // Moved up from center for mobile layout
           number,
           scale,
         );
@@ -444,7 +542,7 @@ export class FightScene extends Scene {
             duration: 500,
             ease: "Back.out",
             onComplete: () => {
-              this.time.delayedCall(750, () => {
+              this.time?.delayedCall(750, () => {
                 // Guard against scene destruction
                 if (!this.scene || !this.tweens) {
                   console.warn(
@@ -633,6 +731,12 @@ export class FightScene extends Scene {
 
     // Clear all game objects
     this.children.removeAll();
+
+    // Clean up countdown interval
+    if (this.countdownInterval) {
+      clearInterval(this.countdownInterval);
+      this.countdownInterval = undefined;
+    }
   }
 
   private createPlayerAnimations(
@@ -790,9 +894,7 @@ export class FightScene extends Scene {
 
       // Update health bars
       this.healthManager.updateBars();
-
-      // Update player stats display with delay
-      this.refreshPlayerStats(true);
+      this.updateFighterInfoUI();
 
       // Add delay before completing sequence
       this.time.delayedCall(1000, () => {
@@ -823,9 +925,7 @@ export class FightScene extends Scene {
 
       // Update health bars
       this.healthManager.updateBars();
-
-      // Update player stats display with delay
-      this.refreshPlayerStats(true);
+      this.updateFighterInfoUI();
 
       // Add delay before completing sequence
       this.time.delayedCall(1000, () => {
@@ -893,12 +993,12 @@ export class FightScene extends Scene {
       this.player2.currentState.currentEndurance = newP2Stamina;
     }
 
-    // Update player stats displays
-    this.refreshPlayerStats(true);
+    // Stats displays removed - handled by external UI
 
     // Update the health bars with actual values after a longer delay
     this.time.delayedCall(1200, () => {
       this.healthManager.updateBars();
+      this.updateFighterInfoUI();
     });
 
     // Continue with animation sequence
@@ -1209,18 +1309,18 @@ export class FightScene extends Scene {
       ? this.player2.name.fullName
       : this.player1.name.fullName;
 
-    // First add Victory text
+    // First add Victory text - sized for mobile
     const victoryText = this.add
       .text(
         this.cameras.main.centerX,
-        this.cameras.main.centerY - 90,
+        this.cameras.main.centerY - 200, // Moved higher for mobile layout
         "Victory",
         {
           fontFamily: "Bokor",
-          fontSize: "120px",
+          fontSize: "80px",
           color: "#ff3333",
           stroke: "#000000",
-          strokeThickness: 8,
+          strokeThickness: 6,
           align: "center",
         },
       )
@@ -1235,19 +1335,19 @@ export class FightScene extends Scene {
       duration: 1000,
       ease: "Power1",
       onComplete: () => {
-        // After Victory text is in, add Player text
+        // After Victory text is in, add Player text - sized for mobile
         const playerText = this.add
           .text(
             this.cameras.main.centerX,
-            this.cameras.main.centerY - 10,
+            this.cameras.main.centerY - 130, // Moved higher to align with victory text
             // biome-ignore lint/style/noNonNullAssertion: <explanation>
             winnerName!,
             {
               fontFamily: "Bokor",
-              fontSize: "60px",
+              fontSize: "40px",
               color: "#ff3333",
               stroke: "#000000",
-              strokeThickness: 6,
+              strokeThickness: 4,
               align: "center",
             },
           )
@@ -1328,25 +1428,7 @@ export class FightScene extends Scene {
     });
   }
 
-  private refreshPlayerStats(withDelay = false): void {
-    if (withDelay) {
-      // For combat damage, use delayed update for both stats and health bars
-      this.player1Stats?.updateWithDelay(this.player1);
-      this.player2Stats?.updateWithDelay(this.player2);
-
-      // Update health/stamina bars with same delay
-      this.time.delayedCall(1200, () => {
-        this.healthManager.updateBars();
-      });
-    } else {
-      // For initial setup, update immediately
-      this.player1Stats?.update(this.player1);
-      this.player2Stats?.update(this.player2);
-
-      // Update health/stamina bars immediately
-      this.healthManager.updateBars();
-    }
-  }
+  // refreshPlayerStats method removed - stats handled by external UI
 
   private handleMuteToggle(muteState: boolean): void {
     if (this.sound) {
@@ -1354,5 +1436,401 @@ export class FightScene extends Scene {
     } else {
       console.warn("Sound manager not available in FightScene?");
     }
+  }
+
+  private createFighterInfoUI(): void {
+    const panelHeight = 280; // Increased from 200 to fit attributes
+    const panelY = this.cameras.main.height - panelHeight;
+
+    // Uniform brown background - fully opaque to cover any background variations
+    const panel = this.add.graphics();
+    panel
+      .fillStyle(0x4a3728, 1.0)
+      .fillRect(0, panelY, this.cameras.main.width, panelHeight)
+      .setDepth(88);
+
+    // Gold border around entire panel
+    panel
+      .lineStyle(3, 0xffd700, 0.9)
+      .strokeRect(0, panelY, this.cameras.main.width, panelHeight);
+
+    // Gold center divider - slightly adjusted for visual balance
+    const centerX = this.cameras.main.width / 2 + 2;
+    panel
+      .lineStyle(2, 0xffd700, 0.8)
+      .moveTo(centerX, panelY + 10)
+      .lineTo(centerX, panelY + panelHeight - 10)
+      .strokePath();
+
+    // Store panel info for updates
+    this.fighterInfoPanel = {
+      panelY: panelY,
+      sidePadding: 25,
+    };
+
+    // Create character sheets with consistent padding
+    this.createCharacterSheet(
+      this.player1,
+      this.fighterInfoPanel.sidePadding,
+      panelY + 10,
+      false,
+    );
+    this.createCharacterSheet(
+      this.player2,
+      this.cameras.main.width - this.fighterInfoPanel.sidePadding,
+      panelY + 10,
+      true,
+    );
+  }
+
+  private updateFighterInfoUI(): void {
+    if (!this.fighterInfoPanel) return;
+
+    // Get target values
+    const p1Health =
+      this.player1.currentState?.currentHealth ??
+      (this.player1.calculatedStats?.maxHealth || 100);
+    const p1Stamina =
+      this.player1.currentState?.currentEndurance ??
+      (this.player1.calculatedStats?.maxEndurance || 100);
+    const p2Health =
+      this.player2.currentState?.currentHealth ??
+      (this.player2.calculatedStats?.maxHealth || 100);
+    const p2Stamina =
+      this.player2.currentState?.currentEndurance ??
+      (this.player2.calculatedStats?.maxEndurance || 100);
+
+    // Only tween if values changed and text elements exist
+    if (
+      this.fighterInfoTexts.p1Health &&
+      this.currentDisplayValues.p1Health !== p1Health
+    ) {
+      this.tweenValue(
+        "p1Health",
+        p1Health,
+        this.player1.calculatedStats?.maxHealth || 100,
+      );
+    }
+    if (
+      this.fighterInfoTexts.p1Stamina &&
+      this.currentDisplayValues.p1Stamina !== p1Stamina
+    ) {
+      this.tweenValue(
+        "p1Stamina",
+        p1Stamina,
+        this.player1.calculatedStats?.maxEndurance || 100,
+      );
+    }
+    if (
+      this.fighterInfoTexts.p2Health &&
+      this.currentDisplayValues.p2Health !== p2Health
+    ) {
+      this.tweenValue(
+        "p2Health",
+        p2Health,
+        this.player2.calculatedStats?.maxHealth || 100,
+      );
+    }
+    if (
+      this.fighterInfoTexts.p2Stamina &&
+      this.currentDisplayValues.p2Stamina !== p2Stamina
+    ) {
+      this.tweenValue(
+        "p2Stamina",
+        p2Stamina,
+        this.player2.calculatedStats?.maxEndurance || 100,
+      );
+    }
+
+    // If no text elements exist, recreate the entire UI
+    if (!this.fighterInfoTexts.p1Health) {
+      // Clear existing character sheets and text references
+      for (const child of this.children.list) {
+        if (
+          "depth" in child &&
+          (child as Phaser.GameObjects.Text).depth === 91
+        ) {
+          child.destroy();
+        }
+      }
+      this.fighterInfoTexts = {};
+
+      // Recreate character sheets with updated data
+      this.createCharacterSheet(
+        this.player1,
+        this.fighterInfoPanel.sidePadding,
+        this.fighterInfoPanel.panelY + 10,
+        false,
+      );
+      this.createCharacterSheet(
+        this.player2,
+        this.cameras.main.width - this.fighterInfoPanel.sidePadding,
+        this.fighterInfoPanel.panelY + 10,
+        true,
+      );
+    }
+  }
+
+  private tweenValue(
+    key: "p1Health" | "p1Stamina" | "p2Health" | "p2Stamina",
+    targetValue: number,
+    maxValue: number,
+  ): void {
+    const textElement = this.fighterInfoTexts[key];
+    if (!textElement) return;
+
+    this.tweens.addCounter({
+      from: this.currentDisplayValues[key],
+      to: targetValue,
+      duration: 500,
+      onUpdate: (tween) => {
+        const currentValue = Math.floor(tween.getValue());
+        this.currentDisplayValues[key] = currentValue;
+        textElement.setText(`${currentValue}/${maxValue}`);
+      },
+    });
+  }
+
+  private createCharacterSheet(
+    player: Fighter,
+    baseX: number,
+    baseY: number,
+    rightAlign: boolean,
+  ): void {
+    const align = rightAlign ? 1 : 0;
+    let y = baseY;
+
+    // NAME - aligned with ATTRIBUTES header (same style and positioning)
+    const nameX = rightAlign ? baseX + 4 : baseX - 4;
+    const nameText = rightAlign
+      ? `ID: ${player.id} - PLAYER 2`
+      : `PLAYER 1 - ID: ${player.id}`;
+    this.add
+      .text(nameX, y, nameText, {
+        fontFamily: "Arial",
+        fontSize: "14px",
+        color: "#FFD700",
+        fontStyle: "bold",
+      })
+      .setOrigin(rightAlign ? 1 : 0, 0)
+      .setDepth(91);
+    y += 25;
+
+    // EQUIPMENT - better spacing
+    this.createIconValuePair(
+      baseX,
+      y,
+      "⚔️",
+      this.getWeaponName(player.currentSkin.weapon),
+      rightAlign,
+    );
+    y += 22;
+    this.createIconValuePair(
+      baseX,
+      y,
+      "🛡️",
+      this.getArmorName(player.currentSkin.armor),
+      rightAlign,
+    );
+    y += 22;
+    this.createIconValuePair(
+      baseX,
+      y,
+      this.getStanceIcon(player.stance),
+      this.getStanceName(player.stance),
+      rightAlign,
+    );
+    y += 25;
+
+    // RECORD - just numbers
+    const wins = player.record.wins || 0;
+    const losses = player.record.losses || 0;
+    const kills = player.record.kills || 0;
+    this.createIconValuePair(
+      baseX,
+      y,
+      "🏆",
+      `${wins}-${losses}-${kills}`,
+      rightAlign,
+    );
+    y += 25;
+
+    // HEALTH & ENDURANCE - current/max format with tweening
+    const currentHealth =
+      player.currentState?.currentHealth ??
+      (player.calculatedStats?.maxHealth || 100);
+    const maxHealth = player.calculatedStats?.maxHealth || 100;
+    const currentEndurance =
+      player.currentState?.currentEndurance ??
+      (player.calculatedStats?.maxEndurance || 100);
+    const maxEndurance = player.calculatedStats?.maxEndurance || 100;
+
+    // Initialize display values on first creation
+    const isPlayer1 = !rightAlign;
+    if (isPlayer1) {
+      if (this.currentDisplayValues.p1Health === 0)
+        this.currentDisplayValues.p1Health = currentHealth;
+      if (this.currentDisplayValues.p1Stamina === 0)
+        this.currentDisplayValues.p1Stamina = currentEndurance;
+    } else {
+      if (this.currentDisplayValues.p2Health === 0)
+        this.currentDisplayValues.p2Health = currentHealth;
+      if (this.currentDisplayValues.p2Stamina === 0)
+        this.currentDisplayValues.p2Stamina = currentEndurance;
+    }
+
+    this.fighterInfoTexts[isPlayer1 ? "p1Health" : "p2Health"] =
+      this.createIconValuePair(
+        baseX,
+        y,
+        "❤️",
+        `${Math.floor(isPlayer1 ? this.currentDisplayValues.p1Health : this.currentDisplayValues.p2Health)}/${maxHealth}`,
+        rightAlign,
+      );
+    y += 22;
+    this.fighterInfoTexts[isPlayer1 ? "p1Stamina" : "p2Stamina"] =
+      this.createIconValuePair(
+        baseX,
+        y,
+        "⚡",
+        `${Math.floor(isPlayer1 ? this.currentDisplayValues.p1Stamina : this.currentDisplayValues.p2Stamina)}/${maxEndurance}`,
+        rightAlign,
+      );
+    y += 25;
+
+    // ATTRIBUTES SECTION - moved to bottom for better visual flow
+    // Attributes header aligned with icon edges (left edge for P1, right edge for P2)
+    const attributesHeaderX = rightAlign ? baseX + 4 : baseX - 4;
+    this.add
+      .text(attributesHeaderX, y, "ATTRIBUTES", {
+        fontFamily: "Arial",
+        fontSize: "14px",
+        color: "#FFD700",
+        fontStyle: "bold",
+      })
+      .setOrigin(rightAlign ? 1 : 0, 0)
+      .setDepth(91);
+    y += 22;
+
+    // Row 1: Strength, Constitution, Size
+    this.createAttributeRow(
+      baseX,
+      y,
+      [
+        { icon: "", name: "STR", value: player.attributes.strength },
+        { icon: "", name: "CON", value: player.attributes.constitution },
+        { icon: "", name: "SIZE", value: player.attributes.size },
+      ],
+      rightAlign,
+    );
+    y += 32; // Increased spacing for two-line attributes
+
+    // Row 2: Agility, Stamina, Luck
+    this.createAttributeRow(
+      baseX,
+      y,
+      [
+        { icon: "", name: "AGI", value: player.attributes.agility },
+        { icon: "", name: "STA", value: player.attributes.stamina },
+        { icon: "", name: "LUCK", value: player.attributes.luck },
+      ],
+      rightAlign,
+    );
+  }
+
+  private createAttributeRow(
+    baseX: number,
+    y: number,
+    attributes: Array<{ icon: string; name: string; value: number }>,
+    rightAlign: boolean,
+  ): void {
+    const attributeWidth = 70; // Space for each attribute
+    const startX = rightAlign
+      ? baseX - (attributes.length - 1) * attributeWidth + 4 // Align with right edge of icons
+      : baseX - 4; // Align with left edge of icons
+
+    attributes.forEach((attr, index) => {
+      const x = rightAlign
+        ? startX + (attributes.length - 1 - index) * attributeWidth
+        : startX + index * attributeWidth;
+
+      // Attribute name and value on separate lines
+      this.add
+        .text(x, y, attr.name, {
+          fontFamily: "Arial",
+          fontSize: "12px",
+          color: "#CCCCCC",
+          fontStyle: "bold",
+        })
+        .setOrigin(rightAlign ? 1 : 0, 0)
+        .setDepth(91);
+
+      this.add
+        .text(x, y + 14, attr.value.toString(), {
+          fontFamily: "Arial",
+          fontSize: "16px",
+          color: "#FFFFFF",
+          fontStyle: "bold",
+        })
+        .setOrigin(rightAlign ? 1 : 0, 0)
+        .setDepth(91);
+    });
+  }
+
+  private createIconValuePair(
+    x: number,
+    y: number,
+    icon: string,
+    value: string,
+    rightAlign: boolean,
+  ): Phaser.GameObjects.Text {
+    const iconX = rightAlign ? x - 5 : x + 5;
+    const textX = rightAlign ? x - 25 : x + 25;
+    const align = rightAlign ? 1 : 0;
+
+    // Icon
+    this.add
+      .text(iconX, y, icon, {
+        fontFamily: "Arial",
+        fontSize: "18px",
+      })
+      .setOrigin(0.5, 0)
+      .setDepth(91);
+
+    // Value text - bigger and better
+    return this.add
+      .text(textX, y, value, {
+        fontFamily: "Arial",
+        fontSize: "16px",
+        color: "#FFFFFF",
+        fontStyle: "bold",
+      })
+      .setOrigin(rightAlign ? 1 : 0, 0)
+      .setDepth(91);
+  }
+
+  private getStanceIcon(stance: number): string {
+    switch (stance) {
+      case 0:
+        return "🛡️"; // Defensive
+      case 1:
+        return "⚖️"; // Balanced
+      case 2:
+        return "⚔️"; // Offensive
+      default:
+        return "⚖️";
+    }
+  }
+
+  private getWeaponName(weapon: number): string {
+    return getWeaponDisplayName(weapon as WeaponType) || `Weapon #${weapon}`;
+  }
+
+  private getArmorName(armor: number): string {
+    return getArmorDisplayName(armor as ArmorType) || `Armor #${armor}`;
+  }
+
+  private getStanceName(stance: number): string {
+    return getStanceDisplayName(stance as StanceType) || `Stance #${stance}`;
   }
 }
