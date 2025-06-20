@@ -8,10 +8,11 @@ import type { StanceType } from "@/types/equipment.types";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 // import { AttributesPopover } from "./attributes-popover";
-import { StanceSelectionModal } from "./stance-selection-modal";
+// import { StanceSelectionModal } from "./stance-selection-modal";
 import { cn } from "@/lib/utils";
 import { BattleModal, BATTLE_THEMES } from "@/components/shared/battle-modal";
 import { GauntletRegistrationForm } from "@/components/gauntlet/gauntlet-registration-form";
+import { StanceSelector } from "./stance-selector";
 
 interface EnhancedCompactCharacterCardProps {
   character: Player;
@@ -178,14 +179,15 @@ export function EnhancedCompactCharacterCard({
 
         {/* Magical Sparkles - Only when selected AND currently hovered */}
         <AnimatePresence>
-          {isSelected && isCurrentlyHovered &&
+          {isSelected &&
+            isCurrentlyHovered &&
             [...Array(6)].map((_, i) => (
               <motion.div
                 key={`sparkle-${character.id}-${i}`}
                 className="absolute pointer-events-none z-15"
                 style={{
-                  left: `${20 + (i * 12) % 60}%`,
-                  top: `${15 + (i * 8) % 70}%`,
+                  left: `${20 + ((i * 12) % 60)}%`,
+                  top: `${15 + ((i * 8) % 70)}%`,
                 }}
                 initial={{ opacity: 0, scale: 0 }}
                 animate={{
@@ -252,16 +254,18 @@ export function EnhancedCompactCharacterCard({
                 "absolute top-2 right-2 z-20 p-1.5 rounded-full backdrop-blur-sm transition-all duration-200",
                 isGauntletAvailable
                   ? "bg-purple-600/80 hover:bg-purple-500/90 border border-purple-400/50 shadow-lg shadow-purple-500/30"
-                  : "bg-stone-700/80 border border-stone-500/50"
+                  : "bg-stone-700/80 border border-stone-500/50",
               )}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
               disabled={!isGauntletAvailable}
             >
-              <Trophy className={cn(
-                "h-3 w-3",
-                isGauntletAvailable ? "text-purple-100" : "text-stone-400"
-              )} />
+              <Trophy
+                className={cn(
+                  "h-3 w-3",
+                  isGauntletAvailable ? "text-purple-100" : "text-stone-400",
+                )}
+              />
             </motion.button>
           )}
 
@@ -342,9 +346,13 @@ export function EnhancedCompactCharacterCard({
             <span>K: {character.record.kills}</span>
             <span>R: {character.battleRating}</span>
           </div>
-
+          {/* <StanceSelector
+            character={character}
+            currentStance={character.stance as StanceType}
+            onStanceChange={handleStanceChange}
+          /> */}
           {/* Button animations only when card has focus */}
-          <motion.div
+          {/* <motion.div
           // whileHover={showAnimations ? { scale: 1.02 } : undefined}
           // whileTap={{ scale: 0.98 }}
           >
@@ -365,17 +373,17 @@ export function EnhancedCompactCharacterCard({
             >
               {isSelected ? "Change Stance" : "Select"}
             </Button>
-          </motion.div>
+          </motion.div> */}
         </div>
       </motion.div>
 
-      <StanceSelectionModal
+      {/* <StanceSelectionModal
         isOpen={showStanceModal}
         onClose={() => setShowStanceModal(false)}
         character={character}
         currentStance={character.stance as StanceType}
         onStanceChange={handleStanceChange}
-      />
+      /> */}
 
       {/* Gauntlet Registration Modal */}
       <BattleModal

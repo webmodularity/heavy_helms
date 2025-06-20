@@ -100,7 +100,7 @@ export function StanceSelector({
           type="single"
           value={String(stance)}
           onValueChange={handleStanceChange}
-          className="flex justify-between p-1 bg-stone-800/60 rounded-lg border border-yellow-500/20"
+          className="flex justify-between p-1 bg-stone-800/60 rounded-lg border border-yellow-500/20 flex-1 w-full"
         >
           {Object.entries(stanceInfo).map(([value, info]) => (
             <ToggleGroupItem
@@ -110,9 +110,9 @@ export function StanceSelector({
             >
               <div className="flex flex-col items-center gap-1 py-2 relative z-10">
                 <span className="text-yellow-400">{info.icon}</span>
-                <span className="text-xs font-medium text-zinc-200 font-bokor">
+                {/* <span className="text-xs font-medium text-zinc-200 font-bokor">
                   {info.label}
-                </span>
+                </span> */}
               </div>
 
               {stance === Number(value) && (
@@ -130,14 +130,14 @@ export function StanceSelector({
         </ToggleGroup>
       </motion.div>
 
-      <motion.p
+      {/* <motion.p
         className="text-[11px] text-center text-zinc-500 italic"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.3, delay: 0.25 }}
       >
         {stanceInfo[stance].description}
-      </motion.p>
+      </motion.p> */}
     </motion.div>
   );
 }
