@@ -85,6 +85,7 @@ export function FarcasterProvider({ children }: { children: ReactNode }) {
             nonce: nonce,
             acceptAuthAddress: true,
           });
+          console.log("result", result);
           await loginToFrame({
             message: result.message,
             signature: result.signature,
