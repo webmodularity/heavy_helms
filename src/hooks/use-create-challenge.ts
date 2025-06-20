@@ -77,7 +77,7 @@ export function useCreateChallenge() {
       }
 
       // Convert wager amount to wei
-      const wagerValue = parseEther(wagerAmount);
+      const wagerValue = BigInt(0);
 
       // Create the loadout from the selected character
       const challengerLoadout = {
@@ -95,7 +95,7 @@ export function useCreateChallenge() {
         abi: DuelGameABI,
         functionName: "initiateChallenge",
         args: [challengerLoadout, defenderId, wagerValue],
-        value: wagerValue + parseEther("0.0002"),
+        value: wagerValue + parseEther("0.00002"),
       });
 
       // Wait for transaction receipt
