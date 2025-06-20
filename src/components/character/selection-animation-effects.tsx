@@ -229,7 +229,7 @@ export function SelectionAnimationEffects({
               }}
               animate={{ 
                 opacity: [0, 0.8, 0],
-                scale: [0, 2.5, 3.5],
+                scale: [0, 1.5, 2.5],
               }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.6, ease: "easeOut" }}
@@ -245,7 +245,7 @@ export function SelectionAnimationEffects({
               }}
               animate={{ 
                 opacity: [0, 0.6, 0],
-                scale: [0, 3, 4],
+                scale: [0, 2, 3],
               }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.8, delay: 0.1, ease: "easeOut" }}
