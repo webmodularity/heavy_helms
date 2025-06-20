@@ -94,7 +94,7 @@ export function BattleModal({
 
           <motion.div
             className="relative bg-gradient-to-b from-stone-900/95 to-stone-950/95 
-                       border-2 rounded-lg backdrop-blur-sm p-6 overflow-hidden"
+                       border-2 rounded-lg backdrop-blur-sm p-2 overflow-hidden"
             style={{
               borderColor: theme.border + "60",
               boxShadow: theme.shadow,

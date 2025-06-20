@@ -1,12 +1,11 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { Swords, Loader2 } from "lucide-react";
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { Swords } from "lucide-react";
+import { useState } from "react";
 import type { Player } from "@/types/player.types";
-import { BattleModal, BATTLE_THEMES } from "@/components/shared/battle-modal";
-import { CreateChallengeForm } from "@/components/duel/create-challenge-form";
+import { BATTLE_THEMES } from "@/components/shared/battle-modal";
+import { DuelModal } from "./duel-modal";
 
 interface ContextualDuelButtonProps {
   selectedCharacter: Player | null;
@@ -23,7 +22,6 @@ export function ContextualDuelButton({
 }: ContextualDuelButtonProps) {
   const [showDuelModal, setShowDuelModal] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
-  const router = useRouter();
 
   const handleDuelClick = () => {
     if (!selectedCharacter) return;
@@ -185,21 +183,13 @@ export function ContextualDuelButton({
         </div>
       )}
 
-      {/* Duel Modal */}
-      <BattleModal
+      {/* Integrated Duel Modal */}
+      <DuelModal
         isOpen={showDuelModal}
         onClose={() => setShowDuelModal(false)}
-        title="Create Challenge"
-        theme={BATTLE_THEMES.duel}
-      >
-        {selectedCharacter && (
-          <CreateChallengeForm
-            character={selectedCharacter}
-            onSuccess={handleChallengeSuccess}
-            onCancel={() => setShowDuelModal(false)}
-          />
-        )}
-      </BattleModal>
+        selectedCharacter={selectedCharacter}
+        onSuccess={handleChallengeSuccess}
+      />
     </>
   );
 } 

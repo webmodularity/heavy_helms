@@ -130,10 +130,10 @@ export function AuthenticatedView() {
         />
       </div>
 
-      <MagicalPortalButton
+      {/* <MagicalPortalButton
         isVisible={showPortalButton}
         selectedCharacterId={selectedCharacter?.id}
-      />
+      /> */}
 
       {/* Contextual Duel Button - Only for Own Characters */}
       <ContextualDuelButton

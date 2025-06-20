@@ -5,9 +5,10 @@ import { Target, Trophy, Swords, Star } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { Player } from "@/types/player.types";
-import { CreateChallengeForm } from "@/components/duel/create-challenge-form";
 import { GauntletRegistrationForm } from "@/components/gauntlet/gauntlet-registration-form";
 import * as Dialog from "@radix-ui/react-dialog";
+import { BATTLE_THEMES, BattleTheme } from "../shared/battle-modal";
+import { DuelModal } from "./duel-modal";
 
 interface MagicalBattlePortalsProps {
   isVisible: boolean;
@@ -134,7 +135,6 @@ export function MagicalBattlePortals({
   return (
     <>
       <div className="fixed bottom-8 left-1/2 transform -translate-x-1/2 z-[100] flex flex-row gap-6">
-        {" "}
         {battleTypes.map((battleType, index) => (
           <MagicalPortalButton
             key={battleType.id}
@@ -150,22 +150,15 @@ export function MagicalBattlePortals({
         ))}
       </div>
 
-      {/* Battle Modals */}
-      <BattleModal
+      {/* Integrated Duel Modal - replaces old BattleModal + CreateChallengeForm */}
+      <DuelModal
         isOpen={openModal === "duel"}
         onClose={handleModalClose}
-        title="Create Challenge"
-        theme={battleTypes.find((bt) => bt.id === "duel")!.theme}
-      >
-        {selectedCharacter && (
-          <CreateChallengeForm
-            character={selectedCharacter}
-            onSuccess={handleChallengeSuccess}
-            onCancel={handleModalClose}
-          />
-        )}
-      </BattleModal>
+        selectedCharacter={selectedCharacter}
+        onSuccess={handleChallengeSuccess}
+      />
 
+      {/* Gauntlet Modal - keeps using BattleModal for now */}
       <BattleModal
         isOpen={openModal === "gauntlet"}
         onClose={handleModalClose}
@@ -391,7 +384,7 @@ interface BattleModalProps {
   onClose: () => void;
   title: string;
   children: React.ReactNode;
-  theme: BattleType["theme"];
+  theme: BattleTheme;
 }
 
 function BattleModal({
