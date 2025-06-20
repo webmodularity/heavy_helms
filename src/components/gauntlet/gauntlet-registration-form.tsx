@@ -293,7 +293,7 @@ export function GauntletRegistrationForm({
             !isProcessing &&
             (formattedMinInterval || numberOfRounds) &&
             requiredSize > 0 && (
-                <Tooltip>
+                <Tooltip defaultOpen={false}>
                   <TooltipTrigger asChild>
                     <button type="button" className="cursor-help">
                       <Info size={14} className="text-stone-400 hover:text-stone-300" />
