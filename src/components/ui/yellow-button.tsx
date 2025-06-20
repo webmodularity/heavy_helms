@@ -5,7 +5,7 @@ type YellowButtonProps = React.ComponentProps<typeof Button>;
 
 export function YellowButton({
   className,
-  variant = "outline",
+  variant = "default",
   size = "sm",
   ...props
 }: YellowButtonProps) {

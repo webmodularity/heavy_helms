@@ -77,9 +77,9 @@ export function CreateChallengeForm({
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4 }}
       >
-        <h2 className="text-sm font-bold text-yellow-400 mb-2">
+        {/* <h2 className="text-sm font-bold text-yellow-400 mb-2">
           Create Challenge
-        </h2>
+        </h2> */}
 
         {/* Defender Selection */}
         <div className="space-y-1">

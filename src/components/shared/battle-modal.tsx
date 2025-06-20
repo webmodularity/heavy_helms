@@ -1,7 +1,8 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import * as Dialog from "@radix-ui/react-dialog";
+import { useEffect, useState } from "react";
 
 export interface BattleTheme {
   primary: string;
@@ -20,6 +21,41 @@ interface BattleModalProps {
   theme: BattleTheme;
 }
 
+interface ParticleProps {
+  color: string;
+  delay: number;
+  duration: number;
+  startX: number;
+  startY: number;
+}
+
+function AnimatedParticle({ color, delay, duration, startX, startY }: ParticleProps) {
+  return (
+    <motion.div
+      className="absolute w-1 h-1 rounded-full pointer-events-none"
+      style={{ backgroundColor: color }}
+      initial={{
+        opacity: 0,
+        scale: 0,
+        x: startX,
+        y: startY,
+      }}
+      animate={{
+        opacity: [0, 1, 0],
+        scale: [0, 1, 0],
+        x: startX + (Math.random() - 0.5) * 100,
+        y: startY + (Math.random() - 0.5) * 100,
+      }}
+      transition={{
+        duration,
+        delay,
+        repeat: Infinity,
+        ease: "easeOut",
+      }}
+    />
+  );
+}
+
 export function BattleModal({
   isOpen,
   onClose,
@@ -27,6 +63,25 @@ export function BattleModal({
   children,
   theme,
 }: BattleModalProps) {
+  const [particles, setParticles] = useState<ParticleProps[]>([]);
+
+  useEffect(() => {
+    if (isOpen) {
+      // Generate particles for animation
+      const newParticles: ParticleProps[] = [];
+      for (let i = 0; i < 12; i++) {
+        newParticles.push({
+          color: theme.particles[i % theme.particles.length],
+          delay: Math.random() * 2,
+          duration: 3 + Math.random() * 2,
+          startX: Math.random() * 400 - 200,
+          startY: Math.random() * 300 - 150,
+        });
+      }
+      setParticles(newParticles);
+    }
+  }, [isOpen, theme.particles]);
+
   return (
     <Dialog.Root open={isOpen} onOpenChange={onClose}>
       <Dialog.Portal>
@@ -38,23 +93,93 @@ export function BattleModal({
           </Dialog.Description>
 
           <motion.div
-            className="bg-gradient-to-b from-stone-900/95 to-stone-950/95 
-                       border-2 rounded-lg shadow-2xl backdrop-blur-sm p-6"
-            style={{ borderColor: theme.border + "60" }}
+            className="relative bg-gradient-to-b from-stone-900/95 to-stone-950/95 
+                       border-2 rounded-lg backdrop-blur-sm p-6 overflow-hidden"
+            style={{
+              borderColor: theme.border + "60",
+              boxShadow: theme.shadow,
+            }}
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             transition={{ duration: 0.3, ease: "easeOut" }}
           >
-            <div className="mb-4">
-              <h2
-                className="text-lg font-bold text-center"
-                style={{ color: theme.border }}
+            {/* Animated Background Gradient Overlay */}
+            <motion.div
+              className="absolute inset-0 rounded-lg pointer-events-none"
+              style={{
+                background: theme.gradient,
+              }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: [0.3, 0.5, 0.3] }}
+              transition={{
+                duration: 4,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            />
+
+            {/* Border Glow Effect */}
+            <motion.div
+              className="absolute inset-0 rounded-lg pointer-events-none"
+              style={{
+                background: `linear-gradient(45deg, ${theme.primary}, ${theme.secondary}, ${theme.primary})`,
+                mask: "linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)",
+                maskComposite: "xor",
+                padding: "2px",
+              }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: [0.4, 0.8, 0.4] }}
+              transition={{
+                duration: 3,
+                repeat: Infinity,
+                ease: "easeInOut",
+              }}
+            />
+
+            {/* Floating Particles */}
+            <AnimatePresence>
+              {isOpen && particles.map((particle, index) => (
+                <AnimatedParticle
+                  key={`particle-${index}`}
+                  {...particle}
+                />
+              ))}
+            </AnimatePresence>
+
+            {/* Content Container */}
+            <div className="relative z-10">
+              <div className="mb-4">
+                <motion.h2
+                  className="text-lg font-bold text-center"
+                  style={{ color: theme.border }}
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.1, duration: 0.3 }}
+                >
+                  {title}
+                </motion.h2>
+                
+                {/* Decorative underline */}
+                <motion.div
+                  className="h-0.5 mx-auto mt-2 rounded-full"
+                  style={{
+                    background: `linear-gradient(90deg, transparent, ${theme.border}, transparent)`,
+                  }}
+                  initial={{ width: 0 }}
+                  animate={{ width: "60%" }}
+                  transition={{ delay: 0.2, duration: 0.5, ease: "easeOut" }}
+                />
+              </div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.2, duration: 0.3 }}
               >
-                {title}
-              </h2>
+                {children}
+              </motion.div>
             </div>
-            {children}
           </motion.div>
         </Dialog.Content>
       </Dialog.Portal>

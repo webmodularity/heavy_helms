@@ -284,8 +284,8 @@ export function GauntletRegistrationForm({
       exit={{ opacity: 0, y: 20, transition: { duration: 0.3 } }}
     >
       {/* Compact Header */}
-      <div className="flex items-center mb-4">
-        <div className="flex items-center gap-2">
+      <div className="flex items-start mb-4 flex-col">
+        <div className="flex items-center gap-2 justify-between">
           <h2 className="text-md font-bold text-yellow-400">
             Current Queue
           </h2>
@@ -293,7 +293,6 @@ export function GauntletRegistrationForm({
             !isProcessing &&
             (formattedMinInterval || numberOfRounds) &&
             requiredSize > 0 && (
-              <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
                     <button type="button" className="cursor-help">
@@ -317,7 +316,6 @@ export function GauntletRegistrationForm({
                     )}
                   </TooltipContent>
                 </Tooltip>
-              </TooltipProvider>
             )}
         </div>
         
@@ -325,7 +323,7 @@ export function GauntletRegistrationForm({
         {!isReady ? (
           <Skeleton className="h-6 w-24" />
         ) : (
-          <div className="text-sm font-medium text-stone-200 px-3 py-1">
+          <div className="text-sm font-medium text-stone-200 py-1">
             {localQueueSize ?? "??"} / {requiredSize} REGISTERED
           </div>
         )}
@@ -376,6 +374,7 @@ export function GauntletRegistrationForm({
       {/* Action Buttons */}
       <div className="flex gap-3 mt-4 pt-3 border-t border-stone-700/50">
         <YellowButton
+          variant="default"
           onClick={isInQueue ? handleWithdrawClick : handleRegisterClick}
           className={`flex-1 ${
             isInQueue
@@ -399,7 +398,7 @@ export function GauntletRegistrationForm({
         </YellowButton>
         <YellowButton
           onClick={onCancel}
-          variant="outline"
+          variant="ghost"
           className="flex-1"
           disabled={isProcessing}
         >
