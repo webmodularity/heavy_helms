@@ -4,8 +4,6 @@ import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { formatEther } from "viem";
 import type { Player } from "@/types/player.types";
-import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
 import { YellowButton } from "@/components/ui/yellow-button";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { request } from "graphql-request";
@@ -15,7 +13,6 @@ import {
   AlertTriangle,
   Clock,
   Info,
-  Users,
   Swords,
   Loader2,
 } from "lucide-react";
@@ -28,7 +25,8 @@ import {
 import { PlayerGauntletStatus } from "@/types/player.types";
 import { useGauntletQueue } from "@/hooks/use-gauntlet-queue";
 import { useAccount } from "wagmi";
-import { ViewGauntletQueueModal } from "@/components/dialogs/view-gauntlet-queue-modal";
+import { useQueuedGauntletPlayers } from "@/hooks/use-queued-gauntlet-players";
+import { GauntletQueueTable } from "@/components/gauntlet/gauntlet-queue-table";
 
 interface GameStats {
   stats: {
@@ -94,6 +92,15 @@ export function GauntletRegistrationForm({
     refetchIntervalInBackground: true,
   });
 
+  // Queue data hook
+  const {
+    data: queuedPlayers,
+    isLoading: isLoadingQueue,
+    error: queueError,
+    isSuccess: isQueueSuccess,
+    refetch: refetchQueue,
+  } = useQueuedGauntletPlayers();
+
   const {
     queuePlayer,
     withdrawPlayer,
@@ -108,11 +115,15 @@ export function GauntletRegistrationForm({
   );
   const [hasLoadedInitialData, setHasLoadedInitialData] = useState(false);
   const justUpdatedOptimistically = useRef(false);
-  const [isQueueModalOpen, setIsQueueModalOpen] = useState(false);
 
   // Refs to track previous stats values for targeted invalidation
   const prevQueueSizeRef = useRef<number | null>(null);
   const prevLastUpdatedRef = useRef<string | null>(null);
+
+  // Auto-fetch queue on component mount
+  useEffect(() => {
+    refetchQueue();
+  }, [refetchQueue]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
@@ -231,6 +242,7 @@ export function GauntletRegistrationForm({
         });
         setLocalIsInQueue(true);
         queryClient.invalidateQueries({ queryKey: ["gameStats"] });
+        refetchQueue(); // Refresh queue display
         onRegister();
       },
       onError: (err) => {
@@ -252,6 +264,7 @@ export function GauntletRegistrationForm({
         });
         setLocalIsInQueue(false);
         queryClient.invalidateQueries({ queryKey: ["gameStats"] });
+        refetchQueue(); // Refresh queue display
       },
       onError: (err) => {
         console.error("Withdraw TX Error:", err.message);
@@ -260,178 +273,139 @@ export function GauntletRegistrationForm({
   };
 
   return (
-    <TooltipProvider delayDuration={100}>
-      <motion.div
-        className="space-y-3 bg-gradient-to-b from-amber-900/10 to-stone-900/40 rounded-lg border border-yellow-600/20 p-3 h-full flex flex-col justify-between"
-        initial={{ opacity: 0, y: 40 }}
-        animate={{
-          opacity: 1,
-          y: 0,
-          transition: { duration: 0.7, delay: animationDelay },
-        }}
-        exit={{ opacity: 0, y: 40, transition: { duration: 0.3 } }}
-      >
-        <div className="space-y-3">
-          <h2 className="text-base font-bold text-yellow-400 mb-2">
-            Gauntlet Registration
+    <motion.div
+      className="h-full flex flex-col"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{
+        opacity: 1,
+        y: 0,
+        transition: { duration: 0.4, delay: animationDelay },
+      }}
+      exit={{ opacity: 0, y: 20, transition: { duration: 0.3 } }}
+    >
+      {/* Compact Header */}
+      <div className="flex items-center mb-4">
+        <div className="flex items-center gap-2">
+          <h2 className="text-md font-bold text-yellow-400">
+            Current Queue
           </h2>
-
-          <div className="space-y-1.5">
-            <div className="flex items-center gap-1">
-              <Label
-                htmlFor="gauntletStatus"
-                className="text-xs text-stone-300"
-              >
-                Status
-              </Label>
-              {!isLoadingStats &&
-                !isProcessing &&
-                (formattedMinInterval || numberOfRounds) &&
-                requiredSize > 0 && (
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info size={12} className="text-stone-400 cursor-help" />
-                    </TooltipTrigger>
-                    <TooltipContent
-                      side="top"
-                      className="max-w-xs text-center space-y-1"
-                    >
-                      {numberOfRounds && (
-                        <p className="flex items-center justify-center gap-1 text-xs">
-                          <Swords size={10} /> {numberOfRounds} Rounds
-                        </p>
-                      )}
-                      {formattedMinInterval && (
-                        <p className="flex items-center justify-center gap-1 text-xs">
-                          <Clock size={10} /> Max {formattedMinInterval}{" "}
-                          cooldown after full queue.
-                        </p>
-                      )}
-                    </TooltipContent>
-                  </Tooltip>
-                )}
-            </div>
-
-            {!isReady ? (
-              <Skeleton className="h-8 w-full" />
-            ) : (
-              <div className="grid grid-cols-5 gap-1.5">
-                <div className="relative col-span-4">
-                  <Input
-                    id="gauntletStatus"
-                    readOnly
-                    value={`${localQueueSize ?? "??"} / ${requiredSize} REGISTERED`}
-                    className="bg-stone-900/50 border-yellow-600/20 text-stone-200 text-center font-medium tracking-wider h-8 text-xs"
-                  />
-                </div>
-                <YellowButton
-                  type="button"
-                  onClick={() => setIsQueueModalOpen(true)}
-                  title="View Current Queue"
-                  disabled={
-                    !isReady ||
-                    isProcessing ||
-                    !!errorStats ||
-                    requiredSize === 0 ||
-                    (localQueueSize ?? 0) === 0
-                  }
-                  className="h-8 p-0"
-                >
-                  <Users className="h-3.5 w-3.5" />
-                </YellowButton>
-              </div>
+          {!isLoadingStats &&
+            !isProcessing &&
+            (formattedMinInterval || numberOfRounds) &&
+            requiredSize > 0 && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button type="button" className="cursor-help">
+                      <Info size={14} className="text-stone-400 hover:text-stone-300" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    side="top"
+                    className="max-w-xs text-center space-y-1 bg-stone-800 text-stone-100 border border-stone-700"
+                  >
+                    {numberOfRounds && (
+                      <p className="flex items-center justify-center gap-1 text-xs">
+                        <Swords size={10} /> {numberOfRounds} Rounds
+                      </p>
+                    )}
+                    {formattedMinInterval && (
+                      <p className="flex items-center justify-center gap-1 text-xs">
+                        <Clock size={10} /> Max {formattedMinInterval}{" "}
+                        cooldown after full queue.
+                      </p>
+                    )}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
             )}
+        </div>
+        
+        {/* Registration Status */}
+        {!isReady ? (
+          <Skeleton className="h-6 w-24" />
+        ) : (
+          <div className="text-sm font-medium text-stone-200 px-3 py-1">
+            {localQueueSize ?? "??"} / {requiredSize} REGISTERED
           </div>
+        )}
+      </div>
 
-          <div className="grid grid-cols-2 gap-3 pt-0">
-            <div className="space-y-1.5">
-              <Label
-                htmlFor="gauntletEntryFee"
-                className="text-xs text-stone-300"
-              >
-                Entry Fee
-              </Label>
-              {!isReady ? (
-                <Skeleton className="h-8 w-full" />
-              ) : (
-                <Input
-                  id="gauntletEntryFee"
-                  readOnly
-                  value={`${formattedEntryFee} ETH`}
-                  className="bg-stone-900/50 border-yellow-600/20 text-stone-200 text-center font-medium h-8 text-xs"
-                  aria-label="Gauntlet entry fee"
-                />
-              )}
-            </div>
+      {/* Main Queue Table - No extra borders */}
+      <div className="flex-1 overflow-hidden">
+        {isLoadingQueue && (
+          <div className="flex items-center justify-center h-32">
+            <Loader2 className="h-6 w-6 text-yellow-500 animate-spin" />
+            <span className="ml-2 text-sm text-stone-300">Loading queue...</span>
+          </div>
+        )}
 
-            <div className="space-y-1.5">
-              <Label
-                htmlFor="gauntletPayout"
-                className="text-xs text-stone-300"
-              >
-                Gauntlet Prize
-              </Label>
-              {!isReady || requiredSize === 0 ? (
-                <Skeleton className="h-8 w-full" />
-              ) : (
-                <Input
-                  id="gauntletPayout"
-                  readOnly
-                  value={`${formattedPrecisePayout} ETH`}
-                  className="bg-stone-900/50 border-yellow-600/20 text-stone-200 text-center font-medium h-8 text-xs"
-                  aria-label="Calculated gauntlet prize"
-                />
-              )}
+        {queueError && (
+          <div className="flex items-center gap-2 p-3 text-sm text-red-400 bg-red-900/20 border border-red-500/30 rounded-lg">
+            <AlertTriangle className="h-4 w-4 flex-shrink-0" />
+            <span>Error loading queue: {queueError.message}</span>
+          </div>
+        )}
+
+        {isQueueSuccess && (!queuedPlayers || queuedPlayers.length === 0) && (
+          <div className="flex items-center justify-center h-32">
+            <div className="text-center">
+              <p className="text-stone-400 mb-1">Queue is empty</p>
+              <p className="text-xs text-stone-500">Be the first to register!</p>
             </div>
           </div>
+        )}
 
-          {errorStats && !isProcessing && (
-            <div className="flex items-center gap-1.5 p-1.5 text-xs text-red-400 bg-red-900/20 border border-red-500/30 rounded-md">
-              <AlertTriangle className="h-3 w-3 flex-shrink-0" />
-              <span>
-                Error fetching gauntlet data. {(errorStats as Error)?.message}
-              </span>
-            </div>
+        {isQueueSuccess && queuedPlayers && queuedPlayers.length > 0 && (
+          <div className="h-full overflow-y-auto">
+            <GauntletQueueTable players={queuedPlayers} />
+          </div>
+        )}
+      </div>
+
+      {/* Error Messages */}
+      {errorStats && !isProcessing && (
+        <div className="flex items-center gap-2 p-2 text-xs text-red-400 bg-red-900/20 border border-red-500/30 rounded-lg mt-3">
+          <AlertTriangle className="h-3 w-3 flex-shrink-0" />
+          <span>
+            Error fetching gauntlet data. {(errorStats as Error)?.message}
+          </span>
+        </div>
+      )}
+
+      {/* Action Buttons */}
+      <div className="flex gap-3 mt-4 pt-3 border-t border-stone-700/50">
+        <YellowButton
+          onClick={isInQueue ? handleWithdrawClick : handleRegisterClick}
+          className={`flex-1 ${
+            isInQueue
+              ? "bg-red-700 hover:bg-red-800 border-red-700 hover:border-red-800 text-white"
+              : ""
+          }`}
+          disabled={
+            !isReady || isProcessing || !!errorStats || requiredSize === 0
+          }
+        >
+          {(isQueuing || isWithdrawing) && (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           )}
-        </div>
-
-        <div className="flex gap-2 pt-1.5">
-          <YellowButton
-            onClick={isInQueue ? handleWithdrawClick : handleRegisterClick}
-            className={`w-full text-xs py-1.5 h-auto ${
-              isInQueue
-                ? "bg-red-700 hover:bg-red-800 border-red-700 hover:border-red-800 text-white"
-                : ""
-            }`}
-            disabled={
-              !isReady || isProcessing || !!errorStats || requiredSize === 0
-            }
-          >
-            {(isQueuing || isWithdrawing) && (
-              <Loader2 className="mr-1.5 h-3 w-3 animate-spin" />
-            )}
-            {isInQueue
-              ? isWithdrawing
-                ? "Withdrawing..."
-                : "Withdraw"
-              : isQueuing
-                ? "Registering..."
-                : "Register"}
-          </YellowButton>
-          <YellowButton
-            onClick={onCancel}
-            variant="outline"
-            className="w-full text-xs py-1.5 h-auto"
-            disabled={isProcessing}
-          >
-            Cancel
-          </YellowButton>
-        </div>
-      </motion.div>
-      <ViewGauntletQueueModal
-        isOpen={isQueueModalOpen}
-        onClose={() => setIsQueueModalOpen(false)}
-      />
-    </TooltipProvider>
+          {isInQueue
+            ? isWithdrawing
+              ? "Withdrawing..."
+              : "Withdraw"
+            : isQueuing
+              ? "Registering..."
+              : "Register"}
+        </YellowButton>
+        <YellowButton
+          onClick={onCancel}
+          variant="outline"
+          className="flex-1"
+          disabled={isProcessing}
+        >
+          Cancel
+        </YellowButton>
+      </div>
+    </motion.div>
   );
 }

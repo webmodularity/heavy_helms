@@ -12,6 +12,7 @@ import {
   Shield,
   Flame,
   Loader2,
+  Target,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
@@ -87,6 +88,7 @@ export function CharacterDetailsView({
   const [showConfirmRetirement, setShowConfirmRetirement] = useState(false);
   const wagmiConfig = useConfig();
   const [isSkinsModalOpen, setIsSkinsModalOpen] = useState(false);
+  const [isNavigatingToPractice, setIsNavigatingToPractice] = useState(false);
 
   // Fight modal hook
   const {
@@ -120,6 +122,20 @@ export function CharacterDetailsView({
     }
   };
 
+  const handlePracticeMode = () => {
+    if (!character || isNavigatingToPractice) return;
+    
+    setIsNavigatingToPractice(true);
+    router.push(`/practice?player1Id=${character.id}`);
+  };
+
+  // Prefetch practice route
+  useEffect(() => {
+    if (character) {
+      router.prefetch(`/practice?player1Id=${character.id}`);
+    }
+  }, [character, router]);
+
   if (isLoading) {
     return <CharacterDetailsSkeleton />;
   }
@@ -141,7 +157,7 @@ export function CharacterDetailsView({
 
       {/* Main Grid */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-8 md:items-start">
-        {/* Left Column: Image, Loadout Display Button, Retire Button */}
+        {/* Left Column: Image, Loadout Display Button, Practice Button, Retire Button */}
         <div className="col-span-1 flex flex-col space-y-6">
           <CharacterImage
             character={character as Player}
@@ -151,55 +167,86 @@ export function CharacterDetailsView({
             showRetireButton={isOwner && !character.isRetired}
           />
 
-          {/* Current Loadout Button - Always visible, disabled if not owner or retired */}
-          <Button
-            onClick={() =>
-              isOwner && !character.isRetired && setIsSkinsModalOpen(true)
-            }
-            variant="outline"
-            className="w-full text-left p-3 border border-yellow-600/20 rounded-lg bg-stone-900/40 hover:bg-stone-800/60 transition-all duration-200 shadow-md flex flex-col items-start h-auto disabled:opacity-70 disabled:cursor-not-allowed"
-            disabled={!isOwner || character.isRetired}
-          >
-            <div className="flex items-center mb-2 w-full">
-              <Shirt className="h-5 w-5 text-yellow-400 flex-shrink-0 mr-2" />
-              <div className="flex-grow">
-                <span className="block font-semibold text-md text-yellow-300">
-                  Current Loadout
-                </span>
-                <span className="block text-xs text-stone-400">
-                  {isOwner && !character.isRetired
-                    ? "Click to change skin & gear"
-                    : "Skin & gear information"}
-                </span>
+          {/* Current Loadout Section with integrated Practice Mode */}
+          <div className="space-y-3">
+            {/* Current Loadout Button - Always visible, disabled if not owner or retired */}
+            <Button
+              onClick={() =>
+                isOwner && !character.isRetired && setIsSkinsModalOpen(true)
+              }
+              variant="outline"
+              className="w-full text-left p-3 border border-yellow-600/20 rounded-lg bg-stone-900/40 hover:bg-stone-800/60 transition-all duration-200 shadow-md flex flex-col items-start h-auto disabled:opacity-70 disabled:cursor-not-allowed"
+              disabled={!isOwner || character.isRetired}
+            >
+              <div className="flex items-center mb-2 w-full">
+                <Shirt className="h-5 w-5 text-yellow-400 flex-shrink-0 mr-2" />
+                <div className="flex-grow">
+                  <span className="block font-semibold text-md text-yellow-300">
+                    Current Loadout
+                  </span>
+                  <span className="block text-xs text-stone-400">
+                    {isOwner && !character.isRetired
+                      ? "Click to change skin & gear"
+                      : "Skin & gear information"}
+                  </span>
+                </div>
+                {isOwner && !character.isRetired && (
+                  <ChevronRight className="h-5 w-5 text-stone-400 flex-shrink-0 ml-auto" />
+                )}
               </div>
-              {isOwner && !character.isRetired && (
-                <ChevronRight className="h-5 w-5 text-stone-400 flex-shrink-0 ml-auto" />
-              )}
-            </div>
-            <div className="space-y-1 pt-2 border-t border-yellow-600/10 w-full">
-              <div className="flex items-center text-xs">
-                <Swords className="h-3 w-3 text-yellow-500 mr-2 flex-shrink-0" />
-                <span className="text-stone-300 mr-1">Weapon:</span>
-                <span className="text-stone-100 font-medium truncate">
-                  {getWeaponDisplayName(character.currentSkin.weapon)}
-                </span>
+              <div className="space-y-1 pt-2 border-t border-yellow-600/10 w-full">
+                <div className="flex items-center text-xs">
+                  <Swords className="h-3 w-3 text-yellow-500 mr-2 flex-shrink-0" />
+                  <span className="text-stone-300 mr-1">Weapon:</span>
+                  <span className="text-stone-100 font-medium truncate">
+                    {getWeaponDisplayName(character.currentSkin.weapon)}
+                  </span>
+                </div>
+                <div className="flex items-center text-xs">
+                  <Shield className="h-3 w-3 text-yellow-500 mr-2 flex-shrink-0" />
+                  <span className="text-stone-300 mr-1">Armor:</span>
+                  <span className="text-stone-100 font-medium truncate">
+                    {getArmorDisplayName(character.currentSkin.armor)}
+                  </span>
+                </div>
+                <div className="flex items-center text-xs">
+                  <Flame className="h-3 w-3 text-yellow-500 mr-2 flex-shrink-0" />
+                  <span className="text-stone-300 mr-1">Style:</span>
+                  <span className="text-stone-100 font-medium truncate">
+                    {getStanceDisplayName(character.stance)}
+                  </span>
+                </div>
               </div>
-              <div className="flex items-center text-xs">
-                <Shield className="h-3 w-3 text-yellow-500 mr-2 flex-shrink-0" />
-                <span className="text-stone-300 mr-1">Armor:</span>
-                <span className="text-stone-100 font-medium truncate">
-                  {getArmorDisplayName(character.currentSkin.armor)}
-                </span>
+            </Button>
+
+            {/* Practice Mode Button - Test This Build */}
+            <Button
+              onClick={handlePracticeMode}
+              disabled={character.isRetired || isNavigatingToPractice}
+              className="w-full bg-gradient-to-r from-green-600/80 to-green-500/80 
+                         hover:from-green-500/90 hover:to-green-400/90 
+                         border border-green-500/30 text-white
+                         shadow-lg shadow-green-500/20 
+                         transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <div className="flex items-center justify-center w-full">
+                {isNavigatingToPractice ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  <>
+                    <Target className="h-4 w-4 mr-2" />
+                    Test This Build
+                  </>
+                )}
               </div>
-              <div className="flex items-center text-xs">
-                <Flame className="h-3 w-3 text-yellow-500 mr-2 flex-shrink-0" />
-                <span className="text-stone-300 mr-1">Style:</span>
-                <span className="text-stone-100 font-medium truncate">
-                  {getStanceDisplayName(character.stance)}
-                </span>
+              <div className="text-xs text-green-100/90 mt-1">
+                Practice mode • Risk-free combat
               </div>
-            </div>
-          </Button>
+            </Button>
+          </div>
         </div>
 
         {/* Right Column: Hero Info (desktop), Attributes, Battle Legacy */}

@@ -15,7 +15,7 @@ import { MagicalPortalButton } from "../magical-dimension";
 import type { Fighter } from "@/types/fighter-types";
 import { useFollowingData } from "@/hooks/use-following-data";
 import { BattlePromptSection } from "../battle/battle-prompt-section";
-import { MagicalBattlePortals } from "../battle/magical-battle-portals";
+import { ContextualDuelButton } from "../battle/contextual-duel-button";
 
 export function AuthenticatedView() {
   const searchParams = useSearchParams();
@@ -113,7 +113,7 @@ export function AuthenticatedView() {
   }, []);
 
   const showPortalButton = Boolean(selectedCharacter && currentUserFid);
-  const showBattlePortals = Boolean(selectedCharacter);
+  const showDuelButton = Boolean(selectedCharacter && !selectedCharacter?.isRetired);
 
   return (
     <>
@@ -135,9 +135,11 @@ export function AuthenticatedView() {
         selectedCharacterId={selectedCharacter?.id}
       />
 
-      <MagicalBattlePortals
-        isVisible={showBattlePortals}
+      {/* Contextual Duel Button - Only for Own Characters */}
+      <ContextualDuelButton
         selectedCharacter={selectedCharacter}
+        isVisible={showDuelButton}
+        position="fixed"
       />
     </>
   );

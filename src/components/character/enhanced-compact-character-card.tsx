@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { Info, Check, Sparkles } from "lucide-react";
+import { Info, Check, Sparkles, Trophy, Users } from "lucide-react";
 import Image from "next/image";
 import type { Player } from "@/types/player.types";
 import type { StanceType } from "@/types/equipment.types";
@@ -10,6 +10,8 @@ import { Button } from "@/components/ui/button";
 // import { AttributesPopover } from "./attributes-popover";
 import { StanceSelectionModal } from "./stance-selection-modal";
 import { cn } from "@/lib/utils";
+import { BattleModal, BATTLE_THEMES } from "@/components/shared/battle-modal";
+import { GauntletRegistrationForm } from "@/components/gauntlet/gauntlet-registration-form";
 
 interface EnhancedCompactCharacterCardProps {
   character: Player;
@@ -34,6 +36,7 @@ export function EnhancedCompactCharacterCard({
 }: EnhancedCompactCharacterCardProps) {
   const [showStanceModal, setShowStanceModal] = useState(false);
   const [showSelectEffect, setShowSelectEffect] = useState(false);
+  const [showGauntletModal, setShowGauntletModal] = useState(false);
 
   useEffect(() => {
     if (wasJustSelected) {
@@ -70,9 +73,21 @@ export function EnhancedCompactCharacterCard({
     }
   };
 
+  const handleGauntletClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (character.isRetired) return;
+    setShowGauntletModal(true);
+  };
+
   const handleStanceChange = (newStance: StanceType) => {
     onSelect(character, newStance);
     setShowStanceModal(false);
+  };
+
+  const handleGauntletRegister = () => {
+    console.log("Registering for Gauntlet:", character.id);
+    setShowGauntletModal(false);
   };
 
   const handleMouseEnter = () => {
@@ -87,6 +102,9 @@ export function EnhancedCompactCharacterCard({
 
   // Only show animations when this specific card is hovered or selected
   const showAnimations = isCurrentlyHovered || isSelected;
+
+  // Check if gauntlet is available (mock implementation - replace with real logic)
+  const isGauntletAvailable = true; // TODO: Replace with actual gauntlet availability check
 
   return (
     <>
@@ -160,46 +178,34 @@ export function EnhancedCompactCharacterCard({
 
         {/* Magical Sparkles - Only when selected AND currently hovered */}
         <AnimatePresence>
-          {isSelected && isCurrentlyHovered && (
-            <div
-              key={`sparkles-container-${character.id}`}
-              className="absolute inset-0 pointer-events-none z-20"
-            >
-              {Array.from({ length: 3 }).map((_, i) => (
-                <motion.div
-                  key={`sparkle-${character.id}-${i}`}
-                  initial={{ opacity: 0, scale: 0 }}
-                  animate={{
-                    opacity: [0, 1, 0],
-                    scale: [0, 1, 0],
-                    x: [
-                      `${Math.random() * 100}%`,
-                      `${Math.random() * 100}%`,
-                      `${Math.random() * 100}%`,
-                    ],
-                    y: [
-                      `${Math.random() * 100}%`,
-                      `${Math.random() * 100}%`,
-                      `${Math.random() * 100}%`,
-                    ],
-                  }}
-                  exit={{ opacity: 0, transition: { duration: 0.1 } }}
-                  transition={{
-                    duration: 2,
-                    delay: i * 0.5,
-                    repeat: Number.POSITIVE_INFINITY,
-                    repeatDelay: 1,
-                  }}
-                  className="absolute text-yellow-400"
-                >
-                  <Sparkles className="h-3 w-3" />
-                </motion.div>
-              ))}
-            </div>
-          )}
+          {isSelected && isCurrentlyHovered &&
+            [...Array(6)].map((_, i) => (
+              <motion.div
+                key={`sparkle-${character.id}-${i}`}
+                className="absolute pointer-events-none z-15"
+                style={{
+                  left: `${20 + (i * 12) % 60}%`,
+                  top: `${15 + (i * 8) % 70}%`,
+                }}
+                initial={{ opacity: 0, scale: 0 }}
+                animate={{
+                  opacity: [0, 1, 0],
+                  scale: [0, 1, 0],
+                  rotate: [0, 180],
+                }}
+                exit={{ opacity: 0, scale: 0 }}
+                transition={{
+                  duration: 1.5,
+                  repeat: Number.POSITIVE_INFINITY,
+                  delay: i * 0.2,
+                  ease: "easeInOut",
+                }}
+              >
+                <Sparkles className="w-2 h-2 text-yellow-400" />
+              </motion.div>
+            ))}
         </AnimatePresence>
 
-        {/* Character Image */}
         <div className="aspect-square relative bg-gradient-to-b from-stone-800/30 to-stone-900/30 overflow-hidden">
           {/* Selected character glow */}
           <motion.div
@@ -238,22 +244,51 @@ export function EnhancedCompactCharacterCard({
             ID: {character.id}
           </div>
 
-          {/* Info Button */}
-          {/* <div className="absolute top-2 right-2 z-20">
-            <AttributesPopover character={character}>
-              <Button
-                variant="ghost"
-                size="xs"
-                className="bg-black/70 backdrop-blur-sm text-yellow-500 hover:bg-black/80 hover:text-yellow-400 p-1 h-6 w-6"
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                }}
+          {/* Gauntlet Action Badge - Permanent */}
+          {!character.isRetired && (
+            <motion.button
+              onClick={handleGauntletClick}
+              className={cn(
+                "absolute top-2 right-2 z-20 p-1.5 rounded-full backdrop-blur-sm transition-all duration-200",
+                isGauntletAvailable
+                  ? "bg-purple-600/80 hover:bg-purple-500/90 border border-purple-400/50 shadow-lg shadow-purple-500/30"
+                  : "bg-stone-700/80 border border-stone-500/50"
+              )}
+              whileHover={{ scale: 1.1 }}
+              whileTap={{ scale: 0.95 }}
+              disabled={!isGauntletAvailable}
+            >
+              <Trophy className={cn(
+                "h-3 w-3",
+                isGauntletAvailable ? "text-purple-100" : "text-stone-400"
+              )} />
+            </motion.button>
+          )}
+
+          {/* Enhanced Gauntlet Hover Overlay - Only when hovering the badge area */}
+          <AnimatePresence>
+            {!character.isRetired && isCurrentlyHovered && (
+              <motion.div
+                key={`gauntlet-hover-${character.id}`}
+                initial={{ opacity: 0, y: -10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.2 }}
+                className="absolute top-12 right-2 bg-gradient-to-r from-purple-900/95 to-purple-800/95 
+                           border border-purple-500/40 rounded-lg px-2 py-1 text-[10px] text-purple-100 
+                           backdrop-blur-sm shadow-lg pointer-events-none z-25 whitespace-nowrap"
               >
-                <Info className="h-3 w-3" />
-              </Button>
-            </AttributesPopover>
-          </div> */}
+                {isGauntletAvailable ? (
+                  <div className="flex items-center gap-1">
+                    <Users className="h-2 w-2" />
+                    <span>Join Tournament</span>
+                  </div>
+                ) : (
+                  "No tournaments"
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Selected Badge - Always visible when selected */}
           <AnimatePresence>
@@ -341,6 +376,21 @@ export function EnhancedCompactCharacterCard({
         currentStance={character.stance as StanceType}
         onStanceChange={handleStanceChange}
       />
+
+      {/* Gauntlet Registration Modal */}
+      <BattleModal
+        isOpen={showGauntletModal}
+        onClose={() => setShowGauntletModal(false)}
+        title="Join Gauntlet"
+        theme={BATTLE_THEMES.gauntlet}
+      >
+        <GauntletRegistrationForm
+          character={character}
+          onRegister={handleGauntletRegister}
+          onCancel={() => setShowGauntletModal(false)}
+          animationDelay={0}
+        />
+      </BattleModal>
     </>
   );
 }
