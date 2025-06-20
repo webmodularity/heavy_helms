@@ -124,7 +124,7 @@ export function CharacterDetailsView({
 
   const handlePracticeMode = () => {
     if (!character || isNavigatingToPractice) return;
-    
+
     setIsNavigatingToPractice(true);
     router.push(`/practice?player1Id=${character.id}`);
   };
@@ -229,7 +229,7 @@ export function CharacterDetailsView({
                          shadow-lg shadow-green-500/20 
                          transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <div className="flex items-center justify-center w-full">
+              <div className="flex items-center w-full">
                 {isNavigatingToPractice ? (
                   <>
                     <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -241,9 +241,9 @@ export function CharacterDetailsView({
                     Test This Build
                   </>
                 )}
-              </div>
-              <div className="text-xs text-green-100/90 mt-1">
-                Practice mode • Risk-free combat
+                <div className="text-xs text-green-100/90 ml-auto">
+                  • Risk-free combat
+                </div>
               </div>
             </Button>
           </div>

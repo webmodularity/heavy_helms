@@ -17,35 +17,35 @@ interface GauntletQueueTableProps {
 export function GauntletQueueTable({ players }: GauntletQueueTableProps) {
   if (!players || players.length === 0) {
     return (
-      <p className="text-sm text-stone-400">The queue is currently empty.</p>
+      <p className="text-xs text-stone-400">The queue is currently empty.</p>
     );
   }
 
-  // Consistent padding and text style for headers & cells
-  const headerBaseStyle = "px-3 py-2 text-xs text-stone-300 align-middle";
-  const cellBaseStyle = "px-3 py-2 align-middle text-sm";
+  // Compact padding and text style for headers & cells
+  const headerBaseStyle = "px-2 py-1 text-[10px] text-stone-300 align-middle font-medium";
+  const cellBaseStyle = "px-2 py-1 align-middle text-xs";
 
   return (
     <div className="rounded-md border border-stone-700/50 overflow-hidden max-h-[400px] overflow-y-auto">
       <Table className="min-w-full">
         <TableHeader className="sticky top-0 bg-stone-800/80 backdrop-blur-sm z-10">
           <TableRow className="border-b border-stone-700/50 hover:bg-stone-700/30">
-            {/* Avatar Column Header: Blank, specific width for image */}
-            <TableHead className={`${headerBaseStyle} w-[60px] text-left`} />
-            {/* ID Field Header: specific width */}
-            <TableHead className={`${headerBaseStyle} w-[80px] text-left`}>
+            {/* Avatar Column Header: Blank, reduced width for smaller image */}
+            <TableHead className={`${headerBaseStyle} w-[40px] text-left`} />
+            {/* ID Field Header: reduced width */}
+            <TableHead className={`${headerBaseStyle} w-[50px] text-left`}>
               ID
             </TableHead>
             {/* Name Field Header: takes remaining space */}
             <TableHead className={`${headerBaseStyle} text-left`}>
               NAME
             </TableHead>
-            {/* W-L-K Field Header: specific width, centered */}
-            <TableHead className={`${headerBaseStyle} w-[100px] text-center`}>
+            {/* W-L-K Field Header: reduced width, centered */}
+            <TableHead className={`${headerBaseStyle} w-[70px] text-center`}>
               W-L-K
             </TableHead>
-            {/* Rating Field Header: specific width, right-aligned */}
-            <TableHead className={`${headerBaseStyle} w-[100px] text-right`}>
+            {/* Rating Field Header: reduced width, right-aligned */}
+            <TableHead className={`${headerBaseStyle} w-[65px] text-right`}>
               RATING
             </TableHead>
           </TableRow>
@@ -64,11 +64,9 @@ export function GauntletQueueTable({ players }: GauntletQueueTableProps) {
 
             return (
               <TableRow key={player.id} className="hover:bg-stone-700/20">
-                <TableCell className={"p-2 align-middle w-[60px]"}>
-                  {" "}
-                  {/* Adjusted padding for avatar consistency */}
+                <TableCell className={"p-1 align-middle w-[40px]"}>
                   <Link href={`/character/${player.id}`} legacyBehavior={false}>
-                    <div className="block h-10 w-10 rounded-full overflow-hidden bg-stone-700 relative hover:ring-2 hover:ring-yellow-500 transition-all cursor-pointer">
+                    <div className="block h-8 w-8 rounded-full overflow-hidden bg-stone-700 relative hover:ring-1 hover:ring-yellow-500 transition-all cursor-pointer">
                       {player.currentSkin?.imageURL ? (
                         <Image
                           src={player.currentSkin.imageURL}
@@ -77,7 +75,7 @@ export function GauntletQueueTable({ players }: GauntletQueueTableProps) {
                           className="object-cover"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center text-lg text-stone-400">
+                        <div className="w-full h-full flex items-center justify-center text-xs text-stone-400">
                           ?
                         </div>
                       )}
@@ -85,7 +83,7 @@ export function GauntletQueueTable({ players }: GauntletQueueTableProps) {
                   </Link>
                 </TableCell>
                 <TableCell
-                  className={`${cellBaseStyle} w-[80px] text-stone-300 text-left`}
+                  className={`${cellBaseStyle} w-[50px] text-stone-300 text-left`}
                 >
                   {fighterDisplayId}
                 </TableCell>
@@ -101,13 +99,13 @@ export function GauntletQueueTable({ players }: GauntletQueueTableProps) {
                   </Link>
                 </TableCell>
                 <TableCell
-                  className={`${cellBaseStyle} w-[100px] text-stone-300 text-center`}
+                  className={`${cellBaseStyle} w-[70px] text-stone-300 text-center`}
                 >
                   {player.record?.wins ?? 0}-{player.record?.losses ?? 0}-
                   {player.record?.kills ?? 0}
                 </TableCell>
                 <TableCell
-                  className={`${cellBaseStyle} w-[100px] text-stone-300 text-right`}
+                  className={`${cellBaseStyle} w-[65px] text-stone-300 text-right`}
                 >
                   {player.battleRating ?? "N/A"}
                 </TableCell>
