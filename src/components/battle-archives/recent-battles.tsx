@@ -2,20 +2,28 @@
 
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
-import { motion } from "framer-motion";
-import { Sword, Shield, Trophy, Clock, Loader2 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Sword,
+  Shield,
+  Trophy,
+  Loader2,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRecentDuels } from "@/hooks/use-recent-duels";
 import { useRouter } from "next/navigation";
 import { useGlobalFightModal } from "@/hooks/use-global-fight-modal";
 import { formatEther } from "viem";
+import { CombatDetails } from "./combat-details";
 
 // Loading skeleton for a battle card
 function BattleCardSkeleton() {
   return (
     <div className="p-4 border-b border-stone-800">
-      <div className="flex flex-col md:flex-row items-start md:items-center">
-        <div className="flex-1 flex items-center mb-2 md:mb-0">
+      <div className="flex flex-col items-center space-y-3 md:flex-row md:items-center md:space-y-0">
+        <div className="flex items-center justify-center">
           {/* Challenger skeleton */}
           <div className="flex flex-col items-center mr-4">
             <div className="h-10 w-10 rounded-full bg-stone-800/80 animate-pulse" />
@@ -36,19 +44,13 @@ function BattleCardSkeleton() {
         </div>
 
         {/* Outcome skeleton */}
-        <div className="flex-1 md:text-center">
+        <div className="flex-1 text-center">
           <div className="h-4 w-48 bg-stone-800/80 animate-pulse rounded mx-auto mb-2" />
-          <div className="h-3 w-24 bg-stone-800/80 animate-pulse rounded mx-auto" />
+          <div className="h-3 w-20 bg-stone-800/80 animate-pulse rounded mx-auto" />
         </div>
 
         {/* Timestamp skeleton */}
-        <div className="h-3 w-24 bg-stone-800/80 animate-pulse rounded mt-2 md:mt-0" />
-      </div>
-
-      {/* Battle details skeleton */}
-      <div className="mt-3 flex justify-between">
-        <div className="h-3 w-20 bg-stone-800/80 animate-pulse rounded" />
-        <div className="h-3 w-28 bg-stone-800/80 animate-pulse rounded" />
+        <div className="h-3 w-24 bg-stone-800/80 animate-pulse rounded" />
       </div>
     </div>
   );
@@ -70,8 +72,8 @@ export function RecentDuels() {
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  // State to track which duel is currently active/selected
-  const [activeDuelId, setActiveDuelId] = useState<string | null>(null);
+  // State to track which duel is currently expanded for details
+  const [expandedDuelId, setExpandedDuelId] = useState<string | null>(null);
 
   const handleRefetch = async () => {
     await refetch();
@@ -113,28 +115,10 @@ export function RecentDuels() {
 
   return (
     <div className="bg-stone-900 border border-yellow-600/20 rounded-lg overflow-hidden">
-      <div className="p-4 bg-gradient-to-r from-amber-900/50 to-stone-900 border-b border-yellow-600/20 flex items-center justify-between">
+      <div className="p-4 bg-gradient-to-r from-amber-900/50 to-stone-900 border-b border-yellow-600/20 flex items-center justify-center">
         <div className="flex items-center">
           <Sword className="h-5 w-5 text-yellow-500 mr-2" />
           <h2 className="text-xl font-bold text-yellow-400">Recent Duels</h2>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-stone-400 flex items-center">
-            <Clock className="h-4 w-4 mr-1" /> Latest combat logs
-          </span>
-          <Button
-            // variant="outline"
-            size="sm"
-            onClick={handleRefetch}
-            disabled={isRefetching}
-            className="border-yellow-600/20 hover:bg-yellow-500/10 hover:text-yellow-400  text-yellow-500"
-          >
-            {isRefetching ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              "Refresh"
-            )}
-          </Button>
         </div>
       </div>
 
@@ -184,7 +168,7 @@ export function RecentDuels() {
               const defenderImageUrl =
                 duel.challenge.defenderSnapshot.currentSkin?.imageURL;
 
-              const isActive = activeDuelId === duel.id;
+              const isExpanded = expandedDuelId === duel.id;
 
               return (
                 <motion.div
@@ -192,106 +176,149 @@ export function RecentDuels() {
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
-                  className={`cursor-pointer p-4 transition-colors ${
-                    isActive
-                      ? "bg-yellow-600/15 border-l-4 border-yellow-500/60"
-                      : "hover:bg-amber-900/10"
-                  }`}
-                  onClick={() => {
-                    setActiveDuelId(duel.id);
-                    openFightModal({
-                      txId: duel.id,
-                      title: `Duel: ${winner.fullName} vs ${loser.fullName}`,
-                    });
-                  }}
-                  onMouseEnter={() => setActiveDuelId(null)} // Clear active state on hover to allow normal hover behavior
+                  className="border-b border-stone-800 last:border-b-0"
                 >
-                  <div className="flex flex-col md:flex-row items-start md:items-center">
-                    <div className="flex-1 flex items-center mb-2 md:mb-0">
-                      {/* Challenger */}
-                      <div className="flex flex-col items-center mr-4">
-                        <div
-                          className={`h-10 w-10 rounded-full overflow-hidden bg-stone-800 relative ${isChallenger ? "border-2 border-yellow-400 ring-2 ring-yellow-500/60" : ""}`}
-                        >
-                          {challengerImageUrl ? (
-                            <Image
-                              src={challengerImageUrl}
-                              alt={
-                                duel.challenge.challengerSnapshot.fullName ||
-                                "Challenger"
-                              }
-                              fill
-                              className="object-cover"
-                              sizes="40px" // Provide sizes hint
-                              priority={index < 5} // Prioritize loading images for the first few battles
-                            />
-                          ) : (
-                            <div className="h-full w-full bg-amber-800 flex items-center justify-center text-white font-bold">
-                              {duel.challenge.challengerSnapshot.fullName.charAt(
-                                0,
-                              )}
-                            </div>
-                          )}
-                          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-stone-900/60" />
+                  {/* Main Duel Card - Clickable */}
+                  <div
+                    className="cursor-pointer p-4 hover:bg-amber-900/10 transition-colors"
+                    onClick={() => {
+                      setExpandedDuelId(isExpanded ? null : duel.id);
+                    }}
+                  >
+                    <div className="flex flex-col items-center space-y-3 md:flex-row md:items-center md:space-y-0">
+                      <div className="flex items-center justify-center">
+                        {/* Challenger */}
+                        <div className="flex flex-col items-center mr-4">
+                          <div
+                            className={`h-10 w-10 rounded-full overflow-hidden bg-stone-800 relative ${isChallenger ? "border-2 border-yellow-400 ring-2 ring-yellow-500/60" : ""}`}
+                          >
+                            {challengerImageUrl ? (
+                              <Image
+                                src={challengerImageUrl}
+                                alt={
+                                  duel.challenge.challengerSnapshot.fullName ||
+                                  "Challenger"
+                                }
+                                fill
+                                className="object-cover"
+                                sizes="40px" // Provide sizes hint
+                                priority={index < 5} // Prioritize loading images for the first few battles
+                              />
+                            ) : (
+                              <div className="h-full w-full bg-amber-800 flex items-center justify-center text-white font-bold">
+                                {duel.challenge.challengerSnapshot.fullName.charAt(
+                                  0,
+                                )}
+                              </div>
+                            )}
+                            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-stone-900/60" />
+                          </div>
+                          <span className="text-xs text-stone-400 mt-1 truncate w-20 text-center">
+                            {duel.challenge.challengerSnapshot.fullName}
+                          </span>
                         </div>
-                        <span className="text-xs text-stone-400 mt-1 truncate w-20 text-center">
-                          {duel.challenge.challengerSnapshot.fullName}
-                        </span>
-                      </div>
 
-                      {/* VS Indicator */}
-                      <div className="flex flex-col items-center mx-2">
-                        <div className="text-yellow-600 text-sm">VS</div>
-                        <div className="text-xs text-stone-500">⚔️</div>
-                      </div>
-
-                      {/* Defender */}
-                      <div className="flex flex-col items-center ml-4">
-                        <div
-                          className={`h-10 w-10 rounded-full overflow-hidden bg-stone-800 relative ${!isChallenger ? "border-2 border-yellow-400 ring-2 ring-yellow-500/60" : ""}`}
-                        >
-                          {defenderImageUrl ? (
-                            <Image
-                              src={defenderImageUrl}
-                              alt={
-                                duel.challenge.defenderSnapshot.fullName ||
-                                "Defender"
-                              }
-                              fill
-                              className="object-cover"
-                              sizes="40px" // Provide sizes hint
-                              priority={index < 5} // Prioritize loading images for the first few battles
-                            />
-                          ) : (
-                            <div className="h-full w-full bg-red-900 flex items-center justify-center text-white font-bold">
-                              {duel.challenge.defenderSnapshot.fullName.charAt(
-                                0,
-                              )}
-                            </div>
-                          )}
-                          <div className="absolute inset-0 bg-gradient-to-b from-transparent to-stone-900/60" />
+                        {/* VS Indicator */}
+                        <div className="flex flex-col items-center mx-2">
+                          <div className="text-yellow-600 text-sm">VS</div>
+                          <div className="text-xs text-stone-500">⚔️</div>
                         </div>
-                        <span className="text-xs text-stone-400 mt-1 truncate w-20 text-center">
-                          {duel.challenge.defenderSnapshot.fullName}
-                        </span>
-                      </div>
-                    </div>
 
-                    {/* Outcome - Simplified */}
-                    <div className="flex-1 md:text-center">
-                      <div className="flex items-center justify-center md:justify-center text-sm font-medium">
-                        <Trophy className="h-4 w-4 text-yellow-500 mr-2" />
-                        <span className="text-yellow-400">
-                          {winner.fullName}
-                        </span>
+                        {/* Defender */}
+                        <div className="flex flex-col items-center ml-4">
+                          <div
+                            className={`h-10 w-10 rounded-full overflow-hidden bg-stone-800 relative ${!isChallenger ? "border-2 border-yellow-400 ring-2 ring-yellow-500/60" : ""}`}
+                          >
+                            {defenderImageUrl ? (
+                              <Image
+                                src={defenderImageUrl}
+                                alt={
+                                  duel.challenge.defenderSnapshot.fullName ||
+                                  "Defender"
+                                }
+                                fill
+                                className="object-cover"
+                                sizes="40px" // Provide sizes hint
+                                priority={index < 5} // Prioritize loading images for the first few battles
+                              />
+                            ) : (
+                              <div className="h-full w-full bg-red-900 flex items-center justify-center text-white font-bold">
+                                {duel.challenge.defenderSnapshot.fullName.charAt(
+                                  0,
+                                )}
+                              </div>
+                            )}
+                            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-stone-900/60" />
+                          </div>
+                          <span className="text-xs text-stone-400 mt-1 truncate w-20 text-center">
+                            {duel.challenge.defenderSnapshot.fullName}
+                          </span>
+                        </div>
                       </div>
-                    </div>
 
-                    {/* Timestamp */}
-                    <div className="text-xs text-stone-500 mt-2 md:mt-0 text-center md:text-right">
-                      {formatDate(duel.blockTimestamp)}
+                      {/* Outcome - Centered with ID */}
+                      <div className="flex-1 text-center">
+                        <div className="flex items-center justify-center text-sm font-medium">
+                          <Trophy className="h-4 w-4 text-yellow-500 mr-2" />
+                          <span className="text-yellow-400">
+                            {winner.fullName} ({winner.id.split("-").pop()})
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Timestamp and Expand Button */}
+                      <div className="flex items-center space-x-2">
+                        <div className="text-xs text-stone-500 text-center md:text-right">
+                          {formatDate(duel.blockTimestamp)}
+                        </div>
+                        <div className="text-stone-400">
+                          {isExpanded ? (
+                            <ChevronUp className="h-4 w-4" />
+                          ) : (
+                            <ChevronDown className="h-4 w-4" />
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
+
+                  {/* Expandable Combat Details */}
+                  <AnimatePresence>
+                    {isExpanded && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.2 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="px-4 pb-4">
+                          <CombatDetails
+                            transactionHash={duel.id}
+                            winnerName={winner.fullName}
+                            loserName={loser.fullName}
+                          />
+                          {/* Action Buttons */}
+                          <div className="flex justify-center mt-3 space-x-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                openFightModal({
+                                  txId: duel.id,
+                                  title: `Duel: ${winner.fullName} vs ${loser.fullName}`,
+                                });
+                              }}
+                              className="border-yellow-600/20 hover:bg-yellow-500/10 hover:text-yellow-400 text-stone-400"
+                            >
+                              Watch Replay
+                            </Button>
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
                 </motion.div>
               );
             })}

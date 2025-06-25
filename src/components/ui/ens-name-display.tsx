@@ -34,17 +34,6 @@ export function EnsNameDisplay({
     chainId: mainnet.id,
   });
 
-  // --- Debugging Log ---
-  useEffect(() => {
-    if (address) {
-      console.log(
-        `ENS Lookup for ${address}: isLoading=${isLoading}, isError=${isError}, ensName=${ensName}, error=`,
-        error,
-      );
-    }
-  }, [address, isLoading, isError, ensName, error]);
-  // --- End Debugging Log ---
-
   // Show skeleton while loading (Only shows if address is provided and fetch starts)
   if (address && isLoading) {
     return (

@@ -3,8 +3,9 @@
 import { useState } from "react";
 // Import only the needed component and icons
 import { WarriorLeaderboard } from "@/components/leaderboards/warrior-leaderboard"; // Assuming it's reusable
-import { Trophy, RefreshCw } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { VelvetRopeLeaderboard } from "@/components/leaderboards/velvet-rope-leaderboard";
+import { GreenRoomLeaderboard } from "@/components/leaderboards/green-room-leaderboard";
+import { Trophy, Heart, Leaf } from "lucide-react";
 
 export default function LeaderboardsPage() {
   // State for tabs, even if only one initially
@@ -20,13 +21,15 @@ export default function LeaderboardsPage() {
   // };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10">
+    <div className="max-w-7xl mx-auto px-3 sm:px-4 lg:px-6 py-2 md:py-4 space-y-6 md:space-y-10">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold text-yellow-500">Leaderboards</h1>
-          <p className="text-sm text-stone-400 mt-1">
-            Rankings of the mightiest warriors and wealthiest participants.
+          <h1 className="text-2xl md:text-3xl font-bold text-yellow-500">
+            Leaderboards
+          </h1>
+          <p className="text-xs md:text-sm text-stone-400 mt-1">
+            Rankings of the mightiest warriors.
           </p>
         </div>
         {/* Removed the Refresh Ranks Button */}
@@ -41,28 +44,48 @@ export default function LeaderboardsPage() {
         */}
       </div>
 
-      {/* Tabs navigation - Initially just one tab */}
-      <div className="sticky top-4 z-10 bg-stone-950/80 backdrop-blur-md p-4 rounded-lg border border-stone-800/60 shadow-lg">
-        <div className="flex flex-wrap gap-2 justify-center md:justify-start">
-          <button
-            type="button"
-            onClick={() => handleTabChange("warriors")}
-            className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm font-medium transition-colors ${
-              activeTab === "warriors"
-                ? "bg-yellow-500 text-black"
-                : "bg-stone-800 text-stone-300 hover:bg-stone-700 hover:text-stone-100"
-            }`}
-          >
-            <Trophy className="h-4 w-4" />
-            Warrior Leaderboard
-          </button>
-        </div>
+      {/* Navigation matching subtitle style */}
+      <div className="flex justify-center items-center gap-6">
+        <button
+          type="button"
+          onClick={() => handleTabChange("warriors")}
+          className={`text-base md:text-lg transition-colors ${
+            activeTab === "warriors"
+              ? "text-yellow-500 underline"
+              : "text-stone-200 hover:text-yellow-400"
+          }`}
+        >
+          Warriors
+        </button>
+        <button
+          type="button"
+          onClick={() => handleTabChange("velvet-rope")}
+          className={`text-base md:text-lg transition-colors ${
+            activeTab === "velvet-rope"
+              ? "text-pink-500 underline"
+              : "text-stone-200 hover:text-pink-400"
+          }`}
+        >
+          Velvet Rope
+        </button>
+        <button
+          type="button"
+          onClick={() => handleTabChange("green-room")}
+          className={`text-base md:text-lg transition-colors ${
+            activeTab === "green-room"
+              ? "text-green-500 underline"
+              : "text-stone-200 hover:text-green-400"
+          }`}
+        >
+          Green Room
+        </button>
       </div>
 
       {/* Content section */}
       <div>
-        {/* Render only the Warrior Leaderboard initially */}
         {activeTab === "warriors" && <WarriorLeaderboard />}
+        {activeTab === "velvet-rope" && <VelvetRopeLeaderboard />}
+        {activeTab === "green-room" && <GreenRoomLeaderboard />}
       </div>
     </div>
   );

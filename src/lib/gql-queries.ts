@@ -29,6 +29,8 @@ export const PLAYER_DATA_FRAGMENT = gql`
     wins
     losses
     kills
+    duelWins
+    gauntletWins
     uniqueWins
     uniqueLosses
     battleRating
@@ -109,6 +111,8 @@ export const FIGHTER_BASE_FRAGMENT = gql`
     wins
     losses
     kills
+    duelWins
+    gauntletWins
   }
 `;
 
@@ -319,6 +323,19 @@ export const GET_COMBAT_RESULT = gql`
       packedResults
       blockTimestamp
       blockNumber
+      logIndex
+      
+      # New detailed combat statistics (optional)
+      player1Won
+      gameEngineVersion
+      winCondition
+      roundCount
+      player1TotalDamage
+      player2TotalDamage
+      player1Crits
+      player2Crits
+      player1Hits
+      player2Hits
     }
   }
 `;
@@ -339,6 +356,72 @@ export const GET_COMBAT_RESULTS = gql`
       blockNumber
       blockTimestamp
       packedResults
+    }
+  }
+`;
+
+export const GET_COMBAT_RESULTS_DETAILED = gql`
+  query GetCombatResultsDetailed($txHash: Bytes!) {
+    combatResults(
+      where: { transactionHash: $txHash }
+      orderBy: logIndex
+      orderDirection: asc
+    ) {
+      id
+      transactionHash
+      logIndex
+      player1Data
+      player2Data
+      winningPlayerId
+      blockNumber
+      blockTimestamp
+      packedResults
+      
+      # New detailed combat statistics
+      player1Won
+      gameEngineVersion
+      winCondition
+      roundCount
+      
+      # Player 1 combat statistics
+      player1TotalDamage
+      player1TotalStaminaLost
+      player1Attacks
+      player1Hits
+      player1Misses
+      player1Crits
+      player1Blocks
+      player1Counters
+      player1Dodges
+      player1Parries
+      player1Ripostes
+      player1DefensiveActions
+      player1MaxDamage
+      
+      # Player 2 combat statistics
+      player2TotalDamage
+      player2TotalStaminaLost
+      player2Attacks
+      player2Hits
+      player2Misses
+      player2Crits
+      player2Blocks
+      player2Counters
+      player2Dodges
+      player2Parries
+      player2Ripostes
+      player2DefensiveActions
+      player2MaxDamage
+      
+      # New health and stamina fields
+      player1MaxHealth
+      player1MaxStamina
+      player1EndingHealth
+      player1EndingStamina
+      player2MaxHealth
+      player2MaxStamina
+      player2EndingHealth
+      player2EndingStamina
     }
   }
 `;

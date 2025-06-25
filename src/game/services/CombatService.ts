@@ -15,7 +15,10 @@ import type { Fighter } from "@/types/fighter-types";
 import { request } from "graphql-request";
 import { viemClient } from "@/config";
 import { SUBGRAPH_URL } from "@/config";
-import { GET_COMBAT_RESULTS } from "@/lib/gql-queries";
+import {
+  GET_COMBAT_RESULTS,
+  GET_COMBAT_RESULTS_DETAILED,
+} from "@/lib/gql-queries";
 
 // biome-ignore lint/complexity/noStaticOnlyClass: <explanation>
 export class CombatService {
@@ -128,6 +131,56 @@ export class CombatService {
     } catch (error) {
       console.error("Error generating practice mode result:", error);
       throw error;
+    }
+  }
+
+  /**
+   * Fetches raw combat result with detailed statistics by transaction hash from the subgraph
+   * Falls back to basic query if detailed stats are not available
+   */
+  static async fetchDetailedCombatResultByTx(
+    txHash: string,
+    logIndex: number,
+    gameContractAddress: Address,
+  ): Promise<RawCombatResult> {
+    try {
+      // First try with detailed statistics
+      const response = await request<{ combatResults: RawCombatResult[] }>(
+        SUBGRAPH_URL,
+        GET_COMBAT_RESULTS_DETAILED,
+        { txHash: txHash },
+      );
+
+      if (response.combatResults && response.combatResults.length > 0) {
+        console.log(
+          `CombatService: Found ${response.combatResults.length} detailed combat results for txHash ${txHash}, requesting logIndex ${logIndex}`,
+        );
+
+        if (logIndex < response.combatResults.length) {
+          const result = response.combatResults[logIndex];
+          if (result) {
+            return result;
+          }
+        }
+      }
+
+      // Fallback to basic query
+      console.log(
+        "Detailed combat stats not available, falling back to basic query...",
+      );
+      return await CombatService.fetchRawCombatResultByTx(
+        txHash,
+        logIndex,
+        gameContractAddress,
+      );
+    } catch (error) {
+      console.error("Error fetching detailed combat result:", error);
+      // Fallback to basic query
+      return await CombatService.fetchRawCombatResultByTx(
+        txHash,
+        logIndex,
+        gameContractAddress,
+      );
     }
   }
 

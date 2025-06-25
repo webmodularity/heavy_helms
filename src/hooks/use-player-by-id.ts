@@ -19,7 +19,7 @@ export function usePlayerById(playerId: string) {
   const { address } = useAccount();
   // Fetch leaderboard data - Make sure the limit is sufficient if the player might be outside the top few
   const { players: leaderboardPlayers, isLoading: leaderboardLoading } =
-    useLeaderboardData(20); // Fetches top 20, adjust if needed
+    useLeaderboardData({ limit: 20 }); // Fetches top 20, adjust if needed
 
   // Fetch the specific player's data
   const { data, isLoading, error } = useQuery({

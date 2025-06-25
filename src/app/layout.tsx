@@ -7,7 +7,7 @@ import localFont from "next/font/local";
 import { Cinzel, Cormorant_Unicase } from "next/font/google";
 import Image from "next/image";
 import { Toaster } from "sonner";
-import { ConditionalBackButtonWrapper } from "@/components/layout/conditional-back-button-wrapper";
+
 import { GlobalFightModal } from "@/components/modals/global-fight-modal";
 
 // Load Bokor
@@ -73,10 +73,8 @@ export default function RootLayout({
         <Providers>
           <div className="flex flex-col from-slate-900 to-indigo-900">
             <Header />
-            <main className="container mx-auto flex min-h-screen flex-col px-4 pt-0 pb-8 md:px-6 lg:px-8">
-              <ConditionalBackButtonWrapper>
-                {children}
-              </ConditionalBackButtonWrapper>
+            <main className="flex min-h-screen flex-col px-0 pt-0 pb-8">
+              {children}
             </main>
             <Toaster />
             <Footer />
