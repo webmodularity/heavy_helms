@@ -398,6 +398,13 @@ export const GET_COMBAT_RESULTS_DETAILED = gql`
       player1DefensiveActions
       player1MaxDamage
       
+      # Player 1 Failed Attack Types (attacks that didn't land due to opponent's defense)
+      player1AttacksBlocked
+      player1AttacksCountered
+      player1AttacksDodged
+      player1AttacksParried
+      player1AttacksRiposted
+      
       # Player 2 combat statistics
       player2TotalDamage
       player2TotalStaminaLost
@@ -412,6 +419,13 @@ export const GET_COMBAT_RESULTS_DETAILED = gql`
       player2Ripostes
       player2DefensiveActions
       player2MaxDamage
+      
+      # Player 2 Failed Attack Types (attacks that didn't land due to opponent's defense)
+      player2AttacksBlocked
+      player2AttacksCountered
+      player2AttacksDodged
+      player2AttacksParried
+      player2AttacksRiposted
       
       # New health and stamina fields
       player1MaxHealth

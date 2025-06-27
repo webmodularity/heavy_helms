@@ -90,6 +90,13 @@ export interface RawCombatResult {
   player1DefensiveActions?: number;
   player1MaxDamage?: number;
 
+  // Player 1 Failed Attack Types (attacks that didn't land due to opponent's defense)
+  player1AttacksBlocked?: number; // Number of player 1's attacks that were blocked by opponent
+  player1AttacksCountered?: number; // Number of player 1's attacks that were countered by opponent
+  player1AttacksDodged?: number; // Number of player 1's attacks that were dodged by opponent
+  player1AttacksParried?: number; // Number of player 1's attacks that were parried by opponent
+  player1AttacksRiposted?: number; // Number of player 1's attacks that were riposted by opponent
+
   // Player 2 combat statistics
   player2TotalDamage?: number;
   player2TotalStaminaLost?: number;
@@ -104,6 +111,13 @@ export interface RawCombatResult {
   player2Ripostes?: number;
   player2DefensiveActions?: number;
   player2MaxDamage?: number;
+
+  // Player 2 Failed Attack Types (attacks that didn't land due to opponent's defense)
+  player2AttacksBlocked?: number; // Number of player 2's attacks that were blocked by opponent
+  player2AttacksCountered?: number; // Number of player 2's attacks that were countered by opponent
+  player2AttacksDodged?: number; // Number of player 2's attacks that were dodged by opponent
+  player2AttacksParried?: number; // Number of player 2's attacks that were parried by opponent
+  player2AttacksRiposted?: number; // Number of player 2's attacks that were riposted by opponent
 
   // New health and stamina fields (calculated from player data)
   player1MaxHealth?: number;
