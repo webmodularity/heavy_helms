@@ -249,7 +249,7 @@ export function CombatDetails({
                 <div className="mt-2 p-3 bg-emerald-950/10 rounded border border-emerald-800/20">
                   <div className="space-y-1 text-xs">
                     <div className="flex justify-between">
-                      <span className="text-stone-400">Attacks Received:</span>
+                      <span className="text-stone-400">Attacks Against:</span>
                       <span className="text-stone-200">
                         {metrics.player1.totalAttacksReceived}
                       </span>
@@ -261,7 +261,7 @@ export function CombatDetails({
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-red-400">✗ Attacks Taken:</span>
+                      <span className="text-red-400">✗ Hits:</span>
                       <span className="text-red-300">
                         {metrics.player1.totalAttacksReceived -
                           metrics.player1.successfulDefenses}
@@ -480,7 +480,7 @@ export function CombatDetails({
                 <div className="mt-2 p-3 bg-emerald-950/10 rounded border border-emerald-800/20">
                   <div className="space-y-1 text-xs">
                     <div className="flex justify-between">
-                      <span className="text-stone-400">Attacks Received:</span>
+                      <span className="text-stone-400">Attacks Against:</span>
                       <span className="text-stone-200">
                         {metrics.player2.totalAttacksReceived}
                       </span>
@@ -492,7 +492,7 @@ export function CombatDetails({
                       </span>
                     </div>
                     <div className="flex justify-between">
-                      <span className="text-red-400">✗ Attacks Taken:</span>
+                      <span className="text-red-400">✗ Hits:</span>
                       <span className="text-red-300">
                         {metrics.player2.totalAttacksReceived -
                           metrics.player2.successfulDefenses}
