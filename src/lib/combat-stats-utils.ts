@@ -74,85 +74,12 @@ export function extractCombatMetrics(
     return null; // Old format without detailed stats
   }
 
-  // DEBUG: Check if accuracy + mitigation = 100% (the ACTUAL problem)
-  console.log("🔧 ACCURACY vs MITIGATION VERIFICATION:");
-  console.log(`Transaction: ${combatResult.transactionHash}`);
-
-  const p1Accuracy = combatResult.player1Attacks
-    ? ((combatResult.player1Hits || 0) / combatResult.player1Attacks) * 100
-    : 0;
-  const p2Accuracy = combatResult.player2Attacks
-    ? ((combatResult.player2Hits || 0) / combatResult.player2Attacks) * 100
-    : 0;
-
   // Calculate mitigation rates using ONLY subgraph defensive actions (no workarounds)
   // Use the subgraph's summary defensive actions field instead of calculating manually
   const p1TotalDefenses = combatResult.player1DefensiveActions || 0;
   const p2TotalDefenses = combatResult.player2DefensiveActions || 0;
 
-  const p1Mitigation = combatResult.player2Attacks
-    ? (p1TotalDefenses / combatResult.player2Attacks) * 100
-    : 0;
-
-  const p2Mitigation = combatResult.player1Attacks
-    ? (p2TotalDefenses / combatResult.player1Attacks) * 100
-    : 0;
-
-  console.log("Player 1 (Tom):", {
-    accuracy: `${p1Accuracy.toFixed(1)}%`,
-    mitigation: `${p1Mitigation.toFixed(1)}%`,
-    attacks: combatResult.player1Attacks,
-    hits: combatResult.player1Hits,
-    misses: combatResult.player1Misses,
-    defenses: p1TotalDefenses,
-    blocks: combatResult.player1Blocks || 0,
-    counters: combatResult.player1Counters || 0,
-    dodges: combatResult.player1Dodges || 0,
-    parries: combatResult.player1Parries || 0,
-    ripostes: combatResult.player1Ripostes || 0,
-    // RAW SUBGRAPH FIELDS FOR VERIFICATION:
-    rawDefensiveActions: combatResult.player1DefensiveActions || 0,
-    rawAttacksBlocked: combatResult.player1AttacksBlocked || 0,
-    rawAttacksCountered: combatResult.player1AttacksCountered || 0,
-    rawAttacksDodged: combatResult.player1AttacksDodged || 0,
-    rawAttacksParried: combatResult.player1AttacksParried || 0,
-    rawAttacksRiposted: combatResult.player1AttacksRiposted || 0,
-  });
-  console.log("Player 2 (Mike):", {
-    accuracy: `${p2Accuracy.toFixed(1)}%`,
-    mitigation: `${p2Mitigation.toFixed(1)}%`,
-    attacks: combatResult.player2Attacks,
-    hits: combatResult.player2Hits,
-    misses: combatResult.player2Misses,
-    defenses: p2TotalDefenses,
-    blocks: combatResult.player2Blocks || 0,
-    counters: combatResult.player2Counters || 0,
-    dodges: combatResult.player2Dodges || 0,
-    parries: combatResult.player2Parries || 0,
-    ripostes: combatResult.player2Ripostes || 0,
-    // RAW SUBGRAPH FIELDS FOR VERIFICATION:
-    rawDefensiveActions: combatResult.player2DefensiveActions || 0,
-    rawAttacksBlocked: combatResult.player2AttacksBlocked || 0,
-    rawAttacksCountered: combatResult.player2AttacksCountered || 0,
-    rawAttacksDodged: combatResult.player2AttacksDodged || 0,
-    rawAttacksParried: combatResult.player2AttacksParried || 0,
-    rawAttacksRiposted: combatResult.player2AttacksRiposted || 0,
-  });
-
-  console.log("🎯 ACCURACY vs MITIGATION CHECK:");
-  console.log(
-    `Tom accuracy + Mike mitigation: ${p1Accuracy.toFixed(1)}% + ${p2Mitigation.toFixed(1)}% = ${(p1Accuracy + p2Mitigation).toFixed(1)}%`,
-  );
-  console.log(
-    `Mike accuracy + Tom mitigation: ${p2Accuracy.toFixed(1)}% + ${p1Mitigation.toFixed(1)}% = ${(p2Accuracy + p1Mitigation).toFixed(1)}%`,
-  );
-  console.log("Expected: Both should equal 100%");
-
-  const check1 = Math.abs(p1Accuracy + p2Mitigation - 100) < 0.1;
-  const check2 = Math.abs(p2Accuracy + p1Mitigation - 100) < 0.1;
-  console.log(`Status: ${check1 && check2 ? "✅ FIXED!" : "❌ BROKEN"}`);
-
-  // Combat metrics calculation - checking v1.1.11 data
+  // Combat metrics calculation
 
   // Calculate total attack attempts for player 1
   // After subgraph fix: attacks field now correctly represents total attempts
