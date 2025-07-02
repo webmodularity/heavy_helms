@@ -32,6 +32,7 @@ import {
 import { useSkinCombatAnalytics } from "@/hooks/use-skin-analytics";
 import { createPlayerSkin } from "@/lib/player-api";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import type { Skin } from "@/types/skin.types";
 
 // Sort options for skin leaderboards - matching warrior leaderboard pattern
@@ -101,6 +102,21 @@ const STANCE_ICONS = {
   2: <Flame className="h-3 w-3" />, // Offensive
 } as const;
 
+// Stance names mapping
+const STANCE_NAMES = {
+  0: "DEFENSIVE",
+  1: "BALANCED",
+  2: "OFFENSIVE",
+} as const;
+
+// Helper function to get stance name from stanceBreakdown
+const getStanceName = (
+  stanceBreakdown: Record<number, { fights: number; wins: number }>,
+): string => {
+  const stanceKey = Number.parseInt(Object.keys(stanceBreakdown)[0]);
+  return STANCE_NAMES[stanceKey as keyof typeof STANCE_NAMES] || "UNKNOWN";
+};
+
 // Helper to format win rate as percentage
 function formatWinRate(winRate: number): string {
   return `${(winRate * 100).toFixed(1)}%`;
@@ -165,7 +181,7 @@ const SkinCard = ({
           )}
           <div>
             <div className="font-medium text-stone-200 hover:text-yellow-400 transition-colors">
-              Skin #{skin.skinCollectionId.slice(-6)}-{skin.skinTokenId}
+              {getStanceName(skin.stanceBreakdown)}
             </div>
             <div className="text-xs text-stone-500">
               {skin.totalCombats} fights
@@ -197,30 +213,12 @@ const SkinCard = ({
           {Math.round(skin.averageDamage)}
         </span>
       </div>
-      <div className="flex gap-1 text-xs">
-        {Object.entries(skin.stanceBreakdown).map(([stance, data]) => {
-          const stanceNum = Number(stance);
-          const winRate =
-            data.fights > 0
-              ? ((data.wins / data.fights) * 100).toFixed(0)
-              : "0";
-
-          return (
-            <div
-              key={stance}
-              className="flex items-center gap-1 text-stone-400"
-            >
-              {STANCE_ICONS[stanceNum as keyof typeof STANCE_ICONS]}
-              <span>{winRate}%</span>
-            </div>
-          );
-        })}
-      </div>
     </div>
   </motion.div>
 );
 
 export function SkinLeaderboard() {
+  const router = useRouter();
   const [sortBy, setSortBy] = useState<SkinSortBy>("winRate");
   const [processedLeaderboard, setProcessedLeaderboard] = useState<
     EnhancedSkinEntry[]
@@ -249,9 +247,15 @@ export function SkinLeaderboard() {
 
       // Create a hash of current data to check if we need to reprocess
       const currentDataHash = JSON.stringify(
-        skinAnalytics.map(
-          (a: any) => `${a.id}-${a.wins}-${a.losses}-${a.totalCombats}`,
-        ),
+        skinAnalytics.map((a: unknown) => {
+          const analytics = a as {
+            id: string;
+            wins: number;
+            losses: number;
+            totalCombats: number;
+          };
+          return `${analytics.id}-${analytics.wins}-${analytics.losses}-${analytics.totalCombats}`;
+        }),
       );
 
       // If data hasn't changed, don't reprocess
@@ -405,6 +409,10 @@ export function SkinLeaderboard() {
     return (
       SORT_OPTIONS.find((option) => option.value === sortBy) || SORT_OPTIONS[0]
     );
+  };
+
+  const handleSkinClick = (skin: EnhancedSkinEntry) => {
+    router.push(`/skin/${skin.skinCollectionId}/${skin.skinTokenId}`);
   };
 
   // Loading skeletons - exact copy from warrior leaderboard
@@ -576,31 +584,29 @@ export function SkinLeaderboard() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
-                className="relative p-4 bg-gradient-to-b from-slate-800/30 to-stone-900 border border-slate-400/30 rounded-lg shadow-lg flex flex-col min-h-[180px] cursor-pointer group order-2 md:order-1"
+                onClick={() => handleSkinClick(topThree[1])}
+                className="relative p-4 bg-gradient-to-b from-slate-800/30 to-stone-900 border border-slate-400/30 rounded-lg shadow-lg flex flex-col min-h-[180px] cursor-pointer group order-2 md:order-1 hover:bg-slate-700/30 transition-colors"
               >
                 <div className="text-center flex-grow">
                   <div className="text-xl font-bold mb-1 text-slate-300">
                     Runner-up
                   </div>
-                  <div className="flex items-end justify-center gap-2 mb-1">
+                  <div className="flex items-start justify-center gap-2 mb-1">
                     {topThree[1].imageURL ? (
                       <Image
                         src={topThree[1].imageURL}
                         alt={`Skin ${topThree[1].skinCollectionId}-${topThree[1].skinTokenId}`}
-                        width={48}
-                        height={48}
-                        className="w-12 h-12 rounded-lg border border-stone-600 object-cover"
+                        width={64}
+                        height={64}
+                        className="w-16 h-16 rounded-lg border-2 border-slate-400 object-cover"
                       />
                     ) : (
-                      <div className="w-12 h-12 rounded-lg bg-stone-700 border border-stone-600 flex items-center justify-center text-lg">
+                      <div className="w-16 h-16 rounded-lg bg-stone-700 border-2 border-slate-400 flex items-center justify-center text-xl">
                         🎨
                       </div>
                     )}
                     <div className="text-stone-200 font-bold group-hover:text-yellow-400 transition-colors text-center">
-                      <div>
-                        Skin #{topThree[1].skinCollectionId.slice(-6)}-
-                        {topThree[1].skinTokenId}
-                      </div>
+                      <div>{getStanceName(topThree[1].stanceBreakdown)}</div>
                       <div className="text-xs font-normal mt-1">
                         <div className="text-orange-400">
                           Avg: {Math.round(topThree[1].averageDamage)} dmg
@@ -612,41 +618,18 @@ export function SkinLeaderboard() {
                       </div>
                     </div>
                   </div>
-                  <div className="inline-flex items-center gap-1 mt-3 font-bold text-slate-400">
+                  <div className="inline-flex items-center gap-1 mt-2 font-bold text-slate-400">
                     <BadgeCheck className="h-4 w-4" />
                     <span>
                       {getSortValue(topThree[1])} {getSortLabel(sortBy)}
                     </span>
                   </div>
-                  <div className="mt-2 text-xs text-stone-400">
+                  <div className="mt-1 text-xs text-stone-400">
                     <span className="inline-block px-2 py-0.5 bg-stone-800 rounded-full font-mono">
                       {topThree[1].wins} W - {topThree[1].losses} L -{" "}
-                      {topThree[1].totalCombats} Fights
+                      {topThree[1].kills || 0} K - {topThree[1].totalCombats}{" "}
+                      Fights
                     </span>
-                  </div>
-                  <div className="mt-2 flex justify-center gap-2 text-xs">
-                    {Object.entries(topThree[1].stanceBreakdown).map(
-                      ([stance, data]) => {
-                        const stanceNum = Number(stance);
-                        const winRate =
-                          data.fights > 0
-                            ? ((data.wins / data.fights) * 100).toFixed(0)
-                            : "0";
-                        return (
-                          <div
-                            key={stance}
-                            className="flex items-center gap-1 text-stone-400"
-                          >
-                            {
-                              STANCE_ICONS[
-                                stanceNum as keyof typeof STANCE_ICONS
-                              ]
-                            }
-                            <span>{winRate}%</span>
-                          </div>
-                        );
-                      },
-                    )}
                   </div>
                 </div>
                 <div className="absolute top-0 left-0 w-full h-1 bg-slate-400/50" />
@@ -659,31 +642,29 @@ export function SkinLeaderboard() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0 }}
-                className="relative p-4 bg-gradient-to-b from-amber-900/30 to-stone-900 border-2 border-yellow-600/40 rounded-lg shadow-lg flex flex-col min-h-[180px] cursor-pointer group order-1 md:order-2"
+                onClick={() => handleSkinClick(topThree[0])}
+                className="relative p-4 bg-gradient-to-b from-amber-900/30 to-stone-900 border-2 border-yellow-600/40 rounded-lg shadow-lg flex flex-col min-h-[180px] cursor-pointer group order-1 md:order-2 hover:bg-amber-800/30 transition-colors"
               >
                 <div className="text-center flex-grow">
                   <div className="text-xl font-bold mb-1 text-yellow-400">
                     Champion
                   </div>
-                  <div className="flex items-end justify-center gap-2 mb-1">
+                  <div className="flex items-start justify-center gap-2 mb-1">
                     {topThree[0].imageURL ? (
                       <Image
                         src={topThree[0].imageURL}
                         alt={`Skin ${topThree[0].skinCollectionId}-${topThree[0].skinTokenId}`}
-                        width={56}
-                        height={56}
-                        className="w-14 h-14 rounded-lg border-2 border-yellow-400 object-cover"
+                        width={64}
+                        height={64}
+                        className="w-16 h-16 rounded-lg border-2 border-yellow-400 object-cover"
                       />
                     ) : (
-                      <div className="w-14 h-14 rounded-lg bg-stone-700 border-2 border-yellow-400 flex items-center justify-center text-xl">
+                      <div className="w-16 h-16 rounded-lg bg-stone-700 border-2 border-yellow-400 flex items-center justify-center text-xl">
                         🎨
                       </div>
                     )}
                     <div className="text-stone-200 font-bold group-hover:text-yellow-400 transition-colors text-center">
-                      <div>
-                        Skin #{topThree[0].skinCollectionId.slice(-6)}-
-                        {topThree[0].skinTokenId}
-                      </div>
+                      <div>{getStanceName(topThree[0].stanceBreakdown)}</div>
                       <div className="text-xs font-normal mt-1">
                         <div className="text-orange-400">
                           Avg: {Math.round(topThree[0].averageDamage)} dmg
@@ -695,41 +676,18 @@ export function SkinLeaderboard() {
                       </div>
                     </div>
                   </div>
-                  <div className="inline-flex items-center gap-1 mt-3 font-bold text-yellow-400">
+                  <div className="inline-flex items-center gap-1 mt-2 font-bold text-yellow-400">
                     <BadgeCheck className="h-4 w-4" />
                     <span>
                       {getSortValue(topThree[0])} {getSortLabel(sortBy)}
                     </span>
                   </div>
-                  <div className="mt-2 text-xs text-stone-400">
+                  <div className="mt-1 text-xs text-stone-400">
                     <span className="inline-block px-2 py-0.5 bg-stone-800 rounded-full font-mono">
                       {topThree[0].wins} W - {topThree[0].losses} L -{" "}
-                      {topThree[0].totalCombats} Fights
+                      {topThree[0].kills || 0} K - {topThree[0].totalCombats}{" "}
+                      Fights
                     </span>
-                  </div>
-                  <div className="mt-2 flex justify-center gap-2 text-xs">
-                    {Object.entries(topThree[0].stanceBreakdown).map(
-                      ([stance, data]) => {
-                        const stanceNum = Number(stance);
-                        const winRate =
-                          data.fights > 0
-                            ? ((data.wins / data.fights) * 100).toFixed(0)
-                            : "0";
-                        return (
-                          <div
-                            key={stance}
-                            className="flex items-center gap-1 text-stone-400"
-                          >
-                            {
-                              STANCE_ICONS[
-                                stanceNum as keyof typeof STANCE_ICONS
-                              ]
-                            }
-                            <span>{winRate}%</span>
-                          </div>
-                        );
-                      },
-                    )}
                   </div>
                 </div>
                 <div className="absolute top-0 left-0 w-full h-1 bg-yellow-500/50" />
@@ -742,31 +700,29 @@ export function SkinLeaderboard() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 }}
-                className="relative p-4 bg-gradient-to-b from-amber-800/20 to-stone-900 border border-amber-700/30 rounded-lg shadow-lg flex flex-col min-h-[180px] cursor-pointer group order-3"
+                onClick={() => handleSkinClick(topThree[2])}
+                className="relative p-4 bg-gradient-to-b from-amber-800/20 to-stone-900 border border-amber-700/30 rounded-lg shadow-lg flex flex-col min-h-[180px] cursor-pointer group order-3 hover:bg-amber-700/20 transition-colors"
               >
                 <div className="text-center flex-grow">
                   <div className="text-xl font-bold mb-1 text-amber-700">
                     Third Place
                   </div>
-                  <div className="flex items-end justify-center gap-2 mb-1">
+                  <div className="flex items-start justify-center gap-2 mb-1">
                     {topThree[2].imageURL ? (
                       <Image
                         src={topThree[2].imageURL}
                         alt={`Skin ${topThree[2].skinCollectionId}-${topThree[2].skinTokenId}`}
-                        width={48}
-                        height={48}
-                        className="w-12 h-12 rounded-lg border border-stone-600 object-cover"
+                        width={64}
+                        height={64}
+                        className="w-16 h-16 rounded-lg border-2 border-amber-700 object-cover"
                       />
                     ) : (
-                      <div className="w-12 h-12 rounded-lg bg-stone-700 border border-stone-600 flex items-center justify-center text-lg">
+                      <div className="w-16 h-16 rounded-lg bg-stone-700 border-2 border-amber-700 flex items-center justify-center text-xl">
                         🎨
                       </div>
                     )}
                     <div className="text-stone-200 font-bold group-hover:text-yellow-400 transition-colors text-center">
-                      <div>
-                        Skin #{topThree[2].skinCollectionId.slice(-6)}-
-                        {topThree[2].skinTokenId}
-                      </div>
+                      <div>{getStanceName(topThree[2].stanceBreakdown)}</div>
                       <div className="text-xs font-normal mt-1">
                         <div className="text-orange-400">
                           Avg: {Math.round(topThree[2].averageDamage)} dmg
@@ -778,41 +734,18 @@ export function SkinLeaderboard() {
                       </div>
                     </div>
                   </div>
-                  <div className="inline-flex items-center gap-1 mt-3 font-bold text-amber-800">
+                  <div className="inline-flex items-center gap-1 mt-2 font-bold text-amber-800">
                     <BadgeCheck className="h-4 w-4" />
                     <span>
                       {getSortValue(topThree[2])} {getSortLabel(sortBy)}
                     </span>
                   </div>
-                  <div className="mt-2 text-xs text-stone-400">
+                  <div className="mt-1 text-xs text-stone-400">
                     <span className="inline-block px-2 py-0.5 bg-stone-800 rounded-full font-mono">
                       {topThree[2].wins} W - {topThree[2].losses} L -{" "}
-                      {topThree[2].totalCombats} Fights
+                      {topThree[2].kills || 0} K - {topThree[2].totalCombats}{" "}
+                      Fights
                     </span>
-                  </div>
-                  <div className="mt-2 flex justify-center gap-2 text-xs">
-                    {Object.entries(topThree[2].stanceBreakdown).map(
-                      ([stance, data]) => {
-                        const stanceNum = Number(stance);
-                        const winRate =
-                          data.fights > 0
-                            ? ((data.wins / data.fights) * 100).toFixed(0)
-                            : "0";
-                        return (
-                          <div
-                            key={stance}
-                            className="flex items-center gap-1 text-stone-400"
-                          >
-                            {
-                              STANCE_ICONS[
-                                stanceNum as keyof typeof STANCE_ICONS
-                              ]
-                            }
-                            <span>{winRate}%</span>
-                          </div>
-                        );
-                      },
-                    )}
                   </div>
                 </div>
                 <div className="absolute top-0 left-0 w-full h-1 bg-amber-700/50" />
@@ -829,9 +762,6 @@ export function SkinLeaderboard() {
                     Rank
                   </TableHead>
                   <TableHead className="text-yellow-500">Skin</TableHead>
-                  <TableHead className="w-24 text-center text-yellow-500">
-                    Token ID
-                  </TableHead>
                   <TableHead
                     className={`w-24 text-center ${
                       sortBy === "winRate"
@@ -895,15 +825,13 @@ export function SkinLeaderboard() {
                   >
                     Avg Mitigation
                   </TableHead>
-                  <TableHead className="text-center text-yellow-500">
-                    Stance Performance
-                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {restOfSkins.map((skin, index) => (
                   <TableRow
                     key={skin.skinId}
+                    onClick={() => handleSkinClick(skin)}
                     className="hover:bg-amber-950/20 group cursor-pointer"
                   >
                     <TableCell className="text-center font-semibold text-stone-500">
@@ -926,17 +854,13 @@ export function SkinLeaderboard() {
                         )}
                         <div>
                           <div className="font-medium text-stone-200 hover:text-yellow-400 transition-colors">
-                            Skin #{skin.skinCollectionId.slice(-6)}-
-                            {skin.skinTokenId}
+                            {getStanceName(skin.stanceBreakdown)}
                           </div>
                           <div className="text-xs text-stone-500">
                             {skin.totalCombats} fights
                           </div>
                         </div>
                       </div>
-                    </TableCell>
-                    <TableCell className="text-center text-stone-400 font-mono text-xs">
-                      {skin.skinCollectionId.slice(-6)}-{skin.skinTokenId}
                     </TableCell>
                     <TableCell
                       className={`text-center ${
@@ -1001,33 +925,6 @@ export function SkinLeaderboard() {
                     >
                       {Math.round(skin.averageDamageTaken || 0)}
                     </TableCell>
-                    <TableCell className="text-center">
-                      <div className="flex justify-center gap-2 text-xs">
-                        {Object.entries(skin.stanceBreakdown).map(
-                          ([stance, data]) => {
-                            const stanceNum = Number(stance);
-                            const winRate =
-                              data.fights > 0
-                                ? ((data.wins / data.fights) * 100).toFixed(0)
-                                : "0";
-
-                            return (
-                              <div
-                                key={stance}
-                                className="flex items-center gap-1 text-stone-400"
-                              >
-                                {
-                                  STANCE_ICONS[
-                                    stanceNum as keyof typeof STANCE_ICONS
-                                  ]
-                                }
-                                <span>{winRate}%</span>
-                              </div>
-                            );
-                          },
-                        )}
-                      </div>
-                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
@@ -1037,7 +934,14 @@ export function SkinLeaderboard() {
           {/* Rest of the skins - Mobile Cards */}
           <div className="md:hidden space-y-3">
             {restOfSkins.map((skin, index) => (
-              <SkinCard key={skin.skinId} skin={skin} rank={index + 4} />
+              <button
+                key={skin.skinId}
+                onClick={() => handleSkinClick(skin)}
+                className="w-full text-left"
+                type="button"
+              >
+                <SkinCard skin={skin} rank={index + 4} />
+              </button>
             ))}
           </div>
         </div>
