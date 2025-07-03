@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { Scroll, ChevronDown } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
@@ -33,8 +33,15 @@ const CHALLENGE_OPTIONS: ChallengeOption[] = [
   },
 ];
 
-export function Challenges() {
-  const [challengeType, setChallengeType] = useState<ChallengeType>("open");
+interface ChallengesProps {
+  filterBy?: string;
+}
+
+export function Challenges({
+  filterBy: urlFilterBy = "open",
+}: ChallengesProps) {
+  const router = useRouter();
+  const challengeType = urlFilterBy as ChallengeType;
 
   const getCurrentOption = () => {
     return (
@@ -68,7 +75,7 @@ export function Challenges() {
               {CHALLENGE_OPTIONS.map((option) => (
                 <DropdownMenuItem
                   key={option.value}
-                  onClick={() => setChallengeType(option.value)}
+                  onClick={() => router.push(`/battle-archives/challenges/${option.value}`)}
                   className={`flex items-center gap-2 hover:bg-yellow-500/20 hover:text-yellow-300 focus:bg-yellow-500/20 focus:text-yellow-300 ${
                     challengeType === option.value
                       ? "bg-yellow-500/10 text-yellow-400"

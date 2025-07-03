@@ -217,9 +217,15 @@ const SkinCard = ({
   </motion.div>
 );
 
-export function SkinLeaderboard() {
+interface SkinLeaderboardProps {
+  sortBy?: string;
+}
+
+export function SkinLeaderboard({
+  sortBy: urlSortBy = "winRate",
+}: SkinLeaderboardProps) {
   const router = useRouter();
-  const [sortBy, setSortBy] = useState<SkinSortBy>("winRate");
+  const sortBy = urlSortBy as SkinSortBy;
   const [processedLeaderboard, setProcessedLeaderboard] = useState<
     EnhancedSkinEntry[]
   >([]);
@@ -552,7 +558,9 @@ export function SkinLeaderboard() {
               {SORT_OPTIONS.map((option) => (
                 <DropdownMenuItem
                   key={option.value}
-                  onClick={() => setSortBy(option.value)}
+                  onClick={() =>
+                    router.push(`/leaderboards/skins/${option.value}`)
+                  }
                   className={`flex items-center gap-2 hover:bg-yellow-500/20 hover:text-yellow-300 focus:bg-yellow-500/20 focus:text-yellow-300 ${
                     sortBy === option.value
                       ? "bg-yellow-500/10 text-yellow-400"

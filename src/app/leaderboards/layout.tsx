@@ -11,10 +11,10 @@ export default function LeaderboardsLayout({
 }) {
   const pathname = usePathname();
 
-  // Determine active tab from pathname
+  // Determine active tab from pathname - handle deeper paths
   const getActiveTab = () => {
-    if (pathname.includes("/skins")) return "skins";
-    if (pathname.includes("/warriors")) return "warriors";
+    if (pathname.includes("/leaderboards/skins")) return "skins";
+    if (pathname.includes("/leaderboards/warriors")) return "warriors";
     return "warriors"; // default
   };
 

@@ -88,9 +88,13 @@ const SORT_OPTIONS: Array<{
   },
 ];
 
-export function WarriorLeaderboard() {
+interface WarriorLeaderboardProps {
+  sortBy?: string;
+}
+
+export function WarriorLeaderboard({ sortBy: urlSortBy = "battleRating" }: WarriorLeaderboardProps) {
   const router = useRouter();
-  const [sortBy, setSortBy] = useState<LeaderboardSortBy>("battleRating");
+  const sortBy = urlSortBy as LeaderboardSortBy;
 
   // Fetch top 20 players with current sort
   const { players, isLoading, error, refetch, isRefetching } =
@@ -440,7 +444,7 @@ export function WarriorLeaderboard() {
               {SORT_OPTIONS.map((option) => (
                 <DropdownMenuItem
                   key={option.value}
-                  onClick={() => setSortBy(option.value)}
+                  onClick={() => router.push(`/leaderboards/warriors/${option.value}`)}
                   className={`flex items-center gap-2 hover:bg-yellow-500/20 hover:text-yellow-300 focus:bg-yellow-500/20 focus:text-yellow-300 ${
                     sortBy === option.value
                       ? "bg-yellow-500/10 text-yellow-400"

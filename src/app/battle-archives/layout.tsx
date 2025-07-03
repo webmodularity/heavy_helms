@@ -10,11 +10,11 @@ export default function BattleArchivesLayout({
 }) {
   const pathname = usePathname();
 
-  // Determine active tab from pathname
+  // Determine active tab from pathname - handle deeper paths
   const getActiveTab = () => {
-    if (pathname.includes("/duels")) return "duels";
-    if (pathname.includes("/challenges")) return "challenges";
-    if (pathname.includes("/gauntlets")) return "gauntlets";
+    if (pathname.includes("/battle-archives/duels")) return "duels";
+    if (pathname.includes("/battle-archives/challenges")) return "challenges";
+    if (pathname.includes("/battle-archives/gauntlets")) return "gauntlets";
     return "gauntlets"; // default
   };
 
