@@ -7,7 +7,7 @@ import { SUBGRAPH_URL } from "@/config";
 import { SkinHeroSection } from "./skin-hero-section";
 import { SkinImage } from "./skin-image";
 import { SkinStatsSection } from "./skin-stats-section";
-import { SkinCombatHistory } from "./skin-combat-history";
+
 import { TopWarriorsSection } from "./skin-top-warriors";
 import {
   SkinDetailsSkeleton,
@@ -340,9 +340,6 @@ export function SkinDetailsView({
           stance={stance.stance}
         />
       ))}
-
-      {/* Combat History Section - Full Width */}
-      <SkinCombatHistory skinData={enhancedSkinData} />
 
       {/* Future sections can be added here */}
       {/* - Advanced Analytics */}

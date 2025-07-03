@@ -154,6 +154,8 @@ export function SkinStatsSection({ stanceData }: SkinStatsSectionProps) {
             averageDamageDealt={stance.averageDamageDealt}
             averageDamageTaken={stance.averageDamageTaken}
             damageEfficiency={stance.damageEfficiency}
+            knockouts={stance.knockouts}
+            exhaustions={stance.exhaustions}
           />
         ))}
       </div>
@@ -175,6 +177,8 @@ interface StanceCardProps {
   averageDamageDealt: string;
   averageDamageTaken: string;
   damageEfficiency: string;
+  knockouts: number;
+  exhaustions: number;
 }
 
 function StanceCard({
@@ -191,6 +195,8 @@ function StanceCard({
   averageDamageDealt,
   averageDamageTaken,
   damageEfficiency,
+  knockouts,
+  exhaustions,
 }: StanceCardProps) {
   // Generate a dynamic color based on the win rate
   const getWinRateColor = (rate: string) => {
@@ -199,6 +205,17 @@ function StanceCard({
     if (numRate >= 60) return "text-green-400";
     if (numRate >= 45) return "text-blue-400";
     return "text-stone-400";
+  };
+
+  // Calculate finishing move statistics (as percentage of WINS, not total combats)
+  const calculateKORate = () => {
+    if (wins === 0) return "0.0%";
+    return `${((knockouts / wins) * 100).toFixed(1)}%`;
+  };
+
+  const calculateExhaustionRate = () => {
+    if (wins === 0) return "0.0%";
+    return `${((exhaustions / wins) * 100).toFixed(1)}%`;
   };
 
   return (
@@ -238,14 +255,14 @@ function StanceCard({
         <div className="flex justify-between">
           <span className="text-stone-400 text-sm">Avg DMG</span>
           <span className="text-green-400 font-medium">
-            {Number.parseFloat(averageDamageDealt).toFixed(1)}
+            {Math.ceil(Number.parseFloat(averageDamageDealt))}
           </span>
         </div>
 
         <div className="flex justify-between">
           <span className="text-stone-400 text-sm">Avg MIT</span>
           <span className="text-blue-400 font-medium">
-            {Number.parseFloat(averageDamageTaken).toFixed(1)}
+            {Math.ceil(Number.parseFloat(averageDamageTaken))}
           </span>
         </div>
 
@@ -253,6 +270,20 @@ function StanceCard({
           <span className="text-stone-400 text-sm">DMG EFF</span>
           <span className="text-purple-400 font-medium">
             {Number.parseFloat(damageEfficiency).toFixed(2)}x
+          </span>
+        </div>
+
+        <div className="flex justify-between">
+          <span className="text-stone-400 text-sm">KO Rate</span>
+          <span className="text-orange-400 font-medium">
+            {calculateKORate()}
+          </span>
+        </div>
+
+        <div className="flex justify-between">
+          <span className="text-stone-400 text-sm">Exhaustion Rate</span>
+          <span className="text-cyan-400 font-medium">
+            {calculateExhaustionRate()}
           </span>
         </div>
 
