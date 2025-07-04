@@ -29,6 +29,7 @@ import type { Player } from "@/types/player.types";
 import { useAccount, useConfig } from "wagmi";
 import { CharacterImage } from "./character-image";
 import { BattleLegacy } from "./battle-legacy";
+import { SkinPerformance } from "./skin-performance";
 import { ActivitySection } from "@/components/home/activity-section";
 import {
   getWeaponDisplayName,
@@ -201,6 +202,7 @@ export function CharacterDetailsView({
           </div>
           <AttributesSection character={character as Player} />
           <BattleLegacy character={character as Player} />
+          <SkinPerformance playerId={character.id} />
         </div>
       </div>
 

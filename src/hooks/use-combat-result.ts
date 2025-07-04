@@ -7,10 +7,15 @@ import request from "graphql-request";
 /**
  * Hook to fetch combat result data for a specific transaction hash
  * Used for lazy-loading combat details when user expands a duel
+ * @param transactionHash - The transaction hash to fetch combat results for
+ * @param logIndex - Optional log index for gauntlet fights (defaults to 0 for duels)
  */
-export function useCombatResult(transactionHash: string | null) {
+export function useCombatResult(
+  transactionHash: string | null,
+  logIndex?: number,
+) {
   return useQuery({
-    queryKey: ["combat-result", transactionHash],
+    queryKey: ["combat-result", transactionHash, logIndex],
     queryFn: async (): Promise<RawCombatResult | null> => {
       if (!transactionHash) return null;
 
@@ -21,11 +26,23 @@ export function useCombatResult(transactionHash: string | null) {
           { txHash: transactionHash },
         );
 
-        // Return the first combat result (duels typically have one result per transaction)
-        return response.combatResults?.[0] || null;
+        const combatResults = response.combatResults || [];
+
+        if (combatResults.length === 0) return null;
+
+        // If logIndex is specified (gauntlet fight), find the specific result
+        if (logIndex !== undefined) {
+          const specificResult = combatResults.find(
+            (result) => result.logIndex === logIndex,
+          );
+          return specificResult || null;
+        }
+
+        // For duels (or when no logIndex specified), return the first result
+        return combatResults[0] || null;
       } catch (error) {
         console.error(
-          `Failed to fetch combat result for ${transactionHash}:`,
+          `Failed to fetch combat result for ${transactionHash}${logIndex !== undefined ? ` (logIndex: ${logIndex})` : ""}:`,
           error,
         );
         throw error;

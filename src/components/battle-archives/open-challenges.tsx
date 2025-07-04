@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 function ChallengeCardSkeleton() {
   return (
     <div className="relative border border-yellow-600/20 rounded-lg bg-stone-900/80 p-4 shadow-lg animate-pulse">
-      <div className="absolute top-3 right-3 h-5 w-12 bg-green-900/50 rounded" />
+
       <div className="text-center mb-4">
         <div className="h-5 w-40 bg-yellow-800/30 rounded mx-auto mb-2" />
         <div className="h-3 w-28 bg-stone-700/30 rounded mx-auto" />
@@ -112,9 +112,7 @@ export function OpenChallenges() {
                 transition={{ delay: index * 0.05 }}
                 className="relative border border-yellow-600/20 rounded-lg bg-stone-900/80 p-4 shadow-lg"
               >
-                <div className="absolute top-3 right-3 text-[10px] sm:text-xs text-green-400 font-bold bg-green-900/50 px-2 py-1 rounded shadow-md">
-                  OPEN
-                </div>
+
 
                 <div className="text-center mb-4">
                   <h3 className="text-yellow-500 font-bold text-lg uppercase tracking-wider">

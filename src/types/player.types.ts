@@ -30,6 +30,8 @@ export interface Player extends Fighter {
   rank: number;
   uniqueWins: number;
   uniqueLosses: number;
+  duelWins: number;
+  gauntletWins: number;
   isImmortal: boolean;
   gauntletStatus: PlayerGauntletStatus;
 }

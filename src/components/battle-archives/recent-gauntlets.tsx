@@ -87,6 +87,13 @@ export function RecentGauntlets() {
   // State to track which fight is currently active/selected
   const [activeFightKey, setActiveFightKey] = useState<string | null>(null);
 
+  // State to track which fight accordion is expanded
+  const [expandedFightId, setExpandedFightId] = useState<string | null>(null);
+
+  const handleFightAccordionToggle = (fightId: string | null) => {
+    setExpandedFightId(fightId);
+  };
+
   const handleRefetch = async () => {
     await refetch();
   };
@@ -164,6 +171,8 @@ export function RecentGauntlets() {
               isExpanded={expandedGauntletId === gauntlet.id}
               activeFightKey={activeFightKey || undefined}
               onFightClick={setActiveFightKey}
+              expandedFightId={expandedFightId || undefined}
+              onFightAccordionToggle={handleFightAccordionToggle}
             />
           ))}
         </Accordion>

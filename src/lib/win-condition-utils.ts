@@ -33,14 +33,14 @@ export function getWinConditionDisplay(
       };
     case "MAX_ROUNDS":
       return {
-        label: "Time Limit",
+        label: "Max Rounds",
         icon: "⏰",
         color: "text-yellow-400",
         description: "Maximum rounds reached",
       };
     case "DEATH":
       return {
-        label: "Death",
+        label: "Kill",
         icon: "💀",
         color: "text-purple-400",
         description: "Fatal blow delivered",
@@ -77,4 +77,12 @@ export function getWinConditionClasses(winCondition?: string): string {
 export function getWinConditionIcon(winCondition?: string): string {
   const display = getWinConditionDisplay(winCondition);
   return display.icon;
+}
+
+/**
+ * Get victory header format for combat details
+ */
+export function getVictoryHeader(winCondition?: string): string {
+  const display = getWinConditionDisplay(winCondition);
+  return `Victory by ${display.label}`;
 }

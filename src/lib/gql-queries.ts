@@ -853,15 +853,13 @@ export const GET_EXPIRED_CHALLENGES = gql`
 
 // New query for leaderboard data
 export const GET_LEADERBOARD_PLAYERS = gql`
-  query GetLeaderboardPlayers($limit: Int = 100, $skip: Int = 0) {
+  query GetLeaderboardPlayers($limit: Int = 100, $skip: Int = 0, $orderBy: Player_orderBy = battleRating, $orderDirection: OrderDirection = desc) {
     players(
       first: $limit, 
       skip: $skip, 
       where: { isRetired: false }, 
-      orderBy: battleRating, 
-      orderDirection: desc
-      # Secondary sort by wins requires handling post-fetch or a more complex GQL setup if supported
-      # For now, primary sort by battleRating. We can add wins sort in the frontend hook.
+      orderBy: $orderBy, 
+      orderDirection: $orderDirection
     ) {
       ...PlayerDataFields
     }
@@ -1419,3 +1417,39 @@ export const GET_WIN_CONDITION_ANALYSIS = `
     }
   }
 `;
+
+// NEW: Player Skin Performance Query
+export const GET_PLAYER_SKIN_PERFORMANCE = gql`
+  query getPlayerSkinPerformance($playerId: String!) {
+    playerSkinCombatStats(where: { playerId: $playerId }) {
+      id
+      skinCollectionId
+      skinTokenId
+      stance
+      totalCombats
+      wins
+      losses
+      winRate
+      kills
+      deaths
+      killRate
+      survivalRate
+      averageDamageDealt
+      averageDamageTaken
+      damageEfficiency
+      lastCombat
+      skin {
+        id
+        metadataURI
+        weapon
+        armor
+        collection {
+          contractAddress
+          skinType
+        }
+      }
+    }
+  }
+`;
+
+

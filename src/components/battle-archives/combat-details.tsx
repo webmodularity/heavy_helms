@@ -15,6 +15,7 @@ import {
   getWinConditionShort,
   getWinConditionClasses,
   getWinConditionIcon,
+  getVictoryHeader,
 } from "@/lib/win-condition-utils";
 import {
   Loader2,
@@ -32,12 +33,14 @@ interface CombatDetailsProps {
   transactionHash: string;
   winnerName: string;
   loserName: string;
+  logIndex?: number; // Optional log index for gauntlet fights
 }
 
 export function CombatDetails({
   transactionHash,
   winnerName,
   loserName,
+  logIndex,
 }: CombatDetailsProps) {
   const [showPlayer1Breakdown, setShowPlayer1Breakdown] = useState(false);
   const [showPlayer2Breakdown, setShowPlayer2Breakdown] = useState(false);
@@ -48,7 +51,7 @@ export function CombatDetails({
     data: combatResult,
     isLoading,
     error,
-  } = useCombatResult(transactionHash);
+  } = useCombatResult(transactionHash, logIndex);
 
   if (isLoading) {
     return (
@@ -80,20 +83,6 @@ export function CombatDetails({
 
   // Get win condition info
   const winCondition = combatResult.winCondition || "HEALTH";
-  const getWinConditionLabel = (condition: string) => {
-    switch (condition.toUpperCase()) {
-      case "HEALTH":
-        return "Victory by Combat";
-      case "EXHAUSTION":
-        return "Victory by Exhaustion";
-      case "MAX_ROUNDS":
-        return "Victory by Endurance";
-      case "DEATH":
-        return "Victory by Death";
-      default:
-        return "Victory";
-    }
-  };
 
   return (
     <div className="bg-gradient-to-br from-amber-950/20 to-stone-900/30 rounded-lg p-4 mt-3 border border-amber-800/20 backdrop-blur-sm">
@@ -102,7 +91,7 @@ export function CombatDetails({
         <div className="flex items-center space-x-3 bg-amber-900/20 px-4 py-2 rounded-full border border-amber-700/30">
           <Crown className="h-4 w-4 text-amber-400" />
           <span className="text-amber-200 font-medium text-sm">
-            {getWinConditionLabel(winCondition)}
+            {getVictoryHeader(winCondition)}
           </span>
           {combatResult.roundCount && (
             <span className="text-amber-300/70 text-xs">

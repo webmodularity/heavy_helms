@@ -2,9 +2,17 @@ import {
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
+  Accordion,
 } from "@/components/ui/accordion";
 import type { Player } from "@/types/player.types";
-import { Trophy, Loader2, ChevronRight, Info } from "lucide-react";
+import {
+  Trophy,
+  Loader2,
+  ChevronRight,
+  Info,
+  ChevronDown,
+  ChevronUp,
+} from "lucide-react";
 import { formatEther } from "viem";
 import { ParticipantCard } from "./participant-card";
 import { useQuery } from "@tanstack/react-query";
@@ -25,6 +33,9 @@ import {
   TooltipProvider,
   TooltipTrigger as TooltipTriggerPrimitive,
 } from "@/components/ui/tooltip";
+import { Button } from "@/components/ui/button";
+import { CombatDetails } from "@/components/battle-archives/combat-details";
+import { AnimatePresence, motion } from "framer-motion";
 
 interface FightersQueryResponse {
   fighters: RawFighterData[];
@@ -65,6 +76,8 @@ interface GauntletAccordionItemProps {
   isExpanded: boolean;
   activeFightKey?: string;
   onFightClick?: (fightKey: string) => void;
+  expandedFightId?: string;
+  onFightAccordionToggle?: (fightId: string | null) => void;
 }
 
 export function GauntletAccordionItem({
@@ -74,6 +87,8 @@ export function GauntletAccordionItem({
   isExpanded,
   activeFightKey,
   onFightClick,
+  expandedFightId,
+  onFightAccordionToggle,
 }: GauntletAccordionItemProps) {
   const { openFightModal } = useGlobalFightModal();
   const { data: participants, isLoading: isLoadingParticipants } = useQuery<
@@ -309,34 +324,110 @@ export function GauntletAccordionItem({
             const fightKey = `${gauntlet.id}-${currentFightIndex}`;
             const isActiveFight = activeFightKey === fightKey;
 
+            // Create unique fight ID for accordion state
+            const fightId = `${gauntlet.id}-fight-${currentFightIndex}`;
+            const isFightExpanded = expandedFightId === fightId;
+
+            // Define loser for CombatDetails component
+            const loser =
+              winner && player1 && player2
+                ? winner.fighterId?.toString() === player1.fighterId?.toString()
+                  ? player2
+                  : player1
+                : undefined;
+
+            const handleFightToggle = () => {
+              onFightAccordionToggle?.(isFightExpanded ? null : fightId);
+            };
+
             roundFightsJsx.push(
-              <button
+              <motion.div
                 key={fight.id || fightCounter}
-                type="button"
-                className="block w-full text-left"
-                onClick={() => {
-                  onFightClick?.(fightKey);
-                  openFightModal({
-                    txId: gauntlet.completedTx || undefined,
-                    logIndex: currentFightIndex.toString(),
-                    title: currentFightTitle,
-                  });
-                }}
-                onMouseEnter={() => onFightClick?.("")} // Clear active state on hover
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: fightCounter * 0.05 }}
+                className="border-b border-stone-800 last:border-b-0"
               >
-                <div
-                  className={`p-3 rounded-md mb-2 flex justify-between items-center group transition-colors duration-150 ease-in-out cursor-pointer ${
-                    isActiveFight
-                      ? "bg-yellow-600/20 border border-yellow-500/40"
+                {/* Fight Accordion Header - Clickable */}
+                <button
+                  type="button"
+                  className={`w-full text-left p-3 rounded-md mb-2 transition-colors ${
+                    isFightExpanded
+                      ? "bg-amber-900/20 border border-amber-700/30"
                       : "bg-stone-700/40 hover:bg-stone-600/60"
                   }`}
+                  onClick={handleFightToggle}
+                  aria-expanded={isFightExpanded}
+                  aria-controls={`fight-details-${fightId}`}
                 >
-                  <span className="text-sm text-stone-300 group-hover:text-stone-100 transition-colors duration-150 ease-in-out">
-                    {fightDescription}
-                  </span>
-                  <ChevronRight className="h-5 w-5 text-stone-400 group-hover:text-stone-200 group-hover:translate-x-0.5 transition-all duration-150 ease-in-out" />
-                </div>
-              </button>,
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-stone-300 transition-colors duration-150 ease-in-out">
+                      {fightDescription}
+                    </span>
+                    <div className="flex items-center space-x-2">
+                      <span className="text-xs text-stone-400">
+                        View Details
+                      </span>
+                      <div className="text-stone-400">
+                        {isFightExpanded ? (
+                          <ChevronUp className="h-4 w-4" />
+                        ) : (
+                          <ChevronDown className="h-4 w-4" />
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </button>
+
+                {/* Expandable Combat Details */}
+                <AnimatePresence>
+                  {isFightExpanded && (
+                    <motion.div
+                      initial={{ height: 0, opacity: 0 }}
+                      animate={{ height: "auto", opacity: 1 }}
+                      exit={{ height: 0, opacity: 0 }}
+                      transition={{ duration: 0.2 }}
+                      className="overflow-hidden"
+                      id={`fight-details-${fightId}`}
+                    >
+                      <div className="pb-4">
+                        <CombatDetails
+                          transactionHash={fight.transactionHash}
+                          logIndex={fight.logIndex}
+                          winnerName={
+                            winner?.name?.fullName ||
+                            winner?.fullName ||
+                            `Fighter ${winner?.fighterId?.toString() || winner?.id}`
+                          }
+                          loserName={
+                            loser?.name?.fullName ||
+                            loser?.fullName ||
+                            `Fighter ${loser?.fighterId?.toString() || loser?.id}`
+                          }
+                        />
+                        {/* Action Buttons */}
+                        <div className="flex justify-center mt-3 space-x-2">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              openFightModal({
+                                txId: gauntlet.completedTx || undefined,
+                                logIndex: currentFightIndex.toString(),
+                                title: currentFightTitle,
+                              });
+                            }}
+                            className="border-yellow-600/20 hover:bg-yellow-500/10 hover:text-yellow-400 text-stone-400"
+                          >
+                            Watch Replay
+                          </Button>
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </motion.div>,
             );
           }
 

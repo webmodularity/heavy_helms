@@ -68,12 +68,26 @@ export function useLeaderboardData(options: LeaderboardOptions = {}) {
 
     queryFn: async () => {
       try {
+        // Map frontend sortBy to GraphQL orderBy field
+        const orderByMap: Record<LeaderboardSortBy, string> = {
+          battleRating: "battleRating",
+          wins: "wins",
+          losses: "losses",
+          kills: "kills",
+          duelWins: "duelWins",
+          gauntletWins: "gauntletWins",
+        };
+
         const response = await request<LeaderboardQueryResult>(
-          SUBGRAPH_URL, // Use imported SUBGRAPH_URL
+          SUBGRAPH_URL,
           GET_LEADERBOARD_PLAYERS,
-          { limit: limit * 2, skip: 0 }, // Fetch more to allow for filtering
+          {
+            limit: limit, // Only fetch what we actually need
+            skip: 0,
+            orderBy: orderByMap[sortBy],
+            orderDirection: "desc", // Always descending for leaderboards
+          },
         );
-        // Return the raw players array; sorting happens in 'select'
         return response.players || [];
       } catch (error) {
         console.error("Error fetching leaderboard data:", error);
@@ -85,7 +99,7 @@ export function useLeaderboardData(options: LeaderboardOptions = {}) {
     staleTime: 300 * 1000, // 5m example
     // refetchInterval: 300 * 1000, // Optional: 5m refetch example
 
-    // Use 'select' to process/sort the data returned by queryFn
+    // Use 'select' to process/filter the data returned by queryFn
     select: (fetchedPlayers) => {
       if (!fetchedPlayers) return []; // Handle potential undefined case
 
@@ -104,34 +118,8 @@ export function useLeaderboardData(options: LeaderboardOptions = {}) {
         );
       }
 
-      // Sort based on the selected criteria
-      const sortedPlayers = filteredPlayers.sort((a, b) => {
-        switch (sortBy) {
-          case "wins":
-            if (a.wins !== b.wins) return b.wins - a.wins;
-            return b.battleRating - a.battleRating; // Secondary sort by battle rating
-          case "losses":
-            if (a.losses !== b.losses) return b.losses - a.losses;
-            return b.battleRating - a.battleRating;
-          case "kills":
-            if (a.kills !== b.kills) return b.kills - a.kills;
-            return b.battleRating - a.battleRating;
-          case "duelWins":
-            if (a.duelWins !== b.duelWins) return b.duelWins - a.duelWins;
-            return b.battleRating - a.battleRating;
-          case "gauntletWins":
-            if (a.gauntletWins !== b.gauntletWins)
-              return b.gauntletWins - a.gauntletWins;
-            return b.battleRating - a.battleRating;
-          default: // battleRating
-            if (a.battleRating !== b.battleRating)
-              return b.battleRating - a.battleRating;
-            return b.wins - a.wins; // Secondary sort by wins
-        }
-      });
-
-      // Return only the requested limit after filtering and sorting
-      return sortedPlayers.slice(0, limit);
+      // Data is already sorted correctly by GraphQL
+      return filteredPlayers;
     },
   });
 

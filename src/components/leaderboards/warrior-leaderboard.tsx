@@ -92,13 +92,15 @@ interface WarriorLeaderboardProps {
   sortBy?: string;
 }
 
-export function WarriorLeaderboard({ sortBy: urlSortBy = "battleRating" }: WarriorLeaderboardProps) {
+export function WarriorLeaderboard({
+  sortBy: urlSortBy = "battleRating",
+}: WarriorLeaderboardProps) {
   const router = useRouter();
   const sortBy = urlSortBy as LeaderboardSortBy;
 
-  // Fetch top 20 players with current sort
+  // Fetch top 50 players with current sort - matches ranking capability
   const { players, isLoading, error, refetch, isRefetching } =
-    useLeaderboardData({ limit: 20, sortBy });
+    useLeaderboardData({ limit: 50, sortBy });
 
   // Render rank badge based on position
   const renderRankBadge = (rank: number) => {
@@ -126,7 +128,7 @@ export function WarriorLeaderboard({ sortBy: urlSortBy = "battleRating" }: Warri
     }
   };
 
-  // Mobile card component for ranks 4-20
+  // Mobile card component for ranks 4-50
   const PlayerCard = ({
     player,
     rank,
@@ -215,10 +217,10 @@ export function WarriorLeaderboard({ sortBy: urlSortBy = "battleRating" }: Warri
     return SORT_OPTIONS.find((opt) => opt.value === sortBy) || SORT_OPTIONS[0];
   };
 
-  // Generate stable keys for skeleton items
-  const skeletonKeys = Array.from({ length: 17 }, (_, i) => `skeleton-${i}`);
+  // Generate stable keys for skeleton items (3 podium + 47 remaining = 50 total)
+  const skeletonKeys = Array.from({ length: 47 }, (_, i) => `skeleton-${i}`);
   const mobileSkeletonKeys = Array.from(
-    { length: 17 },
+    { length: 47 },
     (_, i) => `mobile-skeleton-${i}`,
   );
 
@@ -444,7 +446,9 @@ export function WarriorLeaderboard({ sortBy: urlSortBy = "battleRating" }: Warri
               {SORT_OPTIONS.map((option) => (
                 <DropdownMenuItem
                   key={option.value}
-                  onClick={() => router.push(`/leaderboards/warriors/${option.value}`)}
+                  onClick={() =>
+                    router.push(`/leaderboards/warriors/${option.value}`)
+                  }
                   className={`flex items-center gap-2 hover:bg-yellow-500/20 hover:text-yellow-300 focus:bg-yellow-500/20 focus:text-yellow-300 ${
                     sortBy === option.value
                       ? "bg-yellow-500/10 text-yellow-400"

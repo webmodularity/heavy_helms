@@ -57,13 +57,34 @@ const GET_TOP_WARRIORS = gql`
       }
     }
     
-    # Highest Average Damage (minimum 5 fights)
+    # Biggest Hit (minimum 1 fight)
+    biggestHit: playerSkinCombatStats(
+      where: { 
+        skinCollectionId: $skinCollectionId, 
+        skinTokenId: $skinTokenId, 
+        stance: $stance,
+        totalCombats_gte: 1
+      }
+      orderBy: maxDamageDealt
+      orderDirection: desc
+      first: 1
+    ) {
+      playerId
+      maxDamageDealt
+      totalCombats
+      player {
+        fullName
+        fighterId
+      }
+    }
+    
+    # Highest Average Damage (minimum 1 fight)
     highestAvgDamage: playerSkinCombatStats(
       where: { 
         skinCollectionId: $skinCollectionId, 
         skinTokenId: $skinTokenId, 
         stance: $stance,
-        totalCombats_gte: 5
+        totalCombats_gte: 1
       }
       orderBy: averageDamageDealt
       orderDirection: desc
@@ -78,13 +99,13 @@ const GET_TOP_WARRIORS = gql`
       }
     }
     
-    # Best Damage Mitigation (minimum 5 fights, lowest damage taken = best)
+    # Best Damage Mitigation (minimum 1 fight, lowest damage taken = best)
     bestMitigation: playerSkinCombatStats(
       where: { 
         skinCollectionId: $skinCollectionId, 
         skinTokenId: $skinTokenId, 
         stance: $stance,
-        totalCombats_gte: 5
+        totalCombats_gte: 1
       }
       orderBy: averageDamageTaken
       orderDirection: asc
@@ -99,13 +120,13 @@ const GET_TOP_WARRIORS = gql`
       }
     }
     
-    # Total Fights (minimum 5 fights)
+    # Total Fights (minimum 1 fight)
     totalFights: playerSkinCombatStats(
       where: { 
         skinCollectionId: $skinCollectionId, 
         skinTokenId: $skinTokenId, 
         stance: $stance,
-        totalCombats_gte: 5
+        totalCombats_gte: 1
       }
       orderBy: totalCombats
       orderDirection: desc
@@ -143,11 +164,13 @@ interface WarriorStat {
   winRate?: string;
   averageDamageDealt?: string;
   averageDamageTaken?: string;
+  maxDamageDealt?: string;
 }
 
 interface TopWarriorsData {
   mostWins: WarriorStat[];
   bestWinRate: WarriorStat[];
+  biggestHit: WarriorStat[];
   highestAvgDamage: WarriorStat[];
   bestMitigation: WarriorStat[];
   totalFights: WarriorStat[];
@@ -210,8 +233,8 @@ export function TopWarriorsSection({
         <h3 className="text-xl font-semibold mb-6 flex items-center text-yellow-500">
           <span>🏆 Top {getStanceName(stance)} Warriors</span>
         </h3>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
-          {[1, 2, 3, 4, 5].map((i) => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
             <div
               key={i}
               className="bg-stone-800/40 rounded-lg border border-yellow-600/20 p-4"
@@ -236,6 +259,7 @@ export function TopWarriorsSection({
   const hasQualifiedWarriors =
     data.mostWins.length > 0 ||
     data.bestWinRate.length > 0 ||
+    data.biggestHit.length > 0 ||
     data.highestAvgDamage.length > 0 ||
     data.bestMitigation.length > 0 ||
     data.totalFights.length > 0;
@@ -258,6 +282,14 @@ export function TopWarriorsSection({
       data: data.bestWinRate,
       getValue: (warrior: WarriorStat) =>
         warrior.winRate ? formatPercentage(warrior.winRate) : "0%",
+      getSubValue: (warrior: WarriorStat) => `${warrior.totalCombats} fights`,
+    },
+    {
+      title: "Biggest Hit",
+      icon: <Sword className="h-4 w-4 text-red-500" />,
+      data: data.biggestHit,
+      getValue: (warrior: WarriorStat) =>
+        warrior.maxDamageDealt ? formatNumber(warrior.maxDamageDealt) : "0",
       getSubValue: (warrior: WarriorStat) => `${warrior.totalCombats} fights`,
     },
     {
@@ -301,7 +333,7 @@ export function TopWarriorsSection({
         <span>🏆 Top {getStanceName(stance)} Warriors</span>
       </h3>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {categories.map((category, categoryIndex) => (
           <div
             key={category.title}
