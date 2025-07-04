@@ -7,6 +7,7 @@ import { SUBGRAPH_URL } from "@/config";
 import { SkinHeroSection } from "./skin-hero-section";
 import { SkinImage } from "./skin-image";
 import { SkinStatsSection } from "./skin-stats-section";
+import { SkinEquipmentInfo } from "./skin-equipment-info";
 
 import { TopWarriorsSection } from "./skin-top-warriors";
 import {
@@ -293,25 +294,39 @@ export function SkinDetailsView({
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="space-y-8"
+      className="space-y-4"
     >
+            {/* Mobile Hero Section - Title at top on mobile */}
+      <div className="lg:hidden">
+        <SkinHeroSection
+          skinData={enhancedSkinData}
+          collectionName={collectionName}
+          combatResults={[]} // We can add this later if needed
+        />
+      </div>
+
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Left Column - Skin Image */}
-        <div className="lg:col-span-1">
+        {/* Left Column - Skin Image + Equipment Info */}
+        <div className="lg:col-span-1 space-y-6">
           <SkinImage
             skinData={enhancedSkinData}
             collectionName={collectionName}
           />
+
+          {/* Equipment Information */}
+          <SkinEquipmentInfo skinData={enhancedSkinData} />
         </div>
 
         {/* Right Column - Hero Section + Stance Performance */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Hero Section - Title to the right of image */}
-          <SkinHeroSection
-            skinData={enhancedSkinData}
-            collectionName={collectionName}
-            combatResults={[]} // We can add this later if needed
-          />
+          {/* Hero Section - Title to the right of image - Desktop only */}
+          <div className="hidden lg:block">
+            <SkinHeroSection
+              skinData={enhancedSkinData}
+              collectionName={collectionName}
+              combatResults={[]} // We can add this later if needed
+            />
+          </div>
 
           {/* Stance Performance Section */}
           {stanceData.length > 0 ? (

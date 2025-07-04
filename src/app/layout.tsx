@@ -73,9 +73,7 @@ export default function RootLayout({
         <Providers>
           <div className="flex flex-col from-slate-900 to-indigo-900">
             <Header />
-            <main className="flex min-h-screen flex-col px-0 pt-0 pb-8">
-              {children}
-            </main>
+            <main className="flex flex-col px-0 pt-0 pb-8">{children}</main>
             <Toaster />
             <Footer />
           </div>

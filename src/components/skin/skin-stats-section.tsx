@@ -151,6 +151,7 @@ export function SkinStatsSection({ stanceData }: SkinStatsSectionProps) {
             wins={stance.wins}
             losses={stance.losses}
             kills={stance.kills}
+            killRate={stance.killRate}
             averageDamageDealt={stance.averageDamageDealt}
             averageDamageTaken={stance.averageDamageTaken}
             damageEfficiency={stance.damageEfficiency}
@@ -174,6 +175,7 @@ interface StanceCardProps {
   wins: number;
   losses: number;
   kills: number;
+  killRate: string;
   averageDamageDealt: string;
   averageDamageTaken: string;
   damageEfficiency: string;
@@ -192,6 +194,7 @@ function StanceCard({
   wins,
   losses,
   kills,
+  killRate,
   averageDamageDealt,
   averageDamageTaken,
   damageEfficiency,
@@ -284,6 +287,13 @@ function StanceCard({
           <span className="text-stone-400 text-sm">Exhaustion Rate</span>
           <span className="text-cyan-400 font-medium">
             {calculateExhaustionRate()}
+          </span>
+        </div>
+
+        <div className="flex justify-between">
+          <span className="text-stone-400 text-sm">Kill Rate</span>
+          <span className="text-red-400 font-medium">
+            {(Number.parseFloat(killRate) * 100).toFixed(1)}%
           </span>
         </div>
 

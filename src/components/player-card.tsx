@@ -53,7 +53,7 @@ export function PlayerCard({
         />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
         <div className="absolute bottom-0 left-0 p-4">
-          <h3 className="text-xl font-bold text-white">
+          <h3 className="text-lg sm:text-xl font-bold text-white break-words">
             {character.name.fullName}
           </h3>
           <p className="text-sm text-white/80">ID: {character.id}</p>

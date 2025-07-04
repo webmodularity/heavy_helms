@@ -22,7 +22,7 @@ export function Footer() {
   ];
 
   return (
-    <footer className="relative mt-20">
+    <footer className="relative mt-4">
       {/* Dark overlay with stone base - matching banner background */}
       <div className="absolute inset-0 bg-stone-900/75" />
 
