@@ -4,13 +4,11 @@ import { useMiniApp } from "@/store/miniapp-context";
 
 export function MiniAppDebug() {
   const { 
-    isSDKReady, 
     isInFarcaster, 
     user, 
     isConnected,
     walletAddress,
     error,
-    retry
   } = useMiniApp();
 
   if (process.env.NODE_ENV !== 'development') return null;
@@ -20,7 +18,6 @@ export function MiniAppDebug() {
       <div className="text-yellow-400 font-bold mb-2">MiniApp Debug</div>
       
       <div className="space-y-1">
-        <div>SDK Ready: {isSDKReady ? '✅' : '❌'}</div>
         <div>In Farcaster: {isInFarcaster ? '✅' : '❌'}</div>
         <div>Wallet Connected: {isConnected ? '✅' : '❌'}</div>
       </div>
@@ -45,12 +42,6 @@ export function MiniAppDebug() {
         <div className="mt-2 pt-2 border-t border-red-600">
           <div className="text-red-400 font-semibold">Error:</div>
           <div className="text-red-300">{error}</div>
-          <button 
-            onClick={retry}
-            className="mt-1 px-2 py-1 bg-red-600 hover:bg-red-500 text-white rounded text-xs"
-          >
-            Retry
-          </button>
         </div>
       )}
     </div>

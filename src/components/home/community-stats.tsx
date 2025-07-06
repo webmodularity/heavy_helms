@@ -12,7 +12,7 @@ import { useMiniApp } from "@/store/miniapp-context";
 export function CommunityStats() {
   const { stats: gameStats, isLoading } = useGameStats();
   const { createCharacter, isCreatingCharacter } = useCreateCharacter();
-  const { retry, isAuthenticated } = useMiniApp();
+  const { isAuthenticated } = useMiniApp();
 
   // Hardcoded values for now
   const stats = [
@@ -38,7 +38,7 @@ export function CommunityStats() {
   const createAction = {
     id: "create",
     label: "Create Your Warrior",
-    action: isAuthenticated ? createCharacter : retry,
+    action: createCharacter,
     disabled: isCreatingCharacter,
   };
 
@@ -118,11 +118,7 @@ export function CommunityStats() {
               key={createAction.id}
               title={createAction.label}
               onClick={() => {
-                if (isAuthenticated) {
-                  createCharacter("male");
-                } else {
-                  retry();
-                }
+                createCharacter("male");
               }}
               size="lg"
             />

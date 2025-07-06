@@ -18,13 +18,12 @@ interface FarcasterUser {
 
 interface MiniAppContextType {
   // Farcaster Auth State
-  isSDKReady: boolean;
   isInFarcaster: boolean;
   user: FarcasterUser | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
-  retry: () => void;
+  // retry: () => void;
   
   // Wallet State
   currentChainId: number;
@@ -38,13 +37,12 @@ interface MiniAppContextType {
 
 const MiniAppContext = createContext<MiniAppContextType>({
   // Farcaster Auth Defaults
-  isSDKReady: false,
   isInFarcaster: false,
   user: null,
   isAuthenticated: false,
   isLoading: true,
   error: null,
-  retry: () => {},
+  // retry: () => {},
   
   // Wallet Defaults
   currentChainId: baseSepolia.id,
@@ -58,7 +56,6 @@ const MiniAppContext = createContext<MiniAppContextType>({
 
 export function MiniAppProvider({ children }: { children: ReactNode }) {
   // Farcaster Auth State
-  const [isSDKReady, setIsSDKReady] = useState(false);
   const [isInFarcaster, setIsInFarcaster] = useState(false);
   const [user, setUser] = useState<FarcasterUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -96,7 +93,6 @@ export function MiniAppProvider({ children }: { children: ReactNode }) {
             username: context.user.username,
             displayName: context.user.displayName,
             pfpUrl: context.user.pfpUrl,
-            custodyAddress: context.user.custodyAddress,
           };
           
           setUser(userData);
@@ -119,13 +115,6 @@ export function MiniAppProvider({ children }: { children: ReactNode }) {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const retry = () => {
-    console.log("🔄 Retrying Farcaster initialization...");
-    setContextInitialized(false);
-    setAutoConnectAttempted(false);
-    initializeFarcaster();
   };
 
   // Initialize Farcaster SDK on mount
@@ -189,13 +178,11 @@ export function MiniAppProvider({ children }: { children: ReactNode }) {
         !!user &&
         isConnected &&
         address &&
-        !isSDKReady
+        !isLoading
       ) {
         try {
           console.log("📞 Calling sdk.actions.ready() - wallet is connected!");
           await sdk.actions.ready();
-          console.log("✅ SDK ready called successfully");
-          setIsSDKReady(true);
         } catch (error) {
           console.error("💥 Failed to call sdk.actions.ready():", error);
           setError(error instanceof Error ? error.message : "Failed to initialize SDK");
@@ -204,7 +191,7 @@ export function MiniAppProvider({ children }: { children: ReactNode }) {
     };
 
     callReady();
-  }, [contextInitialized, isInFarcaster, user, isConnected, address, isSDKReady]);
+  }, [contextInitialized, isInFarcaster, user, isConnected, address]);
 
   // Auto-disconnect when user is no longer authenticated
   useEffect(() => {
@@ -212,19 +199,17 @@ export function MiniAppProvider({ children }: { children: ReactNode }) {
       console.log("🔌 Auto-disconnecting wallet (user no longer authenticated)");
       disconnect();
       setAutoConnectAttempted(false);
-      setIsSDKReady(false); // Reset SDK ready state
     }
   }, [user, isConnected, disconnect]);
 
   const value = {
     // Farcaster Auth State
-    isSDKReady,
     isInFarcaster,
     user,
     isAuthenticated: !!user,
     isLoading,
     error,
-    retry,
+    // retry,
     
     // Wallet State
     currentChainId: chainId || baseSepolia.id,

@@ -39,7 +39,7 @@ export function ActivitySection({
   selectedCharacter,
   isOwner,
 }: ActivitySectionProps) {
-  const { isAuthenticated, retry } = useMiniApp();
+  const { isAuthenticated } = useMiniApp();
 
   return (
     <section className="mb-8" id="activity-section">
@@ -56,14 +56,7 @@ export function ActivitySection({
       >
         {isAuthenticated ? (
           <BattleTabs selectedCharacter={selectedCharacter} isOwner={isOwner} />
-        ) : (
-          <div className="flex flex-col items-center justify-center py-8 space-y-4">
-            <p className="text-stone-300 text-center">
-              Connect your wallet to view your battle chronicles
-            </p>
-            <YellowButton onClick={retry}>Connect Wallet</YellowButton>
-          </div>
-        )}
+        ) : null}
       </motion.div>
     </section>
   );

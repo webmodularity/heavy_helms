@@ -7,7 +7,7 @@ import { LoadingSpinner } from "@/components/ui/loading-spinner";
 import { useMiniApp } from "@/store/miniapp-context";
 
 export default function Home() {
-  const { isAuthenticated, isLoading, error, isInFarcaster, retry } = useMiniApp();
+  const { isAuthenticated, isLoading, error, isInFarcaster } = useMiniApp();
 
   if (isLoading) {
     return (
@@ -29,14 +29,6 @@ export default function Home() {
             : error || "Something went wrong"
           }
         </p>
-        {error && (
-          <button 
-            onClick={retry}
-            className="bg-yellow-600 hover:bg-yellow-500 text-black px-4 py-2 rounded"
-          >
-            Retry
-          </button>
-        )}
       </div>
     );
   }
