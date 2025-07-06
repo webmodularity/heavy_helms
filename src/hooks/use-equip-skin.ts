@@ -1,9 +1,7 @@
 import type { SkinWithMetadataURI } from "@/components/character/skins-browser";
 import { PlayerABI } from "@/game/abi/PlayerABI.abi";
-import { useWallet } from "@/hooks/use-wallet";
 import { createPlayerSkin } from "@/lib/player-api";
 import type { Player } from "@/types/player.types";
-import { usePrivy } from "@privy-io/react-auth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
@@ -13,6 +11,7 @@ import {
 } from "wagmi";
 import { useState, useEffect } from "react";
 import type { StanceType } from "@/types/equipment.types";
+import { useMiniApp } from "@/store/miniapp-context";
 
 interface EquipSkinParams {
   skinIndex: number;
@@ -30,8 +29,8 @@ interface EquipSkinResult {
 }
 
 export function useEquipSkin(playerId: string) {
-  const { authenticated } = usePrivy();
-  const { isWrongNetwork, switchToPrimaryNetwork } = useWallet();
+  const { isAuthenticated } = useMiniApp();
+  const { isWrongNetwork } = useMiniApp();
   const queryClient = useQueryClient();
   const { address } = useAccount();
   const [pendingSkin, setPendingSkin] = useState<EquipSkinParams | null>(null);
@@ -127,12 +126,8 @@ export function useEquipSkin(playerId: string) {
       newSkin,
       stance,
     }): Promise<EquipSkinResult> => {
-      if (!authenticated) {
+      if (!isAuthenticated) {
         throw new Error("Wallet not connected");
-      }
-
-      if (isWrongNetwork) {
-        await switchToPrimaryNetwork();
       }
 
       if (!address) {

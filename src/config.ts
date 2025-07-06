@@ -1,68 +1,43 @@
-import { http, createPublicClient } from "viem";
-import { baseSepolia, mainnet, shape } from "viem/chains";
-import { createConfig } from "@privy-io/wagmi";
-// Export the public viem client for direct blockchain interactions
+import { http, createConfig } from "wagmi";
+import { baseSepolia } from "wagmi/chains";
+import { farcasterMiniApp as miniAppConnector } from "@farcaster/miniapp-wagmi-connector";
+import { createPublicClient } from "viem";
+
+// Export the public viem client for Base Sepolia only
 export const viemClient = createPublicClient({
-  chain:
-    process.env.NEXT_PUBLIC_ALCHEMY_NETWORK === "base-sepolia"
-      ? baseSepolia
-      : shape,
+  chain: baseSepolia,
   transport: http(
-    `https://${process.env.NEXT_PUBLIC_ALCHEMY_NETWORK}.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`,
+    `https://base-sepolia.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`,
   ),
   batch: {
     multicall: true,
   },
 });
 
+// Wagmi config with Farcaster MiniApp connector
 export const wagmiConfig = createConfig({
-  chains:
-    process.env.NEXT_PUBLIC_ALCHEMY_NETWORK === "base-sepolia"
-      ? [mainnet, baseSepolia]
-      : [mainnet, shape],
-
+  chains: [baseSepolia],
   transports: {
     [baseSepolia.id]: http(),
-    [mainnet.id]: http(),
-    [shape.id]: http(
-      `https://${process.env.NEXT_PUBLIC_ALCHEMY_NETWORK}.g.alchemy.com/v2/${process.env.NEXT_PUBLIC_ALCHEMY_API_KEY}`,
-    ),
   },
+  connectors: [
+    miniAppConnector(), // This handles wallet connection in Farcaster
+  ],
 });
 
-// Use environment variable for Subgraph URL
+// Subgraph URL
 export const SUBGRAPH_URL = process.env.NEXT_PUBLIC_SUBGRAPH_URL as string;
 
-// Add a check for the new environment variable
 if (!SUBGRAPH_URL) {
   console.warn("NEXT_PUBLIC_SUBGRAPH_URL is not set in environment variables.");
-  // Optionally, you could set a default or throw an error if it's critical
-  // throw new Error("Critical environment variable NEXT_PUBLIC_SUBGRAPH_URL is missing.");
 }
 
 // Contract addresses
 export const PLAYER_CONTRACT_ADDRESS = process.env
   .NEXT_PUBLIC_PLAYER_CONTRACT_ADDRESS as `0x${string}`;
+
 export const SKIN_REGISTRY_ADDRESS = process.env
   .NEXT_PUBLIC_SKIN_REGISTRY_ADDRESS as `0x${string}`;
+
 export const EQUIPMENT_REQUIREMENTS_ADDRESS = process.env
   .NEXT_PUBLIC_EQUIPMENT_REQUIREMENTS_ADDRESS as `0x${string}`;
-
-// Fallback addresses for local development (these should be replaced with actual contract addresses)
-if (!PLAYER_CONTRACT_ADDRESS) {
-  console.warn(
-    "NEXT_PUBLIC_PLAYER_CONTRACT_ADDRESS not set, using fallback address",
-  );
-}
-
-if (!SKIN_REGISTRY_ADDRESS) {
-  console.warn(
-    "NEXT_PUBLIC_SKIN_REGISTRY_ADDRESS not set, using fallback address",
-  );
-}
-
-if (!EQUIPMENT_REQUIREMENTS_ADDRESS) {
-  console.warn(
-    "NEXT_PUBLIC_EQUIPMENT_REQUIREMENTS_ADDRESS not set, using fallback address",
-  );
-}

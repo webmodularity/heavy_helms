@@ -5,7 +5,6 @@ import { Button } from "@/components/ui/button";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCancelChallenge } from "@/hooks/use-cancel-challenge";
 import { useAcceptChallenge } from "@/hooks/use-accept-challenge";
-import { usePrivy } from "@privy-io/react-auth";
 import {
   Loader2,
   Shield,
@@ -16,9 +15,7 @@ import {
   ChevronDown,
 } from "lucide-react";
 import { useState, useEffect, useMemo, useRef } from "react";
-import { formatEther } from "viem";
 import { YellowButton } from "@/components/ui/yellow-button";
-import { ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import Image from "next/image";
 import type { Player } from "@/types/player.types";
@@ -31,6 +28,8 @@ import { Accordion } from "@/components/ui/accordion";
 import { GauntletAccordionItem } from "@/components/gauntlet/gauntlet-accordion-item";
 import { CombatDetails } from "@/components/battle-archives/combat-details";
 
+import { useMiniApp } from "@/store/miniapp-context";
+
 interface ActivitySectionProps {
   selectedCharacter: Player | null;
   isOwner?: boolean;
@@ -40,7 +39,7 @@ export function ActivitySection({
   selectedCharacter,
   isOwner,
 }: ActivitySectionProps) {
-  const { authenticated, login } = usePrivy();
+  const { isAuthenticated, retry } = useMiniApp();
 
   return (
     <section className="mb-8" id="activity-section">
@@ -55,14 +54,14 @@ export function ActivitySection({
         animate={{ opacity: 1 }}
         transition={{ duration: 0.7, delay: 0.7 }}
       >
-        {authenticated ? (
+        {isAuthenticated ? (
           <BattleTabs selectedCharacter={selectedCharacter} isOwner={isOwner} />
         ) : (
           <div className="flex flex-col items-center justify-center py-8 space-y-4">
             <p className="text-stone-300 text-center">
               Connect your wallet to view your battle chronicles
             </p>
-            <YellowButton onClick={login}>Connect Wallet</YellowButton>
+            <YellowButton onClick={retry}>Connect Wallet</YellowButton>
           </div>
         )}
       </motion.div>

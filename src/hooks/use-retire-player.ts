@@ -1,15 +1,14 @@
-import { usePrivy } from "@privy-io/react-auth";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { PlayerABI } from "@/game/abi";
 import type { Fighter } from "@/types/fighter-types";
-import { useWallet } from "./use-wallet";
 import {
   useAccount,
   useWriteContract,
   useWaitForTransactionReceipt,
 } from "wagmi";
 import { useState, useEffect } from "react";
+import { useMiniApp } from "@/store/miniapp-context";
 
 interface RetirePlayerResult {
   success: boolean;
@@ -23,8 +22,7 @@ interface RetirePlayerResult {
  * @returns Object containing retirement function and state
  */
 export function useRetirePlayer(playerId: string) {
-  const { authenticated } = usePrivy();
-  const { isWrongNetwork, switchToPrimaryNetwork } = useWallet();
+  const { isAuthenticated } = useMiniApp();
   const queryClient = useQueryClient();
   const { address } = useAccount();
   const [pendingRetirement, setPendingRetirement] = useState<boolean>(false);
@@ -92,13 +90,10 @@ export function useRetirePlayer(playerId: string) {
 
   const mutation = useMutation<RetirePlayerResult, Error, void>({
     mutationFn: async (): Promise<RetirePlayerResult> => {
-      if (!authenticated) {
+      if (!isAuthenticated) {
         throw new Error("Authentication required");
       }
 
-      if (isWrongNetwork) {
-        await switchToPrimaryNetwork();
-      }
 
       if (!address) {
         throw new Error("No wallet address found");
@@ -198,7 +193,7 @@ export function useRetirePlayer(playerId: string) {
    * @returns Promise that resolves when the player is retired
    */
   const retirePlayer = async (): Promise<RetirePlayerResult> => {
-    if (!authenticated) {
+    if (!isAuthenticated) {
       toast.error("Please connect your wallet", {
         description: "You need to be logged in to retire a character.",
       });

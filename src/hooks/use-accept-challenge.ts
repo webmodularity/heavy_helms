@@ -1,6 +1,4 @@
 import { DuelGameABI } from "@/game/abi/DuelGameABI.abi";
-import { useWallet } from "@/hooks/use-wallet";
-import { usePrivy } from "@privy-io/react-auth";
 import {
   type InfiniteData,
   useMutation,
@@ -18,10 +16,10 @@ import {
   useAccount,
   useWriteContract,
   useWaitForTransactionReceipt,
-  useWatchContractEvent,
 } from "wagmi";
 import { useState, useEffect } from "react";
 import { useGlobalFightModal } from "./use-global-fight-modal";
+import { useMiniApp } from "@/store/miniapp-context";
 
 // This is a placeholder - replace with your actual contract address
 const DUEL_GAME_CONTRACT_ADDRESS = process.env
@@ -42,8 +40,7 @@ interface AcceptChallengeResult {
 }
 
 export function useAcceptChallenge() {
-  const { authenticated } = usePrivy();
-  const { isWrongNetwork, switchToPrimaryNetwork } = useWallet();
+    const { isAuthenticated } = useMiniApp();
   const queryClient = useQueryClient();
   const { address } = useAccount();
   const [pendingChallenge, setPendingChallenge] =
@@ -126,13 +123,11 @@ export function useAcceptChallenge() {
       wagerAmount,
       onModalClose,
     }: AcceptChallengeParams): Promise<AcceptChallengeResult> => {
-      if (!authenticated) {
+      if (!isAuthenticated) {
         throw new Error("Authentication required");
       }
 
-      if (isWrongNetwork) {
-        await switchToPrimaryNetwork();
-      }
+
 
       if (!address) {
         throw new Error("No wallet address found");
@@ -301,7 +296,7 @@ export function useAcceptChallenge() {
   };
 
   const acceptChallenge = async (params: AcceptChallengeParams) => {
-    if (!authenticated) {
+    if (!isAuthenticated) {
       toast.error("Authentication required", {
         description: "Please connect your wallet to accept a challenge.",
       });

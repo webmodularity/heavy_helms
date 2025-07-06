@@ -1,8 +1,6 @@
 import { viemClient } from "@/config";
 import { PlayerABI } from "@/game/abi/PlayerABI.abi";
-import { useWallet } from "@/hooks/use-wallet";
-import { usePrivy } from "@privy-io/react-auth";
-import { useWallets } from "@privy-io/react-auth";
+
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { parseEther, parseAbiItem } from "viem";
@@ -26,6 +24,7 @@ import {
 } from "wagmi";
 import { useEffect, useState } from "react";
 import { useGameOwnedSkinCollection } from "./use-game-owned-skin-collection";
+import { useMiniApp } from "@/store/miniapp-context";
 
 // Reverted Interface - No namePreference needed here
 interface CreateCharacterResult {
@@ -37,8 +36,7 @@ interface CreateCharacterResult {
 type NamePreference = 'male' | 'female';
 
 export function useCreateCharacter() {
-  const { authenticated } = usePrivy();
-  const { isWrongNetwork, switchToPrimaryNetwork } = useWallet();
+  const { isWrongNetwork, isAuthenticated } = useMiniApp();
   const queryClient = useQueryClient();
   const router = useRouter();
   const { address } = useAccount();
@@ -121,12 +119,10 @@ export function useCreateCharacter() {
   // Create a mutation for character creation
   const mutation = useMutation<CreateCharacterResult, Error, NamePreference>({
     mutationFn: async (namePreference: NamePreference): Promise<CreateCharacterResult> => {
-      if (!authenticated) {
+      if (!isAuthenticated) {
         throw new Error("Authentication required");
       }
-      if (isWrongNetwork) {
-        await switchToPrimaryNetwork();
-      }
+
       if (!address) {
         throw new Error("No wallet found");
       }
@@ -316,7 +312,7 @@ export function useCreateCharacter() {
 
   // createCharacter accepts preference for the mutation call
   const createCharacter = async (namePreference: NamePreference) => {
-    if (!authenticated) {
+    if (!isAuthenticated) {
       toast.error("Authentication required", {
         description: "Please connect your wallet to create a character.",
       });

@@ -3,11 +3,11 @@ import { GET_ACTIVE_PLAYERS_QUERY } from "@/lib/gql-queries";
 import { convertRawFighterToFighter } from "@/lib/player-api";
 import { useQuery } from "@tanstack/react-query";
 import request from "graphql-request";
-import { usePrivy } from "@privy-io/react-auth";
 import type { RawFighterData } from "@/types/fighter-types";
+import { useMiniApp } from "@/store/miniapp-context";
 
 export function useActivePlayers() {
-  const { authenticated } = usePrivy();
+  const { isAuthenticated } = useMiniApp();
 
   // Fetch all active players
   const {
@@ -41,7 +41,7 @@ export function useActivePlayers() {
         throw error;
       }
     },
-    enabled: !!authenticated,
+    enabled: !!isAuthenticated,
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 

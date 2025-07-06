@@ -1,6 +1,4 @@
 import { DuelGameABI } from "@/game/abi/DuelGameABI.abi";
-import { useWallet } from "@/hooks/use-wallet";
-import { usePrivy } from "@privy-io/react-auth";
 import {
   type InfiniteData,
   useMutation,
@@ -14,6 +12,7 @@ import {
 } from "wagmi";
 import { useState, useEffect } from "react";
 import type { Challenge } from "./use-challenges";
+import { useMiniApp } from "@/store/miniapp-context";
 
 // This is a placeholder - replace with your actual contract address
 const DUEL_GAME_CONTRACT_ADDRESS = process.env
@@ -31,8 +30,8 @@ interface CancelChallengeParams {
 }
 
 export function useCancelChallenge() {
-  const { authenticated } = usePrivy();
-  const { isWrongNetwork, switchToPrimaryNetwork } = useWallet();
+  const { isAuthenticated } = useMiniApp();
+  const { isWrongNetwork } = useMiniApp();
   const queryClient = useQueryClient();
   const { address } = useAccount();
   const [pendingCancel, setPendingCancel] =
@@ -111,12 +110,8 @@ export function useCancelChallenge() {
       challengeId,
       characterId,
     }: CancelChallengeParams): Promise<CancelChallengeResult> => {
-      if (!authenticated) {
+      if (!isAuthenticated) {
         throw new Error("Authentication required");
-      }
-
-      if (isWrongNetwork) {
-        await switchToPrimaryNetwork();
       }
 
       if (!address) {
@@ -172,7 +167,7 @@ export function useCancelChallenge() {
   });
 
   const cancelChallenge = async (params: CancelChallengeParams) => {
-    if (!authenticated) {
+    if (!isAuthenticated) {
       toast.error("Authentication required", {
         description: "Please connect your wallet to cancel a challenge.",
       });

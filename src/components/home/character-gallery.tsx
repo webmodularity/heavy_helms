@@ -9,6 +9,7 @@ import {
   getWeaponDisplayName,
   getArmorDisplayName,
 } from "@/lib/equipment-utils";
+import { useAuth } from "@/store/auth-context";
 
 interface CharacterGalleryProps {
   characters?: Player[];
@@ -48,28 +49,12 @@ export function CharacterGallery({ characters }: CharacterGalleryProps) {
           </motion.div>
         </div>
 
-        {/* Call to Action */}
-        <div className="mt-10 text-center">
-          <CTAButton />
-          <p className="text-stone-400 text-xs mt-2 italic">
-            Connect wallet to enter the arena
-          </p>
-        </div>
+
       </div>
     </section>
   );
 }
 
-function CTAButton() {
-  const { login } = usePrivy();
-  return (
-    <CTAButtonComponent
-      onClick={() => login()}
-      title="Claim Your Destiny"
-      size="lg"
-    />
-  );
-}
 
 // Component for decorative borders and corner elements
 function BorderDecoration() {

@@ -1,9 +1,9 @@
 "use client";
 
-import AuthButton from "@/components/auth-button";
+import { AuthButton } from "@/components/auth-button";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import { ChainSelection } from "./chain-selection";
+// import { ChainSelection } from "./chain-selection";
 import Link from "next/link";
 import {
   Trophy,
@@ -48,7 +48,7 @@ export function Header() {
       {/* Top right corner group */}
       <div className="absolute top-2 right-2 sm:top-4 sm:right-4 z-50 flex items-center gap-2">
         <AuthButton />
-        <ChainSelection />
+        {/* <ChainSelection /> */}
 
         {/* Navigation Dropdown Menu */}
         <DropdownMenu>

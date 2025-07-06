@@ -1,18 +1,15 @@
 import { SUBGRAPH_URL } from "@/config";
-import { usePrivy } from "@privy-io/react-auth";
-import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
+import { useInfiniteQuery } from "@tanstack/react-query";
 import { request } from "graphql-request";
 import {
-  GET_USER_CHALLENGES,
-  GET_FIGHTER_CHALLENGES,
   GET_FIGHTER_CHALLENGES_PAGINATED,
-  GET_USER_CHALLENGES_PAGINATED,
   GET_ALL_OPEN_CHALLENGES,
 } from "@/lib/gql-queries";
 import { useAccount } from "wagmi";
 import type { StanceType } from "@/types/equipment.types";
 import type { ArmorType } from "@/types/equipment.types";
 import type { WeaponType } from "@/types/equipment.types";
+import { useMiniApp } from "@/store/miniapp-context";
 
 // GraphQL response type
 export interface SubgraphChallenge {
@@ -80,7 +77,7 @@ export interface Challenge {
 }
 
 export function useChallenges(fighterId?: string, pageSize = 10) {
-  const { authenticated } = usePrivy();
+  const { isAuthenticated } = useMiniApp();
   const { address } = useAccount();
   const {
     data,
@@ -101,7 +98,7 @@ export function useChallenges(fighterId?: string, pageSize = 10) {
         : ["active-challenges", address, pageSize],
     queryFn: async ({ pageParam = 0 }) => {
       // Don't fetch if not authenticated
-      if (!authenticated) {
+      if (!isAuthenticated) {
         return [];
       }
 

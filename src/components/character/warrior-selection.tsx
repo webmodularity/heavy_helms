@@ -33,6 +33,7 @@ export function WarriorSelection({
   const router = useRouter();
   const characterListRef = useRef<HTMLDivElement>(null);
   const { players, isLoading } = useOwnPlayers();
+  console.log("players", players);
   const { createCharacter, isCreatingCharacter, txHash } = useCreateCharacter();
   const queryClient = useQueryClient();
   const { address } = useAccount();

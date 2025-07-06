@@ -1,0 +1,17 @@
+{
+  "accountAssociation": {
+    "header": "PLACEHOLDER_HEADER",
+    "payload": "PLACEHOLDER_PAYLOAD",
+    "signature": "PLACEHOLDER_SIGNATURE"
+  },
+  "frame": {
+    "version": "1",
+    "name": "Heavy Helms",
+    "iconUrl": "https://transmit-commonly-negative-statement.trycloudflare.com/heavy_helms_header.png",
+    "homeUrl": "https://transmit-commonly-negative-statement.trycloudflare.com",
+    "imageUrl": "https://transmit-commonly-negative-statement.trycloudflare.com/heavy_helms_header.png",
+    "buttonTitle": "Enter the Arena",
+    "splashImageUrl": "https://transmit-commonly-negative-statement.trycloudflare.com/heavy_helms_header.png",
+    "splashBackgroundColor": "#000000"
+  }
+} 

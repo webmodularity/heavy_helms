@@ -1,4 +1,5 @@
 import { CharacterDetailsView } from "@/components/character/character-details-view";
+import { generateShareableMetadata } from "@/lib/farcaster-embed-utils";
 import type { Metadata } from "next";
 
 interface CharacterPageProps {
@@ -11,11 +12,14 @@ export async function generateMetadata({
   params,
 }: CharacterPageProps): Promise<Metadata> {
   const { id } = await params;
-  // This would be enhanced with real character data in production
-  return {
+  
+  // Generate Farcaster miniapp-compatible metadata
+  return generateShareableMetadata({
     title: `Character Details #${id} | Heavy Helms`,
-    description: "View detailed information about your warrior character",
-  };
+    description: "View detailed information about this warrior character and their battle history",
+    buttonTitle: "View Character",
+    url: `${process.env.NEXT_PUBLIC_FARCASTER_MINIAPP_URL}/character/${id}`,
+  });
 }
 
 export default async function CharacterPage({ params }: CharacterPageProps) {
