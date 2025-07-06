@@ -8,9 +8,10 @@ import { CompactNewCharacterCard } from "./compact-new-character-card";
 import { CharacterCardGridSkeleton } from "../ui/skeletons/character-card-grid-skeleton";
 import { useOwnPlayers } from "@/hooks/use-own-players";
 import type { StanceType } from "@/types/equipment.types";
-import { HapticFeedback } from "@/lib/miniapp-utils";
 import { motion, AnimatePresence } from "framer-motion";
 import { useCreateCharacter } from "@/hooks/use-create-character";
+import { HapticFeedback } from "@/lib/miniapp-utils";
+import { SelectionAnimationEffects } from "./selection-animation-effects";
 
 type NamePreference = "male" | "female";
 

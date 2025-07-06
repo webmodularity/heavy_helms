@@ -12,6 +12,7 @@ import { WarriorSelection } from "../character/warrior-selection";
 import type { StanceType } from "@/types/equipment.types";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
+import { WarriorSelectionGridAnimated } from "../character/warrior-selection-grid-animated";
 
 export function AuthenticatedView() {
   const [selectedCharacter, setSelectedCharacter] = useState<Player | null>(
