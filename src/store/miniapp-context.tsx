@@ -1,7 +1,12 @@
 "use client";
 import { sdk } from "@farcaster/miniapp-sdk";
-import { type ReactNode, createContext, useContext, useEffect, useState } from "react";
-import { toast } from "sonner";
+import {
+  type ReactNode,
+  createContext,
+  useContext,
+  useEffect,
+  useState,
+} from "react";
 import { baseSepolia } from "viem/chains";
 import { useAccount, useConnect, useDisconnect, useChainId } from "wagmi";
 
@@ -24,7 +29,7 @@ interface MiniAppContextType {
   isLoading: boolean;
   error: string | null;
   // retry: () => void;
-  
+
   // Wallet State
   currentChainId: number;
   isWrongNetwork: boolean;
@@ -43,7 +48,7 @@ const MiniAppContext = createContext<MiniAppContextType>({
   isLoading: true,
   error: null,
   // retry: () => {},
-  
+
   // Wallet Defaults
   currentChainId: baseSepolia.id,
   isWrongNetwork: false,
@@ -62,7 +67,7 @@ export function MiniAppProvider({ children }: { children: ReactNode }) {
   const [error, setError] = useState<string | null>(null);
   // const [autoConnectAttempted, setAutoConnectAttempted] = useState(false);
   const [contextInitialized, setContextInitialized] = useState(false);
-  
+
   // Wagmi Wallet Hooks
   const { address, isConnected } = useAccount();
   const { connect, connectors, isPending } = useConnect();
@@ -73,20 +78,20 @@ export function MiniAppProvider({ children }: { children: ReactNode }) {
     try {
       setIsLoading(true);
       setError(null);
-      
+
       console.log("🚀 Initializing Farcaster SDK...");
-      
+
       // Get the context to check if we're in Farcaster and get user info
       // But don't call ready() yet - wait for wallet connection
       console.log("📱 Getting Farcaster context...");
       const context = await sdk.context;
       await sdk.back.enableWebNavigation();
       console.log("📱 Farcaster context:", context);
-      
+
       if (context) {
         setIsInFarcaster(true);
         console.log("✅ Running in Farcaster environment");
-        
+
         // In a Farcaster MiniApp, user should always be available
         if (context.user) {
           const userData = {
@@ -95,11 +100,13 @@ export function MiniAppProvider({ children }: { children: ReactNode }) {
             displayName: context.user.displayName,
             pfpUrl: context.user.pfpUrl,
           };
-          
+
           setUser(userData);
           console.log("👤 User authenticated:", userData);
         } else {
-          console.warn("⚠️ No user in context - this shouldn't happen in a MiniApp");
+          console.warn(
+            "⚠️ No user in context - this shouldn't happen in a MiniApp",
+          );
           setError("No user context available");
         }
       } else {
@@ -107,11 +114,13 @@ export function MiniAppProvider({ children }: { children: ReactNode }) {
         setIsInFarcaster(false);
         setError("This app must be run within Farcaster");
       }
-      
+
       setContextInitialized(true);
     } catch (error) {
       console.error("💥 Farcaster SDK initialization failed:", error);
-      setError(error instanceof Error ? error.message : "Failed to initialize SDK");
+      setError(
+        error instanceof Error ? error.message : "Failed to initialize SDK",
+      );
       setIsInFarcaster(false);
     } finally {
       setIsLoading(false);
@@ -119,6 +128,7 @@ export function MiniAppProvider({ children }: { children: ReactNode }) {
   };
 
   // Initialize Farcaster SDK on mount
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     // Add a small delay to ensure the DOM is ready
     const timer = setTimeout(() => {
@@ -141,14 +151,13 @@ export function MiniAppProvider({ children }: { children: ReactNode }) {
       // 7. We have connectors available
       if (
         contextInitialized &&
-        !!user && 
-        isInFarcaster && 
-        !isConnected && 
+        !!user &&
+        isInFarcaster &&
+        !isConnected &&
         // !autoConnectAttempted &&
         !isLoading &&
         connectors.length > 0
       ) {
-        
         try {
           // Use the first (and only) connector - the Farcaster MiniApp connector
           const connector = connectors[0];
@@ -166,9 +175,18 @@ export function MiniAppProvider({ children }: { children: ReactNode }) {
     };
 
     attemptAutoConnect();
-  }, [contextInitialized, user, isInFarcaster, isConnected, isLoading, connect, connectors]);
+  }, [
+    contextInitialized,
+    user,
+    isInFarcaster,
+    isConnected,
+    isLoading,
+    connect,
+    connectors,
+  ]);
 
   // Call sdk.actions.ready() only when wallet is connected
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     const callReady = async () => {
       if (
@@ -184,7 +202,9 @@ export function MiniAppProvider({ children }: { children: ReactNode }) {
           await sdk.actions.ready();
         } catch (error) {
           console.error("💥 Failed to call sdk.actions.ready():", error);
-          setError(error instanceof Error ? error.message : "Failed to initialize SDK");
+          setError(
+            error instanceof Error ? error.message : "Failed to initialize SDK",
+          );
         }
       }
     };
@@ -194,8 +214,10 @@ export function MiniAppProvider({ children }: { children: ReactNode }) {
 
   // Auto-disconnect when user is no longer authenticated
   useEffect(() => {
-    if (!user && isConnected) { 
-      console.log("🔌 Auto-disconnecting wallet (user no longer authenticated)");
+    if (!user && isConnected) {
+      console.log(
+        "🔌 Auto-disconnecting wallet (user no longer authenticated)",
+      );
       disconnect();
     }
   }, [user, isConnected, disconnect]);
@@ -208,7 +230,7 @@ export function MiniAppProvider({ children }: { children: ReactNode }) {
     isLoading,
     error,
     // retry,
-    
+
     // Wallet State
     currentChainId: chainId || baseSepolia.id,
     isWrongNetwork: (chainId || baseSepolia.id) !== baseSepolia.id,
@@ -220,9 +242,7 @@ export function MiniAppProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <MiniAppContext.Provider value={value}>
-      {children}
-    </MiniAppContext.Provider>
+    <MiniAppContext.Provider value={value}>{children}</MiniAppContext.Provider>
   );
 }
 
@@ -237,4 +257,3 @@ export function useMiniApp() {
 // Legacy exports for backward compatibility
 export const useFarcasterAuth = useMiniApp;
 export const useWallet = useMiniApp;
-
