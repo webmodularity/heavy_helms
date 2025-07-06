@@ -60,7 +60,7 @@ export function MiniAppProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<FarcasterUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [autoConnectAttempted, setAutoConnectAttempted] = useState(false);
+  // const [autoConnectAttempted, setAutoConnectAttempted] = useState(false);
   const [contextInitialized, setContextInitialized] = useState(false);
   
   // Wagmi Wallet Hooks
@@ -80,6 +80,7 @@ export function MiniAppProvider({ children }: { children: ReactNode }) {
       // But don't call ready() yet - wait for wallet connection
       console.log("📱 Getting Farcaster context...");
       const context = await sdk.context;
+      await sdk.back.enableWebNavigation();
       console.log("📱 Farcaster context:", context);
       
       if (context) {
@@ -143,18 +144,16 @@ export function MiniAppProvider({ children }: { children: ReactNode }) {
         !!user && 
         isInFarcaster && 
         !isConnected && 
-        !autoConnectAttempted &&
+        // !autoConnectAttempted &&
         !isLoading &&
         connectors.length > 0
       ) {
-        console.log("🔄 Auto-connecting wallet...");
-        setAutoConnectAttempted(true);
         
         try {
           // Use the first (and only) connector - the Farcaster MiniApp connector
           const connector = connectors[0];
           if (connector) {
-            await connect({ connector });
+            connect({ connector });
             console.log("✅ Auto-connected to wallet successfully");
           } else {
             console.error("❌ No connector available");
@@ -167,7 +166,7 @@ export function MiniAppProvider({ children }: { children: ReactNode }) {
     };
 
     attemptAutoConnect();
-  }, [contextInitialized, user, isInFarcaster, isConnected, autoConnectAttempted, isLoading, connect, connectors]);
+  }, [contextInitialized, user, isInFarcaster, isConnected, isLoading, connect, connectors]);
 
   // Call sdk.actions.ready() only when wallet is connected
   useEffect(() => {
@@ -195,10 +194,9 @@ export function MiniAppProvider({ children }: { children: ReactNode }) {
 
   // Auto-disconnect when user is no longer authenticated
   useEffect(() => {
-    if (!user && isConnected) {
+    if (!user && isConnected) { 
       console.log("🔌 Auto-disconnecting wallet (user no longer authenticated)");
       disconnect();
-      setAutoConnectAttempted(false);
     }
   }, [user, isConnected, disconnect]);
 
