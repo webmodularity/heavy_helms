@@ -3,7 +3,6 @@
 import { AuthButton } from "@/components/auth-button";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-// import { ChainSelection } from "./chain-selection";
 import Link from "next/link";
 import {
   Trophy,
@@ -12,7 +11,6 @@ import {
   ListOrdered,
   Menu,
   MessageCircleQuestion,
-  ShieldCheck,
 } from "lucide-react";
 import { usePathname } from "next/navigation";
 import {

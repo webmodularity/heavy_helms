@@ -6,11 +6,11 @@ import { useEffect, useState, useCallback, useRef } from "react";
 import { EnhancedCompactCharacterCard } from "./enhanced-compact-character-card";
 import { CompactNewCharacterCard } from "./compact-new-character-card";
 import { CharacterCardGridSkeleton } from "../ui/skeletons/character-card-grid-skeleton";
-import { SelectionAnimationEffects } from "./selection-animation-effects";
 import { useOwnPlayers } from "@/hooks/use-own-players";
 import type { StanceType } from "@/types/equipment.types";
 import { HapticFeedback } from "@/lib/miniapp-utils";
 import { motion, AnimatePresence } from "framer-motion";
+import { useCreateCharacter } from "@/hooks/use-create-character";
 
 type NamePreference = "male" | "female";
 
@@ -30,7 +30,7 @@ export function WarriorSelectionGridAnimated({
   const router = useRouter();
   const containerRef = useRef<HTMLDivElement>(null);
   const { players, isLoading } = useOwnPlayers();
-  const { createCharacter, isCreatingCharacter, txHash } = usecharacter();
+  const { createCharacter, isCreatingCharacter, txHash } = useCreateCharacter();
   const [previousSelectedId, setPreviousSelectedId] = useState<
     string | number | null
   >(null);
