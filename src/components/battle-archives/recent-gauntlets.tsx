@@ -1,6 +1,6 @@
 "use client";
 
-import { Trophy, Loader2, Clock } from "lucide-react";
+import { Trophy, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
@@ -87,6 +87,13 @@ export function RecentGauntlets() {
   // State to track which fight is currently active/selected
   const [activeFightKey, setActiveFightKey] = useState<string | null>(null);
 
+  // State to track which fight accordion is expanded
+  const [expandedFightId, setExpandedFightId] = useState<string | null>(null);
+
+  const handleFightAccordionToggle = (fightId: string | null) => {
+    setExpandedFightId(fightId);
+  };
+
   const handleRefetch = async () => {
     await refetch();
   };
@@ -111,29 +118,12 @@ export function RecentGauntlets() {
 
   return (
     <div className="bg-stone-900 border border-yellow-600/20 rounded-lg overflow-hidden">
-      <div className="p-4 bg-gradient-to-r from-amber-900/50 to-stone-900 border-b border-yellow-600/20 flex items-center justify-between">
+      <div className="p-4 bg-gradient-to-r from-amber-900/50 to-stone-900 border-b border-yellow-600/20 flex items-center justify-center">
         <div className="flex items-center">
           <Trophy className="h-5 w-5 text-yellow-500 mr-2" />
           <h2 className="text-xl font-bold text-yellow-400">
             Recent Gauntlets
           </h2>
-        </div>
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-stone-400 flex items-center">
-            <Clock className="h-4 w-4 mr-1" /> Latest gauntlet updates
-          </span>
-          <Button
-            size="sm"
-            onClick={handleRefetch}
-            disabled={isRefetching || (isLoading && gauntlets.length === 0)}
-            className="border-yellow-600/20 hover:bg-yellow-500/10 hover:text-yellow-400 text-yellow-500"
-          >
-            {isRefetching || (isLoading && gauntlets.length === 0) ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
-            ) : (
-              "Refresh"
-            )}
-          </Button>
         </div>
       </div>
 
@@ -181,6 +171,8 @@ export function RecentGauntlets() {
               isExpanded={expandedGauntletId === gauntlet.id}
               activeFightKey={activeFightKey || undefined}
               onFightClick={setActiveFightKey}
+              expandedFightId={expandedFightId || undefined}
+              onFightAccordionToggle={handleFightAccordionToggle}
             />
           ))}
         </Accordion>

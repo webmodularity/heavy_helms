@@ -5,6 +5,14 @@ import { SUBGRAPH_URL } from "@/config"; // Use the existing config
 
 // --- Type Definitions ---
 
+export type LeaderboardSortBy =
+  | "battleRating"
+  | "wins"
+  | "losses"
+  | "kills"
+  | "duelWins"
+  | "gauntletWins";
+
 // Player type based on the PLAYER_DATA_FRAGMENT
 // Consider generating this from your schema for better maintenance
 // or importing if it already exists in @/types/
@@ -22,6 +30,8 @@ export interface LeaderboardPlayer {
   wins: number;
   losses: number;
   kills: number;
+  duelWins: number;
+  gauntletWins: number;
   battleRating: number;
   owner?: { address: string } | null; // Include owner if needed
   // Add other relevant fields from PlayerDataFields
@@ -32,24 +42,52 @@ interface LeaderboardQueryResult {
   players: LeaderboardPlayer[];
 }
 
+interface LeaderboardOptions {
+  limit?: number;
+  sortBy?: LeaderboardSortBy;
+  minWins?: number; // For special leaderboards like Velvet Rope (69) and Green Room (420)
+  exactWins?: number; // For exact win count matches
+}
+
 // --- Hook Implementation ---
 
 // Default limit can be adjusted or removed if always passed
 const DEFAULT_LIMIT = 100;
 
-export function useLeaderboardData(limit: number = DEFAULT_LIMIT) {
+export function useLeaderboardData(options: LeaderboardOptions = {}) {
+  const {
+    limit = DEFAULT_LIMIT,
+    sortBy = "battleRating",
+    minWins,
+    exactWins,
+  } = options;
+
   const queryResult = useQuery({
     // Unique query key including the limit
-    queryKey: ["leaderboard-players", limit],
+    queryKey: ["leaderboard-players", limit, sortBy, minWins, exactWins],
 
     queryFn: async () => {
       try {
+        // Map frontend sortBy to GraphQL orderBy field
+        const orderByMap: Record<LeaderboardSortBy, string> = {
+          battleRating: "battleRating",
+          wins: "wins",
+          losses: "losses",
+          kills: "kills",
+          duelWins: "duelWins",
+          gauntletWins: "gauntletWins",
+        };
+
         const response = await request<LeaderboardQueryResult>(
-          SUBGRAPH_URL, // Use imported SUBGRAPH_URL
+          SUBGRAPH_URL,
           GET_LEADERBOARD_PLAYERS,
-          { limit, skip: 0 }, // Pass variables
+          {
+            limit: limit, // Only fetch what we actually need
+            skip: 0,
+            orderBy: orderByMap[sortBy],
+            orderDirection: "desc", // Always descending for leaderboards
+          },
         );
-        // Return the raw players array; sorting happens in 'select'
         return response.players || [];
       } catch (error) {
         console.error("Error fetching leaderboard data:", error);
@@ -61,22 +99,27 @@ export function useLeaderboardData(limit: number = DEFAULT_LIMIT) {
     staleTime: 300 * 1000, // 5m example
     // refetchInterval: 300 * 1000, // Optional: 5m refetch example
 
-    // Use 'select' to process/sort the data returned by queryFn
+    // Use 'select' to process/filter the data returned by queryFn
     select: (fetchedPlayers) => {
       if (!fetchedPlayers) return []; // Handle potential undefined case
 
-      // Perform secondary sort by wins (descending) here
-      const sortedPlayers = [...fetchedPlayers].sort((a, b) => {
-        // Primary sort by battleRating is handled by GQL query itself
-        // This sort function handles ties in battleRating
-        if (a.battleRating !== b.battleRating) {
-          // Should already be sorted by GQL, but double-check doesn't hurt
-          return b.battleRating - a.battleRating;
-        }
-        // Secondary sort: Higher wins first
-        return b.wins - a.wins;
-      });
-      return sortedPlayers;
+      let filteredPlayers = [...fetchedPlayers];
+
+      // Apply win count filters for special leaderboards
+      if (minWins !== undefined) {
+        filteredPlayers = filteredPlayers.filter(
+          (player) => player.wins >= minWins,
+        );
+      }
+
+      if (exactWins !== undefined) {
+        filteredPlayers = filteredPlayers.filter(
+          (player) => player.wins === exactWins,
+        );
+      }
+
+      // Data is already sorted correctly by GraphQL
+      return filteredPlayers;
     },
   });
 

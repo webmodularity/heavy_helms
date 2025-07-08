@@ -72,7 +72,7 @@ export function FightModal({
           </Dialog.Description>
 
           {/* Modal Container */}
-          <div className="w-full h-full max-w-none bg-stone-950 rounded-lg border border-stone-700 shadow-2xl overflow-hidden">
+          <div className="w-full h-full max-w-none bg-stone-950 border border-stone-700 shadow-2xl overflow-hidden">
             {isLoading ? (
               <FightLoadingScreen text={loadingText} />
             ) : (

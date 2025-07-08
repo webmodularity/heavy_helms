@@ -22,6 +22,7 @@ import {
 } from "@/hooks/use-global-fight-modal";
 import { toast } from "sonner";
 import { FarcasterIcon } from "../icons/farcaster-icon";
+import { FighterInfoDisplay } from "./fighter-info-display";
 
 // Dynamically import EnhancedPhaserGame with no SSR
 const EnhancedPhaserGame = dynamic(() => import("./enhanced-phaser-game"), {
@@ -45,6 +46,11 @@ export function ModalGameWrapper({
   title = "Battle",
   modalId = "modal-game",
 }: ModalGameWrapperProps) {
+  console.log("ModalGameWrapper props:", {
+    player1: !!player1,
+    txId,
+    logIndex,
+  });
   const [isClient, setIsClient] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
@@ -56,6 +62,7 @@ export function ModalGameWrapper({
   const containerRef = useRef<HTMLDivElement>(null);
   const phaserInstanceRef = useRef<IRefPhaserGame>({ game: null, scene: null });
   const gameContainerId = `${modalId}-game-container`;
+  const isRestartingRef = useRef(false); // Track intentional restarts
 
   useEffect(() => {
     setIsClient(true);
@@ -162,6 +169,9 @@ export function ModalGameWrapper({
         setIsLoading(false);
         setHasError(false);
 
+        // Reset restart flag after successful initialization
+        isRestartingRef.current = false;
+
         // Wait for canvas to be created and then fix its size
         setTimeout(() => {
           waitForCanvas();
@@ -177,15 +187,22 @@ export function ModalGameWrapper({
         console.error("ModalGameWrapper: Invalid game instance received");
         setHasError(true);
         setIsLoading(false);
+        // Reset restart flag on error too
+        isRestartingRef.current = false;
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [modalId, waitForCanvas],
   );
 
   const handleGameDestroyed = useCallback(() => {
     console.log("ModalGameWrapper: Game destroyed", { modalId });
     phaserInstanceRef.current.game = null;
-    setIsGameReady(false);
+
+    // Only update state if this wasn't an intentional restart
+    if (!isRestartingRef.current) {
+      setIsGameReady(false);
+    }
   }, [modalId]);
 
   const toggleFullscreen = () => {
@@ -222,6 +239,15 @@ export function ModalGameWrapper({
     setHasError(false);
     setIsGameReady(false);
     setGameKey((prev) => prev + 1); // Force recreation
+    isRestartingRef.current = true;
+
+    // Safety timeout to reset restart flag in case something goes wrong
+    setTimeout(() => {
+      if (isRestartingRef.current) {
+        console.warn("ModalGameWrapper: Restart timeout, resetting flag");
+        isRestartingRef.current = false;
+      }
+    }, 10000); // 10 second timeout
   };
 
   const handleShareFarcaster = () => {
@@ -478,10 +504,10 @@ export function ModalGameWrapper({
       </div>
 
       {/* Game Container */}
-      <div className="flex-1 p-4 min-h-0">
+      <div className="flex-1 min-h-0">
         <div
           ref={containerRef}
-          className="relative bg-black w-full h-full overflow-hidden rounded-md flex items-center justify-center"
+          className="relative bg-black w-full h-full overflow-hidden flex items-center justify-center"
         >
           {isLoading && (
             <div className="absolute inset-0 bg-stone-900/90 flex items-center justify-center z-10">

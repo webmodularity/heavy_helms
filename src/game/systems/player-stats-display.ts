@@ -89,14 +89,14 @@ export class PlayerStatsDisplay {
     if (isRightSide) {
       this.labelStartX = x + this.padding;
       this.valueStartX = x + this.padding + this.labelWidth + 20;
-      // Start position for right side (off screen)
-      this.startX = scene.cameras.main.width;
+      // Start position for right side (slide down from top)
+      this.startX = scene.cameras.main.width - this.containerWidth;
       this.targetX = scene.cameras.main.width - this.containerWidth;
     } else {
       this.labelStartX = x + this.padding;
       this.valueStartX = x + this.padding + this.labelWidth + 20;
-      // Start position for left side (off screen)
-      this.startX = -this.containerWidth;
+      // Start position for left side (slide down from top)
+      this.startX = 0;
       this.targetX = 0;
     }
 
@@ -133,15 +133,16 @@ export class PlayerStatsDisplay {
 
     // Create container immediately
     this.createContainer();
-    // Set initial position
-    this.container.x = this.startX;
+    // Set initial position (hidden above screen)
+    this.container.x = this.targetX;
+    this.container.y = -200; // Start above screen
   }
 
   public show(): void {
-    // Slide in from the side when combat starts
+    // Slide down from the top when combat starts
     this.scene.tweens.add({
       targets: this.container,
-      x: this.targetX,
+      y: this.y,
       duration: 500,
       ease: "Power2",
     });

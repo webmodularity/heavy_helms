@@ -29,6 +29,8 @@ export const PLAYER_DATA_FRAGMENT = gql`
     wins
     losses
     kills
+    duelWins
+    gauntletWins
     uniqueWins
     uniqueLosses
     battleRating
@@ -109,6 +111,8 @@ export const FIGHTER_BASE_FRAGMENT = gql`
     wins
     losses
     kills
+    duelWins
+    gauntletWins
   }
 `;
 
@@ -319,6 +323,19 @@ export const GET_COMBAT_RESULT = gql`
       packedResults
       blockTimestamp
       blockNumber
+      logIndex
+      
+      # New detailed combat statistics (optional)
+      player1Won
+      gameEngineVersion
+      winCondition
+      roundCount
+      player1TotalDamage
+      player2TotalDamage
+      player1Crits
+      player2Crits
+      player1Hits
+      player2Hits
     }
   }
 `;
@@ -339,6 +356,86 @@ export const GET_COMBAT_RESULTS = gql`
       blockNumber
       blockTimestamp
       packedResults
+    }
+  }
+`;
+
+export const GET_COMBAT_RESULTS_DETAILED = gql`
+  query GetCombatResultsDetailed($txHash: Bytes!) {
+    combatResults(
+      where: { transactionHash: $txHash }
+      orderBy: logIndex
+      orderDirection: asc
+    ) {
+      id
+      transactionHash
+      logIndex
+      player1Data
+      player2Data
+      winningPlayerId
+      blockNumber
+      blockTimestamp
+      packedResults
+      
+      # New detailed combat statistics
+      player1Won
+      gameEngineVersion
+      winCondition
+      roundCount
+      
+      # Player 1 combat statistics
+      player1TotalDamage
+      player1TotalStaminaLost
+      player1Attacks
+      player1Hits
+      player1Misses
+      player1Crits
+      player1Blocks
+      player1Counters
+      player1Dodges
+      player1Parries
+      player1Ripostes
+      player1DefensiveActions
+      player1MaxDamage
+      
+      # Player 1 Failed Attack Types (attacks that didn't land due to opponent's defense)
+      player1AttacksBlocked
+      player1AttacksCountered
+      player1AttacksDodged
+      player1AttacksParried
+      player1AttacksRiposted
+      
+      # Player 2 combat statistics
+      player2TotalDamage
+      player2TotalStaminaLost
+      player2Attacks
+      player2Hits
+      player2Misses
+      player2Crits
+      player2Blocks
+      player2Counters
+      player2Dodges
+      player2Parries
+      player2Ripostes
+      player2DefensiveActions
+      player2MaxDamage
+      
+      # Player 2 Failed Attack Types (attacks that didn't land due to opponent's defense)
+      player2AttacksBlocked
+      player2AttacksCountered
+      player2AttacksDodged
+      player2AttacksParried
+      player2AttacksRiposted
+      
+      # New health and stamina fields
+      player1MaxHealth
+      player1MaxStamina
+      player1EndingHealth
+      player1EndingStamina
+      player2MaxHealth
+      player2MaxStamina
+      player2EndingHealth
+      player2EndingStamina
     }
   }
 `;
@@ -756,15 +853,13 @@ export const GET_EXPIRED_CHALLENGES = gql`
 
 // New query for leaderboard data
 export const GET_LEADERBOARD_PLAYERS = gql`
-  query GetLeaderboardPlayers($limit: Int = 100, $skip: Int = 0) {
+  query GetLeaderboardPlayers($limit: Int = 100, $skip: Int = 0, $orderBy: Player_orderBy = battleRating, $orderDirection: OrderDirection = desc) {
     players(
       first: $limit, 
       skip: $skip, 
       where: { isRetired: false }, 
-      orderBy: battleRating, 
-      orderDirection: desc
-      # Secondary sort by wins requires handling post-fetch or a more complex GQL setup if supported
-      # For now, primary sort by battleRating. We can add wins sort in the frontend hook.
+      orderBy: $orderBy, 
+      orderDirection: $orderDirection
     ) {
       ...PlayerDataFields
     }
@@ -902,3 +997,459 @@ export const SEARCH_PLAYERS_BY_ID = gql`
   }
   ${FIGHTER_COMPLETE_FRAGMENT}
 `;
+
+// NEW: Skin + Stance Analytics Queries
+
+export const GET_COMBAT_RESULTS_WITH_LOADOUTS = gql`
+  query getCombatResultsWithLoadouts($limit: Int!, $skip: Int = 0) {
+    combatResults(
+      first: $limit, 
+      skip: $skip,
+      orderBy: blockTimestamp, 
+      orderDirection: desc
+    ) {
+      id
+      winningPlayerId
+      blockTimestamp
+      
+      # Player 1 historical loadout
+      player1SkinCollectionId
+      player1SkinTokenId
+      player1Stance
+      player1Skin {
+        id
+        metadataURI
+        weapon
+        armor
+      }
+      
+      # Player 2 historical loadout  
+      player2SkinCollectionId
+      player2SkinTokenId
+      player2Stance
+      player2Skin {
+        id
+        metadataURI
+        weapon
+        armor
+      }
+      
+      # Combat stats for analytics
+      player1Won
+      player1TotalDamage
+      player1Hits
+      player1Misses
+      player2TotalDamage
+      player2Hits
+      player2Misses
+      
+      # Player data for ID extraction
+      player1Data
+      player2Data
+    }
+  }
+`;
+
+export const GET_PLAYER_VS_RECORDS = gql`
+  query getPlayerVsRecords($playerId: String!) {
+    playerVsRecords(where: { 
+      or: [
+        { player1: $playerId },
+        { player2: $playerId }
+      ]
+    }) {
+      id
+      player1
+      player2
+      player1WinsAgainst2
+      player2WinsAgainst1
+      firstPlayer1Win
+      firstPlayer2Win
+      player1TotalWinsAgainst2
+      player2TotalWinsAgainst1
+      totalMatchups
+      lastMatchup
+    }
+  }
+`;
+
+export const GET_SKIN_COMBAT_HISTORY = gql`
+  query getSkinCombatHistory($skinCollectionId: BigInt!, $skinTokenId: Int!, $limit: Int = 1000) {
+    combatResults(
+      where: { 
+        or: [
+          { 
+            player1SkinCollectionId: $skinCollectionId,
+            player1SkinTokenId: $skinTokenId
+          },
+          { 
+            player2SkinCollectionId: $skinCollectionId,
+            player2SkinTokenId: $skinTokenId
+          }
+        ]
+      },
+      first: $limit,
+      orderBy: blockTimestamp,
+      orderDirection: desc
+    ) {
+      player1Won
+      player1SkinCollectionId
+      player1SkinTokenId
+      player1Stance
+      player1TotalDamage
+      player2SkinCollectionId
+      player2SkinTokenId
+      player2Stance
+      player2TotalDamage
+      winningPlayerId
+      blockTimestamp
+      player1Data
+      player2Data
+    }
+  }
+`;
+
+export const GET_SKIN_STANCE_COMBAT_HISTORY = gql`
+  query getSkinStanceCombatHistory(
+    $skinCollectionId: BigInt!, 
+    $skinTokenId: Int!, 
+    $stance: Int!,
+    $limit: Int = 1000
+  ) {
+    combatResults(
+      where: { 
+        or: [
+          { 
+            player1SkinCollectionId: $skinCollectionId,
+            player1SkinTokenId: $skinTokenId,
+            player1Stance: $stance
+          },
+          { 
+            player2SkinCollectionId: $skinCollectionId,
+            player2SkinTokenId: $skinTokenId,
+            player2Stance: $stance
+          }
+        ]
+      },
+      first: $limit,
+      orderBy: blockTimestamp,
+      orderDirection: desc
+    ) {
+      player1Won
+      player1SkinCollectionId
+      player1SkinTokenId
+      player1Stance
+      player1TotalDamage
+      player2SkinCollectionId
+      player2SkinTokenId
+      player2Stance
+      player2TotalDamage
+      winningPlayerId
+      blockTimestamp
+      player1Data
+      player2Data
+    }
+  }
+`;
+
+// NEW: Enhanced skin analytics queries using SkinCombatStat entity
+export const GET_SKIN_COMBAT_ANALYTICS = `
+  query getSkinCombatAnalytics($minCombats: Int!) {
+    skinCombatStats(
+      where: { totalCombats_gte: $minCombats }
+      orderBy: winRate
+      orderDirection: desc
+      first: 100
+    ) {
+      id
+      skin {
+        id
+        metadataURI
+        weapon
+        armor
+      }
+      skinCollectionId
+      skinTokenId
+      stance
+      
+      # Combat counts
+      totalCombats
+      wins
+      losses
+      
+      # Kill/Death tracking
+      kills
+      deaths
+      knockouts
+      knockedOut
+      exhaustions
+      exhausted
+      maxRoundWins
+      maxRoundLosses
+      
+      # Calculated rates
+      killRate
+      deathRate
+      killDeathRatio
+      winRate
+      
+      # Offensive metrics
+      totalDamageDealt
+      averageDamageDealt
+      maxDamageDealt
+      
+      # Defensive metrics
+      totalDamageTaken
+      averageDamageTaken
+      totalHealthLost
+      averageHealthLost
+      minDamageTaken
+      
+      # Efficiency metrics
+      damageEfficiency
+      survivalRate
+      
+      # Timestamps
+      firstCombat
+      lastCombat
+      lastUpdated
+    }
+  }
+`;
+
+// Highest Kill Rate (Most Lethal Combinations)
+export const GET_HIGHEST_KILL_RATE = `
+  query getHighestKillRate($minCombats: Int!) {
+    skinCombatStats(
+      where: { totalCombats_gte: $minCombats }
+      orderBy: killRate
+      orderDirection: desc
+      first: 50
+    ) {
+      id
+      skin {
+        id
+        metadataURI
+        weapon
+        armor
+      }
+      skinCollectionId
+      skinTokenId
+      stance
+      totalCombats
+      kills
+      killRate
+      killDeathRatio
+      winRate
+      averageDamageDealt
+      survivalRate
+    }
+  }
+`;
+
+// Best Kill/Death Ratios
+export const GET_BEST_KILL_DEATH_RATIOS = `
+  query getBestKillDeathRatios($minCombats: Int!) {
+    skinCombatStats(
+      where: { 
+        totalCombats_gte: $minCombats
+        deaths_gt: 0
+      }
+      orderBy: killDeathRatio
+      orderDirection: desc
+      first: 50
+    ) {
+      id
+      skin {
+        id
+        metadataURI
+        weapon
+        armor
+      }
+      skinCollectionId
+      skinTokenId
+      stance
+      kills
+      deaths
+      killDeathRatio
+      killRate
+      deathRate
+      totalCombats
+      winRate
+    }
+  }
+`;
+
+// Best Survival Rate (Hardest to Kill)
+export const GET_BEST_SURVIVAL_RATE = `
+  query getBestSurvivalRate($minCombats: Int!) {
+    skinCombatStats(
+      where: { totalCombats_gte: $minCombats }
+      orderBy: survivalRate
+      orderDirection: desc
+      first: 50
+    ) {
+      id
+      skin {
+        id
+        metadataURI
+        weapon
+        armor
+      }
+      skinCollectionId
+      skinTokenId
+      stance
+      totalCombats
+      deaths
+      survivalRate
+      deathRate
+      averageDamageTaken
+      minDamageTaken
+      damageEfficiency
+    }
+  }
+`;
+
+// Best Defense (Lowest Average Damage Taken)
+export const GET_BEST_DEFENSE = `
+  query getBestDefense($minCombats: Int!) {
+    skinCombatStats(
+      where: { totalCombats_gte: $minCombats }
+      orderBy: averageDamageTaken
+      orderDirection: asc
+      first: 50
+    ) {
+      id
+      skin {
+        id
+        metadataURI
+        weapon
+        armor
+      }
+      skinCollectionId
+      skinTokenId
+      stance
+      averageDamageTaken
+      minDamageTaken
+      totalDamageTaken
+      survivalRate
+      damageEfficiency
+      totalCombats
+      winRate
+    }
+  }
+`;
+
+// Best Damage Efficiency
+export const GET_BEST_DAMAGE_EFFICIENCY = `
+  query getBestDamageEfficiency($minCombats: Int!) {
+    skinCombatStats(
+      where: { 
+        totalCombats_gte: $minCombats
+        totalDamageTaken_gt: 0
+      }
+      orderBy: damageEfficiency
+      orderDirection: desc
+      first: 50
+    ) {
+      id
+      skin {
+        id
+        metadataURI
+        weapon
+        armor
+      }
+      skinCollectionId
+      skinTokenId
+      stance
+      damageEfficiency
+      totalDamageDealt
+      totalDamageTaken
+      averageDamageDealt
+      averageDamageTaken
+      totalCombats
+      winRate
+      killRate
+      survivalRate
+    }
+  }
+`;
+
+// Win Condition Analysis
+export const GET_WIN_CONDITION_ANALYSIS = `
+  query getWinConditionAnalysis($minCombats: Int!) {
+    skinCombatStats(
+      where: { totalCombats_gte: $minCombats }
+      orderBy: totalCombats
+      orderDirection: desc
+      first: 100
+    ) {
+      id
+      skin {
+        id
+        metadataURI
+        weapon
+        armor
+      }
+      skinCollectionId
+      skinTokenId
+      stance
+      totalCombats
+      wins
+      
+      # Win condition breakdown
+      kills
+      knockouts
+      exhaustions
+      maxRoundWins
+      
+      # Loss condition breakdown  
+      deaths
+      knockedOut
+      exhausted
+      maxRoundLosses
+      
+      # Calculated rates
+      killRate
+      winRate
+      survivalRate
+      damageEfficiency
+    }
+  }
+`;
+
+// NEW: Player Skin Performance Query
+export const GET_PLAYER_SKIN_PERFORMANCE = gql`
+  query getPlayerSkinPerformance($playerId: String!) {
+    playerSkinCombatStats(where: { playerId: $playerId }) {
+      id
+      skinCollectionId
+      skinTokenId
+      stance
+      totalCombats
+      wins
+      losses
+      winRate
+      kills
+      deaths
+      killRate
+      survivalRate
+      averageDamageDealt
+      averageDamageTaken
+      damageEfficiency
+      lastCombat
+      skin {
+        id
+        metadataURI
+        weapon
+        armor
+        collection {
+          contractAddress
+          skinType
+        }
+      }
+    }
+  }
+`;
+
+

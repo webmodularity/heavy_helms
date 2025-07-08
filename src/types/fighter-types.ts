@@ -112,6 +112,8 @@ export interface RawFighterData {
   wins: number;
   losses: number;
   kills: number;
+  duelWins?: number;
+  gauntletWins?: number;
 
   // Type-specific fields (optional)
   isImmortal?: boolean;

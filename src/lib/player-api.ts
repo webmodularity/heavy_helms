@@ -374,6 +374,10 @@ export async function convertRawFighterToFighter(
         isImmortal: rawFighter.isImmortal || false,
         owner: rawFighter.owner,
         battleRating: rawFighter.battleRating || 0,
+        uniqueWins: rawFighter.uniqueWins || 0,
+        uniqueLosses: rawFighter.uniqueLosses || 0,
+        duelWins: rawFighter.duelWins || 0,
+        gauntletWins: rawFighter.gauntletWins || 0,
         gauntletStatus: playerGauntletStatus,
       } as Player;
     }

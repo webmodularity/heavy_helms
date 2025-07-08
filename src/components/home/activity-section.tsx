@@ -2,16 +2,25 @@
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { useCancelChallenge } from "@/hooks/use-cancel-challenge";
 import { useAcceptChallenge } from "@/hooks/use-accept-challenge";
 import { usePrivy } from "@privy-io/react-auth";
-import { Loader2, Shield, Swords, Trophy, BookMarked } from "lucide-react";
+import {
+  Loader2,
+  Shield,
+  Swords,
+  Trophy,
+  BookMarked,
+  ChevronUp,
+  ChevronDown,
+} from "lucide-react";
 import { useState, useEffect, useMemo, useRef } from "react";
 import { formatEther } from "viem";
 import { YellowButton } from "@/components/ui/yellow-button";
 import { ChevronRight } from "lucide-react";
 import { toast } from "sonner";
+import Image from "next/image";
 import type { Player } from "@/types/player.types";
 import { type Challenge, useChallenges } from "@/hooks/use-challenges";
 import { useRecentDuels } from "@/hooks/use-recent-duels";
@@ -20,6 +29,7 @@ import { useGlobalFightModal } from "@/hooks/use-global-fight-modal";
 import { useRecentGauntlets } from "@/hooks/use-recent-gauntlets";
 import { Accordion } from "@/components/ui/accordion";
 import { GauntletAccordionItem } from "@/components/gauntlet/gauntlet-accordion-item";
+import { CombatDetails } from "@/components/battle-archives/combat-details";
 
 interface ActivitySectionProps {
   selectedCharacter: Player | null;
@@ -190,6 +200,13 @@ function RecentGauntletsTabContent({
   // State to track which gauntlet fight is currently active/selected
   const [activeFightKey, setActiveFightKey] = useState<string>("");
 
+  // State to track which fight accordion is expanded
+  const [expandedFightId, setExpandedFightId] = useState<string | null>(null);
+
+  const handleFightAccordionToggle = (fightId: string | null) => {
+    setExpandedFightId(fightId);
+  };
+
   const handleRefetch = async () => {
     await refetch();
   };
@@ -310,6 +327,8 @@ function RecentGauntletsTabContent({
               isExpanded={expandedItemValue === currentItemValue}
               activeFightKey={activeFightKey}
               onFightClick={setActiveFightKey}
+              expandedFightId={expandedFightId || undefined}
+              onFightAccordionToggle={handleFightAccordionToggle}
             />
           );
         })}
@@ -354,11 +373,17 @@ function RecentDuelsTabContent({
   const observerRef = useRef<IntersectionObserver | null>(null);
   const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  // State to track which duel is currently active/selected
-  const [activeDuelId, setActiveDuelId] = useState<string | null>(null);
+  // State to track which duel is currently expanded for details
+  const [expandedDuelId, setExpandedDuelId] = useState<string | null>(null);
 
   const handleRefetch = async () => {
     await refetch();
+  };
+
+  // Format timestamp to a readable date
+  const formatDate = (timestamp: string) => {
+    const date = new Date(Number.parseInt(timestamp, 10) * 1000);
+    return `${date.toLocaleDateString()} at ${date.toLocaleTimeString()}`;
   };
 
   useEffect(() => {
@@ -391,8 +416,35 @@ function RecentDuelsTabContent({
 
   if (isLoading && duels.length === 0) {
     return (
-      <div className="flex justify-center py-8">
-        <Loader2 className="h-8 w-8 text-yellow-500 animate-spin" />
+      <div className="divide-y divide-stone-800">
+        {/* Display 5 skeleton cards while loading */}
+        {Array.from({ length: 5 }, (_, index) => index).map((skeletonId) => (
+          <div
+            key={`duel-skeleton-${skeletonId}`}
+            className="p-4 border-b border-stone-800"
+          >
+            <div className="flex flex-col items-center space-y-3 md:flex-row md:items-center md:space-y-0">
+              <div className="flex items-center justify-center">
+                <div className="flex flex-col items-center mr-4">
+                  <div className="h-10 w-10 rounded-full bg-stone-800/80 animate-pulse" />
+                  <div className="h-2 w-16 bg-stone-800/80 animate-pulse mt-2 rounded" />
+                </div>
+                <div className="flex flex-col items-center mx-2">
+                  <div className="h-4 w-8 bg-stone-800/80 animate-pulse rounded" />
+                  <div className="h-3 w-3 bg-stone-800/80 animate-pulse mt-1 rounded-full" />
+                </div>
+                <div className="flex flex-col items-center ml-4">
+                  <div className="h-10 w-10 rounded-full bg-stone-800/80 animate-pulse" />
+                  <div className="h-2 w-16 bg-stone-800/80 animate-pulse mt-2 rounded" />
+                </div>
+              </div>
+              <div className="flex-1 text-center">
+                <div className="h-4 w-48 bg-stone-800/80 animate-pulse rounded mx-auto mb-2" />
+                <div className="h-3 w-20 bg-stone-800/80 animate-pulse rounded mx-auto" />
+              </div>
+            </div>
+          </div>
+        ))}
       </div>
     );
   }
@@ -402,17 +454,17 @@ function RecentDuelsTabContent({
       <div className="text-center py-8 text-red-400">
         <p>Failed to load recent duels</p>
         <p className="text-sm text-red-300 mt-2">Please try again later</p>
-        <YellowButton
+        <Button
           onClick={handleRefetch}
           className="mt-4"
           size="sm"
-          variant="default"
+          variant="outline"
         >
           <Loader2
             className={`mr-2 h-4 w-4 ${isRefetching ? "animate-spin" : ""}`}
           />
           Refresh
-        </YellowButton>
+        </Button>
       </div>
     );
   }
@@ -435,104 +487,209 @@ function RecentDuelsTabContent({
         <h3 className="text-lg font-medium text-yellow-500 mb-2">
           No recent duels found for this warrior
         </h3>
-        <YellowButton
+        <Button
           onClick={handleRefetch}
           className="mt-4"
           size="sm"
-          variant="default"
+          variant="outline"
         >
           <Loader2
             className={`mr-2 h-4 w-4 ${isRefetching ? "animate-spin" : ""}`}
           />
           Refresh
-        </YellowButton>
+        </Button>
       </div>
     );
   }
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-end mb-2">
-        <YellowButton
-          onClick={handleRefetch}
-          size="sm"
-          variant="default"
-          disabled={isRefetching}
-        >
-          {isRefetching ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Refreshing...
-            </>
-          ) : (
-            <>
-              <Loader2 className="mr-2 h-4 w-4" /> Refresh
-            </>
-          )}
-        </YellowButton>
-      </div>
-
-      {duels.map((duel) => {
-        // Existing duel card rendering code...
+      {duels.map((duel, index) => {
         const isChallenger =
           duel.challenge.challengerId.toString() ===
           selectedCharacter.id.toString();
         const isVictory = duel.winnerId === selectedCharacter.id.toString();
-        const userFighter = isChallenger
-          ? duel.challenge.challengerSnapshot
-          : duel.challenge.defenderSnapshot;
-        const opponentFighter = isChallenger
-          ? duel.challenge.defenderSnapshot
-          : duel.challenge.challengerSnapshot;
+        const winner = isVictory
+          ? isChallenger
+            ? duel.challenge.challengerSnapshot
+            : duel.challenge.defenderSnapshot
+          : isChallenger
+            ? duel.challenge.defenderSnapshot
+            : duel.challenge.challengerSnapshot;
+        const loser = isVictory
+          ? isChallenger
+            ? duel.challenge.defenderSnapshot
+            : duel.challenge.challengerSnapshot
+          : isChallenger
+            ? duel.challenge.challengerSnapshot
+            : duel.challenge.defenderSnapshot;
 
-        const isActive = activeDuelId === duel.id;
+        const challengerImageUrl =
+          duel.challenge.challengerSnapshot.currentSkin?.imageURL;
+        const defenderImageUrl =
+          duel.challenge.defenderSnapshot.currentSkin?.imageURL;
+
+        const isExpanded = expandedDuelId === duel.id;
 
         return (
-          <button
+          <motion.div
             key={duel.id}
-            type="button"
-            className="block cursor-pointer w-full text-left"
-            onClick={() => {
-              setActiveDuelId(duel.id);
-              openFightModal({
-                txId: duel.id,
-                title: `Duel: ${userFighter.fullName} vs ${opponentFighter.fullName}`,
-              });
-            }}
-            onMouseEnter={() => setActiveDuelId(null)} // Clear active state on hover to allow normal hover behavior
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: index * 0.05 }}
+            className="border-b border-stone-800/30 last:border-b-0"
           >
-            <div
-              className={`p-4 border-b border-stone-700/50 transition-colors ${
-                isActive
-                  ? "bg-yellow-600/15 border-yellow-500/30"
-                  : "hover:bg-yellow-600/10"
-              }`}
+            {/* Main Duel Card - Clickable */}
+            <button
+              type="button"
+              className="w-full cursor-pointer p-4 hover:bg-amber-900/10 transition-colors text-left"
+              onClick={() => {
+                setExpandedDuelId(isExpanded ? null : duel.id);
+              }}
             >
-              <div className="flex justify-between mb-1">
-                <span
-                  className={`font-medium ${isVictory ? "text-yellow-400" : "text-red-400"}`}
-                >
-                  {isVictory ? "Victory in Duel" : "Defeat in Duel"}
-                </span>
-                <span className="text-stone-400 text-sm">
-                  {new Date(
-                    Number.parseInt(duel.blockTimestamp) * 1000,
-                  ).toLocaleDateString()}
-                </span>
-                <div className="flex items-center gap-2">
-                  <div className="flex items-center">
-                    <ChevronRight
-                      className={"h-5 w-5 text-yellow-500 transition-transform"}
-                    />
+              <div className="flex flex-col items-center space-y-3 md:flex-row md:items-center md:space-y-0">
+                <div className="flex items-center justify-center">
+                  {/* Challenger */}
+                  <div className="flex flex-col items-center mr-4">
+                    <div
+                      className={`h-10 w-10 rounded-full overflow-hidden bg-stone-800 relative ${
+                        isChallenger
+                          ? isVictory
+                            ? "border-2 border-yellow-400 ring-2 ring-yellow-500/60"
+                            : "border-2 border-red-400 ring-2 ring-red-500/60"
+                          : ""
+                      }`}
+                    >
+                      {challengerImageUrl ? (
+                        <Image
+                          src={challengerImageUrl}
+                          alt={
+                            duel.challenge.challengerSnapshot.fullName ||
+                            "Challenger"
+                          }
+                          fill
+                          className="object-cover"
+                          sizes="40px"
+                          priority={index < 5}
+                        />
+                      ) : (
+                        <div className="h-full w-full bg-amber-800 flex items-center justify-center text-white font-bold">
+                          {duel.challenge.challengerSnapshot.fullName.charAt(0)}
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-b from-transparent to-stone-900/60" />
+                    </div>
+                    <span className="text-xs text-stone-400 mt-1 truncate w-20 text-center">
+                      {duel.challenge.challengerSnapshot.fullName}
+                    </span>
+                  </div>
+
+                  {/* VS Indicator */}
+                  <div className="flex flex-col items-center mx-2">
+                    <div className="text-yellow-600 text-sm">VS</div>
+                    <div className="text-xs text-stone-500">⚔️</div>
+                  </div>
+
+                  {/* Defender */}
+                  <div className="flex flex-col items-center ml-4">
+                    <div
+                      className={`h-10 w-10 rounded-full overflow-hidden bg-stone-800 relative ${
+                        !isChallenger
+                          ? isVictory
+                            ? "border-2 border-yellow-400 ring-2 ring-yellow-500/60"
+                            : "border-2 border-red-400 ring-2 ring-red-500/60"
+                          : ""
+                      }`}
+                    >
+                      {defenderImageUrl ? (
+                        <Image
+                          src={defenderImageUrl}
+                          alt={
+                            duel.challenge.defenderSnapshot.fullName ||
+                            "Defender"
+                          }
+                          fill
+                          className="object-cover"
+                          sizes="40px"
+                          priority={index < 5}
+                        />
+                      ) : (
+                        <div className="h-full w-full bg-red-900 flex items-center justify-center text-white font-bold">
+                          {duel.challenge.defenderSnapshot.fullName.charAt(0)}
+                        </div>
+                      )}
+                      <div className="absolute inset-0 bg-gradient-to-b from-transparent to-stone-900/60" />
+                    </div>
+                    <span className="text-xs text-stone-400 mt-1 truncate w-20 text-center">
+                      {duel.challenge.defenderSnapshot.fullName}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Outcome - Centered with ID */}
+                <div className="flex-1 text-center">
+                  <div className="flex items-center justify-center text-sm font-medium">
+                    <Trophy className="h-4 w-4 text-yellow-500 mr-2" />
+                    <span className="text-yellow-400">
+                      {winner.fullName} ({winner.id.split("-").pop()})
+                    </span>
+                  </div>
+                </div>
+
+                {/* Timestamp and Expand Button */}
+                <div className="flex items-center space-x-2">
+                  <div className="text-xs text-stone-500 text-center md:text-right">
+                    {formatDate(duel.blockTimestamp)}
+                  </div>
+                  <div className="text-stone-400">
+                    {isExpanded ? (
+                      <ChevronUp className="h-4 w-4" />
+                    ) : (
+                      <ChevronDown className="h-4 w-4" />
+                    )}
                   </div>
                 </div>
               </div>
-              <p className="text-stone-300 text-sm">
-                Your warrior {userFighter.fullName}{" "}
-                {isVictory ? "defeated" : "was defeated by"}{" "}
-                {opponentFighter.fullName}
-              </p>
-            </div>
-          </button>
+            </button>
+
+            {/* Expandable Combat Details */}
+            <AnimatePresence>
+              {isExpanded && (
+                <motion.div
+                  initial={{ height: 0, opacity: 0 }}
+                  animate={{ height: "auto", opacity: 1 }}
+                  exit={{ height: 0, opacity: 0 }}
+                  transition={{ duration: 0.2 }}
+                  className="overflow-hidden"
+                >
+                  <div className="pb-4">
+                    <CombatDetails
+                      transactionHash={duel.id}
+                      winnerName={winner.fullName}
+                      loserName={loser.fullName}
+                    />
+                    {/* Action Buttons */}
+                    <div className="flex justify-center mt-3 space-x-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openFightModal({
+                            txId: duel.id,
+                            title: `Duel: ${winner.fullName} vs ${loser.fullName}`,
+                          });
+                        }}
+                        className="border-yellow-600/20 hover:bg-yellow-500/10 hover:text-yellow-400 text-stone-400"
+                      >
+                        Watch Replay
+                      </Button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </motion.div>
         );
       })}
 
@@ -541,9 +698,16 @@ function RecentDuelsTabContent({
         {isFetchingNextPage ? (
           <Loader2 className="h-6 w-6 text-yellow-500 animate-spin" />
         ) : hasNextPage ? (
-          <span className="text-sm text-stone-400">Scroll for more</span>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => fetchNextPage()}
+            className="border-yellow-600/20 hover:bg-yellow-500/10 hover:text-yellow-400 text-stone-400"
+          >
+            Load More Duels
+          </Button>
         ) : duels.length > 0 ? (
-          <span className="text-sm text-stone-400">End of duel history</span>
+          <span className="text-sm text-stone-400">End of battle history</span>
         ) : null}
       </div>
     </div>

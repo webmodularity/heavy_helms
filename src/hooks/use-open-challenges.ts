@@ -29,6 +29,11 @@ export function useOpenChallenges(pageSize = 10) {
   const queryResult = useInfiniteQuery({
     queryKey: ["open-challenges", pageSize],
     queryFn: async ({ pageParam = 0 }) => {
+      // Calculate 7 days ago timestamp to filter out expired challenges
+      const sevenDaysInSeconds = 7 * 24 * 60 * 60;
+      const nowInSeconds = Math.floor(Date.now() / 1000);
+      const sevenDaysAgo = nowInSeconds - sevenDaysInSeconds;
+
       try {
         const response = await request<OpenChallengeQueryResult>(
           SUBGRAPH_URL,
@@ -38,7 +43,17 @@ export function useOpenChallenges(pageSize = 10) {
             skip: pageParam,
           },
         );
-        return response.duelChallenges || [];
+
+        // Filter out challenges older than 7 days on the client side
+        // since they're technically expired even if marked as OPEN
+        const filteredChallenges = (response.duelChallenges || []).filter(
+          (challenge) => {
+            const challengeTimestamp = Number.parseInt(challenge.createdAt);
+            return challengeTimestamp > sevenDaysAgo;
+          },
+        );
+
+        return filteredChallenges;
       } catch (error) {
         console.error("Error fetching open challenges:", error);
         throw new Error("Failed to fetch open challenges");

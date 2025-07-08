@@ -17,9 +17,9 @@ import { useMemo } from "react";
 export function usePlayerById(playerId: string) {
   const queryClient = useQueryClient();
   const { address } = useAccount();
-  // Fetch leaderboard data - Make sure the limit is sufficient if the player might be outside the top few
+  // Fetch leaderboard data - top 50 to match other ranking displays
   const { players: leaderboardPlayers, isLoading: leaderboardLoading } =
-    useLeaderboardData(20); // Fetches top 20, adjust if needed
+    useLeaderboardData({ limit: 50 }); // Matches leaderboard page capacity
 
   // Fetch the specific player's data
   const { data, isLoading, error } = useQuery({
@@ -65,7 +65,7 @@ export function usePlayerById(playerId: string) {
       return index + 1;
     }
 
-    // Player not found in the fetched leaderboard slice (e.g., outside top 20)
+    // Player not found in the fetched leaderboard slice (e.g., outside top 50)
     return null;
   }, [leaderboardPlayers, data, playerId]); // Dependencies: leaderboard, player data, and the ID itself
 

@@ -6,6 +6,12 @@ import type { ReactNode } from "react";
 // Common subtitle styling for consistency
 const subtitleStyle = "text-yellow-400/90 text-sm font-medium tracking-widest";
 
+// Helper function to truncate address for mobile
+function truncateAddress(address: string): string {
+  if (address.length <= 10) return address;
+  return `${address.slice(0, 6)}...${address.slice(-4)}`;
+}
+
 export function useCharacterSubtitle(ownerAddress?: string, id?: string) {
   // ENS resolution
   // Explicitly convert null to undefined for the hook
@@ -37,8 +43,22 @@ export function useCharacterSubtitle(ownerAddress?: string, id?: string) {
       return <Skeleton className="h-4 w-40 bg-yellow-500/20" />;
     }
 
-    // Show ENS or full address with consistent styling
-    return <span className={subtitleStyle}>{ensName || ownerAddress}</span>;
+    // Show ENS or address (truncated on mobile)
+    if (ensName) {
+      return <span className={subtitleStyle}>{ensName}</span>;
+    }
+
+    // For wallet addresses, show truncated on mobile and full on desktop
+    return (
+      <>
+        <span className={`${subtitleStyle} sm:hidden`}>
+          {truncateAddress(ownerAddress)}
+        </span>
+        <span className={`${subtitleStyle} hidden sm:inline`}>
+          {ownerAddress}
+        </span>
+      </>
+    );
   };
 
   return { subtitle: getSubtitle() };

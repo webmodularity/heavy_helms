@@ -30,9 +30,10 @@ interface RawFighterSnapshot extends Omit<Fighter, "currentSkin"> {
   currentSkin: RawCurrentSkinData | null;
 }
 
-// Raw Duel structure before skin processing
-interface RawDuel extends Omit<Duel, "challenge"> {
+// Raw Duel structure before skin processing (without combat result)
+interface RawDuel extends Omit<Duel, "challenge" | "combatResult"> {
   // Reuse Duel fields but override challenge structure
+  // Note: id field IS the transaction hash for DuelComplete events
   challenge: Omit<
     Duel["challenge"],
     "challengerSnapshot" | "defenderSnapshot"
@@ -87,7 +88,7 @@ async function processFighterSkin(
   }
 }
 
-// processDuelSkins now takes RawDuel and returns Duel
+// processDuelSkins now takes RawDuel and returns Duel (without combat result)
 async function processDuelSkins(duel: RawDuel): Promise<Duel> {
   const processedChallenger = await processFighterSkin(
     duel.challenge.challengerSnapshot,
@@ -96,7 +97,7 @@ async function processDuelSkins(duel: RawDuel): Promise<Duel> {
     duel.challenge.defenderSnapshot,
   );
 
-  // Construct the final Duel object with processed snapshots
+  // Construct the final Duel object with processed snapshots (no combat result)
   return {
     ...duel, // Spread the base properties of RawDuel
     challenge: {
@@ -106,6 +107,7 @@ async function processDuelSkins(duel: RawDuel): Promise<Duel> {
       // biome-ignore lint/style/noNonNullAssertion: <explanation>
       defenderSnapshot: processedDefender!, // Assert non-null if logic guarantees it
     },
+    // No combatResult field - will be undefined by default
   } as Duel; // Cast the final result to the Duel type
 }
 
@@ -134,7 +136,7 @@ export function useRecentDuels(playerId?: string | number, pageSize = 10) {
 
         const rawDuels = response.duelCompletes || [];
 
-        // Process raw duels into final Duel type
+        // Process raw duels into final Duel type (without combat results)
         const processedDuels: Duel[] = await Promise.all(
           rawDuels.map(processDuelSkins),
         );
