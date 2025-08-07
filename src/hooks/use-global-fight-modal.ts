@@ -9,6 +9,7 @@ interface FightData {
   player1Name?: string;
   player2Name?: string;
   gauntletName?: string;
+  backgroundImage?: string;
   isLoading?: boolean;
   loadingText?: string;
   challengeId?: bigint;

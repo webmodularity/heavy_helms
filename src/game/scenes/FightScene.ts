@@ -37,10 +37,13 @@ export class FightScene extends Scene {
   private blockNumber = "0";
   private txId = "Practice";
   private decodedCombatBytes: DecodedCombatResult;
+  private backgroundImage?: string;
 
   // Game objects
   private player1Sprite: Phaser.Physics.Arcade.Sprite;
   private player2Sprite: Phaser.Physics.Arcade.Sprite;
+  private player1Shadow: Phaser.GameObjects.Ellipse;
+  private player2Shadow: Phaser.GameObjects.Ellipse;
   private countdownText?: Phaser.GameObjects.Text;
   private networkText?: Phaser.GameObjects.Text;
   private backgroundMusic?: Phaser.Sound.BaseSound;
@@ -139,6 +142,7 @@ export class FightScene extends Scene {
     this.network = data.network;
     this.blockNumber = data.blockNumber;
     this.txId = data.txId;
+    this.backgroundImage = data.backgroundImage;
 
     // Store player data in registry so modal wrapper can access it for Twitter sharing
     this.game.registry.set("player1", this.player1);
@@ -210,38 +214,48 @@ export class FightScene extends Scene {
       }
     }, 1000);
 
-    // 1. Scene Setup - Background Layers
-    const layers = [
-      { key: "sky", depth: 0, alpha: 0.75 },
-      { key: "bg-decor", depth: 1, alpha: 0.75 },
-      { key: "middle-decor", depth: 2, alpha: 0.8 },
-      { key: "foreground", depth: 3, alpha: 0.65 },
-      { key: "ground-01", depth: 4, alpha: 1 },
-    ];
-
+    // 1. Scene Setup - Background
     // Clear any existing game objects first
     this.children.removeAll();
 
-    for (const layer of layers) {
-      this.add
-        .image(0, -130, layer.key) // Moved up 80px to match taller stats panel
-        .setOrigin(0, 0)
-        .setScale(0.6)
-        .setDepth(layer.depth)
-        .setAlpha(layer.alpha);
+    // Determine background key from provided path or use default
+    let backgroundKey = "practice-bg"; // Default fallback for practice/duel modes
+    if (this.backgroundImage) {
+      // Extract filename from path for the asset key
+      const filename = this.backgroundImage.split('/').pop()?.replace('.jpg', '') || 'practice';
+      backgroundKey = `${filename}-bg`;
     }
 
-    // 2. Player Setup - positioned properly on the ground (adjusted for taller stats panel)
-    const groundY = 530;
+    this.add
+      .image(0, 415, backgroundKey)
+      .setOrigin(0, 1)
+      .setScale(0.5)
+      .setDepth(0);
+
+    // 2. Player Setup - positioned properly on the ground (adjusted for 695px height)
+    const groundY = 438;
+    
+    // Create shadows first (so they appear behind sprites)
+    // Shadows positioned at the feet of characters with stronger visibility
+    this.player1Shadow = this.add.ellipse(85, groundY - 55, 90, 30, 0x000000, 1)
+      .setDepth(4)
+      .setAlpha(0.28)
+      .setBlendMode(Phaser.BlendModes.MULTIPLY);
+    
+    this.player2Shadow = this.add.ellipse(339, groundY - 55, 90, 30, 0x000000, 1)
+      .setDepth(4)
+      .setAlpha(0.28)
+      .setBlendMode(Phaser.BlendModes.MULTIPLY);
+    
     this.player1Sprite = this.physics.add
-      .sprite(120, groundY, `fighter${this.player1.id}-spritesheet`)
+      .sprite(85, groundY, `fighter${this.player1.id}-spritesheet`)
       .setFlipX(false)
       .setOrigin(0.5, 1)
       .setDisplaySize(280, 280)
       .setDepth(5);
 
     this.player2Sprite = this.physics.add
-      .sprite(360, groundY, `fighter${this.player2.id}-spritesheet`)
+      .sprite(339, groundY, `fighter${this.player2.id}-spritesheet`)
       .setFlipX(true)
       .setOrigin(0.5, 1)
       .setDisplaySize(280, 280)
@@ -323,6 +337,14 @@ export class FightScene extends Scene {
     // }
 
     if (!this.player1Sprite || !this.player2Sprite) return;
+
+    // Update shadow positions to follow sprites
+    if (this.player1Shadow && this.player1Sprite) {
+      this.player1Shadow.x = this.player1Sprite.x;
+    }
+    if (this.player2Shadow && this.player2Sprite) {
+      this.player2Shadow.x = this.player2Sprite.x;
+    }
 
     // Dynamic depth adjustment
     if (
@@ -731,6 +753,14 @@ export class FightScene extends Scene {
 
     // Clear all game objects
     this.children.removeAll();
+    
+    // Clean up shadows
+    if (this.player1Shadow) {
+      this.player1Shadow.destroy();
+    }
+    if (this.player2Shadow) {
+      this.player2Shadow.destroy();
+    }
 
     // Clean up countdown interval
     if (this.countdownInterval) {
@@ -1102,6 +1132,33 @@ export class FightScene extends Scene {
   ): void {
     const defenseText = defenseType.toString().toUpperCase();
     const attacker = isPlayer2 ? this.player1Sprite : this.player2Sprite;
+    
+    // Contract shadow for all defensive actions except MISS with smooth tweening
+    const shadow = isPlayer2 ? this.player2Shadow : this.player1Shadow;
+    if (shadow && defenseText !== "MISS") {
+      // Smooth contraction
+      this.tweens.add({
+        targets: shadow,
+        scaleX: 0.8,
+        scaleY: 0.8,
+        duration: 150,
+        ease: 'Power2',
+        onComplete: () => {
+          // Smooth expansion back to normal after delay
+          this.time.delayedCall(250, () => {
+            if (shadow) {
+              this.tweens.add({
+                targets: shadow,
+                scaleX: 1,
+                scaleY: 1,
+                duration: 150,
+                ease: 'Power2'
+              });
+            }
+          });
+        }
+      });
+    }
 
     switch (defenseText) {
       case "MISS":

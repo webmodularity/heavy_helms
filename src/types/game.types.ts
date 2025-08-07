@@ -7,6 +7,7 @@ export interface SceneData {
   blockNumber: string;
   txId: string;
   decodedCombatBytes: DecodedCombatResult;
+  backgroundImage?: string; // Optional custom background image path
 }
 
 export enum CombatResultType {

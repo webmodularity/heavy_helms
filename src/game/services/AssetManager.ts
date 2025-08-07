@@ -1,5 +1,6 @@
 import type { Scene } from "phaser";
 import type { Fighter } from "@/types/fighter-types";
+import { GAUNTLET_THEMES } from "@/lib/gauntlet-naming";
 
 export class AssetManager {
   private scene: Scene;
@@ -12,18 +13,16 @@ export class AssetManager {
    * Load all background assets
    */
   loadBackgroundAssets(): void {
-    const paths = {
-      sky: "/backgrounds/forest2/Sky.png",
-      "bg-decor": "/backgrounds/forest2/BG.png",
-      "middle-decor": "/backgrounds/forest2/Middle.png",
-      "ground-02": "/backgrounds/forest2/Ground_02.png",
-      "ground-01": "/backgrounds/forest2/Ground_01.png",
-      foreground: "/backgrounds/forest2/Foreground.png",
-    };
-
-    for (const [key, path] of Object.entries(paths)) {
-      this.scene.load.image(key, path);
+    // Load all gauntlet theme backgrounds
+    for (const theme of GAUNTLET_THEMES) {
+      // Extract filename from path for the asset key
+      const filename = theme.backgroundImage.split('/').pop()?.replace('.jpg', '') || theme.name.toLowerCase();
+      const assetKey = `${filename}-bg`;
+      this.scene.load.image(assetKey, theme.backgroundImage);
     }
+    
+    // Load practice mode background (default for practice/duel modes)
+    this.scene.load.image("practice-bg", "/backgrounds/practice/practice.jpg");
   }
 
   /**
