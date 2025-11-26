@@ -12,7 +12,7 @@ import { GlobalFightModal } from "@/components/modals/global-fight-modal";
 
 // Load Bokor
 const bokor = localFont({
-  src: "../../public/fonts/Bokor-Regular.ttf",
+  src: "../../../public/fonts/Bokor-Regular.ttf",
   weight: "400",
   display: "swap",
   variable: "--font-bokor",
