@@ -76,6 +76,9 @@ export class PracticeGameStrategy implements GameModeStrategy {
   }
 
   prepareSceneData(): SceneData {
+    // Get backgroundImage from registry if available
+    const backgroundImage = this.scene.game.registry.get("backgroundImage");
+    
     return {
       player1: this.player1,
       player2: this.player2,
@@ -83,6 +86,7 @@ export class PracticeGameStrategy implements GameModeStrategy {
       blockNumber: this.blockNumber,
       txId: "Practice",
       decodedCombatBytes: this.decodedCombatBytes,
+      backgroundImage: typeof backgroundImage === "string" ? backgroundImage : undefined,
     };
   }
 }

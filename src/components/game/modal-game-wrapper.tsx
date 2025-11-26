@@ -33,6 +33,7 @@ interface ModalGameWrapperProps {
   player1?: Fighter;
   txId?: string;
   logIndex?: string;
+  backgroundImage?: string;
   onClose?: () => void;
   title?: string;
   modalId?: string; // Unique ID for this modal instance
@@ -42,6 +43,7 @@ export function ModalGameWrapper({
   player1,
   txId,
   logIndex,
+  backgroundImage,
   onClose,
   title = "Battle",
   modalId = "modal-game",
@@ -545,6 +547,7 @@ export function ModalGameWrapper({
             player1Id={player1?.id}
             txId={txId}
             logIndex={logIndex}
+            backgroundImage={backgroundImage}
             onGameReady={handleGameReady}
             onGameDestroyed={handleGameDestroyed}
             containerId={gameContainerId}

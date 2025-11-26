@@ -25,7 +25,7 @@ import Link from "next/link";
 import type { Fighter } from "@/types/fighter-types";
 import { useGlobalFightModal } from "@/hooks/use-global-fight-modal";
 import { convertRawFighterToFighter } from "@/lib/player-api";
-import { getFantasyGauntletName } from "@/lib/gauntlet-naming";
+import { getGauntletTheme } from "@/lib/gauntlet-naming";
 import type { GauntletChronicle } from "@/hooks/use-recent-gauntlets";
 import {
   Tooltip,
@@ -148,9 +148,8 @@ export function GauntletAccordionItem({
     staleTime: Number.POSITIVE_INFINITY,
   });
 
-  const displayGauntletName = getFantasyGauntletName(
-    gauntlet.gauntletNumericId,
-  );
+  const gauntletTheme = getGauntletTheme(gauntlet.gauntletNumericId);
+  const displayGauntletName = gauntletTheme.fullName;
 
   const renderRoundsAndFights = () => {
     if (!gauntlet.isCompleted) {
@@ -416,6 +415,7 @@ export function GauntletAccordionItem({
                                 txId: gauntlet.completedTx || undefined,
                                 logIndex: currentFightIndex.toString(),
                                 title: currentFightTitle,
+                                backgroundImage: gauntletTheme.backgroundImage,
                               });
                             }}
                             className="border-yellow-600/20 hover:bg-yellow-500/10 hover:text-yellow-400 text-stone-400"

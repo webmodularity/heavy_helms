@@ -72,6 +72,9 @@ export class DuelGameStrategy implements GameModeStrategy {
   }
 
   prepareSceneData(): SceneData {
+    // Get backgroundImage from registry if available
+    const backgroundImage = this.scene.game.registry.get("backgroundImage");
+    
     return {
       player1: this.player1,
       player2: this.player2,
@@ -79,6 +82,7 @@ export class DuelGameStrategy implements GameModeStrategy {
       blockNumber: this.blockNumber,
       txId: this.txId,
       decodedCombatBytes: this.decodedCombatBytes,
+      backgroundImage: typeof backgroundImage === "string" ? backgroundImage : undefined,
     };
   }
 }

@@ -14,6 +14,7 @@ export function GlobalFightModal() {
       txId={fightData?.txId}
       logIndex={fightData?.logIndex}
       title={fightData?.title}
+      backgroundImage={fightData?.backgroundImage}
       isLoading={fightData?.isLoading}
       loadingText={fightData?.loadingText}
       challengeId={fightData?.challengeId}

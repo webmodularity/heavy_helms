@@ -60,7 +60,7 @@ export class HealthManager {
       labelPadding: 30,
       staminaGap: 6,
       p1x: 20,
-      p2x: 280, // Moved from 260 to 280 for perfect symmetry (480 - 180 - 20 = 280)
+      p2x: 224, // Adjusted for 424px width (424 - 180 - 20 = 224)
       nudgeFactor: 2,
     };
     this.p1Bars = null;

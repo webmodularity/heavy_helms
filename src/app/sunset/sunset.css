@@ -1,0 +1,86 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+}
+
+.sunset-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(to bottom, #7c2d12, #c2410c, #ea580c);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.sunset-image-wrapper {
+  position: relative;
+  width: 100%;
+  height: 60vh;
+  max-height: 600px;
+}
+
+.sunset-image {
+  object-fit: contain;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.sunset-content {
+  text-align: center;
+  padding: 2rem 1rem;
+  max-width: 800px;
+  width: 100%;
+}
+
+.sunset-title {
+  font-size: clamp(2rem, 8vw, 4rem);
+  font-weight: bold;
+  color: white;
+  margin-bottom: 1rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.sunset-subtitle {
+  font-size: clamp(1.25rem, 4vw, 2rem);
+  color: rgba(255, 255, 255, 0.95);
+  margin-bottom: 2rem;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.sunset-message {
+  font-size: clamp(1rem, 3vw, 1.5rem);
+  color: rgba(255, 255, 255, 0.85);
+  line-height: 1.6;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+.sunset-farewell {
+  font-size: clamp(1rem, 3vw, 1.5rem);
+  color: rgba(255, 255, 255, 0.85);
+  margin-top: 1.5rem;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.5);
+  font-family: system-ui, -apple-system, sans-serif;
+}
+
+@media (max-width: 640px) {
+  .sunset-image-wrapper {
+    height: 50vh;
+  }
+  
+  .sunset-content {
+    padding: 1rem;
+  }
+}

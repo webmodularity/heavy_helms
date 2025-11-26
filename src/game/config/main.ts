@@ -25,8 +25,8 @@ const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
 const config: Phaser.Types.Core.GameConfig = {
   type: isIOS ? Phaser.CANVAS : Phaser.AUTO,
-  width: 480,
-  height: 800,
+  width: 424,
+  height: 695,
   scene: [Boot, Preloader, FightScene],
   physics: {
     default: "arcade",
@@ -37,16 +37,16 @@ const config: Phaser.Types.Core.GameConfig = {
   },
   scale: {
     mode: Phaser.Scale.ENVELOP,
-    width: 480,
-    height: 800,
+    width: 424,
+    height: 695,
     autoCenter: Phaser.Scale.CENTER_BOTH,
     min: {
-      width: 240,
-      height: 400,
+      width: 212,
+      height: 347,
     },
     max: {
-      width: 960,
-      height: 1600,
+      width: 848,
+      height: 1390,
     },
   },
   render: {

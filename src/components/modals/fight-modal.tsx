@@ -13,6 +13,7 @@ interface FightModalProps {
   txId?: string;
   logIndex?: string;
   title?: string;
+  backgroundImage?: string;
   isLoading?: boolean;
   loadingText?: string;
   challengeId?: bigint;
@@ -25,6 +26,7 @@ export function FightModal({
   txId,
   logIndex,
   title = "Battle Arena",
+  backgroundImage,
   isLoading,
   loadingText,
   challengeId,
@@ -80,6 +82,7 @@ export function FightModal({
                 player1={player1}
                 txId={txId}
                 logIndex={logIndex}
+                backgroundImage={backgroundImage}
                 onClose={onClose}
                 title={title}
                 modalId={`fight-modal-${txId || "default"}`}

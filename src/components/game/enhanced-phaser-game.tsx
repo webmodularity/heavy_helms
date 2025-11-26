@@ -17,6 +17,7 @@ interface EnhancedPhaserGameProps {
   player1?: Fighter;
   txId?: string;
   logIndex?: string;
+  backgroundImage?: string;
   onGameReady?: (gameInstance: Phaser.Game) => void;
   onGameDestroyed?: () => void;
   containerId?: string; // Allow custom container ID for modal usage
@@ -30,6 +31,7 @@ const EnhancedPhaserGame = ({
   player1,
   txId,
   logIndex,
+  backgroundImage,
   onGameReady,
   onGameDestroyed,
   containerId = "game-container",
@@ -138,6 +140,9 @@ const EnhancedPhaserGame = ({
             gameInstance.registry.set("logIndex", logIndex);
           }
         }
+        if (backgroundImage) {
+          gameInstance.registry.set("backgroundImage", backgroundImage);
+        }
       }
 
       // Check if this initialization is still valid
@@ -219,6 +224,10 @@ const EnhancedPhaserGame = ({
         gameInstance.registry.set("logIndex", logIndex);
         console.warn(`EnhancedPhaserGame: Invalid logIndex: "${logIndex}"`);
       }
+    }
+
+    if (backgroundImage) {
+      gameInstance.registry.set("backgroundImage", backgroundImage);
     }
 
     const handleSceneReady = (scene_instance: Phaser.Scene) => {
